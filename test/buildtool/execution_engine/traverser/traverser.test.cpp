@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/traverser/traverser.hpp"
@@ -252,9 +253,8 @@ TEST_CASE("Executable", "[traverser]") {
             TestExecutor runner{&build_info};
             Traverser traverser(runner, g, kNumJobs, &failed);
 
-            auto const exec_id = ArtifactFactory::Identifier(
-                ArtifactFactory::DescribeActionArtifact("action",
-                                                        "executable"));
+            auto const exec_id =
+                ArtifactDescription::CreateAction("action", "executable").Id();
             auto const traversed = traverser.Traverse({exec_id});
             CHECK(traversed);
         }
@@ -313,9 +313,9 @@ TEST_CASE("Executable depends on library", "[traverser]") {
         {
             TestExecutor runner{&build_info};
             Traverser traverser(runner, g, kNumJobs, &failed);
-            auto const exec_id = ArtifactFactory::Identifier(
-                ArtifactFactory::DescribeActionArtifact("make_exe",
-                                                        "executable"));
+            auto const exec_id =
+                ArtifactDescription::CreateAction("make_exe", "executable")
+                    .Id();
             CHECK(traverser.Traverse({exec_id}));
         }
         CHECK_FALSE(failed);
@@ -332,8 +332,8 @@ TEST_CASE("Executable depends on library", "[traverser]") {
         CHECK(build_info.Name() == name);
     }
     SECTION("Only build library") {
-        auto const lib_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeActionArtifact("make_lib", "library"));
+        auto const lib_id =
+            ArtifactDescription::CreateAction("make_lib", "library").Id();
         {
             TestExecutor runner{&build_info};
             Traverser traverser(runner, g, kNumJobs, &failed);
@@ -345,10 +345,10 @@ TEST_CASE("Executable depends on library", "[traverser]") {
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
                 {lib_id}));
         CHECK(build_info.IncorrectlyBuilt().empty());
-        auto const lib_cpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("library.cpp", "repo"));
-        auto const lib_hpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("library.hpp", "repo"));
+        auto const lib_cpp_id =
+            ArtifactDescription::CreateLocal("library.cpp", "repo").Id();
+        auto const lib_hpp_id =
+            ArtifactDescription::CreateLocal("library.hpp", "repo").Id();
         CHECK_THAT(
             build_info.ArtifactsUploaded(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
@@ -360,9 +360,10 @@ TEST_CASE("Executable depends on library", "[traverser]") {
 
 TEST_CASE("Two artifacts depend on another", "[traverser]") {
     TestProject p;
-    auto const dep_desc =
-        ArtifactFactory::DescribeActionArtifact("make_dep", "dep");
-    auto const dep_id = ArtifactFactory::Identifier(dep_desc);
+    auto const description =
+        ArtifactDescription::CreateAction("make_dep", "dep");
+    auto const dep_desc = description.ToJson();
+    auto const& dep_id = description.Id();
     CHECK(p.AddOutputInputPair("action1", {"toplevel1"}, {dep_desc}));
     CHECK(p.AddOutputInputPair("action2", {"toplevel2"}, {dep_desc}));
     CHECK(p.AddOutputInputPair(
@@ -396,8 +397,8 @@ TEST_CASE("Two artifacts depend on another", "[traverser]") {
         CHECK(build_info.Name() == name);
     }
     SECTION("Only specified top-level artifact is built") {
-        auto const toplevel1_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeActionArtifact("action1", "toplevel1"));
+        auto const toplevel1_id =
+            ArtifactDescription::CreateAction("action1", "toplevel1").Id();
         {
             TestExecutor runner{&build_info};
             Traverser traverser(runner, g, kNumJobs, &failed);
@@ -421,10 +422,10 @@ TEST_CASE("Two artifacts depend on another", "[traverser]") {
 TEST_CASE("Action with two outputs, no deps", "[traverser]") {
     TestProject p;
     CHECK(p.AddOutputInputPair("make_outputs", {"output1", "output2"}, {}));
-    auto const output1_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output1"));
-    auto const output2_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output2"));
+    auto const output1_id =
+        ArtifactDescription::CreateAction("make_outputs", "output1").Id();
+    auto const output2_id =
+        ArtifactDescription::CreateAction("make_outputs", "output2").Id();
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
@@ -497,10 +498,10 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
         "make_outputs",
         {"output1", "output2"},
         {ArtifactFactory::DescribeLocalArtifact("dep", "repo")}));
-    auto const output1_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output1"));
-    auto const output2_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output2"));
+    auto const output1_id =
+        ArtifactDescription::CreateAction("make_outputs", "output1").Id();
+    auto const output2_id =
+        ArtifactDescription::CreateAction("make_outputs", "output2").Id();
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
     TestBuildInfo build_info;
@@ -565,8 +566,8 @@ TEST_CASE("Action with two outputs, one dep", "[traverser]") {
         CHECK(build_info.Name() == name);
     }
     SECTION("Traverse(dep, output2)") {
-        auto const dep_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("dep", "repo"));
+        auto const dep_id =
+            ArtifactDescription::CreateLocal("dep", "repo").Id();
         {
             TestExecutor runner{&build_info};
             Traverser traverser(runner, g, kNumJobs, &failed);
@@ -591,20 +592,23 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
           "[traverser]") {
     TestProject p;
     CHECK(p.AddOutputInputPair("make_outputs", {"output1", "output2"}, {}));
-    auto const output1_desc =
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output1");
-    auto const output1_id = ArtifactFactory::Identifier(output1_desc);
-    auto const output2_desc =
-        ArtifactFactory::DescribeActionArtifact("make_outputs", "output2");
-    auto const output2_id = ArtifactFactory::Identifier(output2_desc);
+    auto const desc_1 =
+        ArtifactDescription::CreateAction("make_outputs", "output1");
+    auto const output1_desc = desc_1.ToJson();
+    auto const& output1_id = desc_1.Id();
+
+    auto const desc_2 =
+        ArtifactDescription::CreateAction("make_outputs", "output2");
+    auto const output2_desc = desc_2.ToJson();
+    auto const& output2_id = desc_2.Id();
 
     CHECK(p.AddOutputInputPair("consumer1", {"exec1"}, {output1_desc}));
-    auto const exec1_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("consumer1", "exec1"));
+    auto const exec1_id =
+        ArtifactDescription::CreateAction("consumer1", "exec1").Id();
 
     CHECK(p.AddOutputInputPair("consumer2", {"exec2"}, {output2_desc}));
-    auto const exec2_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("consumer2", "exec2"));
+    auto const exec2_id =
+        ArtifactDescription::CreateAction("consumer2", "exec2").Id();
 
     DependencyGraph g;
     CHECK(p.FillGraph(&g));
@@ -692,16 +696,16 @@ TEST_CASE("Action with two outputs, actions depend on each of outputs",
 
 TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
     TestProject p;
-    auto const lib1_desc =
-        ArtifactFactory::DescribeActionArtifact("make_lib1", "lib1");
-    auto const lib1_id = ArtifactFactory::Identifier(lib1_desc);
+    auto const desc_1 = ArtifactDescription::CreateAction("make_lib1", "lib1");
+    auto const lib1_desc = desc_1.ToJson();
+    auto const& lib1_id = desc_1.Id();
 
-    auto const lib2_desc =
-        ArtifactFactory::DescribeActionArtifact("make_lib2", "lib2");
-    auto const lib2_id = ArtifactFactory::Identifier(lib2_desc);
+    auto const desc_2 = ArtifactDescription::CreateAction("make_lib2", "lib2");
+    auto const lib2_desc = desc_2.ToJson();
+    auto const& lib2_id = desc_2.Id();
 
-    auto const exec_id = ArtifactFactory::Identifier(
-        ArtifactFactory::DescribeActionArtifact("make_exe", "executable"));
+    auto const exec_id =
+        ArtifactDescription::CreateAction("make_exe", "executable").Id();
 
     CHECK(p.AddOutputInputPair(
         "make_exe",
@@ -858,14 +862,14 @@ TEST_CASE("lib2 depends on lib1, executable depends on lib1 and lib2") {
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
                 {lib1_id, lib2_id}));
         CHECK(build_info.IncorrectlyBuilt().empty());
-        auto const lib1_hpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("lib1.hpp", "repo"));
-        auto const lib1_cpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("lib1.cpp", "repo"));
-        auto const lib2_hpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("lib2.hpp", "repo"));
-        auto const lib2_cpp_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeLocalArtifact("lib2.cpp", "repo"));
+        auto const lib1_hpp_id =
+            ArtifactDescription::CreateLocal("lib1.hpp", "repo").Id();
+        auto const lib1_cpp_id =
+            ArtifactDescription::CreateLocal("lib1.cpp", "repo").Id();
+        auto const lib2_hpp_id =
+            ArtifactDescription::CreateLocal("lib2.hpp", "repo").Id();
+        auto const lib2_cpp_id =
+            ArtifactDescription::CreateLocal("lib2.cpp", "repo").Id();
         CHECK_THAT(
             build_info.ArtifactsUploaded(),
             HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(

@@ -23,6 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -45,8 +46,8 @@ void CheckOutputNodesCorrectlyAdded(
     std::vector<std::string> const& output_paths) {
     std::vector<ArtifactIdentifier> output_ids;
     for (auto const& path : output_paths) {
-        auto const output_id = ArtifactFactory::Identifier(
-            ArtifactFactory::DescribeActionArtifact(action_id, path));
+        auto const output_id =
+            ArtifactDescription::CreateAction(action_id, path).Id();
         CHECK(g.ArtifactNodeWithId(output_id) != nullptr);
         auto const* action = GetActionOfArtifact(g, output_id);
         CHECK(action != nullptr);
@@ -158,12 +159,11 @@ TEST_CASE("AddAction({single action, single output, source file})", "[dag]") {
     CheckLocalArtifactsCorrectlyAdded(g, {src_id}, {"main.cpp"});
 
     // All artifacts are the source file and the executable
-    CHECK_THAT(g.ArtifactIdentifiers(),
-               HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
-                   {src_id,
-                    ArtifactFactory::Identifier(
-                        ArtifactFactory::DescribeActionArtifact(
-                            action_id, "executable"))}));
+    CHECK_THAT(
+        g.ArtifactIdentifiers(),
+        HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
+            {src_id,
+             ArtifactDescription::CreateAction(action_id, "executable").Id()}));
     CHECK(IsValidGraph(g));
 }
 
@@ -189,11 +189,10 @@ TEST_CASE("AddAction({single action, single output, no inputs, env_variables})",
     CHECK(action_node->Env() == env_vars);
 
     // All artifacts are the output file
-    CHECK_THAT(g.ArtifactIdentifiers(),
-               HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
-                   {ArtifactFactory::Identifier(
-                       ArtifactFactory::DescribeActionArtifact(action_id,
-                                                               "greeting"))}));
+    CHECK_THAT(
+        g.ArtifactIdentifiers(),
+        HasSameUniqueElementsAs<std::unordered_set<ArtifactIdentifier>>(
+            {ArtifactDescription::CreateAction(action_id, "greeting").Id()}));
     CHECK(IsValidGraph(g));
 }
 

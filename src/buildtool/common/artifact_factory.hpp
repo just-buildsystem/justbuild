@@ -34,15 +34,6 @@
 
 class ArtifactFactory {
   public:
-    [[nodiscard]] static auto Identifier(nlohmann::json const& description)
-        -> ArtifactIdentifier {
-        auto desc = ArtifactDescription::FromJson(description);
-        if (desc) {
-            return desc->Id();
-        }
-        return {};
-    }
-
     [[nodiscard]] static auto FromDescription(nlohmann::json const& description)
         -> std::optional<Artifact> {
         auto desc = ArtifactDescription::FromJson(description);

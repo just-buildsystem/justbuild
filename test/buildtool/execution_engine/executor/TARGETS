@@ -24,6 +24,7 @@
   , "srcs": ["executor.test.cpp"]
   , "private-deps":
     [ ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "artifact_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]

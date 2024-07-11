@@ -24,6 +24,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -270,13 +271,13 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    auto const local_cpp_desc =
-        ArtifactFactory::DescribeLocalArtifact("local.cpp", "");
-    auto const local_cpp_id = ArtifactFactory::Identifier(local_cpp_desc);
+    auto const local_cpp_id =
+        ArtifactDescription::CreateLocal("local.cpp", "").Id();
 
-    auto const known_cpp_desc = ArtifactFactory::DescribeKnownArtifact(
-        "known.cpp", 0, ObjectType::File);
-    auto const known_cpp_id = ArtifactFactory::Identifier(known_cpp_desc);
+    auto const known_cpp_id =
+        ArtifactDescription::CreateKnown(
+            ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File)
+            .Id();
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
@@ -344,22 +345,20 @@ TEST_CASE("Executor: Process action", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    auto const local_cpp_desc =
-        ArtifactFactory::DescribeLocalArtifact("local.cpp", "");
-    auto const local_cpp_id = ArtifactFactory::Identifier(local_cpp_desc);
+    auto const local_cpp_id =
+        ArtifactDescription::CreateLocal("local.cpp", "").Id();
 
-    auto const known_cpp_desc = ArtifactFactory::DescribeKnownArtifact(
-        "known.cpp", 0, ObjectType::File);
-    auto const known_cpp_id = ArtifactFactory::Identifier(known_cpp_desc);
+    auto const known_cpp_id =
+        ArtifactDescription::CreateKnown(
+            ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File)
+            .Id();
 
-    ActionIdentifier action_id{"test_action"};
-    auto const output1_desc =
-        ArtifactFactory::DescribeActionArtifact(action_id, "output1.exe");
-    auto const output1_id = ArtifactFactory::Identifier(output1_desc);
+    ActionIdentifier const action_id{"test_action"};
+    auto const output1_id =
+        ArtifactDescription::CreateAction(action_id, "output1.exe").Id();
 
-    auto const output2_desc =
-        ArtifactFactory::DescribeActionArtifact(action_id, "output2.exe");
-    auto const output2_id = ArtifactFactory::Identifier(output2_desc);
+    auto const output2_id =
+        ArtifactDescription::CreateAction(action_id, "output2.exe").Id();
 
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
