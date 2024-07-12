@@ -21,6 +21,9 @@ from typing import Any, Dict, List
 g_RESULTS: Dict[str, List[Any]] = {}
 g_COUNT: float = 0
 
+PASS_count: float = 0
+PASS_time: float = 0
+
 time_start: float = time.time()
 time_stop: float = 0
 
@@ -32,14 +35,19 @@ for attempt in os.listdir("."):
         g_RESULTS[result] = g_RESULTS.get(result, []) + [int(attempt)]
         try:
             with open(os.path.join(attempt, "time-start")) as f:
-                time_start = min(time_start, float(f.read().strip()))
+                start = float(f.read().strip())
+            time_start = min(time_start, start)
         except:
             pass
         try:
             with open(os.path.join(attempt, "time-stop")) as f:
-                time_stop = max(time_start, float(f.read().strip()))
+                stop = float(f.read().strip())
+            time_stop = max(time_start, stop)
         except:
             pass
+        if (start > 0) and (stop >= start) and result == "PASS":
+            PASS_count += 1
+            PASS_time += stop - start
 
 result: str = "UNKNOWN"
 if set(g_RESULTS.keys()) <= set(["PASS", "FAIL"]):
@@ -68,6 +76,9 @@ with open("stdout", "w") as f:
         f.write("\nother results: %r\n" % (g_RESULTS, ))
     if result == "FLAKY":
         f.write("\nFailure rate %5.2f%%\n" % (100.0 * len(failures) / g_COUNT))
+    if PASS_count >= 2:
+        f.write("\nAverage time of a passed test instance: %.1fs\n"
+                % (PASS_time / PASS_count))
 
 with open("stderr", "w") as f:
     pass
