@@ -15,7 +15,6 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -28,13 +27,14 @@ ApiBundle::ApiBundle(
     gsl::not_null<Auth const*> const& authentication,
     gsl::not_null<RetryConfig const*> const& retry_config,
     gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config)
-    : local{std::make_shared<LocalApi>(storage_config,
+    : auth{*authentication},
+      retry_config{*retry_config},
+      remote_config{*remote_exec_config},
+      hash_function{storage_config->hash_function},
+      local{std::make_shared<LocalApi>(storage_config,
                                        storage,
                                        local_exec_config,
-                                       repo_config)},  // needed by remote
-      auth{*authentication},                           // needed by remote
-      retry_config{*retry_config},                     // needed by remote
-      remote_config{*remote_exec_config},
+                                       repo_config)},
       remote{CreateRemote(remote_exec_config->remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
@@ -48,7 +48,7 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
                                           &auth,
                                           &retry_config,
                                           config,
-                                          HashFunction::Instance());
+                                          hash_function);
     }
     return local;
 }

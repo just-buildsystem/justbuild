@@ -37,7 +37,6 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -294,7 +293,7 @@ class GraphTraverser {
         ArtifactBlobContainer container;
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigest::Create<ObjectType::File>(
-                HashFunction::Instance(), blob);
+                apis_.hash_function, blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Uploaded blob {}, its digest has id {} and size {}.",
@@ -364,7 +363,7 @@ class GraphTraverser {
                           &*apis_.remote,
                           platform_properties_,
                           dispatch_list_,
-                          HashFunction::Instance(),
+                          apis_.hash_function,
                           &apis_.auth,
                           &apis_.retry_config,
                           stats_,
@@ -399,7 +398,7 @@ class GraphTraverser {
                            &*api_cached,
                            platform_properties_,
                            dispatch_list_,
-                           HashFunction::Instance(),
+                           apis_.hash_function,
                            &apis_.auth,
                            &apis_.retry_config,
                            stats_,

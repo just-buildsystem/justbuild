@@ -23,6 +23,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -45,10 +46,14 @@ struct ApiBundle final {
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
         const -> gsl::not_null<IExecutionApi::Ptr>;
 
-    gsl::not_null<IExecutionApi::Ptr> const local;  // needed by remote
-    Auth const& auth;                               // needed by remote
-    RetryConfig const& retry_config;                // needed by remote
+    // Needed to be set before creating the remote (via CreateRemote)
+    Auth const& auth;
+    RetryConfig const& retry_config;
     RemoteExecutionConfig const& remote_config;
+    HashFunction const hash_function;
+    // 7 bytes of alignment.
+
+    gsl::not_null<IExecutionApi::Ptr> const local;
     gsl::not_null<IExecutionApi::Ptr> const remote;
 };
 

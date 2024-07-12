@@ -25,7 +25,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "graph_traverser"]
   }
