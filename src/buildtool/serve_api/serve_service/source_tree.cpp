@@ -1159,7 +1159,7 @@ auto SourceTreeService::ServeDistdirTree(
             kv.name(), std::make_pair(blob_digest, kv.executable()));
     }
     // get hash of distdir content; this must match with that in just-mr
-    auto content_id = HashFunction::Instance()
+    auto content_id = HashFunction{HashFunction::JustHash::Native}
                           .ComputeBlobHash(nlohmann::json(content_list).dump())
                           .HexString();
     // create in-memory tree of the distdir, now that we know we have all blobs
