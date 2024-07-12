@@ -156,7 +156,7 @@ template <ObjectType kType>
     }
 
     // Calculate reference hash size:
-    auto const kHashSize = HashFunction::Instance().Hasher().GetHashLength();
+    auto const kHashSize = task.cas.GetHashFunction().Hasher().GetHashLength();
     auto const kFileNameSize =
         kHashSize - FileStorageData::kDirectoryNameLength;
 
@@ -272,7 +272,7 @@ template <ObjectType kType>
 
     // Calculate the digest for the entry:
     auto const digest =
-        ArtifactDigest::CreateFromFile<kType>(HashFunction::Instance(), path);
+        ArtifactDigest::CreateFromFile<kType>(task.cas.GetHashFunction(), path);
     if (not digest) {
         task.Log(LogLevel::Error,
                  "Failed to calculate digest for {}",
