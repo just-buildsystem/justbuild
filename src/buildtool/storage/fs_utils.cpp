@@ -19,7 +19,6 @@
 #include <utility>
 
 #include "nlohmann/json.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -77,7 +76,7 @@ auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
     -> std::filesystem::path {
     return GetDistdirTreeIDFile(
         storage_config,
-        HashFunction::Instance()
+        storage_config.hash_function
             .ComputeBlobHash(
                 nlohmann::json(std::unordered_map<std::string,
                                                   std::pair<std::string, bool>>{

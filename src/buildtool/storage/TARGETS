@@ -110,7 +110,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "file_chunker":
