@@ -63,7 +63,7 @@ class LocalApi final : public IExecutionApi {
         : storage_config_{*storage_config},
           storage_{*storage},
           exec_config_{*exec_config},
-          repo_config_{repo_config} {}
+          git_api_{CreateFallbackApi(repo_config)} {}
 
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
@@ -104,14 +104,8 @@ class LocalApi final : public IExecutionApi {
                 auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not result) {
-                    if (Compatibility::IsCompatible()) {
-                        // result not available, and in compatible mode cannot
-                        // fall back to git
-                        return false;
-                    }
-                    if (repo_config_ != nullptr and
-                        not GitApi(repo_config_)
-                                .RetrieveToPaths({info}, {output_paths[i]})) {
+                    if (git_api_ and not git_api_->RetrieveToPaths(
+                                         {info}, {output_paths[i]})) {
                         return false;
                     }
                 }
@@ -123,14 +117,8 @@ class LocalApi final : public IExecutionApi {
                 auto const blob_path = storage_.CAS().BlobPath(
                     info.digest, IsExecutableObject(info.type));
                 if (not blob_path) {
-                    if (Compatibility::IsCompatible()) {
-                        // infos not available, and in compatible mode cannot
-                        // fall back to git
-                        return false;
-                    }
-                    if (repo_config_ != nullptr and
-                        not GitApi(repo_config_)
-                                .RetrieveToPaths({info}, {output_paths[i]})) {
+                    if (git_api_ and not git_api_->RetrieveToPaths(
+                                         {info}, {output_paths[i]})) {
                         return false;
                     }
                 }
@@ -162,19 +150,10 @@ class LocalApi final : public IExecutionApi {
                                  gsl::not_null<FILE*> const& out) {
                 return dumper.DumpToStream(info, out, raw_tree);
             },
-            [repo_config = repo_config_, &raw_tree](
-                Artifact::ObjectInfo const& info, int fd) {
-                if (Compatibility::IsCompatible()) {
-                    // infos not available, and in compatible mode cannot
-                    // fall back to git
-                    return false;
-                }
-                if (repo_config != nullptr and
-                    not GitApi(repo_config)
-                            .RetrieveToFds({info}, {fd}, raw_tree)) {
-                    return false;
-                }
-                return true;
+            [&git_api = git_api_, &raw_tree](Artifact::ObjectInfo const& info,
+                                             int fd) {
+                return not git_api or
+                       git_api->RetrieveToFds({info}, {fd}, raw_tree);
             });
     }
 
@@ -272,8 +251,8 @@ class LocalApi final : public IExecutionApi {
         if (location) {
             content = FileSystemManager::ReadFile(*location);
         }
-        if ((not content) and repo_config_ != nullptr) {
-            content = GitApi(repo_config_).RetrieveToMemory(artifact_info);
+        if (not content and git_api_) {
+            content = git_api_->RetrieveToMemory(artifact_info);
         }
         return content;
     }
@@ -417,7 +396,15 @@ class LocalApi final : public IExecutionApi {
     StorageConfig const& storage_config_;
     Storage const& storage_;
     LocalExecutionConfig const& exec_config_;
-    RepositoryConfig const* const repo_config_ = nullptr;
+    std::optional<GitApi> const git_api_;
+
+    [[nodiscard]] static auto CreateFallbackApi(
+        RepositoryConfig const* repo_config) noexcept -> std::optional<GitApi> {
+        if (repo_config == nullptr or Compatibility::IsCompatible()) {
+            return std::nullopt;
+        }
+        return GitApi{repo_config};
+    }
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
