@@ -32,7 +32,10 @@ namespace {
 [[nodiscard]] auto InvalidSizeString(std::string const& size_str,
                                      std::string const& hash,
                                      bool has_remote) noexcept -> bool {
-    static auto const kEmptyHash = HashFunction::Instance().ComputeBlobHash("");
+    // Only in compatible mode the size is checked, so an empty SHA256 hash is
+    // needed.
+    static auto const kEmptyHash =
+        HashFunction{HashFunction::JustHash::Compatible}.ComputeBlobHash("");
     return Compatibility::IsCompatible() and          // native mode is fine
            (size_str == "0" or size_str.empty()) and  // not "0" or "" is fine
            kEmptyHash.HexString() != hash and         // empty hash is fine
