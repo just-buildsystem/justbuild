@@ -78,8 +78,16 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     }
 
     // Uplink blob from older generation to the latest generation.
-    return blob_path_latest.has_value() or
-           latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable);
+    if (spliced and is_executable) {
+        // During multithreaded splicing, the main process can be forked
+        // (inheriting open file descriptors). In this case, an executable file
+        // saved using hardlinking becomes inaccessible. To prevent this,
+        // executables must be stored as copies made in a child process.
+        return latest.StoreBlob</*kOwner=*/false>(*blob_path, is_executable)
+            .has_value();
+    }
+    return latest.StoreBlob</*kOwner=*/true>(*blob_path, is_executable)
+        .has_value();
 }
 
 template <bool kDoGlobalUplink>
