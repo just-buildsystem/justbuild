@@ -32,7 +32,7 @@ auto const kRootSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazSymId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 
 TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
-    auto config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(config);
     REQUIRE(config->remote_address);
 

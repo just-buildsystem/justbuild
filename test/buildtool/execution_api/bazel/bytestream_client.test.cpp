@@ -30,7 +30,7 @@ constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 
 TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     auto stream = ByteStreamClient{info->host, info->port, &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
@@ -110,7 +110,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
 TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     auto stream = ByteStreamClient{info->host, info->port, &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());

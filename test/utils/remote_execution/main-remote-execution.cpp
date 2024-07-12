@@ -45,7 +45,7 @@ void wait_for_grpc_to_shutdown() {
     ReadCompatibilityFromEnv();
 
     // Ensure authentication config is available
-    if (not TestAuthConfig::ReadAuthConfigFromEnvironment()) {
+    if (not TestAuthConfig::ReadFromEnvironment()) {
         std::exit(EXIT_FAILURE);
     }
 

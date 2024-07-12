@@ -41,7 +41,7 @@ TEST_CASE("Remote: Output created and contents are correct",
           "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestHelloWorldCopyMessage(
@@ -52,7 +52,7 @@ TEST_CASE("Remote: Output created when entry point is local artifact",
           "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestCopyLocalFile(
@@ -62,7 +62,7 @@ TEST_CASE("Remote: Output created when entry point is local artifact",
 TEST_CASE("Remote: Actions are not re-run", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestSequencePrinterBuildLibraryOnly(
@@ -72,7 +72,7 @@ TEST_CASE("Remote: Actions are not re-run", "[graph_traverser]") {
 TEST_CASE("Remote: KNOWN artifact", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestHelloWorldWithKnownSource(
@@ -82,7 +82,7 @@ TEST_CASE("Remote: KNOWN artifact", "[graph_traverser]") {
 TEST_CASE("Remote: Blobs uploaded and correctly used", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestBlobsUploadedAndUsed(
@@ -93,7 +93,7 @@ TEST_CASE("Remote: Environment variables are set and used",
           "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestEnvironmentVariablesSetAndUsed(
@@ -103,7 +103,7 @@ TEST_CASE("Remote: Environment variables are set and used",
 TEST_CASE("Remote: Trees correctly used", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestTreesUsed(
@@ -113,7 +113,7 @@ TEST_CASE("Remote: Trees correctly used", "[graph_traverser]") {
 TEST_CASE("Remote: Nested trees correctly used", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestNestedTreesUsed(
@@ -123,7 +123,7 @@ TEST_CASE("Remote: Nested trees correctly used", "[graph_traverser]") {
 TEST_CASE("Remote: Detect flaky actions", "[graph_traverser]") {
     StorageConfig const storage_config = CreateConfig();
     auto const storage = Storage::Create(&storage_config);
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestFlakyHelloWorldDetected(

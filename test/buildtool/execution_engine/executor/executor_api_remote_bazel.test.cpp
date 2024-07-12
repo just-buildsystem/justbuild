@@ -28,7 +28,7 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     RepositoryConfig repo_config{};
     ExecutionConfiguration config;
     auto const& info = RemoteExecutionConfig::RemoteAddress();
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestBlobUpload(&repo_config, [&] {
@@ -46,7 +46,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestHelloWorldCompilation(
@@ -73,7 +73,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestGreeterCompilation(
@@ -100,7 +100,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestUploadAndDownloadTrees(
@@ -127,7 +127,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestRetrieveOutputDirectories(

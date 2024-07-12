@@ -26,7 +26,7 @@
 
 class TestAuthConfig final {
   public:
-    [[nodiscard]] static auto ReadAuthConfigFromEnvironment() noexcept
+    [[nodiscard]] static auto ReadFromEnvironment() noexcept
         -> std::optional<Auth> {
         Auth::TLS::Builder tls_builder;
         auto config = tls_builder.SetCACertificate(ReadTLSAuthCACertFromEnv())

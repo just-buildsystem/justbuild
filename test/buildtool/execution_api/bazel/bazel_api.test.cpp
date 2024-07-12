@@ -25,7 +25,7 @@ namespace {
 
 auto const kApiFactory = []() {
     static auto const& server = RemoteExecutionConfig::RemoteAddress();
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     return IExecutionApi::Ptr{new BazelApi{
         "remote-execution", server->host, server->port, &*auth_config, {}}};

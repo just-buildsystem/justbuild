@@ -81,7 +81,7 @@ void wait_for_grpc_to_shutdown() {
     // remote execution, so no need to do those again
 
     // Ensure the config can be read from the environment
-    auto config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto config = TestServeConfig::ReadFromEnvironment();
     if (not config or not config->remote_address) {
         return false;
     }

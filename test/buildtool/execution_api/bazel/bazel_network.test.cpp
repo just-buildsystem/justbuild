@@ -33,7 +33,7 @@ constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     auto const& info = RemoteExecutionConfig::RemoteAddress();
     std::string instance_name{"remote-execution"};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     auto network =
         BazelNetwork{instance_name, info->host, info->port, &*auth_config, {}};
@@ -81,7 +81,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     auto const& info = RemoteExecutionConfig::RemoteAddress();
     std::string instance_name{"remote-execution"};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     auto network =
         BazelNetwork{instance_name, info->host, info->port, &*auth_config, {}};

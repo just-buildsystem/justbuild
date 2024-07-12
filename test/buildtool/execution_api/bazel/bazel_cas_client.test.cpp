@@ -32,7 +32,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("test");
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     // Create CAS client

@@ -30,7 +30,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(content));
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     BazelExecutionClient execution_client(
@@ -102,7 +102,7 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(content));
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     BazelExecutionClient execution_client(

@@ -26,7 +26,7 @@
 
 class TestServeConfig final {
   public:
-    [[nodiscard]] static auto ReadServeConfigFromEnvironment() noexcept
+    [[nodiscard]] static auto ReadFromEnvironment() noexcept
         -> std::optional<RemoteServeConfig> {
         RemoteServeConfig::Builder builder;
         auto config = builder.SetRemoteAddress(ReadRemoteServeAddressFromEnv())

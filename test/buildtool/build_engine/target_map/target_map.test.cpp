@@ -101,7 +101,7 @@ TEST_CASE("simple targets", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -550,7 +550,7 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -644,7 +644,7 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -750,7 +750,7 @@ TEST_CASE("built-in rules", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -966,7 +966,7 @@ TEST_CASE("target reference", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -1115,7 +1115,7 @@ TEST_CASE("trees", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -1228,7 +1228,7 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};
@@ -1400,7 +1400,7 @@ TEST_CASE("wrong arguments", "[target_map]") {
     Statistics stats{};
     Progress exports_progress{};
 
-    auto serve_config = TestServeConfig::ReadServeConfigFromEnvironment();
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(serve_config);
 
     Auth auth{};

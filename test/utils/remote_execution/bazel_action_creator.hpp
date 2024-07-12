@@ -83,7 +83,7 @@
     auto action_id = ArtifactDigest::Create<ObjectType::File>(action_data);
     blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     if (not auth_config) {
         return nullptr;
     }

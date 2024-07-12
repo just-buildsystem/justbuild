@@ -45,7 +45,7 @@ TEST_CASE("Executor<LocalApi>: Compile hello world", "[executor]") {
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     TestHelloWorldCompilation(
         &repo_config,
@@ -65,7 +65,7 @@ TEST_CASE("Executor<LocalApi>: Compile greeter", "[executor]") {
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     TestGreeterCompilation(
         &repo_config,
@@ -85,7 +85,7 @@ TEST_CASE("Executor<LocalApi>: Upload and download trees", "[executor]") {
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     TestUploadAndDownloadTrees(
         &repo_config,
@@ -105,7 +105,7 @@ TEST_CASE("Executor<LocalApi>: Retrieve output directories", "[executor]") {
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
-    auto auth_config = TestAuthConfig::ReadAuthConfigFromEnvironment();
+    auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
     TestRetrieveOutputDirectories(
         &repo_config,
