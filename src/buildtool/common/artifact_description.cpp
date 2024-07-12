@@ -194,7 +194,11 @@ auto ArtifactDescription::ToString(int indent) const noexcept -> std::string {
 auto ArtifactDescription::ComputeId(nlohmann::json const& desc) noexcept
     -> ArtifactIdentifier {
     try {
-        return HashFunction::Instance().ComputeHash(desc.dump()).Bytes();
+        // The type of HashFunction is irrelevant here. It is used for
+        // identification and quick comparison of descriptions. SHA256 is used.
+        return HashFunction{HashFunction::JustHash::Compatible}
+            .ComputeHash(desc.dump())
+            .Bytes();
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "Computing artifact id failed with error:\n{}",
