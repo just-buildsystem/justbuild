@@ -185,10 +185,11 @@ auto BuildMaps::Target::Utils::getTainted(
 }
 
 namespace {
-auto hash_vector(std::vector<std::string> const& vec) -> std::string {
-    auto hasher = HashFunction::Instance().Hasher();
+auto hash_vector(HashFunction hash_function,
+                 std::vector<std::string> const& vec) -> std::string {
+    auto hasher = hash_function.Hasher();
     for (auto const& s : vec) {
-        hasher.Update(HashFunction::Instance().ComputeHash(s).Bytes());
+        hasher.Update(hash_function.ComputeHash(s).Bytes());
     }
     return std::move(hasher).Finalize().Bytes();
 }
@@ -204,12 +205,17 @@ auto BuildMaps::Target::Utils::createAction(
     double timeout_scale,
     const ExpressionPtr& execution_properties_exp,
     const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr {
-    auto hasher = HashFunction::Instance().Hasher();
-    hasher.Update(hash_vector(output_files));
-    hasher.Update(hash_vector(output_dirs));
-    hasher.Update(hash_vector(command));
+    // The type of HashFunction is irrelevant here. It is used for
+    // identification and quick comparison of descriptions. SHA256 is used.
+    HashFunction hash_function{HashFunction::JustHash::Compatible};
+    auto hasher = hash_function.Hasher();
+
+    hasher.Update(hash_vector(hash_function, output_files));
+    hasher.Update(hash_vector(hash_function, output_dirs));
+    hasher.Update(hash_vector(hash_function, command));
     hasher.Update(env->ToHash());
-    hasher.Update(hash_vector(may_fail ? std::vector<std::string>{*may_fail}
+    hasher.Update(hash_vector(hash_function,
+                              may_fail ? std::vector<std::string>{*may_fail}
                                        : std::vector<std::string>{}));
     hasher.Update(no_cache ? std::string{"N"} : std::string{"Y"});
     hasher.Update(fmt::format("{:+24a}", timeout_scale));
