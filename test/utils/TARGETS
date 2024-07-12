@@ -98,7 +98,7 @@
   , "name": ["test_auth_config"]
   , "hdrs": ["remote_execution/test_auth_config.hpp"]
   , "deps":
-    [ ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    [ ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , "test_env"
