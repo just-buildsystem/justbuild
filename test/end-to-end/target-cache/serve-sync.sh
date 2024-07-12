@@ -120,9 +120,9 @@ cat repos.json
 
 # Build all locally, demonstrating the extensional projection and
 # that the export structure is correct.
-"${JUST_MR}" --local-build-root "${LBR_LOCAL}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR_LOCAL}" --just "${JUST}" \
   -L '["env", "PATH='"${PATH}"'"]'  build 2>&1
-"${JUST_MR}" --local-build-root "${LBR_LOCAL}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR_LOCAL}" --just "${JUST}" \
   -L '["env", "PATH='"${PATH}"'"]'  build 2>&1
 
 
@@ -132,7 +132,7 @@ echo
 # Now, with a completely fresh local build root, build the default target, using
 # a serve endpoint which can provide ["@", "lib", "", ""],
 # but not  ["@", "", "", "local"].
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" ${SERVE_ARGS} \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" ${SERVE_ARGS} \
   -L '["env", "PATH='"${PATH}"'"]'  build 2>&1
 
 echo 'remote build (same endpoint)'
@@ -140,7 +140,7 @@ echo
 # Now, when continuing without serve (but still using remote-exection), things
 # should still be in a consistent state, without causing staging conflicts.
 echo
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" ${RE_ARGS} \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" ${RE_ARGS} \
   -L '["env", "PATH='"${PATH}"'"]'  build 2>&1
 
 

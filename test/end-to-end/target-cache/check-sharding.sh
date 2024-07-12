@@ -258,7 +258,7 @@ echo
 mkdir -p result
 
 # Local build has the default TC shard.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -L "${LOCAL_LAUNCHER}" install -o result 2>&1
 if ! grep local result/test.out; then
   echo 'Expected "local" result but found "'$(cat result/test.out)'"'
@@ -268,7 +268,7 @@ echo
 
 # A regular remote endpoint has some different local TC shard client-side than
 # a local build.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -r ${REMOTE_ADDRESS} install -o result 2>&1
 if ! grep remote result/test.out; then
   echo 'Expected "remote" result but found "'$(cat result/test.out)'"'
@@ -279,7 +279,7 @@ echo
 # A serve endpoint that dispatches to the same remote as before will have the
 # same client-side TC shard as if it the build was directly dispatched to said
 # remote.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -R ${SERVE_RE_ADDRESS} -r ${REMOTE_ADDRESS} install -o result 2>&1
 if ! grep remote result/test.out; then
   echo 'Expected "remote" result but found "'$(cat result/test.out)'"'
@@ -288,7 +288,7 @@ fi
 echo
 
 # Serve standalone only shards like a local build on the serve-side.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -R ${SERVE_ADDRESS} install -o result 2>&1
 if ! grep serve result/test.out; then
   echo 'Expected "serve" result but found "'$(cat result/test.out)'"'
@@ -297,7 +297,7 @@ fi
 echo
 
 # Serve standalone can also be used purely as a remote execution endpoint.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -r ${SERVE_ADDRESS} install -o result 2>&1
 if ! grep serve result/test.out; then
   echo 'Expected "serve" result but found "'$(cat result/test.out)'"'
@@ -307,7 +307,7 @@ echo
 
 # Check that rebuilding locally after all these runs picks up the correct TC
 # cache hit.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -L "${LOCAL_LAUNCHER}" install -o result 2>&1
 if ! grep local result/test.out; then
   echo 'Expected "local" result but found "'$(cat result/test.out)'"'
@@ -321,7 +321,7 @@ rm "${REMOTE_BIN_DIR}/endpoint"
 rm "${SERVE_BIN_DIR}/endpoint"
 rm "${SERVE_RE_BIN_DIR}/endpoint"
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -L "${LOCAL_LAUNCHER}" install -o result 2>&1
 if ! grep local result/test.out; then
   echo 'Expected "local" result but found "'$(cat result/test.out)'"'
@@ -329,7 +329,7 @@ if ! grep local result/test.out; then
 fi
 echo
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -r ${REMOTE_ADDRESS} install -o result 2>&1
 if ! grep remote result/test.out; then
   echo 'Expected "remote" result but found "'$(cat result/test.out)'"'
@@ -338,7 +338,7 @@ fi
 grep remote result/test.out
 echo
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -R ${SERVE_RE_ADDRESS} -r ${REMOTE_ADDRESS} install -o result 2>&1
 if ! grep remote result/test.out; then
   echo 'Expected "remote" result but found "'$(cat result/test.out)'"'
@@ -346,7 +346,7 @@ if ! grep remote result/test.out; then
 fi
 echo
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -R ${SERVE_ADDRESS} install -o result 2>&1
 if ! grep serve result/test.out; then
   echo 'Expected "serve" result but found "'$(cat result/test.out)'"'
@@ -354,7 +354,7 @@ if ! grep serve result/test.out; then
 fi
 echo
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" \
   ${ARGS} -r ${SERVE_ADDRESS} install -o result 2>&1
 if ! grep serve result/test.out; then
   echo 'Expected "serve" result but found "'$(cat result/test.out)'"'
