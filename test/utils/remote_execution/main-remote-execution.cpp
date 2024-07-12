@@ -29,6 +29,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 #include "test/utils/test_env.hpp"
 
 namespace {
@@ -41,7 +42,7 @@ void wait_for_grpc_to_shutdown() {
 /// \brief Configure remote execution from test environment. In case the
 /// environment variable is malformed, we write a message and stop execution.
 /// \returns true   If remote execution was successfully configured.
-[[nodiscard]] auto ConfigureRemoteExecution() -> bool {
+void ConfigureRemoteExecution() {
     ReadCompatibilityFromEnv();
 
     // Ensure authentication config is available
@@ -52,19 +53,11 @@ void wait_for_grpc_to_shutdown() {
     HashFunction::SetHashType(Compatibility::IsCompatible()
                                   ? HashFunction::JustHash::Compatible
                                   : HashFunction::JustHash::Native);
-    auto address = ReadRemoteAddressFromEnv();
-    if (address and not RemoteExecutionConfig::SetRemoteAddress(*address)) {
-        Logger::Log(LogLevel::Error, "parsing address '{}' failed.", *address);
+
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    if (not remote_config or remote_config->remote_address == std::nullopt) {
         std::exit(EXIT_FAILURE);
     }
-    for (auto const& property : ReadPlatformPropertiesFromEnv()) {
-        if (not RemoteExecutionConfig::AddPlatformProperty(property)) {
-            Logger::Log(
-                LogLevel::Error, "parsing property '{}' failed.", property);
-            std::exit(EXIT_FAILURE);
-        }
-    }
-    return static_cast<bool>(RemoteExecutionConfig::RemoteAddress());
 }
 
 }  // namespace
@@ -72,9 +65,7 @@ void wait_for_grpc_to_shutdown() {
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
 
-    if (not ConfigureRemoteExecution()) {
-        return EXIT_FAILURE;
-    }
+    ConfigureRemoteExecution();
 
     /**
      * The current implementation of libgit2 uses pthread_key_t incorrectly

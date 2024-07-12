@@ -388,8 +388,7 @@ class GraphTraverser {
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
-        auto api_cached =
-            apis_.CreateRemote(apis_.remote_config.CacheAddress());
+        auto api_cached = apis_.CreateRemote(apis_.remote_config.cache_address);
         Rebuilder executor{repo_config_,
                            &*apis_.local,
                            &*apis_.remote,

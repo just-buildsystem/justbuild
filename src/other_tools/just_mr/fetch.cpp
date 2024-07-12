@@ -397,29 +397,33 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         Logger::Log(LogLevel::Info, "Found {} to fetch", fetchables);
     }
 
-    // setup the APIs for archive fetches; only happens if in native mode
-    JustMR::Utils::SetupRemoteConfig(common_args.remote_execution_address,
-                                     common_args.remote_serve_address);
+    // setup remote execution config
+    auto remote_exec_config = JustMR::Utils::CreateRemoteExecutionConfig(
+        common_args.remote_execution_address, common_args.remote_serve_address);
+    if (not remote_exec_config) {
+        return kExitConfigError;
+    }
 
-    // setup authentication
+    // setup authentication config
     auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
     if (not auth_config) {
         return kExitConfigError;
     }
 
-    // setup local execution
+    // setup local execution config
     auto local_exec_config =
         JustMR::Utils::CreateLocalExecutionConfig(common_args);
     if (not local_exec_config) {
         return kExitConfigError;
     }
 
+    // setup the APIs for archive fetches; only happens if in native mode
     ApiBundle const apis{&storage_config,
                          &storage,
                          &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
-                         &RemoteExecutionConfig::Instance()};
+                         &*remote_exec_config};
 
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;

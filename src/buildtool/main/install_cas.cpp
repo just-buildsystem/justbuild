@@ -76,7 +76,7 @@ namespace {
 auto FetchAndInstallArtifacts(ApiBundle const& apis,
                               FetchArguments const& clargs) -> bool {
     auto object_info = ObjectInfoFromLiberalString(
-        clargs.object_id, apis.remote_config.RemoteAddress().has_value());
+        clargs.object_id, apis.remote_config.remote_address.has_value());
 
     if (clargs.remember) {
         if (not apis.remote->ParallelRetrieveToCas(

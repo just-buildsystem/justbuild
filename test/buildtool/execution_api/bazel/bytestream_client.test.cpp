@@ -25,14 +25,21 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 constexpr std::size_t kLargeSize = GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH + 1;
 
 TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
-    auto stream = ByteStreamClient{info->host, info->port, &*auth_config};
+
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+
+    auto stream = ByteStreamClient{remote_config->remote_address->host,
+                                   remote_config->remote_address->port,
+                                   &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     SECTION("Upload small blob") {
@@ -109,10 +116,16 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 }
 
 TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
-    auto stream = ByteStreamClient{info->host, info->port, &*auth_config};
+
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+
+    auto stream = ByteStreamClient{remote_config->remote_address->host,
+                                   remote_config->remote_address->port,
+                                   &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     SECTION("Upload small blobs") {

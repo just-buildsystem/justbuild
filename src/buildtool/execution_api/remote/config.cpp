@@ -14,32 +14,94 @@
 
 #include "src/buildtool/execution_api/remote/config.hpp"
 
+#include <exception>
 #include <fstream>
-#include <utility>
 
+#include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-[[nodiscard]] auto RemoteExecutionConfig::SetRemoteExecutionDispatch(
-    const std::filesystem::path& filename) noexcept -> bool {
-    try {
-        if (auto dispatch_info = FileSystemManager::ReadFile(filename)) {
-            auto parsed = ParseDispatch(*dispatch_info);
-            if (not parsed) {
-                Logger::Log(LogLevel::Warning, std::move(parsed).error());
-                return false;
-            }
-            Instance().dispatch_ = *std::move(parsed);
-            return true;
+auto RemoteExecutionConfig::Builder::Build() const noexcept
+    -> expected<RemoteExecutionConfig, std::string> {
+    // To not duplicate default arguments in builder, create a default config
+    // and copy arguments from there.
+    RemoteExecutionConfig const default_config;
+
+    // Set remote endpoint.
+    auto remote_address = default_config.remote_address;
+    if (remote_address_raw_.has_value()) {
+        if (not(remote_address = ParseAddress(*remote_address_raw_))) {
+            return unexpected{
+                fmt::format("Failed to set remote endpoint address {}",
+                            nlohmann::json(*remote_address_raw_).dump())};
         }
-        Logger::Log(LogLevel::Warning,
-                    "Failed to read json file {}",
-                    filename.string());
-    } catch (std::exception const& e) {
-        Logger::Log(LogLevel::Warning,
-                    "Failure assigning the endpoint configuration: {}",
-                    e.what());
     }
-    return false;
+    // Set cache endpoint.
+    auto cache_address = default_config.cache_address;
+    if (cache_address_raw_.has_value()) {
+        cache_address = ParseAddress(*cache_address_raw_);
+        // Cache endpoint can be in the usual "host:port" or the literal
+        // "local", so we only fail if we cannot parse a non-"local" string,
+        // because parsing a "local" literal will correctly return a nullopt.
+        bool const is_parsed = cache_address.has_value();
+        bool const is_local = *cache_address_raw_ == "local";
+        if (not is_local and not is_parsed) {
+            return unexpected{
+                fmt::format("Failed to set cache endpoint address {}",
+                            nlohmann::json(*cache_address_raw_).dump())};
+        }
+    }
+    else {
+        // If cache address not explicitly set, it defaults to remote address.
+        cache_address = remote_address;
+    }
+
+    // Set dispatch info.
+    auto dispatch = default_config.dispatch;
+    if (dispatch_file_.has_value()) {
+        try {
+            if (auto dispatch_info =
+                    FileSystemManager::ReadFile(*dispatch_file_)) {
+                auto parsed = ParseDispatch(*dispatch_info);
+                if (not parsed) {
+                    return unexpected{parsed.error()};
+                }
+                dispatch = *std::move(parsed);
+            }
+            else {
+                return unexpected{
+                    fmt::format("Failed to read json file {}",
+                                nlohmann::json(*dispatch_file_).dump())};
+            }
+        } catch (std::exception const& e) {
+            return unexpected{fmt::format(
+                "Assigning the endpoint configuration failed with:\n{}",
+                e.what())};
+        }
+    }
+
+    // Set platform properties.
+    auto platform_properties = default_config.platform_properties;
+    for (auto const& property : platform_properties_raw_) {
+        if (auto pair = ParseProperty(property)) {
+            try {
+                platform_properties.insert(*std::move(pair));
+            } catch (std::exception const& e) {
+                return unexpected{fmt::format("Failed to insert property {}",
+                                              nlohmann::json(property).dump())};
+            }
+        }
+        else {
+            return unexpected{fmt::format("Adding platform property {} failed.",
+                                          nlohmann::json(property).dump())};
+        }
+    }
+
+    return RemoteExecutionConfig{
+        .remote_address = std::move(remote_address),
+        .dispatch = std::move(dispatch),
+        .cache_address = std::move(cache_address),
+        .platform_properties = std::move(platform_properties)};
 }

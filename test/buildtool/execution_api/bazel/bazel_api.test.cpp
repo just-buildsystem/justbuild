@@ -20,59 +20,75 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 namespace {
 
 auto const kApiFactory = []() {
-    static auto const& server = RemoteExecutionConfig::RemoteAddress();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
-    return IExecutionApi::Ptr{new BazelApi{
-        "remote-execution", server->host, server->port, &*auth_config, {}}};
+    return IExecutionApi::Ptr{new BazelApi{"remote-execution",
+                                           remote_config->remote_address->host,
+                                           remote_config->remote_address->port,
+                                           &*auth_config,
+                                           {}}};
 };
 
 }  // namespace
 
 TEST_CASE("BazelAPI: No input, no output", "[execution_api]") {
-    TestNoInputNoOutput(kApiFactory,
-                        RemoteExecutionConfig::PlatformProperties());
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    TestNoInputNoOutput(kApiFactory, remote_config->platform_properties);
 }
 
 TEST_CASE("BazelAPI: No input, create output", "[execution_api]") {
-    TestNoInputCreateOutput(kApiFactory,
-                            RemoteExecutionConfig::PlatformProperties());
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    TestNoInputCreateOutput(kApiFactory, remote_config->platform_properties);
 }
 
 TEST_CASE("BazelAPI: One input copied to output", "[execution_api]") {
-    TestOneInputCopiedToOutput(kApiFactory,
-                               RemoteExecutionConfig::PlatformProperties());
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    TestOneInputCopiedToOutput(kApiFactory, remote_config->platform_properties);
 }
 
 TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
-    TestNonZeroExitCodeCreateOutput(
-        kApiFactory, RemoteExecutionConfig::PlatformProperties());
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    TestNonZeroExitCodeCreateOutput(kApiFactory,
+                                    remote_config->platform_properties);
 }
 
 TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
     TestRetrieveTwoIdenticalTreesToPath(
-        kApiFactory, RemoteExecutionConfig::PlatformProperties(), "two_trees");
+        kApiFactory, remote_config->platform_properties, "two_trees");
 }
 
 TEST_CASE("BazelAPI: Retrieve file and symlink with same content to path",
           "[execution_api]") {
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
     TestRetrieveFileAndSymlinkWithSameContentToPath(
-        kApiFactory,
-        RemoteExecutionConfig::PlatformProperties(),
-        "file_and_symlink");
+        kApiFactory, remote_config->platform_properties, "file_and_symlink");
 }
 
 TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
-    TestRetrieveMixedBlobsAndTrees(kApiFactory,
-                                   RemoteExecutionConfig::PlatformProperties(),
-                                   "blobs_and_trees");
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    TestRetrieveMixedBlobsAndTrees(
+        kApiFactory, remote_config->platform_properties, "blobs_and_trees");
 }
 
 TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
     TestCreateDirPriorToExecution(kApiFactory,
-                                  RemoteExecutionConfig::PlatformProperties());
+                                  remote_config->platform_properties);
 }

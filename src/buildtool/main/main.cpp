@@ -148,45 +148,21 @@ void SetupLogging(LogArguments const& clargs) {
     return std::nullopt;
 }
 
-void SetupRemoteExecutionConfig(EndpointArguments const& eargs,
-                                RebuildArguments const& rargs) {
-    using RemoteConfig = RemoteExecutionConfig;
-    for (auto const& property : eargs.platform_properties) {
-        if (not RemoteConfig::AddPlatformProperty(property)) {
-            Logger::Log(LogLevel::Error,
-                        "Adding platform property '{}' failed.",
-                        property);
-            std::exit(kExitFailure);
-        }
+[[nodiscard]] auto CreateRemoteExecutionConfig(EndpointArguments const& eargs,
+                                               RebuildArguments const& rargs)
+    -> std::optional<RemoteExecutionConfig> {
+    RemoteExecutionConfig::Builder builder;
+    builder.SetRemoteAddress(eargs.remote_execution_address)
+        .SetRemoteExecutionDispatch(eargs.remote_execution_dispatch_file)
+        .SetPlatformProperties(eargs.platform_properties)
+        .SetCacheAddress(rargs.cache_endpoint);
+
+    auto config = builder.Build();
+    if (config) {
+        return *std::move(config);
     }
-    if (eargs.remote_execution_address) {
-        if (not RemoteConfig::SetRemoteAddress(
-                *eargs.remote_execution_address)) {
-            Logger::Log(LogLevel::Error,
-                        "Setting remote execution address '{}' failed.",
-                        *eargs.remote_execution_address);
-            std::exit(kExitFailure);
-        }
-    }
-    if (eargs.remote_execution_dispatch_file) {
-        if (not RemoteConfig::SetRemoteExecutionDispatch(
-                *eargs.remote_execution_dispatch_file)) {
-            Logger::Log(
-                LogLevel::Error,
-                "Setting remote execution dispatch based on file '{}' failed.",
-                eargs.remote_execution_dispatch_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (rargs.cache_endpoint) {
-        if (not(RemoteConfig::SetCacheAddress(*rargs.cache_endpoint) ==
-                (*rargs.cache_endpoint != "local"))) {
-            Logger::Log(LogLevel::Error,
-                        "Setting cache endpoint address '{}' failed.",
-                        *rargs.cache_endpoint);
-            std::exit(kExitFailure);
-        }
-    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
 }
 
 [[nodiscard]] auto CreateServeConfig(ServeArguments const& srvargs,
@@ -295,12 +271,14 @@ void SetupFileChunker() {
 
 /// \brief Write backend description (which determines the target cache shard)
 /// to CAS.
-void StoreTargetCacheShard(StorageConfig const& storage_config,
-                           Storage const& storage) noexcept {
+void StoreTargetCacheShard(
+    StorageConfig const& storage_config,
+    Storage const& storage,
+    RemoteExecutionConfig const& remote_exec_config) noexcept {
     auto backend_description =
-        DescribeBackend(RemoteExecutionConfig::RemoteAddress(),
-                        RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList());
+        DescribeBackend(remote_exec_config.remote_address,
+                        remote_exec_config.platform_properties,
+                        remote_exec_config.dispatch);
     if (not backend_description) {
         Logger::Log(LogLevel::Error, backend_description.error());
         std::exit(kExitFailure);
@@ -841,8 +819,6 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
-        SetupRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
-
         auto serve_config = CreateServeConfig(
             arguments.serve, arguments.common, arguments.build, arguments.tc);
         if (not serve_config) {
@@ -856,17 +832,25 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
+            // Set up remote execution config.
+            auto remote_exec_config = CreateRemoteExecutionConfig(
+                arguments.endpoint, arguments.rebuild);
+            if (not remote_exec_config) {
+                return kExitFailure;
+            }
+
             // Set up storage for server-side operation.
             auto const storage_config =
                 CreateStorageConfig(arguments.endpoint,
-                                    RemoteExecutionConfig::RemoteAddress(),
-                                    RemoteExecutionConfig::PlatformProperties(),
-                                    RemoteExecutionConfig::DispatchList());
+                                    remote_exec_config->remote_address,
+                                    remote_exec_config->platform_properties,
+                                    remote_exec_config->dispatch);
             if (not storage_config) {
                 return kExitFailure;
             }
             auto const storage = Storage::Create(&*storage_config);
-            StoreTargetCacheShard(*storage_config, storage);
+            StoreTargetCacheShard(
+                *storage_config, storage, *remote_exec_config);
 
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
@@ -874,7 +858,7 @@ auto main(int argc, char* argv[]) -> int {
                                       &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
-                                      &RemoteExecutionConfig::Instance()};
+                                      &*remote_exec_config};
             if (not ServerImpl::Instance().Run(
                     *storage_config, storage, exec_apis)) {
                 return kExitFailure;
@@ -889,27 +873,36 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.service.info_file,
                                         arguments.service.pid_file);
             if (serve_server) {
+                // Set up remote execution config.
+                auto remote_exec_config = CreateRemoteExecutionConfig(
+                    arguments.endpoint, arguments.rebuild);
+                if (not remote_exec_config) {
+                    return kExitFailure;
+                }
+
                 // Set up storage for server-side operation.
-                auto const storage_config = CreateStorageConfig(
-                    arguments.endpoint,
-                    RemoteExecutionConfig::RemoteAddress(),
-                    RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList());
+                auto const storage_config =
+                    CreateStorageConfig(arguments.endpoint,
+                                        remote_exec_config->remote_address,
+                                        remote_exec_config->platform_properties,
+                                        remote_exec_config->dispatch);
                 if (not storage_config) {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
-                StoreTargetCacheShard(*storage_config, storage);
+                StoreTargetCacheShard(
+                    *storage_config, storage, *remote_exec_config);
 
                 ApiBundle const serve_apis{&*storage_config,
                                            &storage,
                                            &*local_exec_config,
                                            /*repo_config=*/nullptr,
                                            &*auth_config,
-                                           &RemoteExecutionConfig::Instance()};
+                                           &*remote_exec_config};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
-                bool with_execute = not RemoteExecutionConfig::RemoteAddress();
+                bool with_execute =
+                    not remote_exec_config->remote_address.has_value();
                 return serve_server->Run(*serve_config,
                                          *storage_config,
                                          storage,
@@ -924,19 +917,23 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         // If no execution endpoint was given, the client should default to the
-        // serve endpoint, if given
-        if (not RemoteExecutionConfig::RemoteAddress() and
-            arguments.serve.remote_serve_address) {
-            if (!RemoteExecutionConfig::SetRemoteAddress(
-                    *arguments.serve.remote_serve_address)) {
-                Logger::Log(LogLevel::Error,
-                            "Setting remote execution address '{}' failed.",
-                            *arguments.serve.remote_serve_address);
-                std::exit(kExitFailure);
-            }
+        // serve endpoint, if given.
+        if (not arguments.endpoint.remote_execution_address.has_value() and
+            arguments.serve.remote_serve_address.has_value()) {
+            // replace the remote execution address
+            arguments.endpoint.remote_execution_address =
+                *arguments.serve.remote_serve_address;
+            // Inform user of the change
             Logger::Log(LogLevel::Info,
                         "Using '{}' as the remote execution endpoint.",
                         *arguments.serve.remote_serve_address);
+        }
+
+        // Set up remote execution config.
+        auto remote_exec_config =
+            CreateRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
+        if (not remote_exec_config) {
+            return kExitFailure;
         }
 
         // Set up storage for client-side operation. This needs to have all the
@@ -944,9 +941,9 @@ auto main(int argc, char* argv[]) -> int {
         // correctly-sharded target cache.
         auto const storage_config =
             CreateStorageConfig(arguments.endpoint,
-                                RemoteExecutionConfig::RemoteAddress(),
-                                RemoteExecutionConfig::PlatformProperties(),
-                                RemoteExecutionConfig::DispatchList());
+                                remote_exec_config->remote_address,
+                                remote_exec_config->platform_properties,
+                                remote_exec_config->dispatch);
 #else
         // For bootstrapping the TargetCache sharding is not needed, so we can
         // default all execution arguments.
@@ -958,7 +955,7 @@ auto main(int argc, char* argv[]) -> int {
         auto const storage = Storage::Create(&*storage_config);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        StoreTargetCacheShard(*storage_config, storage);
+        StoreTargetCacheShard(*storage_config, storage, *remote_exec_config);
 #endif  // BOOTSTRAP_BUILD_TOOL
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
@@ -989,15 +986,15 @@ auto main(int argc, char* argv[]) -> int {
                                   &*local_exec_config,
                                   &repo_config,
                                   &*auth_config,
-                                  &RemoteExecutionConfig::Instance()};
+                                  &*remote_exec_config};
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),
              std::move(stage_args),
              std::move(rebuild_args)},
             &repo_config,
-            RemoteExecutionConfig::PlatformProperties(),
-            RemoteExecutionConfig::DispatchList(),
+            remote_exec_config->platform_properties,
+            remote_exec_config->dispatch,
             &stats,
             &progress,
             &main_apis,

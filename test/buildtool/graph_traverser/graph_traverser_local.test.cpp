@@ -14,6 +14,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
@@ -24,73 +25,88 @@ TEST_CASE("Local: Output created when entry point is local artifact",
           "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestCopyLocalFile(storage_config.Get(), storage, &auth);
+    TestCopyLocalFile(storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Output created and contents are correct",
           "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestHelloWorldCopyMessage(storage_config.Get(), storage, &auth);
+    TestHelloWorldCopyMessage(
+        storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Actions are not re-run", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestSequencePrinterBuildLibraryOnly(storage_config.Get(), storage, &auth);
+    TestSequencePrinterBuildLibraryOnly(
+        storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: KNOWN artifact", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestHelloWorldWithKnownSource(storage_config.Get(), storage, &auth);
+    TestHelloWorldWithKnownSource(
+        storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Blobs uploaded and correctly used", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestBlobsUploadedAndUsed(storage_config.Get(), storage, &auth);
+    TestBlobsUploadedAndUsed(
+        storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Environment variables are set and used",
           "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestEnvironmentVariablesSetAndUsed(storage_config.Get(), storage, &auth);
+    TestEnvironmentVariablesSetAndUsed(
+        storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Trees correctly used", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestTreesUsed(storage_config.Get(), storage, &auth);
+    TestTreesUsed(storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Nested trees correctly used", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestNestedTreesUsed(storage_config.Get(), storage, &auth);
+    TestNestedTreesUsed(storage_config.Get(), storage, &auth, &remote_config);
 }
 
 TEST_CASE("Local: Detect flaky actions", "[graph_traverser]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    Auth auth{}; /*no TLS needed*/
+    Auth auth{};                           /*no TLS needed*/
+    RemoteExecutionConfig remote_config{}; /*no remote*/
 
-    TestFlakyHelloWorldDetected(storage_config.Get(), storage, &auth);
+    TestFlakyHelloWorldDetected(
+        storage_config.Get(), storage, &auth, &remote_config);
 }

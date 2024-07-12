@@ -21,10 +21,9 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/bazel_action_creator.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
-
     std::string instance_name{"remote-execution"};
     std::string content("test");
     auto test_digest = static_cast<bazel_re::Digest>(
@@ -33,8 +32,13 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
-    BazelExecutionClient execution_client(
-        info->host, info->port, &*auth_config);
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+
+    BazelExecutionClient execution_client(remote_config->remote_address->host,
+                                          remote_config->remote_address->port,
+                                          &*auth_config);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -44,7 +48,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
             CreateAction(instance_name,
                          {"echo", "-n", content},
                          {},
-                         RemoteExecutionConfig::PlatformProperties());
+                         remote_config->platform_properties);
         REQUIRE(action_immediate);
 
         auto response = execution_client.Execute(
@@ -63,7 +67,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
             CreateAction(instance_name,
                          {"sh", "-c", "sleep 1s; echo -n test"},
                          {},
-                         RemoteExecutionConfig::PlatformProperties());
+                         remote_config->platform_properties);
 
         SECTION("Blocking, immediately obtain result") {
             auto response = execution_client.Execute(
@@ -95,8 +99,6 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
 
 TEST_CASE("Bazel internals: Execution Client using env variables",
           "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
-
     std::string instance_name{"remote-execution"};
     std::string content("contents of env variable");
     auto test_digest = static_cast<bazel_re::Digest>(
@@ -105,8 +107,13 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
-    BazelExecutionClient execution_client(
-        info->host, info->port, &*auth_config);
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+
+    BazelExecutionClient execution_client(remote_config->remote_address->host,
+                                          remote_config->remote_address->port,
+                                          &*auth_config);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -114,7 +121,7 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
         CreateAction(instance_name,
                      {"/bin/sh", "-c", "set -e\necho -n ${MYTESTVAR}"},
                      {{"MYTESTVAR", content}},
-                     RemoteExecutionConfig::PlatformProperties());
+                     remote_config->platform_properties);
     REQUIRE(action);
 
     auto response =

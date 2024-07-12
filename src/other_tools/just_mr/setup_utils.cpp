@@ -233,23 +233,23 @@ auto CreateLocalExecutionConfig(MultiRepoCommonArguments const& cargs) noexcept
     return std::nullopt;
 }
 
-void SetupRemoteConfig(
+auto CreateRemoteExecutionConfig(
     std::optional<std::string> const& remote_exec_addr,
-    std::optional<std::string> const& remote_serve_addr) noexcept {
+    std::optional<std::string> const& remote_serve_addr) noexcept
+    -> std::optional<RemoteExecutionConfig> {
     // if only a serve endpoint address is given, we assume it is one that acts
     // also as remote-execution
     auto remote_addr = remote_exec_addr ? remote_exec_addr : remote_serve_addr;
-    if (not remote_addr) {
-        return;
+
+    RemoteExecutionConfig::Builder builder;
+    auto config = builder.SetRemoteAddress(remote_addr).Build();
+
+    if (config) {
+        return *std::move(config);
     }
 
-    // setup remote
-    if (not RemoteExecutionConfig::SetRemoteAddress(*remote_addr)) {
-        Logger::Log(LogLevel::Error,
-                    "setting remote execution address '{}' failed.",
-                    *remote_addr);
-        std::exit(kExitConfigError);
-    }
+    Logger::Log(LogLevel::Error, config.error());
+    return std::nullopt;
 }
 
 auto CreateServeConfig(

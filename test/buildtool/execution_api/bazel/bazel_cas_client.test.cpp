@@ -25,10 +25,9 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
-
     std::string instance_name{"remote-execution"};
     std::string content("test");
 
@@ -36,7 +35,12 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     REQUIRE(auth_config);
 
     // Create CAS client
-    BazelCasClient cas_client(info->host, info->port, &*auth_config);
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+    BazelCasClient cas_client(remote_config->remote_address->host,
+                              remote_config->remote_address->port,
+                              &*auth_config);
 
     SECTION("Valid digest and blob") {
         // digest of "test"

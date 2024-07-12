@@ -31,7 +31,7 @@ ApiBundle::ApiBundle(
                                        repo_config)},  // needed by remote
       auth{*authentication},                           // needed by remote
       remote_config{*remote_exec_config},              // needed by remote
-      remote{CreateRemote(remote_exec_config->RemoteAddress())} {}
+      remote{CreateRemote(remote_exec_config->remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
     -> gsl::not_null<IExecutionApi::Ptr> {

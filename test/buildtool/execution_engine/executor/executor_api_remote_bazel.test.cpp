@@ -23,17 +23,25 @@
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     RepositoryConfig repo_config{};
     ExecutionConfiguration config;
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
+
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
     TestBlobUpload(&repo_config, [&] {
-        return BazelApi::Ptr{new BazelApi{
-            "remote-execution", info->host, info->port, &*auth_config, config}};
+        return BazelApi::Ptr{new BazelApi{"remote-execution",
+                                          remote_config->remote_address->host,
+                                          remote_config->remote_address->port,
+                                          &*auth_config,
+                                          config}};
     });
 }
 
@@ -44,7 +52,9 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -54,11 +64,12 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{"remote-execution",
-                                              info->host,
-                                              info->port,
-                                              &*auth_config,
-                                              config}};
+            return BazelApi::Ptr{
+                new BazelApi{"remote-execution",
+                             remote_config->remote_address->host,
+                             remote_config->remote_address->port,
+                             &*auth_config,
+                             config}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -71,7 +82,9 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -81,11 +94,12 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{"remote-execution",
-                                              info->host,
-                                              info->port,
-                                              &*auth_config,
-                                              config}};
+            return BazelApi::Ptr{
+                new BazelApi{"remote-execution",
+                             remote_config->remote_address->host,
+                             remote_config->remote_address->port,
+                             &*auth_config,
+                             config}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -98,7 +112,9 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -108,11 +124,12 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{"remote-execution",
-                                              info->host,
-                                              info->port,
-                                              &*auth_config,
-                                              config}};
+            return BazelApi::Ptr{
+                new BazelApi{"remote-execution",
+                             remote_config->remote_address->host,
+                             remote_config->remote_address->port,
+                             &*auth_config,
+                             config}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -125,7 +142,9 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
 
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -135,11 +154,12 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{new BazelApi{"remote-execution",
-                                              info->host,
-                                              info->port,
-                                              &*auth_config,
-                                              config}};
+            return BazelApi::Ptr{
+                new BazelApi{"remote-execution",
+                             remote_config->remote_address->host,
+                             remote_config->remote_address->port,
+                             &*auth_config,
+                             config}};
         },
         &*auth_config,
         false /* not hermetic */);

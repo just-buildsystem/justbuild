@@ -29,6 +29,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 [[nodiscard]] static inline auto CreateAction(
     std::string const& instance_name,
@@ -36,8 +37,6 @@
     std::map<std::string, std::string> const& env_vars,
     std::map<std::string, std::string> const& properties) noexcept
     -> std::unique_ptr<bazel_re::Digest> {
-    auto const& info = RemoteExecutionConfig::RemoteAddress();
-
     auto platform = std::make_unique<bazel_re::Platform>();
     for (auto const& [name, value] : properties) {
         bazel_re::Platform_Property property;
@@ -88,7 +87,14 @@
         return nullptr;
     }
 
-    BazelCasClient cas_client(info->host, info->port, &*auth_config);
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    if (not remote_config or not remote_config->remote_address) {
+        return nullptr;
+    }
+
+    BazelCasClient cas_client(remote_config->remote_address->host,
+                              remote_config->remote_address->port,
+                              &*auth_config);
 
     std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
     blob_ptrs.reserve(blobs.size());

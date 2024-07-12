@@ -14,6 +14,7 @@
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
@@ -74,6 +75,7 @@
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]
     , ["utils", "test_auth_config"]
+    , ["utils", "test_remote_config"]
     , ["@", "catch2", "", "catch2"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]

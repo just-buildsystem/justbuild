@@ -161,6 +161,7 @@ class TestProject {
     StorageConfig const& storage_config,
     Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
     bool is_hermetic = true) {
     TestProject p("hello_world_copy_message");
 
@@ -173,11 +174,11 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             &stats,
                             &progress,
                             &apis,
@@ -205,16 +206,15 @@ class TestProject {
                              &local_exec_config,
                              p.GetRepoConfig(),
                              auth,
-                             &RemoteExecutionConfig::Instance()};
-        GraphTraverser const gt_get_exec{
-            clargs_exec.gtargs,
-            p.GetRepoConfig(),
-            RemoteExecutionConfig::PlatformProperties(),
-            RemoteExecutionConfig::DispatchList(),
-            &stats,
-            &progress,
-            &apis,
-            [](auto done, auto cv) {}};
+                             remote_config};
+        GraphTraverser const gt_get_exec{clargs_exec.gtargs,
+                                         p.GetRepoConfig(),
+                                         remote_config->platform_properties,
+                                         remote_config->dispatch,
+                                         &stats,
+                                         &progress,
+                                         &apis,
+                                         [](auto done, auto cv) {}};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
@@ -237,6 +237,7 @@ class TestProject {
     StorageConfig const& storage_config,
     Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
     bool is_hermetic = true) {
     TestProject p("copy_local_file");
 
@@ -249,11 +250,11 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             &stats,
                             &progress,
                             &apis,
@@ -275,6 +276,7 @@ class TestProject {
     StorageConfig const& storage_config,
     Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
     bool is_hermetic = true) {
     TestProject p("sequence_printer_build_library_only");
 
@@ -287,11 +289,11 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             &stats,
                             &progress,
                             &apis,
@@ -304,15 +306,14 @@ class TestProject {
     CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
-    GraphTraverser const gt_full_build{
-        clargs_full_build.gtargs,
-        p.GetRepoConfig(),
-        RemoteExecutionConfig::PlatformProperties(),
-        RemoteExecutionConfig::DispatchList(),
-        &stats,
-        &progress,
-        &apis,
-        [](auto done, auto cv) {}};
+    GraphTraverser const gt_full_build{clargs_full_build.gtargs,
+                                       p.GetRepoConfig(),
+                                       remote_config->platform_properties,
+                                       remote_config->dispatch,
+                                       &stats,
+                                       &progress,
+                                       &apis,
+                                       [](auto done, auto cv) {}};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
@@ -333,6 +334,7 @@ class TestProject {
     StorageConfig const& storage_config,
     Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
     bool is_hermetic = true) {
     TestProject full_hello_world("hello_world_copy_message");
 
@@ -346,11 +348,11 @@ class TestProject {
                          &local_exec_config,
                          full_hello_world.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
-                                   RemoteExecutionConfig::PlatformProperties(),
-                                   RemoteExecutionConfig::DispatchList(),
+                                   remote_config->platform_properties,
+                                   remote_config->dispatch,
                                    &stats,
                                    &progress,
                                    &apis,
@@ -372,8 +374,8 @@ class TestProject {
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs,
                             full_hello_world.GetRepoConfig(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             &stats,
                             &progress,
                             &apis,
@@ -394,10 +396,12 @@ class TestProject {
     }
 }
 
-static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
-                                     Storage const& storage,
-                                     gsl::not_null<Auth const*> const& auth,
-                                     bool is_hermetic = true) {
+static void TestBlobsUploadedAndUsed(
+    StorageConfig const& storage_config,
+    Storage const& storage,
+    gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
+    bool is_hermetic = true) {
     TestProject p("use_uploaded_blobs");
     auto const clargs = p.CmdLineArgs();
 
@@ -409,11 +413,11 @@ static void TestBlobsUploadedAndUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      RemoteExecutionConfig::PlatformProperties(),
-                      RemoteExecutionConfig::DispatchList(),
+                      remote_config->platform_properties,
+                      remote_config->dispatch,
                       &stats,
                       &progress,
                       &apis,
@@ -443,6 +447,7 @@ static void TestEnvironmentVariablesSetAndUsed(
     StorageConfig const& storage_config,
     Storage const& storage,
     gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
     bool is_hermetic = true) {
     TestProject p("use_env_variables");
     auto const clargs = p.CmdLineArgs();
@@ -455,11 +460,11 @@ static void TestEnvironmentVariablesSetAndUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      RemoteExecutionConfig::PlatformProperties(),
-                      RemoteExecutionConfig::DispatchList(),
+                      remote_config->platform_properties,
+                      remote_config->dispatch,
                       &stats,
                       &progress,
                       &apis,
@@ -485,10 +490,12 @@ static void TestEnvironmentVariablesSetAndUsed(
     }
 }
 
-static void TestTreesUsed(StorageConfig const& storage_config,
-                          Storage const& storage,
-                          gsl::not_null<Auth const*> const& auth,
-                          bool is_hermetic = true) {
+static void TestTreesUsed(
+    StorageConfig const& storage_config,
+    Storage const& storage,
+    gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
+    bool is_hermetic = true) {
     TestProject p("use_trees");
     auto const clargs = p.CmdLineArgs();
 
@@ -500,11 +507,11 @@ static void TestTreesUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      RemoteExecutionConfig::PlatformProperties(),
-                      RemoteExecutionConfig::DispatchList(),
+                      remote_config->platform_properties,
+                      remote_config->dispatch,
                       &stats,
                       &progress,
                       &apis,
@@ -530,10 +537,12 @@ static void TestTreesUsed(StorageConfig const& storage_config,
     }
 }
 
-static void TestNestedTreesUsed(StorageConfig const& storage_config,
-                                Storage const& storage,
-                                gsl::not_null<Auth const*> const& auth,
-                                bool is_hermetic = true) {
+static void TestNestedTreesUsed(
+    StorageConfig const& storage_config,
+    Storage const& storage,
+    gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
+    bool is_hermetic = true) {
     TestProject p("use_nested_trees");
     auto const clargs = p.CmdLineArgs();
 
@@ -545,11 +554,11 @@ static void TestNestedTreesUsed(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      RemoteExecutionConfig::PlatformProperties(),
-                      RemoteExecutionConfig::DispatchList(),
+                      remote_config->platform_properties,
+                      remote_config->dispatch,
                       &stats,
                       &progress,
                       &apis,
@@ -575,10 +584,12 @@ static void TestNestedTreesUsed(StorageConfig const& storage_config,
     }
 }
 
-static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
-                                        Storage const& storage,
-                                        gsl::not_null<Auth const*> const& auth,
-                                        bool /*is_hermetic*/ = true) {
+static void TestFlakyHelloWorldDetected(
+    StorageConfig const& storage_config,
+    Storage const& storage,
+    gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
+    bool /*is_hermetic*/ = true) {
     TestProject p("flaky_hello_world");
 
     auto const local_exec_config = CreateLocalExecConfig();
@@ -589,14 +600,14 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RemoteExecutionConfig::Instance()};
+                         remote_config};
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{clargs.gtargs,
                                 p.GetRepoConfig(),
-                                RemoteExecutionConfig::PlatformProperties(),
-                                RemoteExecutionConfig::DispatchList(),
+                                remote_config->platform_properties,
+                                remote_config->dispatch,
                                 &stats,
                                 &progress,
                                 &apis,
@@ -616,8 +627,8 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
     clargs_output.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_output{clargs_output.gtargs,
                                    p.GetRepoConfig(),
-                                   RemoteExecutionConfig::PlatformProperties(),
-                                   RemoteExecutionConfig::DispatchList(),
+                                   remote_config->platform_properties,
+                                   remote_config->dispatch,
                                    &stats,
                                    &progress,
                                    &apis,
@@ -632,15 +643,14 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
     // make_exe[flaky]->make_output[miss]->strip_time [miss]
     auto clargs_stripped = p.CmdLineArgs("_entry_points_stripped");
     clargs_stripped.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_stripped{
-        clargs_stripped.gtargs,
-        p.GetRepoConfig(),
-        RemoteExecutionConfig::PlatformProperties(),
-        RemoteExecutionConfig::DispatchList(),
-        &stats,
-        &progress,
-        &apis,
-        [](auto done, auto cv) {}};
+    GraphTraverser const gt_stripped{clargs_stripped.gtargs,
+                                     p.GetRepoConfig(),
+                                     remote_config->platform_properties,
+                                     remote_config->dispatch,
+                                     &stats,
+                                     &progress,
+                                     &apis,
+                                     [](auto done, auto cv) {}};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -653,8 +663,8 @@ static void TestFlakyHelloWorldDetected(StorageConfig const& storage_config,
     clargs_ctimes.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_ctimes{clargs_ctimes.gtargs,
                                    p.GetRepoConfig(),
-                                   RemoteExecutionConfig::PlatformProperties(),
-                                   RemoteExecutionConfig::DispatchList(),
+                                   remote_config->platform_properties,
+                                   remote_config->dispatch,
                                    &stats,
                                    &progress,
                                    &apis,

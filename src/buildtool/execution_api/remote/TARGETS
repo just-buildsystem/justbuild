@@ -95,11 +95,13 @@
   , "srcs": ["config.cpp"]
   , "deps":
     [ ["src/buildtool/common/remote", "remote_common"]
-    , ["@", "json", "", "json"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]

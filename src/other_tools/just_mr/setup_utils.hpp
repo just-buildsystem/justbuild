@@ -25,6 +25,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
@@ -70,9 +71,10 @@ void DefaultReachableRepositories(
     MultiRepoCommonArguments const& cargs) noexcept
     -> std::optional<LocalExecutionConfig>;
 
-void SetupRemoteConfig(
+[[nodiscard]] auto CreateRemoteExecutionConfig(
     std::optional<std::string> const& remote_exec_addr,
-    std::optional<std::string> const& remote_serve_addr) noexcept;
+    std::optional<std::string> const& remote_serve_addr) noexcept
+    -> std::optional<RemoteExecutionConfig>;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.
 /// \returns RemoteServeConfig if initialization was successful or std::nullopt

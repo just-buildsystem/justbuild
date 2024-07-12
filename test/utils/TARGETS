@@ -15,6 +15,7 @@
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , "test_env"
     , "test_auth_config"
+    , "test_remote_config"
     ]
   , "stage": ["test", "utils"]
   }
@@ -78,6 +79,7 @@
     , "log_config"
     , "test_env"
     , "test_auth_config"
+    , "test_remote_config"
     ]
   , "stage": ["test", "utils"]
   }
@@ -99,6 +101,18 @@
   , "hdrs": ["remote_execution/test_auth_config.hpp"]
   , "deps":
     [ ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    , "test_env"
+    ]
+  , "stage": ["test", "utils"]
+  }
+, "test_remote_config":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["test_remote_config"]
+  , "hdrs": ["remote_execution/test_remote_config.hpp"]
+  , "deps":
+    [ ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , "test_env"

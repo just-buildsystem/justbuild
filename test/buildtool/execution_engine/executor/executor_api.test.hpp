@@ -34,6 +34,7 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "test/utils/remote_execution/test_remote_config.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 
@@ -124,12 +125,15 @@ static inline void RunHelloWorldCompilation(
     CHECK(g.AddAction(make_hello_desc));
     CHECK(g.ArtifactNodeWithId(exec_id)->HasBuilderAction());
 
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList(),
+                    remote_config->platform_properties,
+                    remote_config->dispatch,
                     auth,
                     stats,
                     progress};
@@ -247,12 +251,15 @@ static inline void RunGreeterCompilation(
     DependencyGraph g;
     CHECK(g.Add({compile_greet_desc, make_lib_desc, make_exe_desc}));
 
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList(),
+                    remote_config->platform_properties,
+                    remote_config->dispatch,
                     auth,
                     stats,
                     progress};
@@ -411,11 +418,14 @@ static inline void TestUploadAndDownloadTrees(
     auto foo_id = g.AddArtifact(foo_desc);
     auto bar_id = g.AddArtifact(bar_desc);
 
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    RemoteExecutionConfig::PlatformProperties(),
-                    RemoteExecutionConfig::DispatchList(),
+                    remote_config->platform_properties,
+                    remote_config->dispatch,
                     auth,
                     stats,
                     progress};
@@ -560,6 +570,9 @@ static inline void TestRetrieveOutputDirectories(
             {}};
     };
 
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    REQUIRE(remote_config);
+
     SECTION("entire action output as directory") {
         auto const make_tree_desc = create_action({}, {""});
         auto const root_desc =
@@ -578,8 +591,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList(),
+                        remote_config->platform_properties,
+                        remote_config->dispatch,
                         auth,
                         stats,
                         progress};
@@ -632,8 +645,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList(),
+                        remote_config->platform_properties,
+                        remote_config->dispatch,
                         auth,
                         stats,
                         progress};
@@ -703,8 +716,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        RemoteExecutionConfig::PlatformProperties(),
-                        RemoteExecutionConfig::DispatchList(),
+                        remote_config->platform_properties,
+                        remote_config->dispatch,
                         auth,
                         stats,
                         progress};
@@ -776,8 +789,8 @@ static inline void TestRetrieveOutputDirectories(
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             auth,
                             stats,
                             progress};
@@ -802,8 +815,8 @@ static inline void TestRetrieveOutputDirectories(
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            RemoteExecutionConfig::PlatformProperties(),
-                            RemoteExecutionConfig::DispatchList(),
+                            remote_config->platform_properties,
+                            remote_config->dispatch,
                             auth,
                             stats,
                             progress};
