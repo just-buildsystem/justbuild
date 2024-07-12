@@ -118,12 +118,10 @@
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/buildtool/storage", "storage"]
-    ]
-  , "stage": ["src", "buildtool", "common"]
-  , "private-deps":
-    [ ["src/utils/automata", "dfa_minimizer"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
+  , "stage": ["src", "buildtool", "common"]
+  , "private-deps": [["src/utils/automata", "dfa_minimizer"]]
   }
 , "user_structs":
   { "type": ["@", "rules", "CC", "library"]

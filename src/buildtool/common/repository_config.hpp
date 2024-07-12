@@ -25,6 +25,7 @@
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
@@ -187,10 +188,12 @@ class RepositoryConfig {
         return nullptr;
     }
 
-    [[nodiscard]] auto DeduplicateRepo(std::string const& repo) const
-        -> std::string const&;
+    [[nodiscard]] auto DeduplicateRepo(std::string const& repo,
+                                       HashFunction hash_function) const
+        -> std::string;
 
-    [[nodiscard]] auto BuildGraphForRepository(std::string const& repo) const
+    [[nodiscard]] auto BuildGraphForRepository(std::string const& repo,
+                                               HashFunction hash_function) const
         -> std::optional<nlohmann::json>;
 
     [[nodiscard]] auto AddToGraphAndGetId(
@@ -198,7 +201,8 @@ class RepositoryConfig {
         gsl::not_null<int*> const& id_counter,
         gsl::not_null<std::unordered_map<std::string, std::string>*> const&
             repo_ids,
-        std::string const& repo) const -> std::optional<std::string>;
+        std::string const& repo,
+        HashFunction hash_function) const -> std::optional<std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REPOSITORY_CONFIG_HPP
