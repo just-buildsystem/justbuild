@@ -27,6 +27,8 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -270,6 +272,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
 
@@ -289,6 +295,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -311,6 +318,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -333,6 +341,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -349,6 +358,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
 
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
@@ -376,6 +389,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -401,6 +415,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -426,6 +441,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -454,6 +470,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -479,6 +496,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,
@@ -507,6 +525,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
+                        hash_function,
                         &auth,
                         &retry_config,
                         &stats,

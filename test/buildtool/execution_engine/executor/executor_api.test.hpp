@@ -29,6 +29,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -51,12 +52,15 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
                                  ApiFactory const& factory) {
     SetupConfig(repo_config);
     auto api = factory();
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     std::string const blob = "test";
     CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-        ArtifactDigest{
-            HashFunction::Instance().ComputeBlobHash(blob).HexString(),
-            blob.size(),
-            /*is_tree=*/false},
+        ArtifactDigest{hash_function.ComputeBlobHash(blob).HexString(),
+                       blob.size(),
+                       /*is_tree=*/false},
         blob,
         /*is_exec=*/false}}}));
 }
@@ -134,12 +138,17 @@ static inline void RunHelloWorldCompilation(
 
     RetryConfig retry_config{};  // default retry config
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
                     remote_config->platform_properties,
                     remote_config->dispatch,
+                    hash_function,
                     auth,
                     &retry_config,
                     stats,
@@ -263,12 +272,17 @@ static inline void RunGreeterCompilation(
 
     RetryConfig retry_config{};  // default retry config
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
                     remote_config->platform_properties,
                     remote_config->dispatch,
+                    hash_function,
                     auth,
                     &retry_config,
                     stats,
@@ -401,16 +415,20 @@ static inline void TestUploadAndDownloadTrees(
         env.emplace("PATH", "/bin:/usr/bin");
     }
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
-    auto foo_digest = ArtifactDigest{
-        HashFunction::Instance().ComputeBlobHash(foo).HexString(),
-        foo.size(),
-        /*is_tree=*/false};
-    auto bar_digest = ArtifactDigest{
-        HashFunction::Instance().ComputeBlobHash(bar).HexString(),
-        bar.size(),
-        /*is_tree=*/false};
+    auto foo_digest =
+        ArtifactDigest{hash_function.ComputeBlobHash(foo).HexString(),
+                       foo.size(),
+                       /*is_tree=*/false};
+    auto bar_digest =
+        ArtifactDigest{hash_function.ComputeBlobHash(bar).HexString(),
+                       bar.size(),
+                       /*is_tree=*/false};
 
     // upload blobs
     auto api = factory();
@@ -438,6 +456,7 @@ static inline void TestUploadAndDownloadTrees(
                     api.get(),
                     remote_config->platform_properties,
                     remote_config->dispatch,
+                    hash_function,
                     auth,
                     &retry_config,
                     stats,
@@ -555,6 +574,10 @@ static inline void TestRetrieveOutputDirectories(
     SetupConfig(repo_config);
     auto tmpdir = GetTestDir();
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     auto const make_tree_id = std::string{"make_tree"};
     auto const* make_tree_cmd =
         "mkdir -p baz/baz/\n"
@@ -608,6 +631,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         remote_config->platform_properties,
                         remote_config->dispatch,
+                        hash_function,
                         auth,
                         &retry_config,
                         stats,
@@ -663,6 +687,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         remote_config->platform_properties,
                         remote_config->dispatch,
+                        hash_function,
                         auth,
                         &retry_config,
                         stats,
@@ -735,6 +760,7 @@ static inline void TestRetrieveOutputDirectories(
                         api.get(),
                         remote_config->platform_properties,
                         remote_config->dispatch,
+                        hash_function,
                         auth,
                         &retry_config,
                         stats,
@@ -809,6 +835,7 @@ static inline void TestRetrieveOutputDirectories(
                             api.get(),
                             remote_config->platform_properties,
                             remote_config->dispatch,
+                            hash_function,
                             auth,
                             &retry_config,
                             stats,
@@ -836,6 +863,7 @@ static inline void TestRetrieveOutputDirectories(
                             api.get(),
                             remote_config->platform_properties,
                             remote_config->dispatch,
+                            hash_function,
                             auth,
                             &retry_config,
                             stats,
