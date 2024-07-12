@@ -195,6 +195,9 @@ class GitApi final : public IExecutionApi {
             return false;
         }
 
+        // GitApi works in the native mode only.
+        HashFunction const hash_function{HashFunction::JustHash::Native};
+
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
         ArtifactBlobContainer container{};
@@ -228,7 +231,7 @@ class GitApi final : public IExecutionApi {
                             return false;
                         }
                         auto digest = ArtifactDigest::Create<ObjectType::File>(
-                            HashFunction::Instance(), *entry_content);
+                            hash_function, *entry_content);
                         // Collect blob and upload to remote CAS if transfer
                         // size reached.
                         if (not UpdateContainerAndUpload<ArtifactDigest>(
@@ -259,10 +262,10 @@ class GitApi final : public IExecutionApi {
 
             ArtifactDigest digest =
                 IsTreeObject(info.type)
-                    ? ArtifactDigest::Create<ObjectType::Tree>(
-                          HashFunction::Instance(), *content)
-                    : ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), *content);
+                    ? ArtifactDigest::Create<ObjectType::Tree>(hash_function,
+                                                               *content)
+                    : ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                               *content);
 
             // Collect blob and upload to remote CAS if transfer size reached.
             if (not UpdateContainerAndUpload<ArtifactDigest>(
