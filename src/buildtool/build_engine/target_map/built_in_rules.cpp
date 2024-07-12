@@ -34,7 +34,6 @@
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
 
@@ -123,11 +122,11 @@ void ReportStagingConflict(
 }
 
 void BlobGenRuleWithDeps(
+    const gsl::not_null<AnalyseContext*>& context,
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
@@ -167,7 +166,7 @@ void BlobGenRuleWithDeps(
     auto string_fields_fcts =
         FunctionMap::MakePtr(FunctionMap::underlying_map_t{
             {"outs",
-             [&deps_by_transition, &key, repo_config](
+             [&deps_by_transition, &key, context](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
@@ -175,12 +174,12 @@ void BlobGenRuleWithDeps(
                          expr,
                          env,
                          key.target,
-                         repo_config,
+                         context->repo_config,
                          deps_by_transition)
                          ->Artifacts());
              }},
             {"runfiles",
-             [&deps_by_transition, &key, repo_config](
+             [&deps_by_transition, &key, context](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
@@ -188,7 +187,7 @@ void BlobGenRuleWithDeps(
                          expr,
                          env,
                          key.target,
-                         repo_config,
+                         context->repo_config,
                          deps_by_transition)
                          ->RunFiles());
              }}});
@@ -268,12 +267,12 @@ void BlobGenRuleWithDeps(
         return;
     }
 
-    auto stage = ExpressionPtr{
-        Expression::map_t{name_val->String(),
-                          ExpressionPtr{ArtifactDescription::CreateKnown(
-                              ArtifactDigest::Create<ObjectType::File>(
-                                  HashFunction::Instance(), data_val->String()),
-                              blob_type)}}};
+    auto stage = ExpressionPtr{Expression::map_t{
+        name_val->String(),
+        ExpressionPtr{ArtifactDescription::CreateKnown(
+            ArtifactDigest::Create<ObjectType::File>(
+                context->storage->GetHashFunction(), data_val->String()),
+            blob_type)}}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
         TargetResult{.artifact_stage = stage,
@@ -292,9 +291,9 @@ void BlobGenRuleWithDeps(
 }
 
 void BlobGenRule(
+    const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -342,7 +341,7 @@ void BlobGenRule(
         auto dep_target = BuildMaps::Base::ParseEntityNameFromExpression(
             dep_name,
             key.target,
-            repo_config,
+            context->repo_config,
             [&logger, &dep_name](std::string const& parse_err) {
                 (*logger)(fmt::format("Parsing dep entry {} failed with:\n{}",
                                       dep_name->ToString(),
@@ -359,19 +358,19 @@ void BlobGenRule(
     }
     (*subcaller)(
         dependency_keys,
-        [transition_keys = std::move(transition_keys),
+        [context,
+         transition_keys = std::move(transition_keys),
          desc,
          setter,
          logger,
          key,
-         repo_config,
          result_map,
          blob_type](auto const& values) {
-            BlobGenRuleWithDeps(transition_keys,
+            BlobGenRuleWithDeps(context,
+                                transition_keys,
                                 values,
                                 desc,
                                 key,
-                                repo_config,
                                 setter,
                                 logger,
                                 result_map,
@@ -388,9 +387,9 @@ void FileGenRule(
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
-    BlobGenRule(desc_json,
+    BlobGenRule(context,
+                desc_json,
                 key,
-                context->repo_config,
                 subcaller,
                 setter,
                 logger,
@@ -406,9 +405,9 @@ void SymlinkRule(
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
-    BlobGenRule(desc_json,
+    BlobGenRule(context,
+                desc_json,
                 key,
-                context->repo_config,
                 subcaller,
                 setter,
                 logger,

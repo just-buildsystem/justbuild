@@ -40,7 +40,6 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -306,6 +305,7 @@ auto ListDependencies(
 }
 
 void withDependencies(
+    const gsl::not_null<AnalyseContext*>& context,
     const std::vector<BuildMaps::Target::ConfiguredTarget>& transition_keys,
     const std::vector<AnalysedTargetPtr const*>& dependency_values,
     std::size_t declared_count,
@@ -313,7 +313,6 @@ void withDependencies(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
     std::unordered_map<std::string, ExpressionPtr> params,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -401,7 +400,7 @@ void withDependencies(
     auto string_fields_fcts =
         FunctionMap::MakePtr(FunctionMap::underlying_map_t{
             {"outs",
-             [&deps_by_transition, &key, repo_config](
+             [&deps_by_transition, &key, context](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
@@ -409,12 +408,12 @@ void withDependencies(
                          expr,
                          env,
                          key.target,
-                         repo_config,
+                         context->repo_config,
                          deps_by_transition)
                          ->Artifacts());
              }},
             {"runfiles",
-             [&deps_by_transition, &key, repo_config](
+             [&deps_by_transition, &key, context](
                  auto&& eval, auto const& expr, auto const& env) {
                  return BuildMaps::Target::Utils::keys_expr(
                      BuildMaps::Target::Utils::obtainTargetByName(
@@ -422,7 +421,7 @@ void withDependencies(
                          expr,
                          env,
                          key.target,
-                         repo_config,
+                         context->repo_config,
                          deps_by_transition)
                          ->RunFiles());
              }}});
@@ -723,7 +722,7 @@ void withDependencies(
               return ExpressionPtr{Expression::map_t{result}};
           }},
          {"BLOB",
-          [&blobs](auto&& eval, auto const& expr, auto const& env) {
+          [&blobs, context](auto&& eval, auto const& expr, auto const& env) {
               auto data = eval(expr->Get("data", ""s), env);
               if (not data->IsString()) {
                   throw Evaluator::EvaluationError{
@@ -733,12 +732,12 @@ void withDependencies(
               blobs.emplace_back(data->String());
               return ExpressionPtr{ArtifactDescription::CreateKnown(
                   ArtifactDigest::Create<ObjectType::File>(
-                      HashFunction::Instance(), data->String()),
+                      context->storage->GetHashFunction(), data->String()),
                   ObjectType::File)};
           }},
 
          {"SYMLINK",
-          [&blobs](auto&& eval, auto const& expr, auto const& env) {
+          [&blobs, context](auto&& eval, auto const& expr, auto const& env) {
               auto data = eval(expr->Get("data", ""s), env);
               if (not data->IsString()) {
                   throw Evaluator::EvaluationError{
@@ -754,7 +753,7 @@ void withDependencies(
 
               return ExpressionPtr{ArtifactDescription::CreateKnown(
                   ArtifactDigest::Create<ObjectType::Symlink>(
-                      HashFunction::Instance(), data->String()),
+                      context->storage->GetHashFunction(), data->String()),
                   ObjectType::Symlink)};
           }},
 
@@ -1020,10 +1019,10 @@ void withDependencies(
 }
 
 void withRuleDefinition(
+    const gsl::not_null<AnalyseContext*>& context,
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
@@ -1194,7 +1193,7 @@ void withRuleDefinition(
                 auto target = BuildMaps::Base::ParseEntityNameFromExpression(
                     dep_name,
                     key.target,
-                    repo_config,
+                    context->repo_config,
                     [&logger, &target_field_name, &dep_name](
                         std::string const& parse_err) {
                         (*logger)(fmt::format("Parsing entry {} in target "
@@ -1261,13 +1260,13 @@ void withRuleDefinition(
 
     (*subcaller)(
         dependency_keys,
-        [transition_keys = std::move(transition_keys),
+        [context,
+         transition_keys = std::move(transition_keys),
          declared_count,
          declared_and_implicit_count,
          rule,
          data,
          key,
-         repo_config,
          params = std::move(params),
          setter,
          logger,
@@ -1344,14 +1343,14 @@ void withRuleDefinition(
             }
             (*subcaller)(
                 anonymous_keys,
-                [dependency_values = values,
+                [context,
+                 dependency_values = values,
                  transition_keys = std::move(transition_keys),
                  declared_count,
                  declared_and_implicit_count,
                  rule,
                  data,
                  key,
-                 repo_config,
                  params = std::move(params),
                  setter,
                  logger,
@@ -1359,14 +1358,14 @@ void withRuleDefinition(
                     // Join dependency values and anonymous values
                     dependency_values.insert(
                         dependency_values.end(), values.begin(), values.end());
-                    withDependencies(transition_keys,
+                    withDependencies(context,
+                                     transition_keys,
                                      dependency_values,
                                      declared_count,
                                      declared_and_implicit_count,
                                      rule,
                                      data,
                                      key,
-                                     repo_config,
                                      params,
                                      setter,
                                      logger,
@@ -1471,10 +1470,10 @@ void withTargetsFile(
                     return;
                 }
                 withRuleDefinition(
+                    context,
                     *values[0],
                     data,
                     key,
-                    context->repo_config,
                     subcaller,
                     setter,
                     std::make_shared<AsyncMapConsumerLogger>(
@@ -1500,8 +1499,8 @@ void withTargetsFile(
 }
 
 void withTargetNode(
+    const gsl::not_null<AnalyseContext*>& context,
     const BuildMaps::Target::ConfiguredTarget& key,
-    const gsl::not_null<const RepositoryConfig*>& repo_config,
     const gsl::not_null<BuildMaps::Base::UserRuleMap*>& rule_map,
     const gsl::not_null<TaskSystem*>& ts,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
@@ -1545,7 +1544,7 @@ void withTargetNode(
              setter,
              logger,
              key,
-             repo_config,
+             context,
              result_map,
              rn = **rule_name](auto values) {
                 auto data = TargetData::FromTargetNode(
@@ -1561,10 +1560,10 @@ void withTargetNode(
                               /*fatal=*/true);
                     return;
                 }
-                withRuleDefinition(*values[0],
+                withRuleDefinition(context,
+                                   *values[0],
                                    data,
                                    key,
-                                   repo_config,
                                    subcaller,
                                    setter,
                                    std::make_shared<AsyncMapConsumerLogger>(
@@ -1815,8 +1814,8 @@ auto CreateTargetMap(
                                    auto subcaller,
                                    auto key) {
         if (key.target.IsAnonymousTarget()) {
-            withTargetNode(key,
-                           context->repo_config,
+            withTargetNode(context,
+                           key,
                            rule_map,
                            ts,
                            subcaller,
