@@ -22,26 +22,27 @@
 
 #else
 
-#include "src/buildtool/common/remote/retry_parameters.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 [[nodiscard]] auto SetupRetryConfig(RetryArguments const& args) -> bool {
     if (args.max_attempts) {
-        if (!Retry::SetMaxAttempts(*args.max_attempts)) {
+        if (!RetryConfig::SetMaxAttempts(*args.max_attempts)) {
             Logger::Log(LogLevel::Error, "Invalid value for max-attempts.");
             return false;
         }
     }
     if (args.initial_backoff_seconds) {
-        if (!Retry::SetInitialBackoffSeconds(*args.initial_backoff_seconds)) {
+        if (!RetryConfig::SetInitialBackoffSeconds(
+                *args.initial_backoff_seconds)) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for initial-backoff-seconds.");
             return false;
         }
     }
     if (args.max_backoff_seconds) {
-        if (!Retry::SetMaxBackoffSeconds(*args.max_backoff_seconds)) {
+        if (!RetryConfig::SetMaxBackoffSeconds(*args.max_backoff_seconds)) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for max-backoff-seconds.");
             return false;

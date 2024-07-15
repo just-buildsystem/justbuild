@@ -66,7 +66,7 @@
   , "srcs": ["retry.cpp"]
   , "stage": ["src", "buildtool", "main"]
   , "deps": [["src/buildtool/common", "retry_cli"]]
-  , "private-deps": [["src/buildtool/common/remote", "retry_parameters"]]
+  , "private-deps": [["src/buildtool/common/remote", "retry_config"]]
   }
 , "describe":
   { "type": ["@", "rules", "CC", "library"]
@@ -286,7 +286,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , "common"
-    , ["src/buildtool/common/remote", "retry_parameters"]
+    , ["src/buildtool/common/remote", "retry_config"]
     ]
   }
 , "build_utils":

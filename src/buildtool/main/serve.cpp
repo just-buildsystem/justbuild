@@ -31,7 +31,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/location.hpp"
-#include "src/buildtool/common/remote/retry_parameters.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -67,7 +67,7 @@ namespace {
                 max_attempts->ToString());
             return false;
         }
-        if (!Retry::SetMaxAttempts(max_attempts->Number())) {
+        if (!RetryConfig::SetMaxAttempts(max_attempts->Number())) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for \"max-attempts\" {}.",
                         max_attempts->Number());
@@ -83,7 +83,7 @@ namespace {
                         initial_backoff->ToString());
             return false;
         }
-        if (!Retry::SetMaxAttempts(initial_backoff->Number())) {
+        if (!RetryConfig::SetMaxAttempts(initial_backoff->Number())) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for \"initial-backoff-seconds\" {}.",
                         initial_backoff->Number());
@@ -99,7 +99,7 @@ namespace {
                         max_backoff->ToString());
             return false;
         }
-        if (!Retry::SetMaxAttempts(max_backoff->Number())) {
+        if (!RetryConfig::SetMaxAttempts(max_backoff->Number())) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for \"max-backoff-seconds\" {}.",
                         max_backoff->Number());

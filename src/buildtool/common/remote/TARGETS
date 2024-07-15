@@ -38,10 +38,10 @@
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }
-, "retry_parameters":
+, "retry_config":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["retry_parameters"]
-  , "hdrs": ["retry_parameters.hpp"]
+  , "name": ["retry_config"]
+  , "hdrs": ["retry_config.hpp"]
   , "deps":
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -56,7 +56,7 @@
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["@", "grpc", "", "grpc++"]
-    , "retry_parameters"
+    , "retry_config"
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }

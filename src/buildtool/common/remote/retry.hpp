@@ -20,7 +20,7 @@
 #include <utility>  // std::move
 
 #include "grpcpp/grpcpp.h"
-#include "src/buildtool/common/remote/retry_parameters.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -56,7 +56,7 @@ template <CallableReturningRetryResponse F>
 [[nodiscard]] auto WithRetry(F const& f, Logger const& logger) noexcept
     -> bool {
     try {
-        auto const& attempts = Retry::GetMaxAttempts();
+        auto const& attempts = RetryConfig::GetMaxAttempts();
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
             auto [ok, fatal, error_msg] = f();
             if (ok) {
@@ -71,7 +71,7 @@ template <CallableReturningRetryResponse F>
             // don't wait if it was the last attempt
             if (attempt < attempts) {
                 auto const sleep_for_seconds =
-                    Retry::GetSleepTimeSeconds(attempt);
+                    RetryConfig::GetSleepTimeSeconds(attempt);
                 logger.Emit(kRetryLogLevel,
                             "Attempt {}/{} failed{} Retrying in {} seconds.",
                             attempt,
@@ -107,7 +107,7 @@ template <CallableReturningGrpcStatus F>
     -> std::pair<bool, grpc::Status> {
     grpc::Status status{};
     try {
-        auto attempts = Retry::GetMaxAttempts();
+        auto attempts = RetryConfig::GetMaxAttempts();
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
             status = f();
             if (status.ok() or
@@ -117,7 +117,7 @@ template <CallableReturningGrpcStatus F>
             // don't wait if it was the last attempt
             if (attempt < attempts) {
                 auto const sleep_for_seconds =
-                    Retry::GetSleepTimeSeconds(attempt);
+                    RetryConfig::GetSleepTimeSeconds(attempt);
                 logger.Emit(
                     kRetryLogLevel,
                     "Attempt {}/{} failed: {}: {}: Retrying in {} seconds.",

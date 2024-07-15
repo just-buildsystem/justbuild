@@ -25,13 +25,13 @@ constexpr unsigned int kDefaultInitialBackoffSeconds{1};
 constexpr unsigned int kDefaultMaxBackoffSeconds{60};
 constexpr unsigned int kDefaultAttempts{1};
 constexpr auto kRetryLogLevel = LogLevel::Progress;
-class Retry {
+class RetryConfig {
     using dist_type = std::uniform_int_distribution<std::mt19937::result_type>;
 
   public:
-    Retry() = default;
-    [[nodiscard]] static auto Instance() -> Retry& {
-        static Retry instance{};
+    RetryConfig() = default;
+    [[nodiscard]] static auto Instance() -> RetryConfig& {
+        static RetryConfig instance{};
         return instance;
     }
 
@@ -106,8 +106,8 @@ class Retry {
     /// value) is added to distributed the workload.
     [[nodiscard]] static auto GetSleepTimeSeconds(unsigned int attempt) noexcept
         -> unsigned int {
-        auto backoff = Retry::GetInitialBackoffSeconds();
-        auto const& max_backoff = Retry::GetMaxBackoffSeconds();
+        auto backoff = RetryConfig::GetInitialBackoffSeconds();
+        auto const& max_backoff = RetryConfig::GetMaxBackoffSeconds();
         // on the first attempt, we don't double the backoff time
         // also we do it in a for loop to avoid overflow
         for (auto x = 1U; x < attempt; ++x) {
@@ -117,7 +117,7 @@ class Retry {
                 break;
             }
         }
-        return backoff + Retry::Jitter(backoff);
+        return backoff + RetryConfig::Jitter(backoff);
     }
 
   private:
