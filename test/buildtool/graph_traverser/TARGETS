@@ -8,6 +8,7 @@
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "jsonfs"]
     , ["@", "src", "src/buildtool/graph_traverser", "graph_traverser"]

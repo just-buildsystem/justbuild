@@ -29,6 +29,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"

@@ -93,6 +93,7 @@
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
     [ ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -129,6 +130,7 @@
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
@@ -193,6 +195,7 @@
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
