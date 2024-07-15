@@ -26,6 +26,7 @@
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
@@ -52,8 +53,10 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    std::string hash =
-        HashFunction::Instance().ComputeBlobHash(empty_str).HexString();
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+    std::string hash = hash_function.ComputeBlobHash(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());
@@ -118,8 +121,10 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    std::string hash =
-        HashFunction::Instance().ComputeBlobHash(empty_str).HexString();
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+    std::string hash = hash_function.ComputeBlobHash(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());
