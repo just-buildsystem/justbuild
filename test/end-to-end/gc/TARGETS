@@ -22,9 +22,25 @@
   , "test": ["tc-deps.sh"]
   , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
+, "reconstruct-executable":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["reconstruct-executable"]
+  , "test": ["reconstruct-executable.sh"]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["basic", "compactification", "export", "tc-deps"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["basic", "compactification", "export", "tc-deps"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["reconstruct-executable"]
+        }
+      ]
+    }
   }
 }
