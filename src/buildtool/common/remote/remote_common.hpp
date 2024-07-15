@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_ADDRESS_HPP
-#define INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_ADDRESS_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_COMMON_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_COMMON_HPP
 
 #include <map>
 #include <optional>
@@ -131,4 +131,4 @@ using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
     return parsed;
 }
 
-#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_ADDRESS_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_COMMON_HPP

@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_PARAMETERS_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_PARAMETERS_HPP
+
 #include <mutex>
 #include <random>
 
@@ -126,3 +129,5 @@ class Retry {
     std::random_device dev_;
     std::mt19937 rng_{dev_()};
 };
+
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_PARAMETERS_HPP

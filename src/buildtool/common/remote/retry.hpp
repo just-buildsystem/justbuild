@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_HPP
+
 #include <optional>
 #include <thread>
 #include <utility>  // std::move
@@ -145,3 +148,5 @@ template <CallableReturningGrpcStatus F>
     }
     return {false, std::move(status)};
 }
+
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_HPP
