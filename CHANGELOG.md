@@ -15,14 +15,23 @@ A feature release on top of `1.3.0`, backwards compatible.
   the presence of serve end points. This fixes a cache consistency
   problem if the same remote-execution endpoint is used both, with
   and without a serve endpoint.
+- A race condition in reconstructing executables from large CAS has
+  been removed that could lead to an open file descriptor being kept
+  alive for too long, resulting EBUSY failures of actions using this
+  binary.
 - Internal code clean up, reducing memory footprint, in particular
   for simultaneous upload of a large number of blobs.
+- Avoidence of duplicate requests and performance improvements when
+  synchronizing artifacts with another CAS.
 - Dependencies have been updated to also build with gcc 14.
 - Portability improvements of the code by not relying on implementation
   details of the compiler.
 - Local execution no longer has the requirement that there exist no
   more files with identical content than the hardlink limit of the
   underlying file system.
+- Various improvements to the tests: dispatching of the summary
+  action is now possible, tests are independent of a .just-mrrc
+  file the user might have in their home directory
 - Various improvements of the documentation.
 
 ## Release `1.3.0` (2024-05-08)
