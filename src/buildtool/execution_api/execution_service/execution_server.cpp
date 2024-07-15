@@ -427,7 +427,7 @@ auto ExecutionServiceImpl::StoreActionResult(
     }
     return std::nullopt;
 }
-static void WriteResponse(
+void ExecutionServiceImpl::WriteResponse(
     ::bazel_re::ExecuteResponse const& execute_response,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
     ::google::longrunning::Operation* op) noexcept {
@@ -437,7 +437,7 @@ static void WriteResponse(
     op->set_done(true);
     UpdateTimeStamp(op);
 
-    OperationCache::Set(op->name(), *op);
+    op_cache_.Set(op->name(), *op);
     writer->Write(*op);
 }
 
@@ -469,7 +469,7 @@ auto ExecutionServiceImpl::Execute(
     op.set_name(op_name);
     op.set_done(false);
     UpdateTimeStamp(&op);
-    OperationCache::Set(op_name, op);
+    op_cache_.Set(op_name, op);
     writer->Write(op);
     auto t0 = std::chrono::high_resolution_clock::now();
     auto i_execution_response = i_execution_action->get()->Execute(&logger_);
@@ -507,7 +507,7 @@ auto ExecutionServiceImpl::WaitExecution(
     logger_.Emit(LogLevel::Trace, "WaitExecution: {}", hash);
     std::optional<::google::longrunning::Operation> op;
     do {
-        op = OperationCache::Query(hash);
+        op = op_cache_.Query(hash);
         if (!op) {
             auto const& str = fmt::format(
                 "Executing action {} not found in internal cache.", hash);

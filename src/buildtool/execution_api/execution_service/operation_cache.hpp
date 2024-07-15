@@ -29,14 +29,10 @@
 #include "google/longrunning/operations.pb.h"
 #include "google/protobuf/timestamp.pb.h"
 
-class OperationCache {
+class OperationCache final {
     using Operation = ::google::longrunning::Operation;
 
   public:
-    [[nodiscard]] static auto Instance() -> OperationCache& {
-        static OperationCache x;
-        return x;
-    }
     OperationCache() noexcept = default;
     ~OperationCache() noexcept = default;
 
@@ -45,18 +41,16 @@ class OperationCache {
     OperationCache(OperationCache&&) = delete;
     auto operator=(OperationCache&&) -> OperationCache& = delete;
 
-    static void Set(std::string const& action, Operation const& op) {
-        Instance().SetInternal(action, op);
+    void Set(std::string const& action, Operation const& op) {
+        SetInternal(action, op);
     }
 
-    [[nodiscard]] static auto Query(std::string const& x) noexcept
+    [[nodiscard]] auto Query(std::string const& x) const noexcept
         -> std::optional<Operation> {
-        return Instance().QueryInternal(x);
+        return QueryInternal(x);
     }
 
-    static void SetExponent(std::uint8_t x) noexcept {
-        Instance().threshold_ = 1U << x;
-    }
+    void SetExponent(std::uint8_t x) noexcept { threshold_ = 1U << x; }
 
   private:
     mutable std::shared_mutex mutex_;

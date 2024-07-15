@@ -15,10 +15,16 @@
 #ifndef EXECUTION_SERVER_HPP
 #define EXECUTION_SERVER_HPP
 
+#include <cstdint>
+#include <optional>
+#include <string>
+#include <utility>
+
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -28,10 +34,19 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     explicit ExecutionServiceImpl(
         gsl::not_null<StorageConfig const*> const& storage_config,
         gsl::not_null<Storage const*> const& storage,
-        gsl::not_null<IExecutionApi const*> const& local_api) noexcept
+        gsl::not_null<IExecutionApi const*> const& local_api,
+        std::optional<std::uint8_t> op_exponent) noexcept
         : storage_config_{*storage_config},
           storage_{*storage},
-          api_{*local_api} {}
+          api_{*local_api} {
+        if (op_exponent) {
+            op_cache_.SetExponent(*op_exponent);
+        }
+    }
+
+    [[nodiscard]] auto GetOpCache() const noexcept -> OperationCache const& {
+        return op_cache_;
+    }
 
     // Execute an action remotely.
     //
@@ -119,6 +134,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     StorageConfig const& storage_config_;
     Storage const& storage_;
     IExecutionApi const& api_;
+    OperationCache op_cache_;
     Logger logger_{"execution-service"};
 
     [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)
@@ -146,6 +162,11 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         ::bazel_re::ExecuteResponse const& execute_response,
         ::bazel_re::Action const& action) const noexcept
         -> std::optional<std::string>;
+
+    void WriteResponse(
+        ::bazel_re::ExecuteResponse const& execute_response,
+        ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
+        ::google::longrunning::Operation* op) noexcept;
 
     [[nodiscard]] auto AddResult(
         ::bazel_re::ExecuteResponse* response,

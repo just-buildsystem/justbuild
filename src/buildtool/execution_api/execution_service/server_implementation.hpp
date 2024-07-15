@@ -15,7 +15,9 @@
 #ifndef SERVER_IMPLEMENATION_HPP
 #define SERVER_IMPLEMENATION_HPP
 
+#include <cstdint>
 #include <fstream>
+#include <optional>
 #include <string>
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
@@ -51,7 +53,8 @@ class ServerImpl {
 
     auto Run(StorageConfig const& storage_config,
              Storage const& storage,
-             ApiBundle const& apis) -> bool;
+             ApiBundle const& apis,
+             std::optional<std::uint8_t> op_exponent) -> bool;
     ~ServerImpl() = default;
 
   private:

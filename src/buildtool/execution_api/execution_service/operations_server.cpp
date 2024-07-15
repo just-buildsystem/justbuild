@@ -29,7 +29,7 @@ auto OperarationsServiceImpl::GetOperation(
     }
     logger_.Emit(LogLevel::Trace, "GetOperation: {}", hash);
     std::optional<::google::longrunning::Operation> op;
-    op = OperationCache::Query(hash);
+    op = op_cache_.Query(hash);
     if (!op) {
         auto const& str = fmt::format(
             "Executing action {} not found in internal cache.", hash);

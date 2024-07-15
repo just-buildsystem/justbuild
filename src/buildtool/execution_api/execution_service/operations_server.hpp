@@ -16,11 +16,17 @@
 #define OPERATIONS_SERVER_HPP
 
 #include "google/longrunning/operations.grpc.pb.h"
+#include "gsl/gsl"
+#include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 class OperarationsServiceImpl final
     : public ::google::longrunning::Operations::Service {
   public:
+    explicit OperarationsServiceImpl(
+        gsl::not_null<OperationCache const*> const& op_cache)
+        : op_cache_{*op_cache} {};
+
     // Lists operations that match the specified filter in the request. If the
     // server doesn't support this method, it returns `UNIMPLEMENTED`.
     //
@@ -64,6 +70,7 @@ class OperarationsServiceImpl final
         ::google::protobuf::Empty* response) -> ::grpc::Status override;
 
   private:
+    OperationCache const& op_cache_;
     Logger logger_{"execution-service:operations"};
 };
 

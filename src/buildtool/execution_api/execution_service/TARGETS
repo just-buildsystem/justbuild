@@ -6,7 +6,8 @@
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ "operation_cache"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
@@ -141,7 +142,11 @@
   , "name": ["operations_server"]
   , "hdrs": ["operations_server.hpp"]
   , "srcs": ["operations_server.cpp"]
-  , "deps": [["src/buildtool/logging", "logging"]]
+  , "deps":
+    [ "operation_cache"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "private-deps":

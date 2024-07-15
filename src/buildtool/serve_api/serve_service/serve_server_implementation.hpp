@@ -15,6 +15,7 @@
 #ifndef SERVE_SERVER_IMPLEMENTATION_HPP
 #define SERVE_SERVER_IMPLEMENTATION_HPP
 
+#include <cstdint>
 #include <optional>
 #include <string>
 
@@ -57,6 +58,7 @@ class ServeServerImpl {
              LocalExecutionConfig const& local_exec_config,
              std::optional<ServeApi> const& serve,
              ApiBundle const& apis,
+             std::optional<std::uint8_t> op_exponent,
              bool with_execute) -> bool;
 
   private:

@@ -71,7 +71,6 @@
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -253,9 +252,6 @@ void SetupExecutionServiceConfig(ServiceArguments const& args) {
                         args.info_file->string());
             std::exit(kExitFailure);
         }
-    }
-    if (args.op_exponent) {
-        OperationCache::SetExponent(*args.op_exponent);
     }
 }
 
@@ -844,8 +840,10 @@ auto main(int argc, char* argv[]) -> int {
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
                                       &remote_exec_config};
-            if (not ServerImpl::Instance().Run(
-                    *storage_config, storage, exec_apis)) {
+            if (not ServerImpl::Instance().Run(*storage_config,
+                                               storage,
+                                               exec_apis,
+                                               arguments.service.op_exponent)) {
                 return kExitFailure;
             }
             return kExitSuccess;
@@ -892,14 +890,20 @@ auto main(int argc, char* argv[]) -> int {
                                            &*remote_exec_config};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
+
                 bool with_execute =
                     not remote_exec_config->remote_address.has_value();
+                // Operation cache only relevant for just execute
+                auto const op_exponent =
+                    with_execute ? arguments.service.op_exponent : std::nullopt;
+
                 return serve_server->Run(*serve_config,
                                          *storage_config,
                                          storage,
                                          *local_exec_config,
                                          serve,
                                          serve_apis,
+                                         op_exponent,
                                          with_execute)
                            ? kExitSuccess
                            : kExitFailure;
