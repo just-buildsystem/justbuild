@@ -76,9 +76,8 @@ class GraphTraverser {
     explicit GraphTraverser(
         CommandLineArguments clargs,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        std::map<std::string, std::string> platform_properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch_list,
+        ExecutionProperties platform_properties,
+        std::vector<DispatchEndpoint> dispatch_list,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         gsl::not_null<ApiBundle const*> const& apis,
@@ -227,9 +226,8 @@ class GraphTraverser {
   private:
     CommandLineArguments const clargs_;
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    std::map<std::string, std::string> platform_properties_;
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        dispatch_list_;
+    ExecutionProperties platform_properties_;
+    std::vector<DispatchEndpoint> dispatch_list_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     ApiBundle const& apis_;

@@ -58,9 +58,8 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         IExecutionApi const& api,
-        std::map<std::string, std::string> const& properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> const& dispatch_list,
+        ExecutionProperties const& properties,
+        std::vector<DispatchEndpoint> const& dispatch_list,
         gsl::not_null<Auth const*> const& auth,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
@@ -654,9 +653,9 @@ class ExecutorImpl {
     }
 
     [[nodiscard]] static inline auto MergeProperties(
-        const std::map<std::string, std::string>& base,
-        const std::map<std::string, std::string>& overlay) {
-        std::map<std::string, std::string> result = base;
+        const ExecutionProperties& base,
+        const ExecutionProperties& overlay) {
+        ExecutionProperties result = base;
         for (auto const& [k, v] : overlay) {
             result[k] = v;
         }
@@ -665,9 +664,8 @@ class ExecutorImpl {
 
   private:
     [[nodiscard]] static inline auto GetAlternativeEndpoint(
-        const std::map<std::string, std::string>& properties,
-        const std::vector<std::pair<std::map<std::string, std::string>,
-                                    ServerAddress>>& dispatch_list,
+        const ExecutionProperties& properties,
+        const std::vector<DispatchEndpoint>& dispatch_list,
         const gsl::not_null<Auth const*>& auth) -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] : dispatch_list) {
             bool match = true;
@@ -705,9 +703,8 @@ class Executor {
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         gsl::not_null<IExecutionApi const*> const& local_api,
         gsl::not_null<IExecutionApi const*> const& remote_api,
-        std::map<std::string, std::string> properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch_list,
+        ExecutionProperties properties,
+        std::vector<DispatchEndpoint> dispatch_list,
         gsl::not_null<Auth const*> const& auth,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
@@ -795,9 +792,8 @@ class Executor {
     gsl::not_null<const RepositoryConfig*> repo_config_;
     IExecutionApi const& local_api_;
     IExecutionApi const& remote_api_;
-    std::map<std::string, std::string> properties_;
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        dispatch_list_;
+    ExecutionProperties properties_;
+    std::vector<DispatchEndpoint> dispatch_list_;
     Auth const& auth_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
@@ -821,9 +817,8 @@ class Rebuilder {
         gsl::not_null<IExecutionApi const*> const& local_api,
         gsl::not_null<IExecutionApi const*> const& remote_api,
         gsl::not_null<IExecutionApi const*> const& api_cached,
-        std::map<std::string, std::string> properties,
-        std::vector<std::pair<std::map<std::string, std::string>,
-                              ServerAddress>> dispatch_list,
+        ExecutionProperties properties,
+        std::vector<DispatchEndpoint> dispatch_list,
         gsl::not_null<Auth const*> const& auth,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
@@ -913,9 +908,8 @@ class Rebuilder {
     IExecutionApi const& local_api_;
     IExecutionApi const& remote_api_;
     IExecutionApi const& api_cached_;
-    std::map<std::string, std::string> properties_;
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        dispatch_list_;
+    ExecutionProperties properties_;
+    std::vector<DispatchEndpoint> dispatch_list_;
     Auth const& auth_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;

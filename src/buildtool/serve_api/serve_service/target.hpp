@@ -139,17 +139,13 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
-    // type of dispatch list; reduces verbosity
-    using dispatch_t = std::vector<
-        std::pair<std::map<std::string, std::string>, ServerAddress>>;
-
     /// \brief Get from remote and parse the endpoint configuration. The method
     /// also ensures the content has the expected format.
     /// \returns The dispatch list stored as JSON object on success or an
     /// unexpected error as grpc::Status.
     [[nodiscard]] auto GetDispatchList(
         ArtifactDigest const& dispatch_digest) noexcept
-        -> expected<dispatch_t, ::grpc::Status>;
+        -> expected<std::vector<DispatchEndpoint>, ::grpc::Status>;
 
     /// \brief Handles the processing of the log after a failed analysis or
     /// build. Will populate the response as needed and set the status to be

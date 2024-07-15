@@ -79,13 +79,13 @@ class RemoteExecutionConfig {
     }
 
     // Instance dispatch list
-    [[nodiscard]] static auto DispatchList() noexcept -> std::vector<
-        std::pair<std::map<std::string, std::string>, ServerAddress>> {
+    [[nodiscard]] static auto DispatchList() noexcept
+        -> std::vector<DispatchEndpoint> {
         return Instance().dispatch_;
     }
 
     [[nodiscard]] static auto PlatformProperties() noexcept
-        -> std::map<std::string, std::string> {
+        -> ExecutionProperties {
         return Instance().platform_properties_;
     }
 
@@ -134,14 +134,13 @@ class RemoteExecutionConfig {
     std::optional<ServerAddress> remote_address_{};
 
     // Server dispatch data
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        dispatch_{};
+    std::vector<DispatchEndpoint> dispatch_{};
 
     // Server address of cache endpoint for rebuild.
     std::optional<ServerAddress> cache_address_{};
 
     // Platform properties for execution.
-    std::map<std::string, std::string> platform_properties_{};
+    ExecutionProperties platform_properties_{};
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP

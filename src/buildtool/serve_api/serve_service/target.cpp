@@ -46,7 +46,7 @@
 
 auto TargetService::GetDispatchList(
     ArtifactDigest const& dispatch_digest) noexcept
-    -> expected<dispatch_t, ::grpc::Status> {
+    -> expected<std::vector<DispatchEndpoint>, ::grpc::Status> {
     // get blob from remote cas
     auto const& dispatch_info = Artifact::ObjectInfo{.digest = dispatch_digest,
                                                      .type = ObjectType::File};
@@ -142,7 +142,7 @@ auto TargetService::ServeTarget(
     // Important: we will need to pass these platform properties also to the
     // executor (via the graph_traverser) in order for the build to be properly
     // dispatched to the correct remote-execution endpoint.
-    auto platform_properties = std::map<std::string, std::string>{};
+    auto platform_properties = ExecutionProperties{};
     for (auto const& p : request->execution_properties()) {
         platform_properties[p.name()] = p.value();
     }

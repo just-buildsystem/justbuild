@@ -37,6 +37,10 @@ struct ServerAddress {
     }
 };
 
+// Useful additional types
+using ExecutionProperties = std::map<std::string, std::string>;
+using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
+
 [[nodiscard]] static auto ParseAddress(std::string const& address) noexcept
     -> std::optional<ServerAddress> {
     std::istringstream iss(address);
@@ -63,10 +67,9 @@ struct ServerAddress {
     return std::make_pair(key, val);
 }
 
-[[nodiscard]] static auto
-ParseDispatch(std::string const& dispatch_info) noexcept -> expected<
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>,
-    std::string> {
+[[nodiscard]] static auto ParseDispatch(
+    std::string const& dispatch_info) noexcept
+    -> expected<std::vector<DispatchEndpoint>, std::string> {
     nlohmann::json dispatch;
     try {
         dispatch = nlohmann::json::parse(dispatch_info);
@@ -74,8 +77,7 @@ ParseDispatch(std::string const& dispatch_info) noexcept -> expected<
         return unexpected{fmt::format(
             "Failed to parse endpoint configuration: {}", e.what())};
     }
-    std::vector<std::pair<std::map<std::string, std::string>, ServerAddress>>
-        parsed{};
+    std::vector<DispatchEndpoint> parsed{};
     try {
         if (not dispatch.is_array()) {
             return unexpected{
@@ -96,7 +98,7 @@ ParseDispatch(std::string const& dispatch_info) noexcept -> expected<
                                 "given as an object, but found {}",
                                 entry[0].dump())};
             }
-            std::map<std::string, std::string> props{};
+            ExecutionProperties props{};
             for (auto const& [k, v] : entry[0].items()) {
                 if (not v.is_string()) {
                     return unexpected{
