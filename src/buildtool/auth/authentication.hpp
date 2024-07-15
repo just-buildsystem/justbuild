@@ -84,7 +84,7 @@ class Auth::TLS::Builder final {
     /// tls_client_key are set, or none of the two.
     /// \return Auth on success, error string on failure, nullopt if no TLS
     /// configuration fields were set.
-    [[nodiscard]] auto Build() noexcept
+    [[nodiscard]] auto Build() const noexcept
         -> std::optional<expected<Auth, std::string>> {
         // To not duplicate default arguments of Auth::TLS in builder,
         // create a default config and copy default arguments from there.

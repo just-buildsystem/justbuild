@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <exception>
 #include <filesystem>
 #include <iterator>
 #include <optional>
@@ -93,7 +94,7 @@ class RemoteServeConfig::Builder final {
 
     /// \brief Finalize building and create RemoteServeConfig.
     /// \return RemoteServeConfig on success or an error on failure.
-    [[nodiscard]] auto Build() noexcept
+    [[nodiscard]] auto Build() const noexcept
         -> expected<RemoteServeConfig, std::string> {
         // To not duplicate default arguments of RemoteServeConfig in builder,
         // create a default config and copy default arguments from there.
@@ -111,7 +112,12 @@ class RemoteServeConfig::Builder final {
 
         auto known_repositories = default_config.known_repositories;
         if (known_repositories_.has_value()) {
-            known_repositories = std::move(*known_repositories_);
+            try {
+                known_repositories = *known_repositories_;
+            } catch (std::exception const& ex) {
+                return unexpected{
+                    std::string("Setting known repositories failed.")};
+            }
         }
 
         auto jobs = default_config.jobs;
