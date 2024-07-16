@@ -31,7 +31,6 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/location.hpp"
-#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -56,8 +55,9 @@ namespace {
 
 }  // namespace
 
-[[nodiscard]] auto ParseRetryCliOptions(Configuration const& config) noexcept
-    -> bool {
+[[nodiscard]] auto ParseRetryCliOptions(
+    Configuration const& config,
+    gsl::not_null<RetryArguments*> const& rargs) noexcept -> bool {
     auto max_attempts = config["max-attempts"];
     if (max_attempts.IsNotNull()) {
         if (!max_attempts->IsNumber()) {
@@ -67,12 +67,7 @@ namespace {
                 max_attempts->ToString());
             return false;
         }
-        if (!RetryConfig::SetMaxAttempts(max_attempts->Number())) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid value for \"max-attempts\" {}.",
-                        max_attempts->Number());
-            return false;
-        }
+        rargs->max_attempts = static_cast<unsigned int>(max_attempts->Number());
     }
     auto initial_backoff = config["initial-backoff-seconds"];
     if (initial_backoff.IsNotNull()) {
@@ -83,12 +78,8 @@ namespace {
                         initial_backoff->ToString());
             return false;
         }
-        if (!RetryConfig::SetMaxAttempts(initial_backoff->Number())) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid value for \"initial-backoff-seconds\" {}.",
-                        initial_backoff->Number());
-            return false;
-        }
+        rargs->initial_backoff_seconds =
+            static_cast<unsigned int>(initial_backoff->Number());
     }
     auto max_backoff = config["max-backoff-seconds"];
     if (max_backoff.IsNotNull()) {
@@ -99,12 +90,8 @@ namespace {
                         max_backoff->ToString());
             return false;
         }
-        if (!RetryConfig::SetMaxAttempts(max_backoff->Number())) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid value for \"max-backoff-seconds\" {}.",
-                        max_backoff->Number());
-            return false;
-        }
+        rargs->max_backoff_seconds =
+            static_cast<unsigned int>(max_backoff->Number());
     }
     return true;
 }
@@ -420,7 +407,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->endpoint.remote_execution_address = address->String();
         }
-        if (!ParseRetryCliOptions(serve_config)) {
+        if (!ParseRetryCliOptions(serve_config, &clargs->retry)) {
             std::exit(kExitFailure);
         }
     }

@@ -855,6 +855,12 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
+        // Set up the retry arguments, needed only for the client-side logic of
+        // remote execution, i.e., just serve and the regular just client.
+        if (not SetupRetryConfig(arguments.retry)) {
+            return kExitFailure;
+        }
+
         if (arguments.cmd == SubCommand::kServe) {
             auto serve_server =
                 ServeServerImpl::Create(arguments.service.interface,
@@ -973,9 +979,6 @@ auto main(int argc, char* argv[]) -> int {
         Progress progress{};
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        if (not SetupRetryConfig(arguments.retry)) {
-            std::exit(kExitFailure);
-        }
         ApiBundle const main_apis{&*storage_config,
                                   &storage,
                                   &*local_exec_config,

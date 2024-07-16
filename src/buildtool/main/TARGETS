@@ -286,7 +286,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , "common"
-    , ["src/buildtool/common/remote", "retry_config"]
     ]
   }
 , "build_utils":
