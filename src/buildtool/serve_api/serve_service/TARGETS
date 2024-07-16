@@ -118,6 +118,7 @@
     , ["src/buildtool/main", "analyse_context"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "backend_description"]
     ]
   }
 , "configuration_service":
