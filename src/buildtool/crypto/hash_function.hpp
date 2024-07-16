@@ -33,21 +33,17 @@ class HashFunction {
         Compatible  ///< SHA256 for all hashes.
     };
 
-    static constexpr auto kDefaultType = JustHash::Native;
-
-    explicit HashFunction(JustHash type) noexcept : type_{type} {}
+    explicit HashFunction(JustHash type) noexcept : type_{type} {
+        static_assert(
+            sizeof(HashFunction) <= sizeof(void*),
+            "HashFunction is passed and stored by value. If the "
+            "class is extended so that its size exceeds the size of a pointer, "
+            "the way how HashFunction is passed and stored must be changed.");
+    }
 
     [[nodiscard]] auto GetHashType() const noexcept -> JustHash {
         return type_;
     }
-
-    [[nodiscard]] static auto Instance() noexcept -> HashFunction& {
-        static HashFunction instance{kDefaultType};
-        return instance;
-    }
-
-    /// \brief Set globally used hash type.
-    void SetHashType(JustHash type) noexcept { type_ = type; }
 
     /// \brief Compute a plain hash.
     [[nodiscard]] auto ComputeHash(std::string const& data) const noexcept
@@ -92,7 +88,7 @@ class HashFunction {
     }
 
   private:
-    JustHash type_ = kDefaultType;
+    JustHash const type_;
 
     [[nodiscard]] auto ComputeTaggedHash(
         std::string const& data,

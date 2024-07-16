@@ -78,8 +78,6 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/file_system", "git_context"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , "log_config"
     , "test_env"
     , "test_auth_config"

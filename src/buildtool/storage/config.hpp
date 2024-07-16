@@ -222,10 +222,9 @@ class StorageConfig::Builder final {
             }
         }
 
-        auto hash_function = default_config.hash_function;
-        if (hash_type_.has_value()) {
-            hash_function = HashFunction{*hash_type_};
-        }
+        auto const hash_function = hash_type_.has_value()
+                                       ? HashFunction{*hash_type_}
+                                       : default_config.hash_function;
 
         // Hash the execution backend description
         auto backend_description_id = default_config.backend_description_id;

@@ -259,12 +259,6 @@ void SetupExecutionServiceConfig(ServiceArguments const& args) {
     }
 }
 
-void SetupHashFunction() {
-    HashFunction::Instance().SetHashType(
-        Compatibility::IsCompatible() ? HashFunction::JustHash::Compatible
-                                      : HashFunction::JustHash::Native);
-}
-
 void SetupFileChunker() {
     FileChunker::Initialize();
 }
@@ -797,7 +791,6 @@ auto main(int argc, char* argv[]) -> int {
          */
         GitContext::Create();
 
-        SetupHashFunction();
         SetupFileChunker();
 
         if (arguments.cmd == SubCommand::kGc) {
