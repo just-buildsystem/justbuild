@@ -149,7 +149,7 @@ static void TestLarge(StorageConfig const& storage_config,
         CHECK(FileSystemManager::RemoveFile(path));
         CHECK_FALSE(FileSystemManager::IsFile(path));
 
-        SECTION("Split short-circuting") {
+        SECTION("Split short-circuiting") {
             // Check the second call loads the entry from the large CAS:
             auto pack_2 =
                 kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
@@ -276,35 +276,41 @@ static void TestEmpty(Storage const& storage) noexcept {
                                             LargeTestUtils::Tree,
                                             LargeTestUtils::Blob<kIsExec>>;
 
-        auto const& cas = storage.CAS();
+        // Create an empty file:
+        auto temp_path = LargeTestUtils::Blob</*kIsExec=*/false>::Generate(
+            std::string(TestType::kEmptyId), TestType::kEmptySize);
+        REQUIRE(temp_path);
 
-        // Create an empty object:
-        auto object = TestType::Create(
-            cas, std::string(TestType::kEmptyId), TestType::kEmptySize);
-        CHECK(object);
-        auto const& [digest, path] = *object;
+        auto const& cas = storage.CAS();
+        auto digest = kIsTree ? cas.StoreTree(*temp_path)
+                              : cas.StoreBlob(*temp_path, kIsExec);
+        REQUIRE(digest);
+
+        auto path =
+            kIsTree ? cas.TreePath(*digest) : cas.BlobPath(*digest, kIsExec);
+        REQUIRE(path);
 
         // Split the empty object:
-        auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
+        auto pack_1 = kIsTree ? cas.SplitTree(*digest) : cas.SplitBlob(*digest);
         CHECK(pack_1);
         CHECK(pack_1->empty());
 
         // Test that there is no large entry in the storage:
         // To ensure there is no split of the initial object, it is removed:
-        CHECK(FileSystemManager::RemoveFile(path));
-        CHECK_FALSE(FileSystemManager::IsFile(path));
+        CHECK(FileSystemManager::RemoveFile(*path));
+        CHECK_FALSE(FileSystemManager::IsFile(*path));
 
         // Split must not find the large entry:
-        auto pack_2 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
+        auto pack_2 = kIsTree ? cas.SplitTree(*digest) : cas.SplitBlob(*digest);
         CHECK_FALSE(pack_2);
         CHECK(pack_2.error().Code() == LargeObjectErrorCode::FileNotFound);
 
         // There must be no spliced file:
-        CHECK_FALSE(FileSystemManager::IsFile(path));
+        CHECK_FALSE(FileSystemManager::IsFile(*path));
 
         // Check implicit splice fails:
         auto spliced_path =
-            kIsTree ? cas.TreePath(digest) : cas.BlobPath(digest, kIsExec);
+            kIsTree ? cas.TreePath(*digest) : cas.BlobPath(*digest, kIsExec);
         CHECK_FALSE(spliced_path);
     }
 }
@@ -398,7 +404,8 @@ static void TestExternal(StorageConfig const& storage_config,
             REQUIRE(FileSystemManager::IsFile(path));
         }
 
-        if constexpr (kIsTree) {
+        if (kIsTree and not Compatibility::IsCompatible()) {
+            // Tree invariants check is omitted in compatible mode.
             SECTION("Tree invariants check fails") {
                 // Check splice fails due to the tree invariants check.
                 auto splice = youngest.CAS().SpliceTree(digest, *pack_1);
@@ -446,9 +453,9 @@ static void TestCompactification(StorageConfig const& storage_config,
         REQUIRE(object_2);
         auto& [digest_2, path_2] = *object_2;
 
-        // After an interuption of a build process intermediate unique files may
-        // be present in the storage. To ensure compactification deals with them
-        // properly, a "unique" file is created:
+        // After an interruption of a build process intermediate unique files
+        // may be present in the storage. To ensure compactification deals with
+        // them properly, a "unique" file is created:
         auto invalid_object = TestType::Create(
             cas, std::string(TestType::kLargeId) + "_3", ExceedThresholdSize);
         REQUIRE(invalid_object);
@@ -596,13 +603,15 @@ TEST_CASE("LargeObjectCAS: uplink nested large objects", "[storage]") {
 
     auto const latest = ::Generation::Create(&storage_config.Get());
 
-    // However, they might be reconstructed on request because there entries are
-    // in the latest generation:
-    auto split_nested_tree_2 = latest.CAS().SplitTree(*nested_tree_digest);
-    REQUIRE(split_nested_tree_2);
+    // However, in native mode they might be reconstructed on request because
+    // their entries are in the latest generation:
+    if (not Compatibility::IsCompatible()) {
+        auto split_nested_tree_2 = latest.CAS().SplitTree(*nested_tree_digest);
+        REQUIRE(split_nested_tree_2);
 
-    auto split_nested_blob_2 = latest.CAS().SplitBlob(*nested_blob_digest);
-    REQUIRE(split_nested_blob_2);
+        auto split_nested_blob_2 = latest.CAS().SplitBlob(*nested_blob_digest);
+        REQUIRE(split_nested_blob_2);
+    }
 
     // Check there are no spliced results in old generations:
     for (std::size_t i = 1; i < storage_config.Get().num_generations; ++i) {
@@ -710,8 +719,11 @@ auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
         return cas.StoreBlob(content);
     };
 
-    return BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
-        directory, store_blob, store_tree, store_symlink);
+    return Compatibility::IsCompatible()
+               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+                     directory, store_blob, store_tree, store_symlink)
+               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+                     directory, store_blob, store_tree, store_symlink);
 }
 }  // namespace LargeTestUtils
 
