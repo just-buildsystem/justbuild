@@ -72,9 +72,29 @@ struct StorageConfig final {
         return build_root / "protocol-dependent";
     }
 
+    /// \brief Root directory of all repository generations.
+    [[nodiscard]] auto RepositoryRoot() const noexcept
+        -> std::filesystem::path {
+        return build_root / "repositories";
+    }
+
+    /// \brief Directory for the given generation of stored repositories
+    [[nodiscard]] auto RepositoryGenerationRoot(
+        std::size_t index) const noexcept -> std::filesystem::path {
+        ExpectsAudit(index < num_generations);
+        auto generation = std::string{"generation-"} + std::to_string(index);
+        return RepositoryRoot() / generation;
+    }
+
+    /// \brief Directory for the git repository of the given generation
+    [[nodiscard]] auto GitGenerationRoot(std::size_t index) const noexcept
+        -> std::filesystem::path {
+        return RepositoryGenerationRoot(index) / "git";
+    }
+
     /// \brief Directory for the git repository storing various roots
     [[nodiscard]] auto GitRoot() const noexcept -> std::filesystem::path {
-        return build_root / "git";
+        return GitGenerationRoot(0);
     }
 
     /// \brief Root directory of specific storage generation

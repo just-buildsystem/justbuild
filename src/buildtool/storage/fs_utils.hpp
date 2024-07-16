@@ -38,14 +38,16 @@ namespace StorageUtils {
 /// \brief Get the path to the file storing the tree id associated with
 /// a given commit.
 [[nodiscard]] auto GetCommitTreeIDFile(StorageConfig const& storage_config,
-                                       std::string const& commit) noexcept
+                                       std::string const& commit,
+                                       std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
 /// \brief Get the path to the file storing the tree id of an archive
 /// content.
 [[nodiscard]] auto GetArchiveTreeIDFile(StorageConfig const& storage_config,
                                         std::string const& repo_type,
-                                        std::string const& content) noexcept
+                                        std::string const& content,
+                                        std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
 /// \brief Get the path to the file storing the tree id of an archive
@@ -53,20 +55,23 @@ namespace StorageUtils {
 [[nodiscard]] auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
                                             std::string const& content,
                                             std::string const& name,
-                                            bool executable) noexcept
+                                            bool executable,
+                                            std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
 /// \brief Get the path to the file storing the tree id of a distdir list
 /// content.
 [[nodiscard]] auto GetDistdirTreeIDFile(StorageConfig const& storage_config,
-                                        std::string const& content) noexcept
+                                        std::string const& content,
+                                        std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
 /// \brief Get the path to the file storing a resolved tree hash.
-[[nodiscard]] auto GetResolvedTreeIDFile(
-    StorageConfig const& storage_config,
-    std::string const& tree_hash,
-    PragmaSpecial const& pragma_special) noexcept -> std::filesystem::path;
+[[nodiscard]] auto GetResolvedTreeIDFile(StorageConfig const& storage_config,
+                                         std::string const& tree_hash,
+                                         PragmaSpecial const& pragma_special,
+                                         std::size_t generation = 0) noexcept
+    -> std::filesystem::path;
 
 /// \brief Write a tree id to file. The parent folder of the file must exist!
 [[nodiscard]] auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,

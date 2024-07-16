@@ -199,7 +199,7 @@ def git_root(*, upstream: Optional[str]) -> str:
     elif upstream and os.path.isabs(upstream) and os.path.isdir(upstream):
         return upstream
     else:
-        return os.path.join(g_ROOT, "git")
+        return os.path.join(g_ROOT, "repositories/generation-0/git")
 
 
 def is_cache_git_root(upstream: Optional[str]) -> bool:
@@ -393,7 +393,8 @@ def archive_tmp_checkout_dir(content: str, repo_type: str) -> str:
 
 
 def archive_tree_id_file(content: str, repo_type: str) -> str:
-    return os.path.join(g_ROOT, "tree-map", repo_type, content)
+    return os.path.join(g_ROOT, "repositories/generation-0/tree-map",
+                        repo_type, content)
 
 
 def get_distfile(desc: Json) -> str:
@@ -577,7 +578,8 @@ def distdir_tmp_dir(content: str) -> str:
 
 
 def distdir_tree_id_file(content: str) -> str:
-    return os.path.join(g_ROOT, "distfiles-tree-map", content)
+    return os.path.join(g_ROOT, "repositories/generation-0/distfiles-tree-map",
+                        content)
 
 
 def distdir_checkout(desc: Json, repos: Json):

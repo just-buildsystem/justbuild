@@ -52,22 +52,27 @@ auto GetGitRoot(StorageConfig const& storage_config,
 }
 
 auto GetCommitTreeIDFile(StorageConfig const& storage_config,
-                         std::string const& commit) noexcept
+                         std::string const& commit,
+                         std::size_t generation) noexcept
     -> std::filesystem::path {
-    return storage_config.build_root / "commit-tree-map" / commit;
+    return storage_config.RepositoryGenerationRoot(generation) /
+           "commit-tree-map" / commit;
 }
 
 auto GetArchiveTreeIDFile(StorageConfig const& storage_config,
                           std::string const& repo_type,
-                          std::string const& content) noexcept
+                          std::string const& content,
+                          std::size_t generation) noexcept
     -> std::filesystem::path {
-    return storage_config.build_root / "tree-map" / repo_type / content;
+    return storage_config.RepositoryGenerationRoot(generation) / "tree-map" /
+           repo_type / content;
 }
 
 auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
                               std::string const& content,
                               std::string const& name,
-                              bool executable) noexcept
+                              bool executable,
+                              std::size_t generation) noexcept
     -> std::filesystem::path {
     return GetDistdirTreeIDFile(
         storage_config,
@@ -76,21 +81,26 @@ auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
                 std::unordered_map<std::string, std::pair<std::string, bool>>{
                     {name, {content, executable}}})
                 .dump())
-            .HexString());
+            .HexString(),
+        generation);
 }
 
 auto GetDistdirTreeIDFile(StorageConfig const& storage_config,
-                          std::string const& content) noexcept
+                          std::string const& content,
+                          std::size_t generation) noexcept
     -> std::filesystem::path {
-    return storage_config.build_root / "distfiles-tree-map" / content;
+    return storage_config.RepositoryGenerationRoot(generation) /
+           "distfiles-tree-map" / content;
 }
 
 auto GetResolvedTreeIDFile(StorageConfig const& storage_config,
                            std::string const& tree_hash,
-                           PragmaSpecial const& pragma_special) noexcept
+                           PragmaSpecial const& pragma_special,
+                           std::size_t generation) noexcept
     -> std::filesystem::path {
-    return storage_config.build_root / "special-tree-map" /
-           kPragmaSpecialInverseMap.at(pragma_special) / tree_hash;
+    return storage_config.RepositoryGenerationRoot(generation) /
+           "special-tree-map" / kPragmaSpecialInverseMap.at(pragma_special) /
+           tree_hash;
 }
 
 auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
