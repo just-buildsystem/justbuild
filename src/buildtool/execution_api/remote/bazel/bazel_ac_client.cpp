@@ -17,6 +17,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 BazelAcClient::BazelAcClient(std::string const& server,
@@ -49,6 +50,7 @@ auto BazelAcClient::GetActionResult(
             grpc::ClientContext context;
             return stub_->GetActionResult(&context, request, &response);
         },
+        RetryConfig::Instance(),
         logger_);
     if (not ok) {
         if (status.error_code() == grpc::StatusCode::NOT_FOUND) {

@@ -18,13 +18,13 @@
 #include <chrono>
 #include <thread>
 
-#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 auto WithRetry(CallableReturningRetryResponse const& f,
+               RetryConfig const& retry_config,
                Logger const& logger) noexcept -> bool {
     try {
-        auto const& attempts = RetryConfig::GetMaxAttempts();
+        auto const& attempts = retry_config.GetMaxAttempts();
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
             auto [ok, fatal, error_msg] = f();
             if (ok) {
@@ -39,7 +39,7 @@ auto WithRetry(CallableReturningRetryResponse const& f,
             // don't wait if it was the last attempt
             if (attempt < attempts) {
                 auto const sleep_for_seconds =
-                    RetryConfig::GetSleepTimeSeconds(attempt);
+                    retry_config.GetSleepTimeSeconds(attempt);
                 logger.Emit(kRetryLogLevel,
                             "Attempt {}/{} failed{} Retrying in {} seconds.",
                             attempt,
@@ -64,10 +64,11 @@ auto WithRetry(CallableReturningRetryResponse const& f,
     return false;
 }
 auto WithRetry(CallableReturningGrpcStatus const& f,
+               RetryConfig const& retry_config,
                Logger const& logger) noexcept -> std::pair<bool, grpc::Status> {
     grpc::Status status{};
     try {
-        auto attempts = RetryConfig::GetMaxAttempts();
+        auto attempts = retry_config.GetMaxAttempts();
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
             status = f();
             if (status.ok() or
@@ -77,7 +78,7 @@ auto WithRetry(CallableReturningGrpcStatus const& f,
             // don't wait if it was the last attempt
             if (attempt < attempts) {
                 auto const sleep_for_seconds =
-                    RetryConfig::GetSleepTimeSeconds(attempt);
+                    retry_config.GetSleepTimeSeconds(attempt);
                 logger.Emit(
                     kRetryLogLevel,
                     "Attempt {}/{} failed: {}: {}: Retrying in {} seconds.",

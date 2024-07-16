@@ -53,8 +53,12 @@
   , "name": ["retry"]
   , "hdrs": ["retry.hpp"]
   , "srcs": ["retry.cpp"]
-  , "deps": [["@", "grpc", "", "grpc++"], ["src/buildtool/logging", "logging"]]
+  , "deps":
+    [ "retry_config"
+    , ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   , "stage": ["src", "buildtool", "common", "remote"]
-  , "private-deps": ["retry_config", ["src/buildtool/logging", "log_level"]]
+  , "private-deps": [["src/buildtool/logging", "log_level"]]
   }
 }

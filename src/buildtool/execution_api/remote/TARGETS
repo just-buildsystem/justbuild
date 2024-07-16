@@ -54,6 +54,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common/remote", "retry"]
+    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/utils/cpp", "path"]

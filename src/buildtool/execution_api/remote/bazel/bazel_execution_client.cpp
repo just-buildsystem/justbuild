@@ -19,6 +19,7 @@
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 namespace bazel_re = build::bazel::remote::execution::v2;
@@ -103,7 +104,7 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
                     response.state != ExecutionResponse::State::Retry,
                 .error_msg = contents.error_msg};
     };
-    if (not WithRetry(execute, logger_)) {
+    if (not WithRetry(execute, RetryConfig::Instance(), logger_)) {
         logger_.Emit(LogLevel::Error,
                      "Failed to execute action {}.",
                      action_digest.ShortDebugString());
@@ -139,7 +140,7 @@ auto BazelExecutionClient::WaitExecution(std::string const& execution_handle)
                     response.state != ExecutionResponse::State::Retry,
                 .error_msg = contents.error_msg};
     };
-    if (not WithRetry(wait_execution, logger_)) {
+    if (not WithRetry(wait_execution, RetryConfig::Instance(), logger_)) {
         logger_.Emit(
             LogLevel::Error, "Failed to Execute action {}.", request.name());
     }
