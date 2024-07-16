@@ -57,10 +57,9 @@ class Compatibility {
                 return it->second;
             }
         }
-        // This is only used in compatible mode. Therefore, the default hash
-        // function produces the compatible hash.
-        auto compatible_hash =
-            HashFunction::Instance().ComputeHash(data).HexString();
+        // This is only used in compatible mode.
+        HashFunction const hash_function{HashFunction::JustHash::Compatible};
+        auto compatible_hash = hash_function.ComputeHash(data).HexString();
         std::unique_lock lock_{Instance().mutex_};
         Instance().git_to_compatible_[git_hash] = compatible_hash;
         Instance().compatible_to_git_[compatible_hash] = {git_hash, repo};
