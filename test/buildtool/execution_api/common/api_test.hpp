@@ -21,6 +21,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -129,8 +130,13 @@ using ExecProps = std::map<std::string, std::string>;
     ExecProps const& props,
     bool is_hermetic = false) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), test_content);
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
+    auto test_digest =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);
 
     std::string output_path{"output_file"};
 
@@ -207,8 +213,13 @@ using ExecProps = std::map<std::string, std::string>;
     ExecProps const& props,
     bool is_hermetic = false) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), test_content);
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
+    auto test_digest =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);
 
     auto input_artifact_opt =
         ArtifactDescription::CreateKnown(test_digest, ObjectType::File)
@@ -292,8 +303,13 @@ using ExecProps = std::map<std::string, std::string>;
     ApiFactory const& api_factory,
     ExecProps const& props) {
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), test_content);
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
+    auto test_digest =
+        ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);
 
     std::string output_path{"output_file"};
 

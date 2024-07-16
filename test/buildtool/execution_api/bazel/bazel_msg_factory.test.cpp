@@ -17,6 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -36,10 +37,14 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     std::filesystem::path link = subdir1 / "link";
     REQUIRE(FileSystemManager::CreateSymlink("file1", link));
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     // create the corresponding blobs
-    auto file1_blob = CreateBlobFromPath(file1, HashFunction::Instance());
-    auto file2_blob = CreateBlobFromPath(file2, HashFunction::Instance());
-    auto link_blob = CreateBlobFromPath(link, HashFunction::Instance());
+    auto file1_blob = CreateBlobFromPath(file1, hash_function);
+    auto file2_blob = CreateBlobFromPath(file2, hash_function);
+    auto link_blob = CreateBlobFromPath(link, hash_function);
 
     CHECK(file1_blob);
     CHECK(file2_blob);

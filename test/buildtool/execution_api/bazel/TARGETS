@@ -34,6 +34,7 @@
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -53,6 +54,7 @@
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -94,6 +96,7 @@
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["utils", "blob_creator"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }

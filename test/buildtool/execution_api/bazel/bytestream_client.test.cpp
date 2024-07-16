@@ -19,6 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
@@ -43,14 +44,17 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
                                    &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     SECTION("Upload small blob") {
         std::string instance_name{"remote-execution"};
         std::string content("foobar");
 
         // digest of "foobar"
         auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(HashFunction::Instance(),
-                                                     content));
+            ArtifactDigest::Create<ObjectType::File>(hash_function, content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -79,8 +83,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
         // digest of "instance_nameinstance_nameinstance_..."
         auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(HashFunction::Instance(),
-                                                     content));
+            ArtifactDigest::Create<ObjectType::File>(hash_function, content));
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -131,21 +134,25 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
                                    &*auth_config};
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), "foo"),
-                      "foo",
-                      /*is_exec=*/false};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), "bar"),
-                      "bar",
-                      /*is_exec=*/false};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), "baz"),
-                      "baz",
-                      /*is_exec=*/false};
+        BazelBlob foo{
+            ArtifactDigest::Create<ObjectType::File>(hash_function, "foo"),
+            "foo",
+            /*is_exec=*/false};
+        BazelBlob bar{
+            ArtifactDigest::Create<ObjectType::File>(hash_function, "bar"),
+            "bar",
+            /*is_exec=*/false};
+        BazelBlob baz{
+            ArtifactDigest::Create<ObjectType::File>(hash_function, "baz"),
+            "baz",
+            /*is_exec=*/false};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},
@@ -190,16 +197,16 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
             content_baz[i] = instance_name[(i + 2) % instance_name.size()];
         }
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), content_foo),
+        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                               content_foo),
                       content_foo,
                       /*is_exec=*/false};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), content_bar),
+        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                               content_bar),
                       content_bar,
                       /*is_exec=*/false};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(
-                          HashFunction::Instance(), content_baz),
+        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                               content_baz),
                       content_baz,
                       /*is_exec=*/false};
 

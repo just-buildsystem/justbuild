@@ -17,6 +17,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -28,9 +29,13 @@
 TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("test");
-    auto test_digest =
-        static_cast<bazel_re::Digest>(ArtifactDigest::Create<ObjectType::File>(
-            HashFunction::Instance(), content));
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
+    auto test_digest = static_cast<bazel_re::Digest>(
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content));
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -54,7 +59,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
                                              {"echo", "-n", content},
                                              {},
                                              remote_config->platform_properties,
-                                             HashFunction::Instance());
+                                             hash_function);
         REQUIRE(action_immediate);
 
         auto response = execution_client.Execute(
@@ -74,7 +79,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
                          {"sh", "-c", "sleep 1s; echo -n test"},
                          {},
                          remote_config->platform_properties,
-                         HashFunction::Instance());
+                         hash_function);
 
         SECTION("Blocking, immediately obtain result") {
             auto response = execution_client.Execute(
@@ -108,9 +113,13 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
           "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("contents of env variable");
-    auto test_digest =
-        static_cast<bazel_re::Digest>(ArtifactDigest::Create<ObjectType::File>(
-            HashFunction::Instance(), content));
+
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::JustHash::Compatible
+                                         : HashFunction::JustHash::Native};
+
+    auto test_digest = static_cast<bazel_re::Digest>(
+        ArtifactDigest::Create<ObjectType::File>(hash_function, content));
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -133,7 +142,7 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
                      {"/bin/sh", "-c", "set -e\necho -n ${MYTESTVAR}"},
                      {{"MYTESTVAR", content}},
                      remote_config->platform_properties,
-                     HashFunction::Instance());
+                     hash_function);
     REQUIRE(action);
 
     auto response =
