@@ -26,6 +26,7 @@
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
@@ -114,6 +115,7 @@ TEST_CASE("simple targets", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -566,6 +568,7 @@ TEST_CASE("configuration deduplication", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -663,6 +666,7 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -772,6 +776,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -991,6 +996,7 @@ TEST_CASE("target reference", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1143,6 +1149,7 @@ TEST_CASE("trees", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1259,6 +1266,7 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1434,6 +1442,7 @@ TEST_CASE("wrong arguments", "[target_map]") {
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
+                         &RetryConfig::Instance(),
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,

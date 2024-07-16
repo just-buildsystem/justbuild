@@ -117,6 +117,7 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , "exit_codes"
@@ -177,6 +178,7 @@
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]

@@ -29,6 +29,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -174,6 +175,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -206,6 +208,7 @@ class TestProject {
                              &local_exec_config,
                              p.GetRepoConfig(),
                              auth,
+                             &RetryConfig::Instance(),
                              remote_config};
         GraphTraverser const gt_get_exec{clargs_exec.gtargs,
                                          p.GetRepoConfig(),
@@ -250,6 +253,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -289,6 +293,7 @@ class TestProject {
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -348,6 +353,7 @@ class TestProject {
                          &local_exec_config,
                          full_hello_world.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
@@ -413,6 +419,7 @@ static void TestBlobsUploadedAndUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -460,6 +467,7 @@ static void TestEnvironmentVariablesSetAndUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -507,6 +515,7 @@ static void TestTreesUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -554,6 +563,7 @@ static void TestNestedTreesUsed(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -600,6 +610,7 @@ static void TestFlakyHelloWorldDetected(
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
+                         &RetryConfig::Instance(),
                          remote_config};
 
     {

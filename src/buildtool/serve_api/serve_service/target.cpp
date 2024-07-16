@@ -25,6 +25,7 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -480,6 +481,7 @@ auto TargetService::ServeTarget(
                                    &local_exec_config_,
                                    &repository_config,
                                    &apis_.auth,
+                                   &apis_.retry_config,
                                    &apis_.remote_config};
         GraphTraverser const traverser{
             std::move(traverser_args),

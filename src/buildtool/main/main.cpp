@@ -70,6 +70,7 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -839,6 +840,7 @@ auto main(int argc, char* argv[]) -> int {
                                       &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
+                                      &RetryConfig::Instance(),
                                       &remote_exec_config};
             if (not ServerImpl::Instance().Run(*storage_config,
                                                storage,
@@ -893,6 +895,7 @@ auto main(int argc, char* argv[]) -> int {
                                            &*local_exec_config,
                                            /*repo_config=*/nullptr,
                                            &*auth_config,
+                                           &RetryConfig::Instance(),
                                            &*remote_exec_config};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
@@ -984,6 +987,7 @@ auto main(int argc, char* argv[]) -> int {
                                   &*local_exec_config,
                                   &repo_config,
                                   &*auth_config,
+                                  &RetryConfig::Instance(),
                                   &*remote_exec_config};
         GraphTraverser const traverser{
             {jobs,

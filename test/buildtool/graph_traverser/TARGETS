@@ -7,6 +7,7 @@
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]

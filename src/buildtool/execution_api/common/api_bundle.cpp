@@ -25,13 +25,15 @@ ApiBundle::ApiBundle(
     gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
     RepositoryConfig const* repo_config,
     gsl::not_null<Auth const*> const& authentication,
+    gsl::not_null<RetryConfig const*> const& retry_config,
     gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config)
     : local{std::make_shared<LocalApi>(storage_config,
                                        storage,
                                        local_exec_config,
                                        repo_config)},  // needed by remote
       auth{*authentication},                           // needed by remote
-      remote_config{*remote_exec_config},              // needed by remote
+      retry_config{*retry_config},                     // needed by remote
+      remote_config{*remote_exec_config},
       remote{CreateRemote(remote_exec_config->remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
@@ -43,7 +45,7 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
                                           address->host,
                                           address->port,
                                           &auth,
-                                          &RetryConfig::Instance(),
+                                          &retry_config,
                                           config);
     }
     return local;

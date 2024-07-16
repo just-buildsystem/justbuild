@@ -21,6 +21,7 @@
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -423,6 +424,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                          &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
+                         &RetryConfig::Instance(),
                          &*remote_exec_config};
 
     bool const has_remote_api =

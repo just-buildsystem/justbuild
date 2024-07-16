@@ -21,6 +21,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -38,6 +39,7 @@ struct ApiBundle final {
         gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
         RepositoryConfig const* repo_config,
         gsl::not_null<Auth const*> const& authentication,
+        gsl::not_null<RetryConfig const*> const& retry_config,
         gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config);
 
     [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
@@ -45,7 +47,8 @@ struct ApiBundle final {
 
     gsl::not_null<IExecutionApi::Ptr> const local;  // needed by remote
     Auth const& auth;                               // needed by remote
-    RemoteExecutionConfig const& remote_config;     // needed by remote
+    RetryConfig const& retry_config;                // needed by remote
+    RemoteExecutionConfig const& remote_config;
     gsl::not_null<IExecutionApi::Ptr> const remote;
 };
 
