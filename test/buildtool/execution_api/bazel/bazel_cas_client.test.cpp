@@ -19,6 +19,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -40,7 +41,8 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     REQUIRE(remote_config->remote_address);
     BazelCasClient cas_client(remote_config->remote_address->host,
                               remote_config->remote_address->port,
-                              &*auth_config);
+                              &*auth_config,
+                              &RetryConfig::Instance());
 
     SECTION("Valid digest and blob") {
         // digest of "test"

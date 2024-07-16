@@ -28,6 +28,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
@@ -38,9 +39,11 @@
 /// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L317
 class BazelCasClient {
   public:
-    explicit BazelCasClient(std::string const& server,
-                            Port port,
-                            gsl::not_null<Auth const*> const& auth) noexcept;
+    explicit BazelCasClient(
+        std::string const& server,
+        Port port,
+        gsl::not_null<Auth const*> const& auth,
+        gsl::not_null<RetryConfig const*> const& retry_config) noexcept;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance
@@ -141,6 +144,7 @@ class BazelCasClient {
 
   private:
     std::unique_ptr<ByteStreamClient> stream_{};
+    RetryConfig const& retry_config_;
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 

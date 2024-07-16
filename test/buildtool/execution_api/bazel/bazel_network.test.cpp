@@ -20,6 +20,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -45,6 +46,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
+                                &RetryConfig::Instance(),
                                 {}};
 
     std::string content_foo("foo");
@@ -101,6 +103,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
+                                &RetryConfig::Instance(),
                                 {}};
 
     std::string content_foo("foo");

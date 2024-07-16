@@ -26,6 +26,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -41,6 +42,7 @@ class BazelNetwork {
                           std::string const& host,
                           Port port,
                           gsl::not_null<Auth const*> const& auth,
+                          gsl::not_null<RetryConfig const*> const& retry_config,
                           ExecutionConfiguration const& exec_config) noexcept;
 
     /// \brief Check if digest exists in CAS
@@ -85,10 +87,10 @@ class BazelNetwork {
 
   private:
     std::string const instance_name_{};
-    ExecutionConfiguration exec_config_{};
     std::unique_ptr<BazelCasClient> cas_{};
     std::unique_ptr<BazelAcClient> ac_{};
     std::unique_ptr<BazelExecutionClient> exec_{};
+    ExecutionConfiguration exec_config_{};
 
     template <class T_Iter>
     [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,

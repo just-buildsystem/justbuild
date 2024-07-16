@@ -174,10 +174,13 @@ namespace {
 
 }  // namespace
 
-BazelCasClient::BazelCasClient(std::string const& server,
-                               Port port,
-                               gsl::not_null<Auth const*> const& auth) noexcept
-    : stream_{std::make_unique<ByteStreamClient>(server, port, auth)} {
+BazelCasClient::BazelCasClient(
+    std::string const& server,
+    Port port,
+    gsl::not_null<Auth const*> const& auth,
+    gsl::not_null<RetryConfig const*> const& retry_config) noexcept
+    : stream_{std::make_unique<ByteStreamClient>(server, port, auth)},
+      retry_config_{*retry_config} {
     stub_ = bazel_re::ContentAddressableStorage::NewStub(
         CreateChannelWithCredentials(server, port, auth));
 }
@@ -254,7 +257,7 @@ auto BazelCasClient::BatchReadBlobs(
                                     [&request, &batch_read_blobs]() {
                                         return batch_read_blobs(request);
                                     },
-                                    RetryConfig::Instance(),
+                                    retry_config_,
                                     logger_);
                             })) {
             logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs.");
@@ -366,7 +369,7 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
             grpc::ClientContext context;
             return stub_->SplitBlob(&context, request, &response);
         },
-        RetryConfig::Instance(),
+        retry_config_,
         logger_);
     if (not ok) {
         LogStatus(&logger_, LogLevel::Error, status, "SplitBlob");
@@ -395,7 +398,7 @@ auto BazelCasClient::SpliceBlob(
             grpc::ClientContext context;
             return stub_->SpliceBlob(&context, request, &response);
         },
-        RetryConfig::Instance(),
+        retry_config_,
         logger_);
     if (not ok) {
         LogStatus(&logger_, LogLevel::Error, status, "SpliceBlob");
@@ -446,7 +449,7 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                     return stub_->FindMissingBlobs(
                         &context, request, &response);
                 },
-                RetryConfig::Instance(),
+                retry_config_,
                 logger_);
             if (ok) {
                 auto batch =
@@ -537,7 +540,7 @@ auto BazelCasClient::BatchUpdateBlobs(
                                     [&request, &batch_update_blobs]() {
                                         return batch_update_blobs(request);
                                     },
-                                    RetryConfig::Instance(),
+                                    retry_config_,
                                     logger_);
                             })) {
             logger_.Emit(LogLevel::Error, "Failed to BatchUpdateBlobs.");

@@ -27,6 +27,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
@@ -194,7 +195,7 @@ BazelApi::BazelApi(std::string const& instance_name,
                    gsl::not_null<Auth const*> const& auth,
                    ExecutionConfiguration const& exec_config) noexcept {
     network_ = std::make_shared<BazelNetwork>(
-        instance_name, host, port, auth, exec_config);
+        instance_name, host, port, auth, &RetryConfig::Instance(), exec_config);
 }
 
 // implement move constructor in cpp, where all members are complete types

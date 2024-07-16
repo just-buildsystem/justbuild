@@ -13,6 +13,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , "test_env"
     , "test_auth_config"
     , "test_remote_config"

@@ -16,6 +16,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -38,7 +39,8 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
 
     BazelExecutionClient execution_client(remote_config->remote_address->host,
                                           remote_config->remote_address->port,
-                                          &*auth_config);
+                                          &*auth_config,
+                                          &RetryConfig::Instance());
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -113,7 +115,8 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
 
     BazelExecutionClient execution_client(remote_config->remote_address->host,
                                           remote_config->remote_address->port,
-                                          &*auth_config);
+                                          &*auth_config,
+                                          &RetryConfig::Instance());
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;

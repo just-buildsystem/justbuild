@@ -25,6 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -94,7 +95,8 @@
 
     BazelCasClient cas_client(remote_config->remote_address->host,
                               remote_config->remote_address->port,
-                              &*auth_config);
+                              &*auth_config,
+                              &RetryConfig::Instance());
 
     std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
     blob_ptrs.reserve(blobs.size());

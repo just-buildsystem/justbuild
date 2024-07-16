@@ -26,6 +26,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -59,7 +60,8 @@ class BazelExecutionClient {
     explicit BazelExecutionClient(
         std::string const& server,
         Port port,
-        gsl::not_null<Auth const*> const& auth) noexcept;
+        gsl::not_null<Auth const*> const& auth,
+        gsl::not_null<RetryConfig const*> const& retry_config) noexcept;
 
     [[nodiscard]] auto Execute(std::string const& instance_name,
                                bazel_re::Digest const& action_digest,
@@ -70,6 +72,7 @@ class BazelExecutionClient {
         -> ExecutionResponse;
 
   private:
+    RetryConfig const& retry_config_;
     std::unique_ptr<bazel_re::Execution::Stub> stub_;
     Logger logger_{"RemoteExecutionClient"};
     struct RetryReadOperation {
