@@ -102,7 +102,7 @@ TEST_CASE("from file") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["file"]["type"] == "KNOWN");
         CHECK(artifacts["file"]["data"]["id"] ==
-              "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
+              (Compatibility::IsCompatible() ? kEmptySha256 : kEmptySha1));
         CHECK(artifacts["file"]["data"]["size"] == 0);
     }
 }
@@ -168,7 +168,7 @@ TEST_CASE("subdir file") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["bar/file"]["type"] == "KNOWN");
         CHECK(artifacts["bar/file"]["data"]["id"] ==
-              "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391");
+              (Compatibility::IsCompatible() ? kEmptySha256 : kEmptySha1));
         CHECK(artifacts["bar/file"]["data"]["size"] == 0);
     }
 }
@@ -189,7 +189,9 @@ TEST_CASE("subdir symlink") {
     SECTION("via git tree") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["link"]["type"] == "KNOWN");
-        CHECK(artifacts["link"]["data"]["id"] == kSrcLinkId);
+        CHECK(artifacts["link"]["data"]["id"] == (Compatibility::IsCompatible()
+                                                      ? kSrcLinkIdSha256
+                                                      : kSrcLinkIdSha1));
         CHECK(artifacts["link"]["data"]["size"] == 5);  // content: dummy
     }
 }

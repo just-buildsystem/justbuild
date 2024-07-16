@@ -30,14 +30,20 @@ static auto const kBasePath =
 static auto const kBundlePath = kBasePath / "data/test_repo.bundle";
 static auto const kSrcTreeId =
     std::string{"6d57ba31821f69286e280334e4fd5f9dbd141721"};
-static auto const kSrcLinkId =
+static auto const kSrcLinkIdSha1 =
     std::string{"2995a4d0e74917fd3e1383c577d0fc301fff1b04"};
+static auto const kSrcLinkIdSha256 = std::string{
+    "b5a2c96250612366ea272ffac6d9744aaf4b45aacd96aa7cfcb931ee3b558259"};
 static auto const kRuleTreeId =
     std::string{"c6dd902c9d4e7afa8b20eb04e58503e63ecab84d"};
 static auto const kExprTreeId =
     std::string{"4946bd21d0a5b3e0c82d6944f3d47adaf1bb66f7"};
 static auto const kJsonTreeId =
     std::string{"6982563dfc4dcdd1362792dbbc9d8243968d1ec9"};
+static auto const kEmptySha1 =
+    std::string{"e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"};
+static auto const kEmptySha256 = std::string{
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"};
 
 [[nodiscard]] static inline auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
