@@ -16,6 +16,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <string>
+#include <string_view>
 #include <thread>
 
 #include "catch2/catch_test_macros.hpp"
@@ -30,8 +31,17 @@ namespace {
 auto const kBundleSymPath =
     std::string{"test/buildtool/file_system/data/test_repo_symlinks.bundle"};
 auto const kTreeSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
-auto const kFooId = std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
-auto const kBarId = std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
+auto const kFooIdGitSha1 =
+    std::string{"19102815663d23f8b75a47e7a01965dcdc96468c"};
+auto const kFooIdSha256 = std::string{
+    "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"};
+auto constexpr kFooContentLength = std::string_view{"foo"}.size();
+
+auto const kBarIdGitSha1 =
+    std::string{"ba0e162e1c47469e3fe4b393a8bf8c569f302116"};
+auto const kBarIdSha256 = std::string{
+    "fcde2b2edba56bf408601fb721fe9b5c338d10ee429ea04fae5511b68fbf8fb9"};
+auto constexpr kBarContentLength = std::string_view{"bar"}.size();
 
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
@@ -285,7 +295,7 @@ TEST_CASE("Reading blobs", "[file_root]") {
         auto root_path = CreateTestRepoSymlinks(true);
         REQUIRE(root_path);
 
-        CHECK_FALSE(FileRoot{*root_path}.ReadBlob(kFooId));
+        CHECK_FALSE(FileRoot{*root_path}.ReadBlob(kFooIdGitSha1));
     }
 
     SECTION("git root") {
@@ -294,7 +304,7 @@ TEST_CASE("Reading blobs", "[file_root]") {
         auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
         REQUIRE(root);
 
-        auto foo = root->ReadBlob(kFooId);
+        auto foo = root->ReadBlob(kFooIdGitSha1);
         REQUIRE(foo);
         CHECK(*foo == "foo");
 
@@ -305,8 +315,8 @@ TEST_CASE("Reading blobs", "[file_root]") {
         auto root_path = CreateTestRepoSymlinks(true);
         REQUIRE(root_path);
 
-        CHECK_FALSE(
-            FileRoot{*root_path, /*ignore_special=*/true}.ReadBlob(kFooId));
+        CHECK_FALSE(FileRoot{*root_path, /*ignore_special=*/true}.ReadBlob(
+            kFooIdGitSha1));
     }
 
     SECTION("git root ignore-special") {
@@ -316,7 +326,7 @@ TEST_CASE("Reading blobs", "[file_root]") {
             FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
         REQUIRE(root);
 
-        auto foo = root->ReadBlob(kFooId);
+        auto foo = root->ReadBlob(kFooIdGitSha1);
         REQUIRE(foo);
         CHECK(*foo == "foo");
 
@@ -381,17 +391,39 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto foo = root->ToArtifactDescription("baz/foo", "repo");
         REQUIRE(foo);
-        CHECK(*foo == ArtifactDescription::CreateKnown(
-                          ArtifactDigest{kFooId, 3, /*is_tree=*/false},
-                          ObjectType::File,
-                          "repo"));
+        if (Compatibility::IsCompatible()) {
+            CHECK(*foo ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kFooIdSha256, kFooContentLength, /*is_tree=*/false},
+                      ObjectType::File));
+        }
+        else {
+            CHECK(*foo ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kFooIdGitSha1, kFooContentLength, /*is_tree=*/false},
+                      ObjectType::File,
+                      "repo"));
+        }
 
         auto bar = root->ToArtifactDescription("baz/bar", "repo");
         REQUIRE(bar);
-        CHECK(*bar == ArtifactDescription::CreateKnown(
-                          ArtifactDigest{kBarId, 3, /*is_tree=*/false},
-                          ObjectType::Executable,
-                          "repo"));
+        if (Compatibility::IsCompatible()) {
+            CHECK(*bar ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kBarIdSha256, kBarContentLength, /*is_tree=*/false},
+                      ObjectType::Executable));
+        }
+        else {
+            CHECK(*bar ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kBarIdGitSha1, kBarContentLength, /*is_tree=*/false},
+                      ObjectType::Executable,
+                      "repo"));
+        }
 
         CHECK_FALSE(root->ToArtifactDescription("baz", "repo"));
         CHECK_FALSE(root->ToArtifactDescription("does_not_exist", "repo"));
@@ -419,17 +451,39 @@ TEST_CASE("Creating artifact descriptions", "[file_root]") {
 
         auto foo = root->ToArtifactDescription("baz/foo", "repo");
         REQUIRE(foo);
-        CHECK(*foo == ArtifactDescription::CreateKnown(
-                          ArtifactDigest{kFooId, 3, /*is_tree=*/false},
-                          ObjectType::File,
-                          "repo"));
+        if (Compatibility::IsCompatible()) {
+            CHECK(*foo ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kFooIdSha256, kFooContentLength, /*is_tree=*/false},
+                      ObjectType::File));
+        }
+        else {
+            CHECK(*foo ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kFooIdGitSha1, kFooContentLength, /*is_tree=*/false},
+                      ObjectType::File,
+                      "repo"));
+        }
 
         auto bar = root->ToArtifactDescription("baz/bar", "repo");
         REQUIRE(bar);
-        CHECK(*bar == ArtifactDescription::CreateKnown(
-                          ArtifactDigest{kBarId, 3, /*is_tree=*/false},
-                          ObjectType::Executable,
-                          "repo"));
+        if (Compatibility::IsCompatible()) {
+            CHECK(*bar ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kBarIdSha256, kBarContentLength, /*is_tree=*/false},
+                      ObjectType::Executable));
+        }
+        else {
+            CHECK(*bar ==
+                  ArtifactDescription::CreateKnown(
+                      ArtifactDigest{
+                          kBarIdGitSha1, kBarContentLength, /*is_tree=*/false},
+                      ObjectType::Executable,
+                      "repo"));
+        }
 
         CHECK_FALSE(root->ToArtifactDescription("baz", "repo"));
         CHECK_FALSE(root->ToArtifactDescription("does_not_exist", "repo"));
