@@ -51,7 +51,8 @@
     , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    [ ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     ]

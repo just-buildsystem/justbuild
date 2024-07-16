@@ -67,12 +67,13 @@
   , "srcs": ["bazel/bazel_api.cpp"]
   , "deps":
     [ "config"
-    , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
@@ -80,7 +81,6 @@
     [ "bazel_network"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/execution_api/common", "common"]

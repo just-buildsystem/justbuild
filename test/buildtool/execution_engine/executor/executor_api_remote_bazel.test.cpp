@@ -15,6 +15,7 @@
 #include <optional>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -41,6 +42,7 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
                                           remote_config->remote_address->host,
                                           remote_config->remote_address->port,
                                           &*auth_config,
+                                          &RetryConfig::Instance(),
                                           config}};
     });
 }
@@ -69,6 +71,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
+                             &RetryConfig::Instance(),
                              config}};
         },
         &*auth_config,
@@ -99,6 +102,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
+                             &RetryConfig::Instance(),
                              config}};
         },
         &*auth_config,
@@ -129,6 +133,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
+                             &RetryConfig::Instance(),
                              config}};
         },
         &*auth_config,
@@ -159,6 +164,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
+                             &RetryConfig::Instance(),
                              config}};
         },
         &*auth_config,

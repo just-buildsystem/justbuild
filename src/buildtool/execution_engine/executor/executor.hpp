@@ -31,6 +31,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
@@ -686,6 +687,7 @@ class ExecutorImpl {
                     endpoint.host,
                     endpoint.port,
                     auth,
+                    &RetryConfig::Instance(),
                     config);
             }
         }

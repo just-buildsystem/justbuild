@@ -8,6 +8,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_engine/dag", "dag"]

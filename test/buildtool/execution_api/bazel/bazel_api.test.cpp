@@ -16,6 +16,7 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
@@ -34,6 +35,7 @@ auto const kApiFactory = []() {
                                            remote_config->remote_address->host,
                                            remote_config->remote_address->port,
                                            &*auth_config,
+                                           &RetryConfig::Instance(),
                                            {}}};
 };
 

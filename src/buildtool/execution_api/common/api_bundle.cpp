@@ -14,6 +14,7 @@
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -38,8 +39,12 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
     if (address) {
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
-        return std::make_shared<BazelApi>(
-            "remote-execution", address->host, address->port, &auth, config);
+        return std::make_shared<BazelApi>("remote-execution",
+                                          address->host,
+                                          address->port,
+                                          &auth,
+                                          &RetryConfig::Instance(),
+                                          config);
     }
     return local;
 }
