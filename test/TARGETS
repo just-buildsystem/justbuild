@@ -41,6 +41,7 @@
     , ["@", "src", "src/buildtool/file_system", "git_context"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "file_chunker"]
+    , ["utils", "test_env"]
     ]
   , "stage": ["test"]
   }
