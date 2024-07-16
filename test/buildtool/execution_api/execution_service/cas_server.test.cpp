@@ -42,6 +42,11 @@ namespace {
 }  // namespace
 
 TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
+    // For compatible mode tree invariants aren't checked.
+    if (Compatibility::IsCompatible()) {
+        return;
+    }
+
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
 
