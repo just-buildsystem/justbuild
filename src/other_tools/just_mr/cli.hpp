@@ -109,7 +109,8 @@ enum class SubCommand {
     kSetup,
     kSetupEnv,
     kJustDo,
-    kJustSubCmd
+    kJustSubCmd,
+    kGcRepo
 };
 
 struct CommandLineArguments {

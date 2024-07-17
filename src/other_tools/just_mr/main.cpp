@@ -101,6 +101,8 @@ void SetupSetupCommandArguments(
         "Advance Git commit IDs and print updated just-mr configuration.");
     auto* cmd_do = app.add_subcommand(
         "do", "Canonical way of specifying subcommands to be launched.");
+    auto* cmd_gc_repo = app.add_subcommand(
+        "gc-repo", "Perform garbage collection on the repository roots.");
     cmd_do->set_help_flag();  // disable help flag
     // define just subcommands
     std::vector<CLI::App*> cmd_just_subcmds{};
@@ -157,6 +159,9 @@ void SetupSetupCommandArguments(
     }
     else if (*cmd_update) {
         clargs.cmd = SubCommand::kUpdate;
+    }
+    else if (*cmd_gc_repo) {
+        clargs.cmd = SubCommand::kGcRepo;
     }
     else if (*cmd_do) {
         clargs.cmd = SubCommand::kJustDo;
@@ -314,6 +319,13 @@ auto main(int argc, char* argv[]) -> int {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");
             return kExitGenericFailure;
+        }
+
+        if (arguments.cmd == SubCommand::kGcRepo) {
+            return RepositoryGarbageCollector::TriggerGarbageCollection(
+                       *storage_config)
+                       ? kExitSuccess
+                       : kExitBuiltinCommandFailure;
         }
 
         auto const storage = Storage::Create(&*storage_config);

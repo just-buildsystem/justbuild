@@ -329,6 +329,14 @@ This subcommand is the explicit way of specifying *known* just
 subcommands and calling **`just`** via **`execvp`**(2). The same description
 as for the **`do`** subcommand applies.
 
+**`gc-repo`**
+-------------
+
+Rotate the repository-root generations. In this way, all repository
+roots not needed since the the last call to **`gc-repo`** are purged
+and the corresponding disk space reclaimed.
+
+
 EXIT STATUS
 ===========
 
