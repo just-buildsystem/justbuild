@@ -89,9 +89,9 @@
 template <Hasher::HashType type>
 [[nodiscard]] static auto GetContentHash(std::string const& data) noexcept
     -> std::string {
-    Hasher hasher{type};
-    hasher.Update(data);
-    auto digest = std::move(hasher).Finalize();
+    auto hasher = Hasher::Create(type);
+    hasher->Update(data);
+    auto digest = std::move(*hasher).Finalize();
     return digest.HexString();
 }
 

@@ -69,13 +69,17 @@ class HashFunction {
 
     /// \brief Obtain incremental hasher for computing plain hashes.
     [[nodiscard]] auto MakeHasher() const noexcept -> Hasher {
+        std::optional<Hasher> hasher;
         switch (type_) {
             case JustHash::Native:
-                return Hasher{Hasher::HashType::SHA1};
+                hasher = Hasher::Create(Hasher::HashType::SHA1);
+                break;
             case JustHash::Compatible:
-                return Hasher{Hasher::HashType::SHA256};
+                hasher = Hasher::Create(Hasher::HashType::SHA256);
+                break;
         }
-        Ensures(false);  // unreachable
+        Ensures(hasher.has_value());
+        return *std::move(hasher);
     }
 
   private:

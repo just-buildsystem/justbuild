@@ -14,12 +14,12 @@
     , "hash_impl_sha512.cpp"
     ]
   , "stage": ["src", "buildtool", "crypto"]
-  , "deps":
-    [ ["src/buildtool/logging", "log_level"]
+  , "deps": [["src/utils/cpp", "hex_string"]]
+  , "private-deps":
+    [ ["@", "ssl", "", "crypto"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "hex_string"]
     ]
-  , "private-deps": [["@", "ssl", "", "crypto"]]
   }
 , "hash_function":
   { "type": ["@", "rules", "CC", "library"]

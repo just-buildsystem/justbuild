@@ -23,12 +23,10 @@
 #include <string>
 #include <utility>  // std::move
 
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 /// \brief Incremental hasher.
-class Hasher {
+class Hasher final {
   public:
     /// \brief Types of hash implementations supported by generator.
     enum class HashType : std::uint8_t { SHA1, SHA256, SHA512 };
@@ -36,7 +34,7 @@ class Hasher {
     /// \brief The universal hash digest.
     /// The type of hash and the digest length depends on the hash
     /// implementation used to generated this digest.
-    class HashDigest {
+    class HashDigest final {
         friend Hasher;
 
       public:
@@ -91,39 +89,24 @@ class Hasher {
 
         /// \brief Obtain length of the resulting hash string.
         [[nodiscard]] virtual auto GetHashLength() const noexcept -> size_t = 0;
-
-        static auto FatalError() noexcept -> void {
-            Logger::Log(LogLevel::Error, "Failed to compute hash.");
-            std::terminate();
-        }
     };
 
-    explicit Hasher(HashType type) : impl_{CreateHashImpl(type)} {}
+    [[nodiscard]] static auto Create(HashType type) noexcept
+        -> std::optional<Hasher>;
 
     /// \brief Feed data to the hasher.
-    auto Update(std::string const& data) noexcept -> bool {
-        return impl_->Update(data);
-    }
+    auto Update(std::string const& data) noexcept -> bool;
 
     /// \brief Finalize hash.
-    [[nodiscard]] auto Finalize() && noexcept -> HashDigest {
-        if (auto hash = std::move(*impl_).Finalize()) {
-            return HashDigest{std::move(*hash)};
-        }
-        IHashImpl::FatalError();
-        return HashDigest{{}};
-    }
+    [[nodiscard]] auto Finalize() && noexcept -> HashDigest;
 
     /// \brief Obtain length of the resulting hash string.
-    [[nodiscard]] auto GetHashLength() const noexcept -> size_t {
-        return impl_->GetHashLength();
-    }
+    [[nodiscard]] auto GetHashLength() const noexcept -> std::size_t;
 
   private:
     std::unique_ptr<IHashImpl> impl_;
 
-    [[nodiscard]] static auto CreateHashImpl(HashType type) noexcept
-        -> std::unique_ptr<IHashImpl>;
+    explicit Hasher(std::unique_ptr<IHashImpl> impl) noexcept;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASHER_HPP

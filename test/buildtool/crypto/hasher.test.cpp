@@ -20,10 +20,11 @@
 
 template <Hasher::HashType type>
 void test_increment_hash(std::string const& bytes, std::string const& result) {
-    Hasher hasher{type};
-    hasher.Update(bytes.substr(0, bytes.size() / 2));
-    hasher.Update(bytes.substr(bytes.size() / 2));
-    auto digest = std::move(hasher).Finalize();
+    auto hasher = Hasher::Create(type);
+    REQUIRE(hasher.has_value());
+    hasher->Update(bytes.substr(0, bytes.size() / 2));
+    hasher->Update(bytes.substr(bytes.size() / 2));
+    auto digest = std::move(*hasher).Finalize();
     CHECK(digest.HexString() == result);
 }
 
