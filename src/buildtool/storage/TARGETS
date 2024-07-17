@@ -18,6 +18,19 @@
     ]
   , "stage": ["src", "buildtool", "storage"]
   }
+, "repository_garbage_collector":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["repository_garbage_collector"]
+  , "hdrs": ["repository_garbage_collector.hpp"]
+  , "srcs": ["repository_garbage_collector.cpp"]
+  , "deps": ["config", ["src/utils/cpp", "file_locking"]]
+  , "private-deps":
+    [ ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "logging"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  }
 , "storage":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["storage"]
