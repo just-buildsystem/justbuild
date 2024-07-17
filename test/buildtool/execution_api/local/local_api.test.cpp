@@ -51,7 +51,7 @@ class FactoryApi final {
 TEST_CASE("LocalAPI: No input, no output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestNoInputNoOutput(api_factory, {}, /*is_hermetic=*/true);
@@ -60,7 +60,7 @@ TEST_CASE("LocalAPI: No input, no output", "[execution_api]") {
 TEST_CASE("LocalAPI: No input, create output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestNoInputCreateOutput(api_factory, {}, /*is_hermetic=*/true);
@@ -69,7 +69,7 @@ TEST_CASE("LocalAPI: No input, create output", "[execution_api]") {
 TEST_CASE("LocalAPI: One input copied to output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestOneInputCopiedToOutput(api_factory, {}, /*is_hermetic=*/true);
@@ -78,7 +78,7 @@ TEST_CASE("LocalAPI: One input copied to output", "[execution_api]") {
 TEST_CASE("LocalAPI: Non-zero exit code, create output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestNonZeroExitCodeCreateOutput(api_factory, {});
@@ -87,7 +87,7 @@ TEST_CASE("LocalAPI: Non-zero exit code, create output", "[execution_api]") {
 TEST_CASE("LocalAPI: Retrieve two identical trees to path", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestRetrieveTwoIdenticalTreesToPath(
@@ -98,7 +98,7 @@ TEST_CASE("LocalAPI: Retrieve file and symlink with same content to path",
           "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestRetrieveFileAndSymlinkWithSameContentToPath(
@@ -108,7 +108,7 @@ TEST_CASE("LocalAPI: Retrieve file and symlink with same content to path",
 TEST_CASE("LocalAPI: Retrieve mixed blobs and trees", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestRetrieveMixedBlobsAndTrees(
@@ -118,7 +118,7 @@ TEST_CASE("LocalAPI: Retrieve mixed blobs and trees", "[execution_api]") {
 TEST_CASE("LocalAPI: Create directory prior to execution", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-    auto const local_exec_config = SetLauncher();
+    auto const local_exec_config = CreateLocalExecConfig();
     FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
 
     TestCreateDirPriorToExecution(api_factory, {}, /*is_hermetic=*/true);

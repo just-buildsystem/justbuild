@@ -32,7 +32,7 @@
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 using ExecProps = std::map<std::string, std::string>;
 
-[[nodiscard]] static inline auto SetLauncher() noexcept
+[[nodiscard]] static inline auto CreateLocalExecConfig() noexcept
     -> LocalExecutionConfig {
     std::vector<std::string> launcher{"env"};
     auto* env_path = std::getenv("PATH");
