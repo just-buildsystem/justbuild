@@ -37,12 +37,14 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     TestBlobUpload(&repo_config, [&] {
         return BazelApi::Ptr{new BazelApi{"remote-execution",
                                           remote_config->remote_address->host,
                                           remote_config->remote_address->port,
                                           &*auth_config,
-                                          &RetryConfig::Instance(),
+                                          &retry_config,
                                           config}};
     });
 }
@@ -61,6 +63,8 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     TestHelloWorldCompilation(
         &repo_config,
         &stats,
@@ -71,7 +75,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
-                             &RetryConfig::Instance(),
+                             &retry_config,
                              config}};
         },
         &*auth_config,
@@ -92,6 +96,8 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     TestGreeterCompilation(
         &repo_config,
         &stats,
@@ -102,7 +108,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
-                             &RetryConfig::Instance(),
+                             &retry_config,
                              config}};
         },
         &*auth_config,
@@ -123,6 +129,8 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     TestUploadAndDownloadTrees(
         &repo_config,
         &stats,
@@ -133,7 +141,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
-                             &RetryConfig::Instance(),
+                             &retry_config,
                              config}};
         },
         &*auth_config,
@@ -154,6 +162,8 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     TestRetrieveOutputDirectories(
         &repo_config,
         &stats,
@@ -164,7 +174,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
                              remote_config->remote_address->host,
                              remote_config->remote_address->port,
                              &*auth_config,
-                             &RetryConfig::Instance(),
+                             &retry_config,
                              config}};
         },
         &*auth_config,

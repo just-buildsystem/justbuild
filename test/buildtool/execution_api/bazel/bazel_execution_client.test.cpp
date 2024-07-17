@@ -37,10 +37,12 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
 
+    RetryConfig retry_config{};  // default retry config
+
     BazelExecutionClient execution_client(remote_config->remote_address->host,
                                           remote_config->remote_address->port,
                                           &*auth_config,
-                                          &RetryConfig::Instance());
+                                          &retry_config);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;
@@ -113,10 +115,12 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
 
+    RetryConfig retry_config{};  // default retry config
+
     BazelExecutionClient execution_client(remote_config->remote_address->host,
                                           remote_config->remote_address->port,
                                           &*auth_config,
-                                          &RetryConfig::Instance());
+                                          &retry_config);
 
     ExecutionConfiguration config;
     config.skip_cache_lookup = false;

@@ -110,12 +110,13 @@ TEST_CASE("simple targets", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -563,12 +564,13 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -661,12 +663,13 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -771,12 +774,13 @@ TEST_CASE("built-in rules", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -991,12 +995,13 @@ TEST_CASE("target reference", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1144,12 +1149,13 @@ TEST_CASE("trees", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1261,12 +1267,13 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -1437,12 +1444,13 @@ TEST_CASE("wrong arguments", "[target_map]") {
     LocalExecutionConfig local_exec_config{};
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
+    RetryConfig retry_config{};
     ApiBundle const apis{&storage_config.Get(),
                          &storage,
                          &local_exec_config,
                          /*repo_config=*/nullptr,
                          &auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          &remote_exec_config};
     auto serve = ServeApi::Create(*serve_config, &storage, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,

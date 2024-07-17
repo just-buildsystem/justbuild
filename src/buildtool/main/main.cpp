@@ -54,7 +54,6 @@
 #include "src/buildtool/main/diagnose.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
 #include "src/buildtool/main/install_cas.hpp"
-#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -76,6 +75,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/describe.hpp"
+#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/main/serve.hpp"
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
@@ -834,13 +834,16 @@ auto main(int argc, char* argv[]) -> int {
             auto const storage = Storage::Create(&*storage_config);
             StoreTargetCacheShard(*storage_config, storage, remote_exec_config);
 
+            RetryConfig
+                retry_config{};  // default is enough, as remote is not used
+
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
                                       &storage,
                                       &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
-                                      &RetryConfig::Instance(),
+                                      &retry_config,
                                       &remote_exec_config};
             if (not ServerImpl::Instance().Run(*storage_config,
                                                storage,
@@ -859,7 +862,8 @@ auto main(int argc, char* argv[]) -> int {
 
         // Set up the retry arguments, needed only for the client-side logic of
         // remote execution, i.e., just serve and the regular just client.
-        if (not SetupRetryConfig(arguments.retry)) {
+        auto retry_config = CreateRetryConfig(arguments.retry);
+        if (not retry_config) {
             return kExitFailure;
         }
 
@@ -895,7 +899,7 @@ auto main(int argc, char* argv[]) -> int {
                                            &*local_exec_config,
                                            /*repo_config=*/nullptr,
                                            &*auth_config,
-                                           &RetryConfig::Instance(),
+                                           &*retry_config,
                                            &*remote_exec_config};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
@@ -987,7 +991,7 @@ auto main(int argc, char* argv[]) -> int {
                                   &*local_exec_config,
                                   &repo_config,
                                   &*auth_config,
-                                  &RetryConfig::Instance(),
+                                  &*retry_config,
                                   &*remote_exec_config};
         GraphTraverser const traverser{
             {jobs,

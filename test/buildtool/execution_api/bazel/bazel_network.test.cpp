@@ -42,11 +42,13 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
 
+    RetryConfig retry_config{};  // default retry config
+
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
-                                &RetryConfig::Instance(),
+                                &retry_config,
                                 {}};
 
     std::string content_foo("foo");
@@ -99,11 +101,13 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
 
+    RetryConfig retry_config{};  // default retry config
+
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
                                 remote_config->remote_address->port,
                                 &*auth_config,
-                                &RetryConfig::Instance(),
+                                &retry_config,
                                 {}};
 
     std::string content_foo("foo");

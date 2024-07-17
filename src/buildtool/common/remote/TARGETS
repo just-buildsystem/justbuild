@@ -43,8 +43,9 @@
   , "name": ["retry_config"]
   , "hdrs": ["retry_config.hpp"]
   , "deps":
-    [ ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }

@@ -15,8 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDOOL_MAIN_RETRY_HPP
 #define INCLUDED_SRC_BUILDOOL_MAIN_RETRY_HPP
 
+#include <optional>
+
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
 
-[[nodiscard]] auto SetupRetryConfig(RetryArguments const& args) -> bool;
+[[nodiscard]] auto CreateRetryConfig(RetryArguments const& args)
+    -> std::optional<RetryConfig>;
 
-#endif
+#endif  // INCLUDED_SRC_BUILDOOL_MAIN_RETRY_HPP

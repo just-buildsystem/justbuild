@@ -170,12 +170,13 @@ class TestProject {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -203,12 +204,13 @@ class TestProject {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
+        RetryConfig retry_config{};  // default retry config
         ApiBundle const apis{&storage_config,
                              &storage,
                              &local_exec_config,
                              p.GetRepoConfig(),
                              auth,
-                             &RetryConfig::Instance(),
+                             &retry_config,
                              remote_config};
         GraphTraverser const gt_get_exec{clargs_exec.gtargs,
                                          p.GetRepoConfig(),
@@ -248,12 +250,13 @@ class TestProject {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -288,12 +291,13 @@ class TestProject {
     auto const clargs = p.CmdLineArgs();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -348,12 +352,13 @@ class TestProject {
         full_hello_world.CmdLineArgs("_entry_points_upload_source");
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          full_hello_world.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
@@ -414,12 +419,13 @@ static void TestBlobsUploadedAndUsed(
     auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -462,12 +468,13 @@ static void TestEnvironmentVariablesSetAndUsed(
     auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -510,12 +517,13 @@ static void TestTreesUsed(
     auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -558,12 +566,13 @@ static void TestNestedTreesUsed(
     auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -605,12 +614,13 @@ static void TestFlakyHelloWorldDetected(
     auto const local_exec_config = CreateLocalExecConfig();
     Statistics stats{};
     Progress progress{};
+    RetryConfig retry_config{};  // default retry config
     ApiBundle const apis{&storage_config,
                          &storage,
                          &local_exec_config,
                          p.GetRepoConfig(),
                          auth,
-                         &RetryConfig::Instance(),
+                         &retry_config,
                          remote_config};
 
     {

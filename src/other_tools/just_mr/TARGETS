@@ -13,7 +13,6 @@
     , ["src/buildtool/file_system", "git_context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/main", "retry"]
     , ["src/buildtool/main", "version"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
@@ -109,6 +108,7 @@
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
     , "cli"
+    , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]
@@ -119,6 +119,7 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/main", "retry"]
     , ["src/buildtool/multithreading", "task_system"]
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -171,6 +172,7 @@
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression"]
     , "cli"
+    , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]
@@ -180,6 +182,7 @@
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/main", "retry"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]
     , "exit_codes"
@@ -212,6 +215,7 @@
   , "srcs": ["launch.cpp"]
   , "deps":
     [ "cli"
+    , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]

@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -55,6 +56,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoJustSubCmdsArguments const& just_cmd_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
+                    RetryArguments const& retry_args,
                     StorageConfig const& storage_config,
                     Storage const& storage,
                     bool interactive,
@@ -137,12 +139,18 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
+    // setup the retry config
+    auto retry_config = CreateRetryConfig(retry_args);
+    if (not retry_config) {
+        return std::nullopt;
+    }
+
     ApiBundle const apis{&storage_config,
                          &storage,
                          &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
-                         &RetryConfig::Instance(),
+                         &*retry_config,
                          &*remote_exec_config};
 
     bool const has_remote_api =

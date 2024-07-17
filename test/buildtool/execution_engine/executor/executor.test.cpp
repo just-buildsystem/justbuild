@@ -283,13 +283,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -304,13 +305,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -325,13 +327,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -367,13 +370,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -391,13 +395,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -415,13 +420,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -442,13 +448,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -466,13 +473,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 
@@ -493,13 +501,14 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
+        RetryConfig retry_config{};  // default retry config
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         &stats,
                         &progress};
 

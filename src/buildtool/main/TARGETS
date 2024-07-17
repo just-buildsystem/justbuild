@@ -65,8 +65,14 @@
   , "hdrs": ["retry.hpp"]
   , "srcs": ["retry.cpp"]
   , "stage": ["src", "buildtool", "main"]
-  , "deps": [["src/buildtool/common", "retry_cli"]]
-  , "private-deps": [["src/buildtool/common/remote", "retry_config"]]
+  , "deps":
+    [ ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/common", "retry_cli"]
+    ]
+  , "private-deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   }
 , "describe":
   { "type": ["@", "rules", "CC", "library"]

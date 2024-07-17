@@ -34,7 +34,6 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
@@ -337,10 +336,6 @@ auto main(int argc, char* argv[]) -> int {
             return kExitGenericFailure;
         }
 
-        if (not SetupRetryConfig(arguments.retry)) {
-            return kExitGenericFailure;
-        }
-
         /**
          * The current implementation of libgit2 uses pthread_key_t incorrectly
          * on POSIX systems to handle thread-specific data, which requires us to
@@ -397,6 +392,7 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.setup,
                 arguments.just_cmd,
                 arguments.auth,
+                arguments.retry,
                 *storage_config,
                 storage,
                 /*interactive=*/(arguments.cmd == SubCommand::kSetupEnv),
@@ -445,6 +441,7 @@ auto main(int argc, char* argv[]) -> int {
                                   arguments.setup,
                                   arguments.fetch,
                                   arguments.auth,
+                                  arguments.retry,
                                   *storage_config,
                                   storage,
                                   my_name);

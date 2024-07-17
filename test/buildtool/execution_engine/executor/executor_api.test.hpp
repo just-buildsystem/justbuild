@@ -130,6 +130,8 @@ static inline void RunHelloWorldCompilation(
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     REQUIRE(remote_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
@@ -137,7 +139,7 @@ static inline void RunHelloWorldCompilation(
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
-                    &RetryConfig::Instance(),
+                    &retry_config,
                     stats,
                     progress};
 
@@ -257,6 +259,8 @@ static inline void RunGreeterCompilation(
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     REQUIRE(remote_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     auto api = factory();
     Executor runner{repo_config,
                     api.get(),
@@ -264,7 +268,7 @@ static inline void RunGreeterCompilation(
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
-                    &RetryConfig::Instance(),
+                    &retry_config,
                     stats,
                     progress};
 
@@ -425,13 +429,15 @@ static inline void TestUploadAndDownloadTrees(
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     REQUIRE(remote_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
-                    &RetryConfig::Instance(),
+                    &retry_config,
                     stats,
                     progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
@@ -578,6 +584,8 @@ static inline void TestRetrieveOutputDirectories(
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     REQUIRE(remote_config);
 
+    RetryConfig retry_config{};  // default retry config
+
     SECTION("entire action output as directory") {
         auto const make_tree_desc = create_action({}, {""});
         auto const root_desc =
@@ -599,7 +607,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -654,7 +662,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -726,7 +734,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
-                        &RetryConfig::Instance(),
+                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -800,7 +808,7 @@ static inline void TestRetrieveOutputDirectories(
                             remote_config->platform_properties,
                             remote_config->dispatch,
                             auth,
-                            &RetryConfig::Instance(),
+                            &retry_config,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));
@@ -827,7 +835,7 @@ static inline void TestRetrieveOutputDirectories(
                             remote_config->platform_properties,
                             remote_config->dispatch,
                             auth,
-                            &RetryConfig::Instance(),
+                            &retry_config,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));

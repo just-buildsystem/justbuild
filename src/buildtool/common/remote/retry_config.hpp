@@ -16,118 +16,139 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_PARAMETERS_HPP
 
 #include <mutex>
+#include <optional>
 #include <random>
+#include <string>
 
+#include "fmt/core.h"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 
-constexpr unsigned int kDefaultInitialBackoffSeconds{1};
-constexpr unsigned int kDefaultMaxBackoffSeconds{60};
-constexpr unsigned int kDefaultAttempts{1};
-constexpr auto kRetryLogLevel = LogLevel::Progress;
-class RetryConfig {
-    using dist_type = std::uniform_int_distribution<std::mt19937::result_type>;
+inline constexpr unsigned int kDefaultInitialBackoffSeconds{1};
+inline constexpr unsigned int kDefaultMaxBackoffSeconds{60};
+inline constexpr unsigned int kDefaultAttempts{1};
+inline constexpr auto kRetryLogLevel = LogLevel::Progress;
 
+class RetryConfig final {
   public:
+    class Builder;
+
     RetryConfig() = default;
-    [[nodiscard]] static auto Instance() -> RetryConfig& {
-        static RetryConfig instance{};
-        return instance;
+
+    [[nodiscard]] auto GetMaxAttempts() const noexcept -> unsigned int {
+        return attempts_;
     }
 
-    [[nodiscard]] static auto SetInitialBackoffSeconds(unsigned int x) noexcept
-        -> bool {
-        if (x < 1) {
-            Logger::Log(
-                LogLevel::Error,
-                "Invalid initial amount of seconds provided: {}. Value must "
-                "be strictly greater than 0.",
-                x);
-            return false;
-        }
-        Instance().initial_backoff_seconds_ = x;
-        return true;
-    }
-
-    [[nodiscard]] static auto SetMaxBackoffSeconds(unsigned int x) noexcept
-        -> bool {
-        if (x < 1) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid max backoff provided: {}. Value must be "
-                        "strictly greater than 0.",
-                        x);
-            return false;
-        }
-        Instance().max_backoff_seconds_ = x;
-        return true;
-    }
-
-    [[nodiscard]] static auto GetMaxBackoffSeconds() noexcept -> unsigned int {
-        return Instance().max_backoff_seconds_;
-    }
-
-    [[nodiscard]] static auto SetMaxAttempts(unsigned int x) noexcept -> bool {
-        if (x < 1) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid number of max number of attempts provided: "
-                        "{}. Value must be strictly greater than 0",
-                        x);
-            return false;
-        }
-        Instance().attempts_ = x;
-        return true;
-    }
-
-    [[nodiscard]] static auto GetInitialBackoffSeconds() noexcept
-        -> unsigned int {
-        return Instance().initial_backoff_seconds_;
-    }
-
-    [[nodiscard]] static auto GetMaxAttempts() noexcept -> unsigned int {
-        return Instance().attempts_;
-    }
-
-    [[nodiscard]] static auto Jitter(unsigned int backoff) noexcept ->
-        typename dist_type::result_type {
-        auto& inst = Instance();
-        try {
-            dist_type dist{0, backoff * 3};
-            std::unique_lock lock(inst.mutex_);
-            return dist(inst.rng_);
-        } catch (...) {
-            return 0;
-        }
-    }
-
-    /// \brief The waiting time is exponentially increased at each \p attempt
-    /// until it exceeds max_backoff_seconds.
+    /// \brief The waiting time is exponentially increased at each \p
+    /// attempt until it exceeds max_backoff_seconds.
     ///
-    /// To avoid overloading of the reachable resources, a jitter (aka, random
-    /// value) is added to distributed the workload.
-    [[nodiscard]] static auto GetSleepTimeSeconds(unsigned int attempt) noexcept
+    /// To avoid overloading of the reachable resources, a jitter (aka,
+    /// random value) is added to distribute the workload.
+    [[nodiscard]] auto GetSleepTimeSeconds(unsigned int attempt) const noexcept
         -> unsigned int {
-        auto backoff = RetryConfig::GetInitialBackoffSeconds();
-        auto const& max_backoff = RetryConfig::GetMaxBackoffSeconds();
+        auto backoff = initial_backoff_seconds_;
         // on the first attempt, we don't double the backoff time
         // also we do it in a for loop to avoid overflow
         for (auto x = 1U; x < attempt; ++x) {
             backoff <<= 1U;
-            if (backoff >= max_backoff) {
-                backoff = max_backoff;
+            if (backoff >= max_backoff_seconds_) {
+                backoff = max_backoff_seconds_;
                 break;
             }
         }
-        return backoff + RetryConfig::Jitter(backoff);
+        return backoff + Jitter(backoff);
     }
 
   private:
-    unsigned int initial_backoff_seconds_{kDefaultInitialBackoffSeconds};
-    unsigned int max_backoff_seconds_{kDefaultMaxBackoffSeconds};
-    unsigned int attempts_{kDefaultAttempts};
-    LogLevel retry_log_level_{kRetryLogLevel};
-    std::mutex mutex_;
-    std::random_device dev_;
-    std::mt19937 rng_{dev_()};
+    unsigned int const initial_backoff_seconds_ = kDefaultInitialBackoffSeconds;
+    unsigned int const max_backoff_seconds_ = kDefaultMaxBackoffSeconds;
+    unsigned int const attempts_ = kDefaultAttempts;
+
+    RetryConfig(unsigned int initial_backoff_seconds,
+                unsigned int max_backoff_seconds,
+                unsigned int attempts)
+        : initial_backoff_seconds_{initial_backoff_seconds},
+          max_backoff_seconds_{max_backoff_seconds},
+          attempts_{attempts} {}
+
+    using dist_type = std::uniform_int_distribution<std::mt19937::result_type>;
+
+    [[nodiscard]] static auto Jitter(unsigned int backoff) noexcept ->
+        typename dist_type::result_type {
+        static std::mutex mutex;
+        static std::mt19937 rng{std::random_device{}()};
+        try {
+            dist_type dist{0, backoff * 3};
+            std::unique_lock lock(mutex);
+            return dist(rng);
+        } catch (...) {
+            return 0;
+        }
+    }
+};
+
+class RetryConfig::Builder final {
+  public:
+    auto SetInitialBackoffSeconds(std::optional<unsigned int> x) noexcept
+        -> Builder& {
+        initial_backoff_seconds_ = x;
+        return *this;
+    }
+
+    auto SetMaxBackoffSeconds(std::optional<unsigned int> x) noexcept
+        -> Builder& {
+        max_backoff_seconds_ = x;
+        return *this;
+    }
+
+    auto SetMaxAttempts(std::optional<unsigned int> x) noexcept -> Builder& {
+        attempts_ = x;
+        return *this;
+    }
+
+    [[nodiscard]] auto Build() const noexcept
+        -> expected<RetryConfig, std::string> {
+        unsigned int initial_backoff_seconds = kDefaultInitialBackoffSeconds;
+        if (initial_backoff_seconds_.has_value()) {
+            if (*initial_backoff_seconds_ < 1) {
+                return unexpected{
+                    fmt::format("Invalid initial amount of seconds provided: "
+                                "{}.\nValue must be strictly greater than 0.",
+                                *initial_backoff_seconds_)};
+            }
+            initial_backoff_seconds = *initial_backoff_seconds_;
+        }
+
+        unsigned int max_backoff_seconds = kDefaultMaxBackoffSeconds;
+        if (max_backoff_seconds_.has_value()) {
+            if (*max_backoff_seconds_ < 1) {
+                return unexpected{
+                    fmt::format("Invalid max backoff provided: {}.\nValue must "
+                                "be strictly greater than 0.",
+                                *max_backoff_seconds_)};
+            }
+            max_backoff_seconds = *max_backoff_seconds_;
+        }
+
+        unsigned int attempts = kDefaultAttempts;
+        if (attempts_.has_value()) {
+            if (*attempts_ < 1) {
+                return unexpected{
+                    fmt::format("Invalid max number of attempts provided: "
+                                "{}.\nValue must be strictly greater than 0.",
+                                *attempts_)};
+            }
+            attempts = *attempts_;
+        }
+
+        return RetryConfig(
+            initial_backoff_seconds, max_backoff_seconds, attempts);
+    }
+
+  private:
+    std::optional<unsigned int> initial_backoff_seconds_;
+    std::optional<unsigned int> max_backoff_seconds_;
+    std::optional<unsigned int> attempts_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_PARAMETERS_HPP

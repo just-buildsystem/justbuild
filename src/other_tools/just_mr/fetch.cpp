@@ -28,6 +28,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/main/retry.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -47,6 +48,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoSetupArguments const& setup_args,
                     MultiRepoFetchArguments const& fetch_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
+                    RetryArguments const& retry_args,
                     StorageConfig const& storage_config,
                     Storage const& storage,
                     std::string multi_repository_tool_name) -> int {
@@ -418,13 +420,19 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
+    // setup the retry config
+    auto retry_config = CreateRetryConfig(retry_args);
+    if (not retry_config) {
+        return kExitConfigError;
+    }
+
     // setup the APIs for archive fetches; only happens if in native mode
     ApiBundle const apis{&storage_config,
                          &storage,
                          &*local_exec_config,
                          /*repo_config=*/nullptr,
                          &*auth_config,
-                         &RetryConfig::Instance(),
+                         &*retry_config,
                          &*remote_exec_config};
 
     bool const has_remote_api =

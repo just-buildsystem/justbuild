@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <optional>
 
+#include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/cli.hpp"

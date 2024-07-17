@@ -93,10 +93,12 @@
         return nullptr;
     }
 
+    RetryConfig retry_config{};  // default retry config
+
     BazelCasClient cas_client(remote_config->remote_address->host,
                               remote_config->remote_address->port,
                               &*auth_config,
-                              &RetryConfig::Instance());
+                              &retry_config);
 
     std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
     blob_ptrs.reserve(blobs.size());

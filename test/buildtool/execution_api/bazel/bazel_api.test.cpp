@@ -31,11 +31,12 @@ auto const kApiFactory = []() {
     REQUIRE(remote_config->remote_address);
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
+    static RetryConfig retry_config{};  // default retry config
     return IExecutionApi::Ptr{new BazelApi{"remote-execution",
                                            remote_config->remote_address->host,
                                            remote_config->remote_address->port,
                                            &*auth_config,
-                                           &RetryConfig::Instance(),
+                                           &retry_config,
                                            {}}};
 };
 

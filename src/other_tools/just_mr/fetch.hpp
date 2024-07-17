@@ -19,6 +19,7 @@
 #include <string>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
@@ -29,6 +30,7 @@
                                   MultiRepoSetupArguments const& setup_args,
                                   MultiRepoFetchArguments const& fetch_args,
                                   MultiRepoRemoteAuthArguments const& auth_args,
+                                  RetryArguments const& retry_args,
                                   StorageConfig const& storage_config,
                                   Storage const& storage,
                                   std::string multi_repository_tool_name)

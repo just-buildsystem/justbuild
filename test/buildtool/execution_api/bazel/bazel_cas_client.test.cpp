@@ -39,10 +39,11 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
+    RetryConfig retry_config{};  // default retry config
     BazelCasClient cas_client(remote_config->remote_address->host,
                               remote_config->remote_address->port,
                               &*auth_config,
-                              &RetryConfig::Instance());
+                              &retry_config);
 
     SECTION("Valid digest and blob") {
         // digest of "test"
