@@ -819,12 +819,6 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
-        auto serve_config = CreateServeConfig(
-            arguments.serve, arguments.common, arguments.build, arguments.tc);
-        if (not serve_config) {
-            return kExitFailure;
-        }
-
         auto auth_config =
             CreateAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
         if (not auth_config) {
@@ -832,25 +826,16 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
-            // Set up remote execution config.
-            auto remote_exec_config = CreateRemoteExecutionConfig(
-                arguments.endpoint, arguments.rebuild);
-            if (not remote_exec_config) {
-                return kExitFailure;
-            }
+            // Use default remote configuration.
+            RemoteExecutionConfig remote_exec_config{};
 
-            // Set up storage for server-side operation.
-            auto const storage_config =
-                CreateStorageConfig(arguments.endpoint,
-                                    remote_exec_config->remote_address,
-                                    remote_exec_config->platform_properties,
-                                    remote_exec_config->dispatch);
+            // Set up storage for local execution.
+            auto const storage_config = CreateStorageConfig(arguments.endpoint);
             if (not storage_config) {
                 return kExitFailure;
             }
             auto const storage = Storage::Create(&*storage_config);
-            StoreTargetCacheShard(
-                *storage_config, storage, *remote_exec_config);
+            StoreTargetCacheShard(*storage_config, storage, remote_exec_config);
 
             SetupExecutionServiceConfig(arguments.service);
             ApiBundle const exec_apis{&*storage_config,
@@ -858,12 +843,18 @@ auto main(int argc, char* argv[]) -> int {
                                       &*local_exec_config,
                                       /*repo_config=*/nullptr,
                                       &*auth_config,
-                                      &*remote_exec_config};
+                                      &remote_exec_config};
             if (not ServerImpl::Instance().Run(
                     *storage_config, storage, exec_apis)) {
                 return kExitFailure;
             }
             return kExitSuccess;
+        }
+
+        auto serve_config = CreateServeConfig(
+            arguments.serve, arguments.common, arguments.build, arguments.tc);
+        if (not serve_config) {
+            return kExitFailure;
         }
 
         if (arguments.cmd == SubCommand::kServe) {
@@ -880,7 +871,7 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
 
-                // Set up storage for server-side operation.
+                // Set up storage for serve operation.
                 auto const storage_config =
                     CreateStorageConfig(arguments.endpoint,
                                         remote_exec_config->remote_address,
