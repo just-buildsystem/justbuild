@@ -15,41 +15,94 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 
 #include <cstddef>
+#include <exception>
 #include <fstream>
+#include <limits>
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-[[nodiscard]] auto HashFunction::ComputeHashFile(
-    const std::filesystem::path& file_path,
-    bool as_tree) const noexcept
+namespace {
+[[nodiscard]] auto CreateGitTreeTag(std::size_t size) noexcept -> std::string {
+    return std::string("tree ") + std::to_string(size) + '\0';
+}
+[[nodiscard]] auto CreateGitBlobTag(std::size_t size) noexcept -> std::string {
+    return std::string("blob ") + std::to_string(size) + '\0';
+}
+}  // namespace
+
+auto HashFunction::ComputeBlobHash(std::string const& data) const noexcept
+    -> Hasher::HashDigest {
+    return HashTaggedLine(data, CreateGitBlobTag);
+}
+
+auto HashFunction::ComputeTreeHash(std::string const& data) const noexcept
+    -> Hasher::HashDigest {
+    return HashTaggedLine(data, CreateGitTreeTag);
+}
+
+auto HashFunction::ComputeHash(std::string const& data) const noexcept
+    -> Hasher::HashDigest {
+    return HashTaggedLine(data, std::nullopt);
+}
+
+auto HashFunction::HashTaggedLine(std::string const& data,
+                                  std::optional<TagCreator> tag_creator)
+    const noexcept -> Hasher::HashDigest {
+    auto hasher = MakeHasher();
+    if (type_ == JustHash::Native and tag_creator.has_value()) {
+        hasher.Update(std::invoke(*tag_creator, data.size()));
+    }
+    hasher.Update(data);
+    return std::move(hasher).Finalize();
+}
+
+auto HashFunction::HashBlobFile(
+    std::filesystem::path const& path) const noexcept
     -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
+    return HashTaggedFile(path, CreateGitBlobTag);
+}
+
+auto HashFunction::HashTreeFile(
+    std::filesystem::path const& path) const noexcept
+    -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
+    return HashTaggedFile(path, CreateGitTreeTag);
+}
+
+auto HashFunction::HashTaggedFile(std::filesystem::path const& path,
+                                  TagCreator const& tag_creator) const noexcept
+    -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
+    auto const size = std::filesystem::file_size(path);
+
     static constexpr std::size_t kChunkSize{4048};
+    static_assert(kChunkSize < std::numeric_limits<std::streamsize>::max(),
+                  "An overflow will occur while reading");
+
+    auto hasher = MakeHasher();
+    if (type_ == JustHash::Native) {
+        hasher.Update(std::invoke(tag_creator, size));
+    }
+
     try {
-        auto hasher = Hasher();
-        auto size = std::filesystem::file_size(file_path);
-        if (type_ == JustHash::Native) {
-            hasher.Update(
-                (as_tree ? std::string{"tree "} : std::string{"blob "}) +
-                std::to_string(size) + '\0');
+        auto chunk = std::string(kChunkSize, '\0');
+        std::ifstream file_reader(path.string(), std::ios::binary);
+        if (not file_reader.is_open()) {
+            return std::nullopt;
         }
-        std::string chunk{};
-        chunk.resize(kChunkSize);
-        std::ifstream file_reader(file_path.string(), std::ios::binary);
-        if (file_reader.is_open()) {
-            auto chunk_size = gsl::narrow<std::streamsize>(chunk.size());
-            do {
-                file_reader.read(chunk.data(), chunk_size);
-                auto count = file_reader.gcount();
-                hasher.Update(chunk.substr(0, gsl::narrow<std::size_t>(count)));
-            } while (file_reader.good());
-            file_reader.close();
-            return std::make_pair(std::move(hasher).Finalize(), size);
+
+        while (file_reader.good()) {
+            file_reader.read(chunk.data(),
+                             static_cast<std::streamsize>(kChunkSize));
+
+            auto const count = static_cast<std::size_t>(file_reader.gcount());
+            hasher.Update(chunk.substr(0, count));
         }
+        file_reader.close();
+        return std::make_pair(std::move(hasher).Finalize(), size);
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Debug,
                     "Error while trying to hash {}: {}",
-                    file_path.string(),
+                    path.string(),
                     e.what());
     }
     return std::nullopt;

@@ -254,7 +254,7 @@ auto Expression::ComputeHash() const noexcept -> std::string {
         hash = hash_function.ComputeHash(prefix + ToString()).Bytes();
     }
     else {
-        auto hasher = hash_function.Hasher();
+        auto hasher = hash_function.MakeHasher();
         if (IsList()) {
             auto list = Value<Expression::list_t>();
             hasher.Update("[");

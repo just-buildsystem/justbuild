@@ -34,7 +34,7 @@ TEST_CASE("Hash Function", "[crypto]") {
         CHECK(hash_function.ComputeTreeHash(bytes).HexString() ==
               "5f0ecc1a989593005e80f457446133250fcc43cc");
 
-        auto hasher = hash_function.Hasher();
+        auto hasher = hash_function.MakeHasher();
         hasher.Update(bytes);
         CHECK(std::move(hasher).Finalize().HexString() ==  // NOLINT
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
@@ -54,7 +54,7 @@ TEST_CASE("Hash Function", "[crypto]") {
             hash_function.ComputeTreeHash(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
 
-        auto hasher = hash_function.Hasher();
+        auto hasher = hash_function.MakeHasher();
         hasher.Update(bytes);
         CHECK(
             std::move(hasher).Finalize().HexString() ==  // NOLINT

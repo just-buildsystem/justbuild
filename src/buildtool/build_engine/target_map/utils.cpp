@@ -187,7 +187,7 @@ auto BuildMaps::Target::Utils::getTainted(
 namespace {
 auto hash_vector(HashFunction hash_function,
                  std::vector<std::string> const& vec) -> std::string {
-    auto hasher = hash_function.Hasher();
+    auto hasher = hash_function.MakeHasher();
     for (auto const& s : vec) {
         hasher.Update(hash_function.ComputeHash(s).Bytes());
     }
@@ -208,7 +208,7 @@ auto BuildMaps::Target::Utils::createAction(
     // The type of HashFunction is irrelevant here. It is used for
     // identification and quick comparison of descriptions. SHA256 is used.
     HashFunction hash_function{HashFunction::JustHash::Compatible};
-    auto hasher = hash_function.Hasher();
+    auto hasher = hash_function.MakeHasher();
 
     hasher.Update(hash_vector(hash_function, output_files));
     hasher.Update(hash_vector(hash_function, output_dirs));

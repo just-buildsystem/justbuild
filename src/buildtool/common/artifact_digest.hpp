@@ -97,7 +97,8 @@ class ArtifactDigest {
         std::filesystem::path const& path) noexcept
         -> std::optional<ArtifactDigest> {
         static constexpr bool kIsTree = IsTreeObject(kType);
-        auto hash = hash_function.ComputeHashFile(path, kIsTree);
+        auto const hash = kIsTree ? hash_function.HashTreeFile(path)
+                                  : hash_function.HashBlobFile(path);
         if (hash) {
             return ArtifactDigest{
                 hash->first.HexString(), hash->second, kIsTree};

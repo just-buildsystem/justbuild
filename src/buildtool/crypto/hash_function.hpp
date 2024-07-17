@@ -45,44 +45,35 @@ class HashFunction {
         return type_;
     }
 
-    /// \brief Compute a plain hash.
-    [[nodiscard]] auto ComputeHash(std::string const& data) const noexcept
-        -> Hasher::HashDigest {
-        return ComputeTaggedHash(data);
-    }
-
-    /// \brief Compute a blob hash.
+    /// \brief Compute the blob hash of a string.
     [[nodiscard]] auto ComputeBlobHash(std::string const& data) const noexcept
-        -> Hasher::HashDigest {
-        static auto const kBlobTagCreator =
-            [](std::string const& data) -> std::string {
-            return {"blob " + std::to_string(data.size()) + '\0'};
-        };
-        return ComputeTaggedHash(data, kBlobTagCreator);
-    }
+        -> Hasher::HashDigest;
+
+    /// \brief Compute the tree hash of a string.
+    [[nodiscard]] auto ComputeTreeHash(std::string const& data) const noexcept
+        -> Hasher::HashDigest;
+
+    /// \brief Compute the plain hash of a string.
+    [[nodiscard]] auto ComputeHash(std::string const& data) const noexcept
+        -> Hasher::HashDigest;
 
     /// \brief Compute the blob hash of a file or std::nullopt on IO error.
-    [[nodiscard]] auto ComputeHashFile(const std::filesystem::path& file_path,
-                                       bool as_tree) const noexcept
+    [[nodiscard]] auto HashBlobFile(
+        std::filesystem::path const& path) const noexcept
         -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 
-    /// \brief Compute a tree hash.
-    [[nodiscard]] auto ComputeTreeHash(std::string const& data) const noexcept
-        -> Hasher::HashDigest {
-        static auto const kTreeTagCreator =
-            [](std::string const& data) -> std::string {
-            return {"tree " + std::to_string(data.size()) + '\0'};
-        };
-        return ComputeTaggedHash(data, kTreeTagCreator);
-    }
+    /// \brief Compute the tree hash of a file or std::nullopt on IO error.
+    [[nodiscard]] auto HashTreeFile(
+        std::filesystem::path const& path) const noexcept
+        -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 
     /// \brief Obtain incremental hasher for computing plain hashes.
-    [[nodiscard]] auto Hasher() const noexcept -> ::Hasher {
+    [[nodiscard]] auto MakeHasher() const noexcept -> Hasher {
         switch (type_) {
             case JustHash::Native:
-                return ::Hasher{Hasher::HashType::SHA1};
+                return Hasher{Hasher::HashType::SHA1};
             case JustHash::Compatible:
-                return ::Hasher{Hasher::HashType::SHA256};
+                return Hasher{Hasher::HashType::SHA256};
         }
         Ensures(false);  // unreachable
     }
@@ -90,17 +81,16 @@ class HashFunction {
   private:
     JustHash const type_;
 
-    [[nodiscard]] auto ComputeTaggedHash(
-        std::string const& data,
-        std::function<std::string(std::string const&)> const& tag_creator = {})
-        const noexcept -> Hasher::HashDigest {
-        auto hasher = Hasher();
-        if (tag_creator and type_ == JustHash::Native) {
-            hasher.Update(tag_creator(data));
-        }
-        hasher.Update(data);
-        return std::move(hasher).Finalize();
-    }
+    using TagCreator = std::function<std::string(std::size_t)>;
+
+    [[nodiscard]] auto HashTaggedLine(std::string const& data,
+                                      std::optional<TagCreator> tag_creator)
+        const noexcept -> Hasher::HashDigest;
+
+    [[nodiscard]] auto HashTaggedFile(
+        std::filesystem::path const& path,
+        TagCreator const& tag_creator) const noexcept
+        -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_FUNCTION_HPP
