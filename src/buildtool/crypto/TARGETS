@@ -1,22 +1,13 @@
 { "hasher":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hasher"]
-  , "hdrs":
-    [ "hasher.hpp"
-    , "hash_impl_sha1.hpp"
-    , "hash_impl_sha256.hpp"
-    , "hash_impl_sha512.hpp"
-    ]
-  , "srcs":
-    [ "hasher.cpp"
-    , "hash_impl_sha1.cpp"
-    , "hash_impl_sha256.cpp"
-    , "hash_impl_sha512.cpp"
-    ]
+  , "hdrs": ["hasher.hpp"]
+  , "srcs": ["hasher.cpp"]
   , "stage": ["src", "buildtool", "crypto"]
   , "deps": [["src/utils/cpp", "hex_string"]]
   , "private-deps":
     [ ["@", "ssl", "", "crypto"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
