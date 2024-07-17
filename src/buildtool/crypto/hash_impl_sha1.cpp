@@ -16,7 +16,6 @@
 
 #include <array>
 #include <cstdint>
-#include <utility>  // std::move
 
 #include "openssl/sha.h"
 
@@ -38,17 +37,6 @@ class HashImplSha1 final : public Hasher::IHashImpl {
             }
         }
         return std::nullopt;
-    }
-
-    auto Compute(std::string const& data) && noexcept -> std::string final {
-        if (Update(data)) {
-            auto digest = std::move(*this).Finalize();
-            if (digest) {
-                return *digest;
-            }
-        }
-        FatalError();
-        return {};
     }
 
     [[nodiscard]] auto GetHashLength() const noexcept -> size_t final {

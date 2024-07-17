@@ -89,11 +89,6 @@ class Hasher {
         [[nodiscard]] virtual auto Finalize() && noexcept
             -> std::optional<std::string> = 0;
 
-        /// \brief Compute the hash of data and return it as string of raw
-        /// bytes.
-        [[nodiscard]] virtual auto Compute(std::string const& data) && noexcept
-            -> std::string = 0;
-
         /// \brief Obtain length of the resulting hash string.
         [[nodiscard]] virtual auto GetHashLength() const noexcept -> size_t = 0;
 
