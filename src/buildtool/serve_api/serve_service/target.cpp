@@ -43,6 +43,7 @@
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
 #include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/repository_garbage_collector.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
@@ -130,10 +131,16 @@ auto TargetService::ServeTarget(
     auto const& target_cache_key_digest =
         ArtifactDigest{request->target_cache_key_id()};
 
-    // acquire lock for CAS
+    // acquire locks
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        auto msg = std::string("Could not acquire repo gc SharedLock");
+        logger_->Emit(LogLevel::Error, msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+    }
     auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
-        auto msg = std::string("Could not acquire gc SharedLock");
+        auto msg = std::string("Could not acquire CAS gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
@@ -728,6 +735,14 @@ auto TargetService::ServeTargetDescription(
     // retrieve content of target file
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
+    // Get repository lock before inspecting the root git cache
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        auto msg = std::string("Could not acquire repo gc SharedLock");
+        logger_->Emit(LogLevel::Error, msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+    }
+
     // try in local build root Git cache
     if (auto res = GetBlobContent(
             storage_config_.GitRoot(), root_tree, target_file, logger_)) {

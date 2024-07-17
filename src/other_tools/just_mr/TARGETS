@@ -14,8 +14,9 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/main", "version"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "repository_garbage_collector"]
+    , ["src/buildtool/storage", "storage"]
     , "cli"
     , "exit_codes"
     , "fetch"
@@ -225,10 +226,11 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "repository_garbage_collector"]
+    , ["src/utils/cpp", "file_locking"]
     , "exit_codes"
     , "setup"
     , "utils"
-    , ["src/utils/cpp", "file_locking"]
     , "setup_utils"
     ]
   }

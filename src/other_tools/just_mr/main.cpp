@@ -37,6 +37,7 @@
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/repository_garbage_collector.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/fetch.hpp"
@@ -366,6 +367,11 @@ auto main(int argc, char* argv[]) -> int {
                             storage,
                             forward_build_root,
                             my_name);
+        }
+        auto repo_lock =
+            RepositoryGarbageCollector::SharedLock(*storage_config);
+        if (not repo_lock) {
+            return kExitGenericFailure;
         }
         auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {

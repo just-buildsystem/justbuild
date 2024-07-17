@@ -32,6 +32,7 @@
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/repository_garbage_collector.hpp"
 #include "src/utils/archive/archive_ops.hpp"
 
 namespace {
@@ -197,6 +198,13 @@ auto SourceTreeService::ServeCommitTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ServeCommitTreeResponse* response) -> ::grpc::Status {
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto const& commit{request->commit()};
     auto const& subdir{request->subdir()};
     // try in local build root Git cache
@@ -704,6 +712,13 @@ auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto const& content{request->content()};
     auto archive_type = ArchiveTypeToString(request->archive_type());
     auto const& subdir{request->subdir()};
@@ -883,6 +898,13 @@ auto SourceTreeService::DistdirImportToGit(
         content_list,
     bool sync_tree,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // create tmp directory for the distdir
     auto distdir_tmp_dir = storage_config_.CreateTypedTmpDir("distdir");
     if (not distdir_tmp_dir) {
@@ -1271,7 +1293,14 @@ auto SourceTreeService::ServeContent(
     const ::justbuild::just_serve::ServeContentRequest* request,
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
-    // acquire lock for CAS
+    // acquire locks
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeContentResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
@@ -1380,7 +1409,14 @@ auto SourceTreeService::ServeTree(
     const ::justbuild::just_serve::ServeTreeRequest* request,
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
-    // acquire lock for CAS
+    // acquire locks
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
@@ -1513,7 +1549,14 @@ auto SourceTreeService::CheckRootTree(
     const ::justbuild::just_serve::CheckRootTreeRequest* request,
     CheckRootTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
-    // acquire lock for CAS
+    // acquire locks
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    if (!repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
@@ -1614,13 +1657,14 @@ auto SourceTreeService::GetRemoteTree(
     const ::justbuild::just_serve::GetRemoteTreeRequest* request,
     GetRemoteTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
-    // acquire lock for CAS
+    // acquire locks
     auto lock = GarbageCollector::SharedLock(storage_config_);
     if (!lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
+
     // get tree from remote CAS into tmp dir
     auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
     if (not apis_.remote->IsAvailable(digest)) {
