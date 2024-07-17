@@ -62,6 +62,7 @@ class ExecutorImpl {
         ExecutionProperties const& properties,
         std::vector<DispatchEndpoint> const& dispatch_list,
         gsl::not_null<Auth const*> const& auth,
+        gsl::not_null<RetryConfig const*> const& retry_config,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
         gsl::not_null<Statistics*> const& stats,
@@ -109,8 +110,8 @@ class ExecutorImpl {
             stats->IncrementActionsQueuedCounter();
         }
 
-        auto alternative_api =
-            GetAlternativeEndpoint(properties, dispatch_list, auth);
+        auto alternative_api = GetAlternativeEndpoint(
+            properties, dispatch_list, auth, retry_config);
         if (alternative_api) {
             if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -667,7 +668,9 @@ class ExecutorImpl {
     [[nodiscard]] static inline auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
         const std::vector<DispatchEndpoint>& dispatch_list,
-        const gsl::not_null<Auth const*>& auth) -> std::unique_ptr<BazelApi> {
+        const gsl::not_null<Auth const*>& auth,
+        const gsl::not_null<RetryConfig const*>& retry_config)
+        -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] : dispatch_list) {
             bool match = true;
             for (auto const& [k, v] : pred) {
@@ -687,7 +690,7 @@ class ExecutorImpl {
                     endpoint.host,
                     endpoint.port,
                     auth,
-                    &RetryConfig::Instance(),
+                    retry_config,
                     config);
             }
         }
@@ -708,6 +711,7 @@ class Executor {
         ExecutionProperties properties,
         std::vector<DispatchEndpoint> dispatch_list,
         gsl::not_null<Auth const*> const& auth,
+        gsl::not_null<RetryConfig const*> const& retry_config,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         Logger const* logger = nullptr,  // log in caller logger, if given
@@ -718,6 +722,7 @@ class Executor {
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
           auth_{*auth},
+          retry_config_{*retry_config},
           stats_{stats},
           progress_{progress},
           logger_{logger},
@@ -741,6 +746,7 @@ class Executor {
                                       action->ExecutionProperties()),
                 dispatch_list_,
                 &auth_,
+                &retry_config_,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
                 stats_,
@@ -760,6 +766,7 @@ class Executor {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             &auth_,
+            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
             stats_,
@@ -797,6 +804,7 @@ class Executor {
     ExecutionProperties properties_;
     std::vector<DispatchEndpoint> dispatch_list_;
     Auth const& auth_;
+    RetryConfig const& retry_config_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     Logger const* logger_;
@@ -822,6 +830,7 @@ class Rebuilder {
         ExecutionProperties properties,
         std::vector<DispatchEndpoint> dispatch_list,
         gsl::not_null<Auth const*> const& auth,
+        gsl::not_null<RetryConfig const*> const& retry_config,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
@@ -832,6 +841,7 @@ class Rebuilder {
           properties_{std::move(properties)},
           dispatch_list_{std::move(dispatch_list)},
           auth_{*auth},
+          retry_config_{*retry_config},
           stats_{stats},
           progress_{progress},
           timeout_{timeout} {}
@@ -848,6 +858,7 @@ class Rebuilder {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             &auth_,
+            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
             stats_,
@@ -865,6 +876,7 @@ class Rebuilder {
             Impl::MergeProperties(properties_, action->ExecutionProperties()),
             dispatch_list_,
             &auth_,
+            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
             stats_,
@@ -913,6 +925,7 @@ class Rebuilder {
     ExecutionProperties properties_;
     std::vector<DispatchEndpoint> dispatch_list_;
     Auth const& auth_;
+    RetryConfig const& retry_config_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;

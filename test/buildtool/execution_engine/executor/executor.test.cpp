@@ -289,6 +289,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -309,6 +310,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -329,6 +331,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -370,6 +373,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -393,6 +397,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -416,6 +421,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -442,6 +448,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -465,6 +472,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 
@@ -491,6 +499,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                         /*properties=*/{},
                         /*dispatch_list=*/{},
                         &auth,
+                        &RetryConfig::Instance(),
                         &stats,
                         &progress};
 

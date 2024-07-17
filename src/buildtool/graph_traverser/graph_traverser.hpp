@@ -363,6 +363,7 @@ class GraphTraverser {
                           platform_properties_,
                           dispatch_list_,
                           &apis_.auth,
+                          &apis_.retry_config,
                           stats_,
                           progress_,
                           logger_,
@@ -396,6 +397,7 @@ class GraphTraverser {
                            platform_properties_,
                            dispatch_list_,
                            &apis_.auth,
+                           &apis_.retry_config,
                            stats_,
                            progress_,
                            clargs_.build.timeout};

@@ -26,6 +26,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -93,6 +94,7 @@ static inline void RunHelloWorldCompilation(
     gsl::not_null<Progress*> const& progress,
     ApiFactory const& factory,
     gsl::not_null<Auth const*> const& auth,
+
     bool is_hermetic = true,
     int expected_queued = 0,
     int expected_cached = 0) {
@@ -135,6 +137,7 @@ static inline void RunHelloWorldCompilation(
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
+                    &RetryConfig::Instance(),
                     stats,
                     progress};
 
@@ -261,6 +264,7 @@ static inline void RunGreeterCompilation(
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
+                    &RetryConfig::Instance(),
                     stats,
                     progress};
 
@@ -427,6 +431,7 @@ static inline void TestUploadAndDownloadTrees(
                     remote_config->platform_properties,
                     remote_config->dispatch,
                     auth,
+                    &RetryConfig::Instance(),
                     stats,
                     progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
@@ -594,6 +599,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
+                        &RetryConfig::Instance(),
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -648,6 +654,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
+                        &RetryConfig::Instance(),
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -719,6 +726,7 @@ static inline void TestRetrieveOutputDirectories(
                         remote_config->platform_properties,
                         remote_config->dispatch,
                         auth,
+                        &RetryConfig::Instance(),
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -792,6 +800,7 @@ static inline void TestRetrieveOutputDirectories(
                             remote_config->platform_properties,
                             remote_config->dispatch,
                             auth,
+                            &RetryConfig::Instance(),
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));
@@ -818,6 +827,7 @@ static inline void TestRetrieveOutputDirectories(
                             remote_config->platform_properties,
                             remote_config->dispatch,
                             auth,
+                            &RetryConfig::Instance(),
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));
