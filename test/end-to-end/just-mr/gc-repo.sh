@@ -16,11 +16,16 @@
 
 set -eu
 
+readonly JUST="${PWD}/bin/tool-under-test"
 readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly WORK="${PWD}/work"
 readonly GIT_REPO="${PWD}/git-repository"
 readonly BIN="${TEST_TMPDIR}/bin"
 mkdir -p "${BIN}"
+readonly DISTDIR="${PWD}/distdir"
+mkdir -p "${DISTDIR}"
+readonly ARCHIVE_CONTENT="${TEST_TMPDIR}/archive"
+readonly SCRATCH_LBR="${TEST_TMPDIR}/throw-away-build-root"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly OUT="${TEST_TMPDIR}/out"
 mkdir -p "${OUT}"
@@ -58,6 +63,20 @@ fi
 EOF
 chmod 755 "${BIN}/mock-git"
 
+# Set up archive
+
+mkdir -p "${ARCHIVE_CONTENT}"
+cd "${ARCHIVE_CONTENT}"
+echo archive content > description.txt
+seq 1 20 > data
+ARCHIVE_TREE=$("${JUST}" add-to-cas --local-build-root "${SCRATCH_LBR}" .)
+tar cvf "${DISTDIR}/archive.tar" .
+ARCHIVE=$("${JUST}" add-to-cas --local-build-root "${SCRATCH_LBR}" "${DISTDIR}/archive.tar")
+echo
+echo "Created archive with content ${ARCHIVE} holding tree ${ARCHIVE_TREE}"
+echo
+
+
 # Create workspace with just-mr repository configuration
 mkdir -p "${WORK}"
 cd "${WORK}"
@@ -65,13 +84,22 @@ touch ROOT
 cat > repos.json <<EOF
 { "repositories":
   { "":
-    {"repository": {"type": "file", "path": "."}, "bindings": {"git": "git"}}
+    { "repository": {"type": "file", "path": "."}
+    , "bindings": {"git": "git", "archive": "archive"}
+    }
   , "git":
     { "repository":
       { "type": "git"
       , "commit": "${GIT_COMMIT}"
       , "repository": "mockprotocol://example.com/repo"
       , "branch": "stable-1.0"
+      }
+    }
+  , "archive":
+    { "repository":
+      { "type": "archive"
+      , "content": "${ARCHIVE}"
+      , "fetch": "http://nonexistent.example.com/archive.tar"
       }
     }
   }
@@ -81,6 +109,7 @@ cat repos.json
 
 # Set up repos. This should get everything in the local build root.
 "${JUST_MR}" --local-build-root "${LBR}" --git "${BIN}/mock-git" \
+             --distdir "${DISTDIR}" \
    setup  > "${OUT}/conf-file-name" 2> "${LOG}/log-1"
 cat "${LOG}/log-1"
 echo
@@ -93,14 +122,25 @@ TREE_FOUND="$(jq -r '.repositories.git.workspace_root[1]' "${CONFIG}")"
 [ "${TREE_FOUND}" = "${GIT_TREE}" ]
 GIT_LOCATION="$(jq -r '.repositories.git.workspace_root[2]' "${CONFIG}")"
 
+## Verify the archive is set up correctly
+TREE_FOUND="$(jq -r '.repositories.archive.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${ARCHIVE_TREE}" ]
+ARCHIVE_LOCATION="$(jq -r '.repositories.archive.workspace_root[2]' "${CONFIG}")"
+
 # Clean up original repositories
 rm -rf "${GIT_REPO}"
+rm -rf "${DISTDIR}"
+
+# Fully clean the non-repo cache
+"${JUST}" gc --local-build-root "${LBR}" 2>&1
+"${JUST}" gc --local-build-root "${LBR}" 2>&1
 
 # Rotate repo cache
 "${JUST_MR}" --local-build-root "${LBR}" gc-repo 2>&1
 
 ## Verify the mirrored locations are gone
 [ -e "${GIT_LOCATION}" ] && exit 1 || :
+[ -e "${ARCHIVE_LOCATION}" ] && exit 1 || :
 
 # Setup repos again
 "${JUST_MR}" --local-build-root "${LBR}" \
@@ -115,5 +155,7 @@ echo
 TREE_FOUND="$(jq -r '.repositories.git.workspace_root[1]' "${CONFIG}")"
 [ "${TREE_FOUND}" = "${GIT_TREE}" ]
 
+## Verify the archive is set up correctly
+TREE_FOUND="$(jq -r '.repositories.archive.workspace_root[1]' "${CONFIG}")"
 
 echo OK

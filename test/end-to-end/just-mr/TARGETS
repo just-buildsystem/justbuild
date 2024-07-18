@@ -210,7 +210,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["gc-repo"]
   , "test": ["gc-repo.sh"]
-  , "deps": [["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep": ["log/log-1", "log/log-2"]
   }
 , "TESTS":
