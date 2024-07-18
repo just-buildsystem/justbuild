@@ -206,6 +206,13 @@
     , ["utils", "null server"]
     ]
   }
+, "gc-repo":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["gc-repo"]
+  , "test": ["gc-repo.sh"]
+  , "deps": [["", "mr-tool-under-test"]]
+  , "keep": ["log/log-1", "log/log-2"]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -230,6 +237,7 @@
               , "absent-roots"
               , "foreign-file"
               , "reporting-verbosity"
+              , "gc-repo"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
