@@ -797,7 +797,7 @@ Path to the TLS server key.
 Once the number of operations stored exceeds twice *`2^n`*, where *`n`*
 is given by the option **`--log-operations-threshold`**, at most *`2^n`*
 operations will be removed, in a FIFO scheme. If unset, defaults to
-14. Must be in the range \[0,255\].
+14. Must be in the range \[0,63\].
 
 **`gc`** specific options
 -------------------------

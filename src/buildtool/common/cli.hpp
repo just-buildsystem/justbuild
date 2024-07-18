@@ -17,6 +17,7 @@
 
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
@@ -37,7 +38,8 @@
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/utils/cpp/path.hpp"
 
-constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
+inline constexpr auto kDefaultTimeout = std::chrono::milliseconds{300000};
+inline constexpr auto kMaxOpCacheExponent = std::uint8_t{63};
 
 /// \brief Arguments common to all commands.
 struct CommonArguments {
@@ -171,7 +173,7 @@ struct ServiceArguments {
     std::optional<std::filesystem::path> info_file{std::nullopt};
     std::optional<std::string> interface{std::nullopt};
     std::optional<std::string> pid_file{std::nullopt};
-    std::optional<uint8_t> op_exponent;
+    std::optional<std::uint8_t> op_exponent;
 };
 
 struct ServeArguments {
@@ -742,13 +744,23 @@ static inline auto SetupServiceArguments(
         "Write pid to this file in plain txt. If the file exists, it "
         "will be overwritten.");
 
-    app->add_option(
+    app->add_option_function<std::uint8_t>(
         "--log-operations-threshold",
-        service_args->op_exponent,
+        [service_args](auto const& op_exponent) {
+            if (op_exponent > kMaxOpCacheExponent) {
+                Logger::Log(LogLevel::Warning,
+                            "Ignoring invalid value {} for operations "
+                            "threshold exponent.",
+                            op_exponent);
+            }
+            else {
+                service_args->op_exponent = op_exponent;
+            }
+        },
         "Once the number of operations stored exceeds twice 2^n, where n is "
         "given by the option --log-operations-threshold, at most 2^n "
         "operations will be removed, in a FIFO scheme. If unset, defaults to "
-        "14. Must be in the range [0,255]");
+        "14. Must be in the range [0,63]");
 }
 
 static inline auto SetupServeArguments(
