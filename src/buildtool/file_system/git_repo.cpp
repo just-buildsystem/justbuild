@@ -697,16 +697,17 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
 
 auto GitRepo::KeepTag(std::string const& commit,
                       std::string const& message,
-                      anon_logger_ptr const& logger) noexcept -> bool {
+                      anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
-    return false;
+    return std::nullopt;
 #else
     try {
         // only possible for real repository!
         if (IsRepoFake()) {
             (*logger)("cannot tag commits using a fake repository!",
                       true /*fatal*/);
-            return false;
+            return std::nullopt;
         }
         // share the odb lock
         std::shared_lock lock{GetGitCAS()->mutex_};
@@ -722,7 +723,7 @@ auto GitRepo::KeepTag(std::string const& commit,
                                   GitLastError()),
                       true /*fatal*/);
             git_object_free(target_ptr);
-            return false;
+            return std::nullopt;
         }
         auto target = std::unique_ptr<git_object, decltype(&object_closer)>(
             target_ptr, object_closer);
@@ -739,7 +740,7 @@ auto GitRepo::KeepTag(std::string const& commit,
                 true /*fatal*/);
             // cleanup resources
             git_signature_free(tagger_ptr);
-            return false;
+            return std::nullopt;
         }
         auto tagger =
             std::unique_ptr<git_signature, decltype(&signature_closer)>(
@@ -754,7 +755,7 @@ auto GitRepo::KeepTag(std::string const& commit,
         if (git_tag_list_match(&tag_names, name.c_str(), repo_->Ptr()) == 0 and
             tag_names.count > 0) {
             git_strarray_dispose(&tag_names);
-            return true;  // success!
+            return name;  // success!
         }
         git_strarray_dispose(&tag_names);  // free any allocated unused space
 
@@ -771,7 +772,7 @@ auto GitRepo::KeepTag(std::string const& commit,
                                  message.c_str(),
                                  1 /*force*/);
             if (err == 0) {
-                return true;  // success!
+                return name;  // success!
             }
             err_mess = GitLastError();  // store last error message
             // only retry if failure is due to locking
@@ -783,7 +784,7 @@ auto GitRepo::KeepTag(std::string const& commit,
                     0 and
                 tag_names.count > 0) {
                 git_strarray_dispose(&tag_names);
-                return true;  // success!
+                return name;  // success!
             }
             git_strarray_dispose(
                 &tag_names);  // free any allocated unused space
@@ -796,10 +797,10 @@ auto GitRepo::KeepTag(std::string const& commit,
                         GetGitCAS()->git_path_.string(),
                         err_mess),
             true /*fatal*/);
-        return false;
+        return std::nullopt;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error, "keep tag failed with:\n{}", ex.what());
-        return false;
+        return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
@@ -935,16 +936,17 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
 
 auto GitRepo::KeepTree(std::string const& tree_id,
                        std::string const& message,
-                       anon_logger_ptr const& logger) noexcept -> bool {
+                       anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
-    return false;
+    return std::nullopt;
 #else
     try {
         // only possible for real repository!
         if (IsRepoFake()) {
             (*logger)("cannot commit and tag a tree using a fake repository!",
                       true /*fatal*/);
-            return false;
+            return std::nullopt;
         }
         // share the odb lock
         std::shared_lock lock{GetGitCAS()->mutex_};
@@ -957,7 +959,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                                   GetGitCAS()->git_path_.string(),
                                   GitLastError()),
                       true /*fatal*/);
-            return false;
+            return std::nullopt;
         }
         // get tree object from oid
         git_object* target_ptr{nullptr};
@@ -970,7 +972,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                                   GitLastError()),
                       true /*fatal*/);
             git_object_free(target_ptr);
-            return false;
+            return std::nullopt;
         }
         auto target = std::unique_ptr<git_object, decltype(&object_closer)>(
             target_ptr, object_closer);
@@ -987,7 +989,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                 true /*fatal*/);
             // cleanup resources
             git_signature_free(signature_ptr);
-            return false;
+            return std::nullopt;
         }
         auto signature =
             std::unique_ptr<git_signature, decltype(&signature_closer)>(
@@ -1002,7 +1004,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
         if (git_tag_list_match(&tag_names, name.c_str(), repo_->Ptr()) == 0 and
             tag_names.count > 0) {
             git_strarray_dispose(&tag_names);
-            return true;  // success!
+            return name;  // success!
         }
         git_strarray_dispose(&tag_names);  // free any allocated unused space
 
@@ -1019,7 +1021,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                                  message.c_str(),
                                  1 /*force*/);
             if (err == 0) {
-                return true;  // success!
+                return name;  // success!
             }
             err_mess = GitLastError();  // store last error message
             // only retry if failure is due to locking
@@ -1031,7 +1033,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                     0 and
                 tag_names.count > 0) {
                 git_strarray_dispose(&tag_names);
-                return true;  // success!
+                return name;  // success!
             }
             git_strarray_dispose(
                 &tag_names);  // free any allocated unused space
@@ -1045,13 +1047,13 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                               GetGitCAS()->git_path_.string(),
                               err_mess),
                   true /*fatal*/);
-        return false;
+        return std::nullopt;
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "keep tree {} failed with:\n{}",
                     tree_id,
                     ex.what());
-        return false;
+        return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
 }

@@ -159,11 +159,12 @@ class GitRepo {
 
     /// \brief Create annotated tag for given commit.
     /// Only possible with real repository and thus non-thread-safe.
-    /// Returns success flag.
+    /// Returns the tag on success.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto KeepTag(std::string const& commit,
                                std::string const& message,
-                               anon_logger_ptr const& logger) noexcept -> bool;
+                               anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::string>;
 
     /// \brief Retrieves the commit of the HEAD reference.
     /// Only possible with real repository and thus non-thread-safe.
@@ -188,11 +189,12 @@ class GitRepo {
     /// \brief Ensure given tree is kept alive via a tag. It is expected that
     /// the tree is part of the repository already.
     /// Only possible with real repository and thus non-thread-safe.
-    /// Returns success flag.
+    /// Returns the tag on success.
     /// It guarantees the logger is called exactly once with fatal if failure.
     [[nodiscard]] auto KeepTree(std::string const& tree_id,
                                 std::string const& message,
-                                anon_logger_ptr const& logger) noexcept -> bool;
+                                anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::string>;
 
     /// \brief Get the tree id of a subtree given the root commit
     /// Calling it from a fake repository allows thread-safe use.
