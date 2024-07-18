@@ -20,6 +20,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
@@ -189,6 +190,152 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
         false));
 }
 
+void TagAndSetRoot(std::filesystem::path const& repo_root,
+                   GitRepoInfo const& repo_info,
+                   bool finish_task,
+                   GitCASPtr const& git_cas,
+                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+                   gsl::not_null<TaskSystem*> const& ts,
+                   CommitGitMap::SetterPtr const& ws_setter,
+                   CommitGitMap::LoggerPtr const& logger) {
+    GitOpKey op_key = {.params =
+                           {
+                               repo_root,                    // target_path
+                               repo_info.hash,               // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TAG};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [git_cas, repo_info, repo_root, ws_setter, logger, finish_task](
+            auto const& values) {
+            GitOpValue op_result = *values[0];
+            // check flag
+            if (not op_result.result) {
+                (*logger)("Keep tag failed",
+                          /*fatal=*/true);
+                return;
+            }
+            auto git_repo =
+                GitRepoRemote::Open(git_cas);  // link fake repo to odb
+            if (not git_repo) {
+                (*logger)(fmt::format("Could not open repository {}",
+                                      repo_root.string()),
+                          /*fatal=*/true);
+                return;
+            }
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger](auto const& msg, bool fatal) {
+                    (*logger)(
+                        fmt::format("While getting subtree from commit:\n{}",
+                                    msg),
+                        fatal);
+                });
+            // get tree id and return workspace root
+            auto res = git_repo->GetSubtreeFromCommit(
+                repo_info.hash, repo_info.subdir, wrapped_logger);
+            if (not res) {
+                return;
+            }
+            // set the workspace root as present
+            if (finish_task) {
+                JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
+            }
+            (*ws_setter)(
+                std::pair(nlohmann::json::array(
+                              {repo_info.ignore_special
+                                   ? FileRoot::kGitTreeIgnoreSpecialMarker
+                                   : FileRoot::kGitTreeMarker,
+                               *std::move(res),  // subtree id
+                               repo_root}),
+                          /*is_cache_hit=*/false));
+        },
+        [logger, target_path = repo_root](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While running critical Git op KEEP_TAG "
+                                  "for target {}:\n{}",
+                                  target_path.string(),
+                                  msg),
+                      fatal);
+        });
+}
+
+void TakeCommitFromOlderGeneration(
+    std::filesystem::path const& source,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    std::filesystem::path const& repo_root,
+    GitRepoInfo const& repo_info,
+    GitCASPtr const& git_cas,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<TaskSystem*> const& ts,
+    CommitGitMap::SetterPtr const& ws_setter,
+    CommitGitMap::LoggerPtr const& logger) {
+    GitOpKey op_key = {.params =
+                           {
+                               source,                    // target_path
+                               repo_info.hash,            // git_hash
+                               "",                        // branch
+                               "Tag commit for fetching"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TAG};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [logger,
+         git_cas,
+         repo_root,
+         storage_config,
+         source,
+         repo_info,
+         critical_git_op_map,
+         ts,
+         ws_setter](auto const& values) {
+            GitOpValue op_result = *values[0];
+            if (not op_result.result) {
+                (*logger)("Keep tag failed", /*fatal=*/true);
+                return;
+            }
+            auto tag = *op_result.result;
+            auto git_repo =
+                GitRepoRemote::Open(git_cas);  // link fake repo to odb
+            if (not git_repo) {
+                (*logger)(fmt::format("Could not open repository {}",
+                                      repo_root.string()),
+                          /*fatal=*/true);
+                return;
+            }
+            auto fetch_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger, tag, source](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While fetching {} from {}:\n{}",
+                                          tag,
+                                          source.string(),
+                                          msg),
+                              fatal);
+                });
+            if (not git_repo->LocalFetchViaTmpRepo(
+                    *storage_config, source, tag, fetch_logger)) {
+                return;
+            }
+            TagAndSetRoot(repo_root,
+                          repo_info,
+                          false,
+                          git_cas,
+                          critical_git_op_map,
+                          ts,
+                          ws_setter,
+                          logger);
+        },
+        [logger, source, hash = repo_info.hash](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While tagging {} in {} for fetching:\n{}",
+                                  source.string(),
+                                  hash,
+                                  msg),
+                      fatal);
+        });
+}
+
 void NetworkFetchAndSetPresentRoot(
     GitRepoInfo const& repo_info,
     std::filesystem::path const& repo_root,
@@ -302,66 +449,14 @@ void NetworkFetchAndSetPresentRoot(
     }
     // if witnessing repository is the Git cache, then also tag the commit
     if (IsCacheGitRoot(storage_config, repo_root)) {
-        GitOpKey op_key = {.params =
-                               {
-                                   repo_root,                    // target_path
-                                   repo_info.hash,               // git_hash
-                                   "",                           // branch
-                                   "Keep referenced tree alive"  // message
-                               },
-                           .op_type = GitOpType::KEEP_TAG};
-        critical_git_op_map->ConsumeAfterKeysReady(
-            ts,
-            {std::move(op_key)},
-            [git_cas, repo_info, repo_root, ws_setter, logger](
-                auto const& values) {
-                GitOpValue op_result = *values[0];
-                // check flag
-                if (not op_result.result) {
-                    (*logger)("Keep tag failed",
-                              /*fatal=*/true);
-                    return;
-                }
-                auto git_repo =
-                    GitRepoRemote::Open(git_cas);  // link fake repo to odb
-                if (not git_repo) {
-                    (*logger)(fmt::format("Could not open repository {}",
-                                          repo_root.string()),
-                              /*fatal=*/true);
-                    return;
-                }
-                // setup wrapped logger
-                auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [logger](auto const& msg, bool fatal) {
-                        (*logger)(
-                            fmt::format(
-                                "While getting subtree from commit:\n{}", msg),
-                            fatal);
-                    });
-                // get tree id and return workspace root
-                auto res = git_repo->GetSubtreeFromCommit(
-                    repo_info.hash, repo_info.subdir, wrapped_logger);
-                if (not res) {
-                    return;
-                }
-                // set the workspace root as present
-                JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
-                (*ws_setter)(
-                    std::pair(nlohmann::json::array(
-                                  {repo_info.ignore_special
-                                       ? FileRoot::kGitTreeIgnoreSpecialMarker
-                                       : FileRoot::kGitTreeMarker,
-                                   *std::move(res),  // subtree id
-                                   repo_root}),
-                              /*is_cache_hit=*/false));
-            },
-            [logger, target_path = repo_root](auto const& msg, bool fatal) {
-                (*logger)(fmt::format("While running critical Git op KEEP_TAG "
-                                      "for target {}:\n{}",
-                                      target_path.string(),
-                                      msg),
-                          fatal);
-            });
+        TagAndSetRoot(repo_root,
+                      repo_info,
+                      true,
+                      git_cas,
+                      critical_git_op_map,
+                      ts,
+                      ws_setter,
+                      logger);
     }
     else {
         auto git_repo = GitRepoRemote::Open(git_cas);  // link fake repo to odb
@@ -508,7 +603,35 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             return;
         }
 
-        // no id file association exists
+        // Check older generations for presence of the commit
+        for (std::size_t generation = 1;
+             generation < storage_config->num_generations;
+             generation++) {
+            auto old = storage_config->GitGenerationRoot(generation);
+            if (FileSystemManager::IsDirectory(old)) {
+                auto old_repo = GitRepo::Open(old);
+                auto no_logging = std::make_shared<AsyncMapConsumerLogger>(
+                    [](auto /*unused*/, auto /*unused*/) {});
+                if (old_repo and GitRepo::Open(old)->CheckCommitExists(
+                                     repo_info.hash, no_logging)) {
+                    TakeCommitFromOlderGeneration(old,
+                                                  storage_config,
+                                                  repo_root,
+                                                  repo_info,
+                                                  git_cas,
+                                                  critical_git_op_map,
+                                                  ts,
+                                                  ws_setter,
+                                                  logger);
+                    return;
+                }
+            }
+        }
+
+        // TODO(aehlig): should we also check for commit-tree association in
+        // older generations
+
+        // Not present locally, we have to fetch
         JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
         // check if commit is known to remote serve service
         if (serve != nullptr) {
