@@ -24,40 +24,37 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
-class ServerImpl {
+class ServerImpl final {
   public:
-    ServerImpl() noexcept = default;
-    [[nodiscard]] static auto Instance() noexcept -> ServerImpl& {
-        static ServerImpl x;
-        return x;
-    }
+    [[nodiscard]] static auto Create(
+        std::optional<std::string> interface,
+        std::optional<int> port,
+        std::optional<std::string> info_file,
+        std::optional<std::string> pid_file) noexcept
+        -> std::optional<ServerImpl>;
 
-    [[nodiscard]] static auto SetInterface(std::string const& x) noexcept
-        -> bool {
-        Instance().interface_ = x;
-        return true;
-    }
-
-    [[nodiscard]] static auto SetPidFile(std::string const& x) noexcept -> bool;
-
-    [[nodiscard]] static auto SetPort(int x) noexcept -> bool;
-
-    [[nodiscard]] static auto SetInfoFile(std::string const& x) noexcept
-        -> bool;
+    ~ServerImpl() noexcept = default;
 
     ServerImpl(ServerImpl const&) = delete;
     auto operator=(ServerImpl const&) noexcept -> ServerImpl& = delete;
 
-    ServerImpl(ServerImpl&&) noexcept = delete;
-    auto operator=(ServerImpl&&) noexcept -> ServerImpl& = delete;
+    ServerImpl(ServerImpl&&) noexcept = default;
+    auto operator=(ServerImpl&&) noexcept -> ServerImpl& = default;
 
+    /// \brief Start the execution service.
+    /// \param storage_config   StorageConfig to be used.
+    /// \param storage          Storage to be used.
+    /// \param apis             Apis to be used, only local api is actually
+    ///                         needed.
+    /// \param op_exponent      Log2 threshold for operation cache.
     auto Run(StorageConfig const& storage_config,
              Storage const& storage,
              ApiBundle const& apis,
              std::optional<std::uint8_t> op_exponent) -> bool;
-    ~ServerImpl() = default;
 
   private:
+    ServerImpl() noexcept = default;
+
     std::string interface_{"127.0.0.1"};
     int port_{0};
     std::string info_file_{};

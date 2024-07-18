@@ -53,6 +53,34 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 }
 }  // namespace
 
+auto ServerImpl::Create(std::optional<std::string> interface,
+                        std::optional<int> port,
+                        std::optional<std::string> info_file,
+                        std::optional<std::string> pid_file) noexcept
+    -> std::optional<ServerImpl> {
+    ServerImpl server;
+    if (interface) {
+        server.interface_ = std::move(*interface);
+    }
+    if (port) {
+        auto parsed_port = ParsePort(*port);
+        if (parsed_port) {
+            server.port_ = static_cast<int>(*parsed_port);
+        }
+        else {
+            Logger::Log(LogLevel::Error, "Invalid port '{}'", *port);
+            return std::nullopt;
+        }
+    }
+    if (info_file) {
+        server.info_file_ = std::move(*info_file);
+    }
+    if (pid_file) {
+        server.pid_file_ = std::move(*pid_file);
+    }
+    return std::move(server);
+}
+
 auto ServerImpl::Run(StorageConfig const& storage_config,
                      Storage const& storage,
                      ApiBundle const& apis,
@@ -127,26 +155,5 @@ auto ServerImpl::Run(StorageConfig const& storage_config,
     }
 
     server->Wait();
-    return true;
-}
-
-[[nodiscard]] auto ServerImpl::SetInfoFile(std::string const& x) noexcept
-    -> bool {
-    Instance().info_file_ = x;
-    return true;
-}
-
-[[nodiscard]] auto ServerImpl::SetPidFile(std::string const& x) noexcept
-    -> bool {
-    Instance().pid_file_ = x;
-    return true;
-}
-
-[[nodiscard]] auto ServerImpl::SetPort(int const x) noexcept -> bool {
-    auto port_num = ParsePort(x);
-    if (!port_num) {
-        return false;
-    }
-    Instance().port_ = static_cast<int>(*port_num);
     return true;
 }

@@ -226,39 +226,6 @@ void SetupLogging(LogArguments const& clargs) {
     return Auth{};
 }
 
-void SetupExecutionServiceConfig(ServiceArguments const& args) {
-    if (args.port) {
-        if (!ServerImpl::SetPort(*args.port)) {
-            Logger::Log(LogLevel::Error, "Invalid port '{}'", *args.port);
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.info_file) {
-        if (!ServerImpl::SetInfoFile(*args.info_file)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid info-file '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.interface) {
-        if (!ServerImpl::SetInterface(*args.interface)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid interface '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-    if (args.pid_file) {
-        if (!ServerImpl::SetPidFile(*args.pid_file)) {
-            Logger::Log(LogLevel::Error,
-                        "Invalid pid-file '{}'",
-                        args.info_file->string());
-            std::exit(kExitFailure);
-        }
-    }
-}
-
 void SetupFileChunker() {
     FileChunker::Initialize();
 }
@@ -820,36 +787,45 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
-            // Use default remote configuration.
-            RemoteExecutionConfig remote_exec_config{};
+            auto execution_server =
+                ServerImpl::Create(arguments.service.interface,
+                                   arguments.service.port,
+                                   arguments.service.info_file,
+                                   arguments.service.pid_file);
 
-            // Set up storage for local execution.
-            auto const storage_config = CreateStorageConfig(
-                arguments.endpoint, Compatibility::IsCompatible());
-            if (not storage_config) {
-                return kExitFailure;
+            if (execution_server) {
+                // Use default remote configuration.
+                RemoteExecutionConfig remote_exec_config{};
+
+                // Set up storage for local execution.
+                auto const storage_config = CreateStorageConfig(
+                    arguments.endpoint, Compatibility::IsCompatible());
+                if (not storage_config) {
+                    return kExitFailure;
+                }
+                auto const storage = Storage::Create(&*storage_config);
+                StoreTargetCacheShard(
+                    *storage_config, storage, remote_exec_config);
+
+                RetryConfig
+                    retry_config{};  // default is enough, as remote is not used
+
+                ApiBundle const exec_apis{&*storage_config,
+                                          &storage,
+                                          &*local_exec_config,
+                                          /*repo_config=*/nullptr,
+                                          &*auth_config,
+                                          &retry_config,
+                                          &remote_exec_config};
+
+                return execution_server->Run(*storage_config,
+                                             storage,
+                                             exec_apis,
+                                             arguments.service.op_exponent)
+                           ? kExitSuccess
+                           : kExitFailure;
             }
-            auto const storage = Storage::Create(&*storage_config);
-            StoreTargetCacheShard(*storage_config, storage, remote_exec_config);
-
-            RetryConfig
-                retry_config{};  // default is enough, as remote is not used
-
-            SetupExecutionServiceConfig(arguments.service);
-            ApiBundle const exec_apis{&*storage_config,
-                                      &storage,
-                                      &*local_exec_config,
-                                      /*repo_config=*/nullptr,
-                                      &*auth_config,
-                                      &retry_config,
-                                      &remote_exec_config};
-            if (not ServerImpl::Instance().Run(*storage_config,
-                                               storage,
-                                               exec_apis,
-                                               arguments.service.op_exponent)) {
-                return kExitFailure;
-            }
-            return kExitSuccess;
+            return kExitFailure;
         }
 
         auto serve_config = CreateServeConfig(
