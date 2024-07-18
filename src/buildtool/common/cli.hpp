@@ -170,7 +170,7 @@ struct ServerAuthArguments {
 
 struct ServiceArguments {
     std::optional<int> port{std::nullopt};
-    std::optional<std::filesystem::path> info_file{std::nullopt};
+    std::optional<std::string> info_file{std::nullopt};
     std::optional<std::string> interface{std::nullopt};
     std::optional<std::string> pid_file{std::nullopt};
     std::optional<std::uint8_t> op_exponent;
