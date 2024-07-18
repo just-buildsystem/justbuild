@@ -27,7 +27,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
-class ServeServerImpl {
+class ServeServerImpl final {
   public:
     [[nodiscard]] static auto Create(
         std::optional<std::string> interface,
