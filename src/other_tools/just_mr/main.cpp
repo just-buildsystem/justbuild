@@ -132,8 +132,11 @@ void SetupSetupCommandArguments(
     try {
         app.parse(argc, argv);
     } catch (CLI::Error& e) {
-        [[maybe_unused]] auto err = app.exit(e);
-        std::exit(kExitClargsError);
+        // CLI11 throws for things like --help calls for them to be handled
+        // separately by parse callers. In this case it nevertheless sets the
+        // error code to 0 (success).
+        auto const err = app.exit(e);
+        std::exit(err == 0 ? kExitSuccess : kExitClargsError);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error, "Command line parse error: {}", ex.what());
         std::exit(kExitClargsError);
