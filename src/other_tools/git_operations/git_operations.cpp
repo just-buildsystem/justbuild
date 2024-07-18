@@ -102,13 +102,14 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
                       fatal);
         });
     // Create tag of given commit
-    if (not git_repo->KeepTag(crit_op_params.git_hash,
-                              crit_op_params.message.value(),
-                              wrapped_logger)) {
+    auto tag_result = git_repo->KeepTag(crit_op_params.git_hash,
+                                        crit_op_params.message.value(),
+                                        wrapped_logger);
+    if (not tag_result) {
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = ""};
+    return {.git_cas = git_repo->GetGitCAS(), .result = *tag_result};
 }
 
 auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
@@ -169,11 +170,12 @@ auto CriticalGitOps::GitKeepTree(GitOpParams const& crit_op_params,
                       fatal);
         });
     // Create tag for given tree
-    if (not git_repo->KeepTree(crit_op_params.git_hash,
-                               crit_op_params.message.value(),
-                               wrapped_logger)) {
+    auto tag_result = git_repo->KeepTree(crit_op_params.git_hash,
+                                         crit_op_params.message.value(),
+                                         wrapped_logger);
+    if (not tag_result) {
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = ""};
+    return {.git_cas = git_repo->GetGitCAS(), .result = *tag_result};
 }
