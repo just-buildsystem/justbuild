@@ -507,6 +507,395 @@ void ExtractAndImportToGit(
         });
 }
 
+auto IdFileExistsInOlderGeneration(
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    ArchiveRepoInfo const& key) -> std::optional<std::size_t> {
+    for (std::size_t generation = 1;
+         generation < storage_config->num_generations;
+         generation++) {
+        auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
+            *storage_config, key.repo_type, key.archive.content, generation);
+        if (FileSystemManager::Exists(archive_tree_id_file)) {
+            return generation;
+        }
+    }
+    return std::nullopt;
+}
+
+void HandleLocallyKnownTree(
+    ArchiveRepoInfo const& key,
+    std::filesystem::path const& archive_tree_id_file,
+    bool fetch_absent,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    // read archive_tree_id from file tree_id_file
+    auto archive_tree_id = FileSystemManager::ReadFile(archive_tree_id_file);
+    if (not archive_tree_id) {
+        (*logger)(fmt::format("Failed to read tree id from file {}",
+                              archive_tree_id_file.string()),
+                  /*fatal=*/true);
+        return;
+    }
+    // ensure Git cache
+    // define Git operation to be done
+    GitOpKey op_key = {.params =
+                           {
+                               storage_config->GitRoot(),  // target_path
+                               "",                         // git_hash
+                               "",                         // branch
+                               std::nullopt,               // message
+                               true                        // init_bare
+                           },
+                       .op_type = GitOpType::ENSURE_INIT};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [archive_tree_id = *archive_tree_id,
+         key,
+         fetch_absent,
+         serve,
+         storage_config,
+         remote_api,
+         critical_git_op_map,
+         resolve_symlinks_map,
+         ts,
+         setter,
+         logger](auto const& values) {
+            GitOpValue op_result = *values[0];
+            // check flag
+            if (not op_result.result) {
+                (*logger)("Git init failed",
+                          /*fatal=*/true);
+                return;
+            }
+            // open fake repo wrap for GitCAS
+            auto just_git_repo = GitRepoRemote::Open(op_result.git_cas);
+            if (not just_git_repo) {
+                (*logger)("Could not open Git cache repository!",
+                          /*fatal=*/true);
+                return;
+            }
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [&logger](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While getting subtree from "
+                                          "tree:\n{}",
+                                          msg),
+                              fatal);
+                });
+            // get subtree id
+            auto subtree_hash = just_git_repo->GetSubtreeFromTree(
+                archive_tree_id, key.subdir, wrapped_logger);
+            if (not subtree_hash) {
+                return;
+            }
+            // resolve tree and set workspace root (present or absent)
+            ResolveContentTree(
+                key,
+                *subtree_hash,
+                op_result.git_cas,
+                /*is_cache_hit = */ true,
+                /*is_absent = */ (key.absent and not fetch_absent),
+                serve,
+                storage_config,
+                remote_api,
+                critical_git_op_map,
+                resolve_symlinks_map,
+                ts,
+                setter,
+                logger);
+        },
+        [logger, target_path = storage_config->GitRoot()](auto const& msg,
+                                                          bool fatal) {
+            (*logger)(fmt::format("While running critical Git "
+                                  "op ENSURE_INIT for "
+                                  "target {}:\n{}",
+                                  target_path.string(),
+                                  msg),
+                      fatal);
+        });
+}
+
+void HandleKnownInOlderGenerationAfterImport(
+    ArchiveRepoInfo const& key,
+    const std::string& tree_id,
+    bool fetch_absent,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    // Now that we have the tree persisted in the git repository of the youngest
+    // generation; hence we can write the map-entry.
+    auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
+        *storage_config, key.repo_type, key.archive.content);
+    if (not StorageUtils::WriteTreeIDFile(archive_tree_id_file, tree_id)) {
+        (*logger)(fmt::format("Failed to write tree id to file {}",
+                              archive_tree_id_file.string()),
+                  /*fatal=*/true);
+    }
+    // Now that we also have the the ID-file written, we're in the situation
+    // as if we had a cache hit in the first place.
+    HandleLocallyKnownTree(key,
+                           archive_tree_id_file,
+                           fetch_absent,
+                           serve,
+                           storage_config,
+                           resolve_symlinks_map,
+                           critical_git_op_map,
+                           remote_api,
+                           ts,
+                           setter,
+                           logger);
+}
+
+void HandleKnownInOlderGenerationAfterTaggingAndInit(
+    ArchiveRepoInfo const& key,
+    std::string tree_id,
+    std::string tag,
+    GitCASPtr const& git_cas,
+    std::filesystem::path const& source,
+    bool fetch_absent,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<Storage const*> const& storage,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    auto git_repo = GitRepoRemote::Open(git_cas);
+    if (not git_repo) {
+        (*logger)("Could not open just initialized repository {}",
+                  /*fatal=*/true);
+        return;
+    }
+    auto fetch_logger = std::make_shared<AsyncMapConsumerLogger>(
+        [logger, tag, source](auto const& msg, bool fatal) {
+            (*logger)(fmt::format("While fetching {} from {}:\n{}",
+                                  tag,
+                                  source.string(),
+                                  msg),
+                      fatal);
+        });
+    if (not git_repo->LocalFetchViaTmpRepo(
+            *storage_config, source, tag, fetch_logger)) {
+        return;
+    }
+    GitOpKey op_key = {.params =
+                           {
+                               storage_config->GitRoot(),    // target_path
+                               tree_id,                      // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TREE};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [key,
+         tree_id,
+         git_cas,
+         fetch_absent,
+         serve,
+         storage_config,
+         storage,
+         resolve_symlinks_map,
+         critical_git_op_map,
+         remote_api,
+         ts,
+         setter,
+         logger](auto const& values) {
+            GitOpValue op_result = *values[0];
+            // check flag
+            if (not op_result.result) {
+                (*logger)("Keep tag failed",
+                          /*fatal=*/true);
+                return;
+            }
+            HandleKnownInOlderGenerationAfterImport(key,
+                                                    tree_id,
+                                                    fetch_absent,
+                                                    serve,
+                                                    storage_config,
+                                                    resolve_symlinks_map,
+                                                    critical_git_op_map,
+                                                    remote_api,
+                                                    ts,
+                                                    setter,
+                                                    logger);
+        },
+        [logger, tree_id](auto const& msg, bool fatal) {
+            (*logger)(
+                fmt::format(
+                    "While tagging to keep tree {} alive:\n{}", tree_id, msg),
+                fatal);
+        });
+}
+
+void HandleKnownInOlderGenerationAfterTagging(
+    ArchiveRepoInfo const& key,
+    const std::string& tree_id,
+    const std::string& tag,
+    std::filesystem::path const& source,
+    bool fetch_absent,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<Storage const*> const& storage,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    GitOpKey op_key = {.params =
+                           {
+                               storage_config->GitRoot(),  // target_path
+                               "",                         // git_hash
+                               "",                         // branch
+                               std::nullopt,               // message
+                               true                        // init_bare
+                           },
+                       .op_type = GitOpType::ENSURE_INIT};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [key,
+         tree_id,
+         tag,
+         source,
+         fetch_absent,
+         serve,
+         storage_config,
+         storage,
+         resolve_symlinks_map,
+         critical_git_op_map,
+         remote_api,
+         ts,
+         setter,
+         logger](auto const& values) {
+            GitOpValue op_result = *values[0];
+            if (not op_result.result) {
+                (*logger)("Git init failed",
+                          /*fatal=*/true);
+                return;
+            }
+            HandleKnownInOlderGenerationAfterTaggingAndInit(
+                key,
+                tree_id,
+                tag,
+                op_result.git_cas,
+                source,
+                fetch_absent,
+                serve,
+                storage_config,
+                storage,
+                resolve_symlinks_map,
+                critical_git_op_map,
+                remote_api,
+                ts,
+                setter,
+                logger);
+        },
+        [logger, target_path = storage_config->GitRoot()](auto const& msg,
+                                                          bool fatal) {
+            (*logger)(fmt::format("While running critical Git op "
+                                  "ENSURE_INIT for target {}:\n{}",
+                                  target_path.string(),
+                                  msg),
+                      fatal);
+        });
+}
+
+void HandleKnownInOlderGeneration(
+    ArchiveRepoInfo const& key,
+    std::size_t generation,
+    bool fetch_absent,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<Storage const*> const& storage,
+    gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    gsl::not_null<TaskSystem*> const& ts,
+    ContentGitMap::SetterPtr const& setter,
+    ContentGitMap::LoggerPtr const& logger) {
+    auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
+        *storage_config, key.repo_type, key.archive.content, generation);
+    auto archive_tree_id = FileSystemManager::ReadFile(archive_tree_id_file);
+    if (not archive_tree_id) {
+        (*logger)(fmt::format("Failed to read tree id from file {}",
+                              archive_tree_id_file.string()),
+                  /*fatal=*/true);
+        return;
+    }
+    auto source = storage_config->GitGenerationRoot(generation);
+
+    GitOpKey op_key = {.params =
+                           {
+                               source,                    // target_path
+                               *archive_tree_id,          // git_hash
+                               "",                        // branch
+                               "Tag commit for fetching"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TREE};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [key,
+         tree_id = *archive_tree_id,
+         source,
+         fetch_absent,
+         serve,
+         storage_config,
+         storage,
+         resolve_symlinks_map,
+         critical_git_op_map,
+         remote_api,
+         ts,
+         setter,
+         logger](auto const& values) {
+            GitOpValue op_result = *values[0];
+            if (not op_result.result) {
+                (*logger)("Keep tag failed", /*fatal=*/true);
+                return;
+            }
+            auto tag = *op_result.result;
+            HandleKnownInOlderGenerationAfterTagging(key,
+                                                     tree_id,
+                                                     tag,
+                                                     source,
+                                                     fetch_absent,
+                                                     serve,
+                                                     storage_config,
+                                                     storage,
+                                                     resolve_symlinks_map,
+                                                     critical_git_op_map,
+                                                     remote_api,
+                                                     ts,
+                                                     setter,
+                                                     logger);
+        },
+        [logger, source, hash = *archive_tree_id](auto const& msg, bool fatal) {
+            (*logger)(
+                fmt::format("While tagging tree {} in {} for fetching:\n{}",
+                            source.string(),
+                            hash,
+                            msg),
+                fatal);
+        });
+}
+
 }  // namespace
 
 auto CreateContentGitMap(
@@ -542,96 +931,32 @@ auto CreateContentGitMap(
         auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
             *storage_config, key.repo_type, key.archive.content);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
-            // read archive_tree_id from file tree_id_file
-            auto archive_tree_id =
-                FileSystemManager::ReadFile(archive_tree_id_file);
-            if (not archive_tree_id) {
-                (*logger)(fmt::format("Failed to read tree id from file {}",
-                                      archive_tree_id_file.string()),
-                          /*fatal=*/true);
-                return;
-            }
-            // ensure Git cache
-            // define Git operation to be done
-            GitOpKey op_key = {
-                .params =
-                    {
-                        storage_config->GitRoot(),  // target_path
-                        "",                         // git_hash
-                        "",                         // branch
-                        std::nullopt,               // message
-                        true                        // init_bare
-                    },
-                .op_type = GitOpType::ENSURE_INIT};
-            critical_git_op_map->ConsumeAfterKeysReady(
-                ts,
-                {std::move(op_key)},
-                [archive_tree_id = *archive_tree_id,
-                 key,
-                 fetch_absent,
-                 serve,
-                 storage_config,
-                 remote_api,
-                 critical_git_op_map,
-                 resolve_symlinks_map,
-                 ts,
-                 setter,
-                 logger](auto const& values) {
-                    GitOpValue op_result = *values[0];
-                    // check flag
-                    if (not op_result.result) {
-                        (*logger)("Git init failed",
-                                  /*fatal=*/true);
-                        return;
-                    }
-                    // open fake repo wrap for GitCAS
-                    auto just_git_repo = GitRepoRemote::Open(op_result.git_cas);
-                    if (not just_git_repo) {
-                        (*logger)("Could not open Git cache repository!",
-                                  /*fatal=*/true);
-                        return;
-                    }
-                    // setup wrapped logger
-                    auto wrapped_logger =
-                        std::make_shared<AsyncMapConsumerLogger>(
-                            [&logger](auto const& msg, bool fatal) {
-                                (*logger)(
-                                    fmt::format("While getting subtree from "
-                                                "tree:\n{}",
-                                                msg),
-                                    fatal);
-                            });
-                    // get subtree id
-                    auto subtree_hash = just_git_repo->GetSubtreeFromTree(
-                        archive_tree_id, key.subdir, wrapped_logger);
-                    if (not subtree_hash) {
-                        return;
-                    }
-                    // resolve tree and set workspace root (present or absent)
-                    ResolveContentTree(
-                        key,
-                        *subtree_hash,
-                        op_result.git_cas,
-                        /*is_cache_hit = */ true,
-                        /*is_absent = */ (key.absent and not fetch_absent),
-                        serve,
-                        storage_config,
-                        remote_api,
-                        critical_git_op_map,
-                        resolve_symlinks_map,
-                        ts,
-                        setter,
-                        logger);
-                },
-                [logger, target_path = storage_config->GitRoot()](
-                    auto const& msg, bool fatal) {
-                    (*logger)(fmt::format("While running critical Git "
-                                          "op ENSURE_INIT for "
-                                          "target {}:\n{}",
-                                          target_path.string(),
-                                          msg),
-                              fatal);
-                });
+            HandleLocallyKnownTree(key,
+                                   archive_tree_id_file,
+                                   fetch_absent,
+                                   serve,
+                                   storage_config,
+                                   resolve_symlinks_map,
+                                   critical_git_op_map,
+                                   remote_api,
+                                   ts,
+                                   setter,
+                                   logger);
+        }
+        else if (auto generation =
+                     IdFileExistsInOlderGeneration(storage_config, key)) {
+            HandleKnownInOlderGeneration(key,
+                                         *generation,
+                                         fetch_absent,
+                                         serve,
+                                         storage_config,
+                                         storage,
+                                         resolve_symlinks_map,
+                                         critical_git_op_map,
+                                         remote_api,
+                                         ts,
+                                         setter,
+                                         logger);
         }
         else {
             // separate logic between absent and present roots
