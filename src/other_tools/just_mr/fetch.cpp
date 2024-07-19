@@ -497,6 +497,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         &(*apis.local),
         (fetch_args.backup_to_remote and has_remote_api) ? &*apis.remote
                                                          : nullptr,
+        &JustMRStatistics::Instance(),
         common_args.jobs);
 
     auto import_to_git_map =

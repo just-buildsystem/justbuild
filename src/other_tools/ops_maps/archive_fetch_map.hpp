@@ -22,6 +22,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 
 /// \brief Maps an archive content hash to a status flag.
@@ -33,6 +34,7 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
     gsl::not_null<Storage const*> const& storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
+    gsl::not_null<JustMRStatistics*> const& stats,
     std::size_t jobs) -> ArchiveFetchMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP

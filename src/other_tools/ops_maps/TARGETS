@@ -91,6 +91,7 @@
     , "content_cas_map"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -98,8 +99,6 @@
     , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
-    , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]
   }
 , "git_tree_fetch_map":
