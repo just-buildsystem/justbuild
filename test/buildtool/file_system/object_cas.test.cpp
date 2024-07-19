@@ -18,7 +18,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -31,10 +30,11 @@ TEST_CASE("ObjectCAS", "[file_system]") {
 
     std::string test_content{"test"};
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(
-        HashFunction::Instance(), test_content);
+        storage_config.Get().hash_function, test_content);
 
     SECTION("CAS for files") {
-        ObjectCAS<ObjectType::File> cas{gen_config.cas_f};
+        ObjectCAS<ObjectType::File> cas{storage_config.Get().hash_function,
+                                        gen_config.cas_f};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {
@@ -72,7 +72,8 @@ TEST_CASE("ObjectCAS", "[file_system]") {
     }
 
     SECTION("CAS for executables") {
-        ObjectCAS<ObjectType::Executable> cas{gen_config.cas_x};
+        ObjectCAS<ObjectType::Executable> cas{
+            storage_config.Get().hash_function, gen_config.cas_x};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

@@ -22,6 +22,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -49,12 +50,22 @@ class LocalCAS {
     explicit LocalCAS(
         GenerationConfig const& config,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
-        : cas_file_{config.cas_f, MakeUplinker<ObjectType::File>(uplinker)},
-          cas_exec_{config.cas_x,
+        : cas_file_{config.storage_config->hash_function,
+                    config.cas_f,
+                    MakeUplinker<ObjectType::File>(uplinker)},
+          cas_exec_{config.storage_config->hash_function,
+                    config.cas_x,
                     MakeUplinker<ObjectType::Executable>(uplinker)},
-          cas_tree_{config.cas_t, MakeUplinker<ObjectType::Tree>(uplinker)},
+          cas_tree_{config.storage_config->hash_function,
+                    config.cas_t,
+                    MakeUplinker<ObjectType::Tree>(uplinker)},
           cas_file_large_{this, config, uplinker},
-          cas_tree_large_{this, config, uplinker} {}
+          cas_tree_large_{this, config, uplinker},
+          hash_function_{config.storage_config->hash_function} {}
+
+    [[nodiscard]] auto GetHashFunction() const noexcept -> HashFunction {
+        return hash_function_;
+    }
 
     /// \brief Obtain path to the storage root.
     /// \param type             Type of the storage to be obtained.
@@ -261,6 +272,7 @@ class LocalCAS {
     ObjectCAS<ObjectType::Tree> cas_tree_;
     LargeObjectCAS<kDoGlobalUplink, ObjectType::File> cas_file_large_;
     LargeObjectCAS<kDoGlobalUplink, ObjectType::Tree> cas_tree_large_;
+    HashFunction const hash_function_;
 
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>

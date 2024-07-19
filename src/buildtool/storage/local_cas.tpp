@@ -19,7 +19,6 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
@@ -375,8 +374,8 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
     // methods can refer to a file that existed before. The direct hash
     // calculation is done instead.
     auto const& file_path = large_object.GetPath();
-    auto spliced_digest = ArtifactDigest::CreateFromFile<kType>(
-        HashFunction::Instance(), file_path);
+    auto spliced_digest =
+        ArtifactDigest::CreateFromFile<kType>(hash_function_, file_path);
     if (not spliced_digest) {
         return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
                                            "could not calculate digest"}};

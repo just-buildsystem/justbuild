@@ -48,7 +48,10 @@ class LocalAC {
                      GenerationConfig const& config,
                      gsl::not_null<Uplinker<kDoGlobalUplink> const*> const&
                          uplinker) noexcept
-        : cas_{*cas}, file_store_{config.action_cache}, uplinker_{*uplinker} {};
+        : cas_{*cas},
+          file_store_{config.action_cache},
+          uplinker_{*uplinker},
+          hash_function_{config.storage_config->hash_function} {};
 
     LocalAC(LocalAC const&) = default;
     LocalAC(LocalAC&&) noexcept = default;
@@ -95,6 +98,7 @@ class LocalAC {
     FileStorage<ObjectType::File, kStoreMode, /*kSetEpochTime=*/false>
         file_store_;
     Uplinker<kDoGlobalUplink> const& uplinker_;
+    HashFunction const hash_function_;
 
     [[nodiscard]] auto ReadResult(bazel_re::Digest const& digest) const noexcept
         -> std::optional<bazel_re::ActionResult>;

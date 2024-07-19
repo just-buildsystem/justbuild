@@ -56,9 +56,12 @@ class ObjectCAS {
     /// digest exists at the given path if true was returned.
     /// \param store_path   The path to use for storing blobs.
     /// \param exists       (optional) Function for checking blob existence.
-    explicit ObjectCAS(std::filesystem::path const& store_path,
+    explicit ObjectCAS(HashFunction hash_function,
+                       std::filesystem::path const& store_path,
                        ExistsFunc exists = kDefaultExists)
-        : file_store_{store_path}, exists_{std::move(exists)} {}
+        : hash_function_{hash_function},
+          file_store_{store_path},
+          exists_{std::move(exists)} {}
 
     ObjectCAS(ObjectCAS const&) = delete;
     ObjectCAS(ObjectCAS&&) = delete;
@@ -109,22 +112,21 @@ class ObjectCAS {
     static constexpr auto kStorageType =
         kType == ObjectType::Tree ? ObjectType::File : kType;
 
+    HashFunction const hash_function_;
     Logger logger_{std::string{"ObjectCAS"} + ToChar(kType)};
 
     FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
         file_store_;
     ExistsFunc exists_;
 
-    [[nodiscard]] static auto CreateDigest(std::string const& bytes) noexcept
+    [[nodiscard]] auto CreateDigest(std::string const& bytes) const noexcept
         -> std::optional<bazel_re::Digest> {
-        return ArtifactDigest::Create<kType>(HashFunction::Instance(), bytes);
+        return ArtifactDigest::Create<kType>(hash_function_, bytes);
     }
 
-    [[nodiscard]] static auto CreateDigest(
-        std::filesystem::path const& file_path) noexcept
-        -> std::optional<bazel_re::Digest> {
-        return ArtifactDigest::CreateFromFile<kType>(HashFunction::Instance(),
-                                                     file_path);
+    [[nodiscard]] auto CreateDigest(std::filesystem::path const& file_path)
+        const noexcept -> std::optional<bazel_re::Digest> {
+        return ArtifactDigest::CreateFromFile<kType>(hash_function_, file_path);
     }
 
     [[nodiscard]] auto IsAvailable(

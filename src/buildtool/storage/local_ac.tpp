@@ -106,7 +106,7 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         if (not cas_.LocalUplinkBlob(
                 latest.cas_,
                 bazel_re::Digest(ArtifactDigest::Create<ObjectType::File>(
-                    HashFunction::Instance(), link.target())),
+                    hash_function_, link.target())),
                 /*is_executable=*/false)) {
             return false;
         }
@@ -115,7 +115,7 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         if (not cas_.LocalUplinkBlob(
                 latest.cas_,
                 bazel_re::Digest(ArtifactDigest::Create<ObjectType::File>(
-                    HashFunction::Instance(), link.target())),
+                    hash_function_, link.target())),
                 /*is_executable=*/false)) {
             return false;
         }

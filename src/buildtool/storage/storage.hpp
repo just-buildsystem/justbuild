@@ -53,6 +53,10 @@ class LocalStorage final {
         return LocalStorage<kDoGlobalUplink>{gen_config};
     }
 
+    [[nodiscard]] auto GetHashFunction() const noexcept -> HashFunction {
+        return cas_->GetHashFunction();
+    }
+
     /// \brief Get the CAS instance.
     [[nodiscard]] auto CAS() const noexcept -> CAS_t const& { return *cas_; }
 

@@ -16,13 +16,14 @@
 
 #include "src/buildtool/storage/garbage_collector.hpp"
 
+#include <array>
 #include <filesystem>
-#include <memory>
 #include <vector>
 
-#include "nlohmann/json.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -213,23 +214,35 @@ auto GarbageCollector::TriggerGarbageCollection(
 
 auto GarbageCollector::Compactify(StorageConfig const& storage_config,
                                   size_t threshold) noexcept -> bool {
-    const bool mode = Compatibility::IsCompatible();
-
     // Return to the initial compatibility mode once done:
-    auto scope_guard = std::shared_ptr<void>(nullptr, [mode](void* /*unused*/) {
+    auto const guard = gsl::finally([mode = Compatibility::IsCompatible()] {
         Compatibility::SetCompatible(mode);
     });
 
-    // Compactification must be done for both native and compatible storages.
-    auto compactify = [&storage_config, threshold](bool compatible) -> bool {
-        Compatibility::SetCompatible(compatible);
-        auto const storage = ::Generation::Create(&storage_config);
+    auto compactify = [threshold](StorageConfig const& config) -> bool {
+        Compatibility::SetCompatible(config.hash_function.GetHashType() ==
+                                     HashFunction::JustHash::Compatible);
+        auto const storage = ::Generation::Create(&config);
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
                Compactifier::RemoveSpliced(storage.CAS()) and
                Compactifier::SplitLarge(storage.CAS(), threshold);
     };
-    return compactify(mode) and compactify(not mode);
+
+    // Compactification must be done for both native and compatible storages.
+    static constexpr std::array kHashes = {HashFunction::JustHash::Native,
+                                           HashFunction::JustHash::Compatible};
+    auto builder = StorageConfig::Builder{}
+                       .SetBuildRoot(storage_config.build_root)
+                       .SetNumGenerations(storage_config.num_generations);
+
+    return std::all_of(
+        kHashes.begin(),
+        kHashes.end(),
+        [&builder, &compactify](HashFunction::JustHash hash_type) {
+            auto const config = builder.SetHashType(hash_type).Build();
+            return config.has_value() and compactify(*config);
+        });
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
