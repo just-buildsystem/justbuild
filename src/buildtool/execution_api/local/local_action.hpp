@@ -25,7 +25,6 @@
 #include <vector>
 
 #include "gsl/gsl"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
@@ -114,7 +113,7 @@ class LocalAction final : public IExecutionAction {
             .env_vars = &env_vars,
             .properties = &properties_,
             .exec_dir = &exec_dir,
-            .hash_function = HashFunction::Instance(),
+            .hash_function = storage_config_.hash_function,
             .timeout = timeout_,
             .skip_action_cache = do_not_cache};
         return BazelMsgFactory::CreateActionDigestFromCommandLine(request);

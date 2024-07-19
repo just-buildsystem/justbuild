@@ -140,7 +140,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            HashFunction::Instance(), link.target()),
+                            storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
@@ -152,7 +152,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            HashFunction::Instance(), link.target()),
+                            storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
             } catch (...) {
@@ -167,7 +167,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            HashFunction::Instance(), link.target()),
+                            storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
@@ -179,7 +179,7 @@ class LocalResponse final : public IExecutionResponse {
                     link.path(),
                     Artifact::ObjectInfo{
                         .digest = ArtifactDigest::Create<ObjectType::File>(
-                            HashFunction::Instance(), link.target()),
+                            storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return false;
