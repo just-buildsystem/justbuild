@@ -39,6 +39,7 @@
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
@@ -320,7 +321,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     JustMRProgress::Instance().SetTotal(setup_repos->to_setup.size());
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter = JustMRProgressReporter::Reporter();
+    auto reporter = JustMRProgressReporter::Reporter(
+        &JustMRStatistics::Instance(), &JustMRProgress::Instance());
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

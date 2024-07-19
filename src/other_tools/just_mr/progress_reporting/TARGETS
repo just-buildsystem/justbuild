@@ -17,13 +17,16 @@
   , "hdrs": ["progress_reporter.hpp"]
   , "srcs": ["progress_reporter.cpp"]
   , "stage": ["src", "other_tools", "just_mr", "progress_reporting"]
-  , "deps": [["src/buildtool/progress_reporting", "base_progress_reporter"]]
-  , "private-deps":
+  , "deps":
     [ "progress"
     , "statistics"
-    , ["@", "fmt", "", "fmt"]
-    , ["@", "json", "", "json"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
+    ]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   }

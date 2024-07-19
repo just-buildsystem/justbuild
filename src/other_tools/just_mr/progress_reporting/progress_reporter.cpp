@@ -14,26 +14,22 @@
 
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 
-#include <optional>
-#include <string>
-
 #include "fmt/core.h"
-#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
-auto JustMRProgressReporter::Reporter() noexcept -> progress_reporter_t {
-    return BaseProgressReporter::Reporter([]() {
-        int total = JustMRProgress::Instance().GetTotal();
-        auto const& stats = JustMRStatistics::Instance();
-        int local = stats.LocalPathsCounter();
-        int cached = stats.CacheHitsCounter();
-        int run = stats.ExecutedCounter();
-        auto active = JustMRProgress::Instance().TaskTracker().Active();
-        auto sample = JustMRProgress::Instance().TaskTracker().Sample();
+auto JustMRProgressReporter::Reporter(
+    gsl::not_null<JustMRStatistics*> const& stats,
+    gsl::not_null<JustMRProgress*> const& progress) noexcept
+    -> progress_reporter_t {
+    return BaseProgressReporter::Reporter([stats, progress]() {
+        int total = progress->GetTotal();
+        int local = stats->LocalPathsCounter();
+        int cached = stats->CacheHitsCounter();
+        int run = stats->ExecutedCounter();
+        auto active = progress->TaskTracker().Active();
+        auto sample = progress->TaskTracker().Sample();
         std::string msg;
         msg = fmt::format("{} local, {} cached, {} done", local, cached, run);
         if ((active > 0) && !sample.empty()) {

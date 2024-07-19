@@ -126,6 +126,7 @@
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/ops_maps", "archive_fetch_map"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
@@ -162,6 +163,7 @@
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , "utils"
     , ["src/other_tools/ops_maps", "git_update_map"]
     ]
@@ -190,6 +192,7 @@
     , "exit_codes"
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , "utils"
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]

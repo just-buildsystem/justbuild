@@ -15,11 +15,17 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_REPORTER_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_REPORTER_HPP
 
+#include "gsl/gsl"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
-class JustMRProgressReporter {
+class JustMRProgressReporter final {
   public:
-    [[nodiscard]] static auto Reporter() noexcept -> progress_reporter_t;
+    [[nodiscard]] static auto Reporter(
+        gsl::not_null<JustMRStatistics*> const& stats,
+        gsl::not_null<JustMRProgress*> const& progress) noexcept
+        -> progress_reporter_t;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_REPORTER_HPP
