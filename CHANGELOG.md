@@ -2,6 +2,23 @@
 
 A feature release on top of `1.3.0`, backwards compatible.
 
+### New features
+
+- `just-mr` now supports garbage collection for repository roots
+  via the `gc-repo` subcommand. This follows the same two-generation
+  approach as garbage collection for the cache-CAS pair; in
+  other words, everything is cleaned up that was not used since
+  the last call to `gc-repo`. To accommodate this, the layout in
+  the local build root had to be changed. The directory `git` as
+  well as `*-map` directories are now located in the subdirectory
+  `repositories/generation-0`. On upgrade those have to be manually
+  moved there if they should be continued to be used; removing the
+  whole local build root is, of course, also a valid upgrade path,
+  however losing the whole cache. Not doing anything on upgrade
+  will not lead to an inconsistent state; however, the directories
+  at the old location will not be used anymore while still using
+  disk space.
+
 ### Fixes
 
 - A bug was fixed that cased `just serve` to fail with an internal
