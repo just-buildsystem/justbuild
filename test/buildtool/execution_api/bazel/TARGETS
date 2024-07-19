@@ -109,6 +109,8 @@
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
     , ["buildtool/execution_api/common", "api_test"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }

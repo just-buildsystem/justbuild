@@ -28,7 +28,6 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -194,14 +193,15 @@ BazelApi::BazelApi(std::string const& instance_name,
                    Port port,
                    gsl::not_null<Auth const*> const& auth,
                    gsl::not_null<RetryConfig const*> const& retry_config,
-                   ExecutionConfiguration const& exec_config) noexcept {
+                   ExecutionConfiguration const& exec_config,
+                   HashFunction hash_function) noexcept {
     network_ = std::make_shared<BazelNetwork>(instance_name,
                                               host,
                                               port,
                                               auth,
                                               retry_config,
                                               exec_config,
-                                              HashFunction::Instance());
+                                              hash_function);
 }
 
 // implement move constructor in cpp, where all members are complete types

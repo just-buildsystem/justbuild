@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -46,7 +47,8 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
                                           address->port,
                                           &auth,
                                           &retry_config,
-                                          config);
+                                          config,
+                                          HashFunction::Instance());
     }
     return local;
 }

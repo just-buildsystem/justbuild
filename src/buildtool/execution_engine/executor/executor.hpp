@@ -693,7 +693,8 @@ class ExecutorImpl {
                     endpoint.port,
                     auth,
                     retry_config,
-                    config);
+                    config,
+                    HashFunction::Instance());
             }
         }
         return nullptr;

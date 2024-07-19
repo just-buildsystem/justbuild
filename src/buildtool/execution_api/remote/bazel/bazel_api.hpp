@@ -29,6 +29,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -46,7 +47,8 @@ class BazelApi final : public IExecutionApi {
              Port port,
              gsl::not_null<Auth const*> const& auth,
              gsl::not_null<RetryConfig const*> const& retry_config,
-             ExecutionConfiguration const& exec_config) noexcept;
+             ExecutionConfiguration const& exec_config,
+             HashFunction hash_function) noexcept;
     BazelApi(BazelApi const&) = delete;
     BazelApi(BazelApi&& other) noexcept;
     auto operator=(BazelApi const&) -> BazelApi& = delete;
