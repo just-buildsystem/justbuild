@@ -487,6 +487,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             &storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
+                            &JustMRProgress::Instance(),
                             common_args.jobs);
 
     auto archive_fetch_map = CreateArchiveFetchMap(
@@ -515,6 +516,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               fetch_args.backup_to_remote,
+                              &JustMRProgress::Instance(),
                               common_args.jobs);
 
     // set up progress observer

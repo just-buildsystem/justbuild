@@ -206,6 +206,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
+                            &JustMRProgress::Instance(),
                             common_args.jobs);
 
     auto import_to_git_map =
@@ -225,6 +226,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               false, /* backup_to_remote */
+                              &JustMRProgress::Instance(),
                               common_args.jobs);
 
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
@@ -241,6 +243,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            &(*apis.local),
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.fetch_absent,
+                           &JustMRProgress::Instance(),
                            common_args.jobs);
 
     auto content_git_map =
@@ -256,6 +259,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &storage,
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.fetch_absent,
+                            &JustMRProgress::Instance(),
                             common_args.jobs);
 
     auto foreign_file_git_map =

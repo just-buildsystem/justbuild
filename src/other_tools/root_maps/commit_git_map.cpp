@@ -24,8 +24,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -195,6 +193,7 @@ void TagAndSetRoot(std::filesystem::path const& repo_root,
                    bool finish_task,
                    GitCASPtr const& git_cas,
                    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+                   gsl::not_null<JustMRProgress*> const& progress,
                    gsl::not_null<TaskSystem*> const& ts,
                    CommitGitMap::SetterPtr const& ws_setter,
                    CommitGitMap::LoggerPtr const& logger) {
@@ -209,8 +208,13 @@ void TagAndSetRoot(std::filesystem::path const& repo_root,
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
-        [git_cas, repo_info, repo_root, ws_setter, logger, finish_task](
-            auto const& values) {
+        [git_cas,
+         repo_info,
+         repo_root,
+         progress,
+         ws_setter,
+         logger,
+         finish_task](auto const& values) {
             GitOpValue op_result = *values[0];
             // check flag
             if (not op_result.result) {
@@ -242,7 +246,7 @@ void TagAndSetRoot(std::filesystem::path const& repo_root,
             }
             // set the workspace root as present
             if (finish_task) {
-                JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
+                progress->TaskTracker().Stop(repo_info.origin);
             }
             (*ws_setter)(
                 std::pair(nlohmann::json::array(
@@ -269,6 +273,7 @@ void TakeCommitFromOlderGeneration(
     GitRepoInfo const& repo_info,
     GitCASPtr const& git_cas,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<JustMRProgress*> const& progress,
     gsl::not_null<TaskSystem*> const& ts,
     CommitGitMap::SetterPtr const& ws_setter,
     CommitGitMap::LoggerPtr const& logger) {
@@ -290,6 +295,7 @@ void TakeCommitFromOlderGeneration(
          source,
          repo_info,
          critical_git_op_map,
+         progress,
          ts,
          ws_setter](auto const& values) {
             GitOpValue op_result = *values[0];
@@ -323,6 +329,7 @@ void TakeCommitFromOlderGeneration(
                           false,
                           git_cas,
                           critical_git_op_map,
+                          progress,
                           ts,
                           ws_setter,
                           logger);
@@ -347,6 +354,7 @@ void NetworkFetchAndSetPresentRoot(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     bool fetch_absent,
+    gsl::not_null<JustMRProgress*> const& progress,
     gsl::not_null<TaskSystem*> const& ts,
     CommitGitMap::SetterPtr const& ws_setter,
     CommitGitMap::LoggerPtr const& logger) {
@@ -454,6 +462,7 @@ void NetworkFetchAndSetPresentRoot(
                       true,
                       git_cas,
                       critical_git_op_map,
+                      progress,
                       ts,
                       ws_setter,
                       logger);
@@ -480,7 +489,7 @@ void NetworkFetchAndSetPresentRoot(
             return;
         }
         // set the workspace root as present
-        JustMRProgress::Instance().TaskTracker().Stop(repo_info.origin);
+        progress->TaskTracker().Stop(repo_info.origin);
         (*ws_setter)(std::pair(
             nlohmann::json::array({repo_info.ignore_special
                                        ? FileRoot::kGitTreeIgnoreSpecialMarker
@@ -510,6 +519,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                   gsl::not_null<IExecutionApi const*> const& local_api,
                   IExecutionApi const* remote_api,
                   bool fetch_absent,
+                  gsl::not_null<JustMRProgress*> const& progress,
                   gsl::not_null<TaskSystem*> const& ts,
                   CommitGitMap::SetterPtr const& ws_setter,
                   CommitGitMap::LoggerPtr const& logger) {
@@ -620,6 +630,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                   repo_info,
                                                   git_cas,
                                                   critical_git_op_map,
+                                                  progress,
                                                   ts,
                                                   ws_setter,
                                                   logger);
@@ -632,7 +643,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         // older generations
 
         // Not present locally, we have to fetch
-        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
+        progress->TaskTracker().Start(repo_info.origin);
         // check if commit is known to remote serve service
         if (serve != nullptr) {
             // if root purely absent, request only the subdir tree
@@ -643,8 +654,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                   /*sync_tree = */ false);
                 if (serve_result) {
                     // set the workspace root as absent
-                    JustMRProgress::Instance().TaskTracker().Stop(
-                        repo_info.origin);
+                    progress->TaskTracker().Stop(repo_info.origin);
                     (*ws_setter)(std::pair(
                         nlohmann::json::array(
                             {repo_info.ignore_special
@@ -702,6 +712,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                          local_api,
                          remote_api,
                          fetch_absent,
+                         progress,
                          ts,
                          ws_setter,
                          logger](auto const& values) {
@@ -744,8 +755,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 return;
                             }
                             if (*tree_present) {
-                                JustMRProgress::Instance().TaskTracker().Stop(
-                                    repo_info.origin);
+                                progress->TaskTracker().Stop(repo_info.origin);
                                 // write association to id file, get subdir
                                 // tree, and set the workspace root as present
                                 WriteIdFileAndSetWSRoot(
@@ -796,9 +806,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                     return;
                                 }
                                 if (*tree_present) {
-                                    JustMRProgress::Instance()
-                                        .TaskTracker()
-                                        .Stop(repo_info.origin);
+                                    progress->TaskTracker().Stop(
+                                        repo_info.origin);
                                     // get subdir tree and set the workspace
                                     // root as present; as this tree is not in
                                     // our Git cache, no file association should
@@ -849,8 +858,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                         .digest = root_digest,
                                         .type = ObjectType::Tree}},
                                     *local_api)) {
-                                JustMRProgress::Instance().TaskTracker().Stop(
-                                    repo_info.origin);
+                                progress->TaskTracker().Stop(repo_info.origin);
                                 // Move tree from local CAS to local Git storage
                                 auto tmp_dir =
                                     storage_config->CreateTypedTmpDir(
@@ -956,6 +964,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                           git_bin,
                                                           launcher,
                                                           fetch_absent,
+                                                          progress,
                                                           ts,
                                                           ws_setter,
                                                           logger);
@@ -996,13 +1005,14 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                       git_bin,
                                       launcher,
                                       fetch_absent,
+                                      progress,
                                       ts,
                                       ws_setter,
                                       logger);
     }
     else {
         // commit is present in given repository
-        JustMRProgress::Instance().TaskTracker().Start(repo_info.origin);
+        progress->TaskTracker().Start(repo_info.origin);
         // setup wrapped logger
         auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
             [logger](auto const& msg, bool fatal) {
@@ -1057,6 +1067,7 @@ auto CreateCommitGitMap(
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> CommitGitMap {
     auto commit_to_git = [critical_git_op_map,
                           import_to_git_map,
@@ -1068,11 +1079,12 @@ auto CreateCommitGitMap(
                           storage_config,
                           local_api,
                           remote_api,
-                          fetch_absent](auto ts,
-                                        auto setter,
-                                        auto logger,
-                                        auto /* unused */,
-                                        auto const& key) {
+                          fetch_absent,
+                          progress](auto ts,
+                                    auto setter,
+                                    auto logger,
+                                    auto /* unused */,
+                                    auto const& key) {
         // get root for repo (making sure that if repo is a path, it is
         // absolute)
         std::string fetch_repo = key.repo_url;
@@ -1111,6 +1123,7 @@ auto CreateCommitGitMap(
              local_api,
              remote_api,
              fetch_absent,
+             progress,
              ts,
              setter,
              logger](auto const& values) {
@@ -1145,6 +1158,7 @@ auto CreateCommitGitMap(
                              local_api,
                              remote_api,
                              fetch_absent,
+                             progress,
                              ts,
                              setter,
                              wrapped_logger);

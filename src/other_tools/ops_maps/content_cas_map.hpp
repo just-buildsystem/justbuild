@@ -29,6 +29,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -91,6 +92,7 @@ using ContentCASMap = AsyncMapConsumer<ArchiveContent, std::nullptr_t>;
     gsl::not_null<Storage const*> const& storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> ContentCASMap;
 
 namespace std {

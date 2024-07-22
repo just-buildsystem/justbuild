@@ -28,6 +28,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
@@ -50,6 +51,7 @@ using ContentGitMap =
     gsl::not_null<Storage const*> const& storage,
     IExecutionApi const* remote_api,
     bool fetch_absent,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> ContentGitMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP

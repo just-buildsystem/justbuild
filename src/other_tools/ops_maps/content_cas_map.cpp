@@ -20,8 +20,6 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/utils/content.hpp"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
@@ -31,6 +29,7 @@ void FetchFromNetwork(ArchiveContent const& key,
                       MirrorsPtr const& additional_mirrors,
                       CAInfoPtr const& ca_info,
                       Storage const& storage,
+                      gsl::not_null<JustMRProgress*> const& progress,
                       ContentCASMap::SetterPtr const& setter,
                       ContentCASMap::LoggerPtr const& logger) {
     // first, check that mandatory fields are provided
@@ -93,7 +92,7 @@ void FetchFromNetwork(ArchiveContent const& key,
             /*fatal=*/true);
         return;
     }
-    JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+    progress->TaskTracker().Stop(key.origin);
     // success!
     (*setter)(nullptr);
 }
@@ -110,6 +109,7 @@ auto CreateContentCASMap(
     gsl::not_null<Storage const*> const& storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> ContentCASMap {
     auto ensure_in_cas = [just_mr_paths,
                           additional_mirrors,
@@ -119,11 +119,12 @@ auto CreateContentCASMap(
                           storage,
                           storage_config,
                           local_api,
-                          remote_api](auto ts,
-                                      auto setter,
-                                      auto logger,
-                                      auto /*unused*/,
-                                      auto const& key) {
+                          remote_api,
+                          progress](auto ts,
+                                    auto setter,
+                                    auto logger,
+                                    auto /*unused*/,
+                                    auto const& key) {
         auto digest = ArtifactDigest(key.content, 0, false);
         // check local CAS
         if (local_api->IsAvailable(digest)) {
@@ -153,6 +154,7 @@ auto CreateContentCASMap(
              storage,
              local_api,
              remote_api,
+             progress,
              setter,
              logger](auto const& values) {
                 GitOpValue op_result = *values[0];
@@ -201,7 +203,7 @@ auto CreateContentCASMap(
                     return;
                 }
                 // blob not found in Git cache
-                JustMRProgress::Instance().TaskTracker().Start(key.origin);
+                progress->TaskTracker().Start(key.origin);
                 // add distfile to CAS
                 auto repo_distfile =
                     (key.distfile ? key.distfile.value()
@@ -212,7 +214,7 @@ auto CreateContentCASMap(
                     *storage, repo_distfile, just_mr_paths);
                 // check if content is in CAS now
                 if (cas.BlobPath(digest, /*is_executable=*/false)) {
-                    JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+                    progress->TaskTracker().Stop(key.origin);
                     (*setter)(nullptr);
                     return;
                 }
@@ -224,8 +226,7 @@ auto CreateContentCASMap(
                             {Artifact::ObjectInfo{.digest = digest,
                                                   .type = ObjectType::File}},
                             *local_api)) {
-                        JustMRProgress::Instance().TaskTracker().Stop(
-                            key.origin);
+                        progress->TaskTracker().Stop(key.origin);
                         (*setter)(nullptr);
                         return;
                     }
@@ -236,13 +237,18 @@ auto CreateContentCASMap(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::File}},
                         *local_api)) {
-                    JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+                    progress->TaskTracker().Stop(key.origin);
                     (*setter)(nullptr);
                     return;
                 }
                 // revert to network fetch
-                FetchFromNetwork(
-                    key, additional_mirrors, ca_info, *storage, setter, logger);
+                FetchFromNetwork(key,
+                                 additional_mirrors,
+                                 ca_info,
+                                 *storage,
+                                 progress,
+                                 setter,
+                                 logger);
             },
             [logger, target_path = storage_config->GitRoot()](auto const& msg,
                                                               bool fatal) {

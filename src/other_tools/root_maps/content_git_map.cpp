@@ -21,8 +21,6 @@
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/content.hpp"
 #include "src/utils/archive/archive_ops.hpp"
@@ -911,6 +909,7 @@ auto CreateContentGitMap(
     gsl::not_null<Storage const*> const& storage,
     IExecutionApi const* remote_api,
     bool fetch_absent,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> ContentGitMap {
     auto gitify_content = [content_cas_map,
                            import_to_git_map,
@@ -923,11 +922,12 @@ auto CreateContentGitMap(
                            storage,
                            storage_config,
                            remote_api,
-                           fetch_absent](auto ts,
-                                         auto setter,
-                                         auto logger,
-                                         auto /* unused */,
-                                         auto const& key) {
+                           fetch_absent,
+                           progress](auto ts,
+                                     auto setter,
+                                     auto logger,
+                                     auto /* unused */,
+                                     auto const& key) {
         auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
             *storage_config, key.repo_type, key.archive.content);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
@@ -972,8 +972,7 @@ auto CreateContentGitMap(
                                                        /*sync_tree = */ false);
                     if (serve_result) {
                         // set the workspace root as absent
-                        JustMRProgress::Instance().TaskTracker().Stop(
-                            key.archive.origin);
+                        progress->TaskTracker().Stop(key.archive.origin);
                         (*setter)(std::pair(
                             nlohmann::json::array(
                                 {FileRoot::kGitTreeMarker, *serve_result}),
@@ -1045,6 +1044,7 @@ auto CreateContentGitMap(
                      storage,
                      storage_config,
                      remote_api,
+                     progress,
                      ts,
                      setter,
                      logger](auto const& values) {
@@ -1118,8 +1118,7 @@ auto CreateContentGitMap(
                                       /*fatal=*/true);
                             return;
                         }
-                        JustMRProgress::Instance().TaskTracker().Start(
-                            key.archive.origin);
+                        progress->TaskTracker().Start(key.archive.origin);
                         // add distfile to CAS
                         auto repo_distfile =
                             (key.archive.distfile
@@ -1132,8 +1131,7 @@ auto CreateContentGitMap(
                         // check if content is in CAS now
                         if (auto content_cas_path =
                                 cas.BlobPath(digest, /*is_executable=*/false)) {
-                            JustMRProgress::Instance().TaskTracker().Stop(
-                                key.archive.origin);
+                            progress->TaskTracker().Stop(key.archive.origin);
                             ExtractAndImportToGit(key,
                                                   *content_cas_path,
                                                   archive_tree_id_file,

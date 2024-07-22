@@ -27,8 +27,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
 namespace {
 
@@ -134,6 +132,7 @@ auto CreateGitTreeFetchMap(
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool backup_to_remote,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitTreeFetchMap {
     auto tree_to_cache = [critical_git_op_map,
                           import_to_git_map,
@@ -143,11 +142,12 @@ auto CreateGitTreeFetchMap(
                           storage_config,
                           local_api,
                           remote_api,
-                          backup_to_remote](auto ts,
-                                            auto setter,
-                                            auto logger,
-                                            auto /*unused*/,
-                                            auto const& key) {
+                          backup_to_remote,
+                          progress](auto ts,
+                                    auto setter,
+                                    auto logger,
+                                    auto /*unused*/,
+                                    auto const& key) {
         // check whether tree exists already in Git cache;
         // ensure Git cache exists
         GitOpKey op_key = {.params =
@@ -172,6 +172,7 @@ auto CreateGitTreeFetchMap(
              remote_api,
              backup_to_remote,
              key,
+             progress,
              ts,
              setter,
              logger](auto const& values) {
@@ -233,7 +234,7 @@ auto CreateGitTreeFetchMap(
                     // done!
                     return;
                 }
-                JustMRProgress::Instance().TaskTracker().Start(key.origin);
+                progress->TaskTracker().Start(key.origin);
                 // check if tree is known to remote serve service and can be
                 // made available in remote CAS
                 if (serve != nullptr and remote_api != nullptr) {
@@ -248,7 +249,7 @@ auto CreateGitTreeFetchMap(
                         {Artifact::ObjectInfo{.digest = digest,
                                               .type = ObjectType::Tree}},
                         *local_api)) {
-                    JustMRProgress::Instance().TaskTracker().Stop(key.origin);
+                    progress->TaskTracker().Stop(key.origin);
                     MoveCASTreeToGit(
                         key.hash,
                         digest,
@@ -326,6 +327,7 @@ auto CreateGitTreeFetchMap(
                      storage_config,
                      remote_api,
                      backup_to_remote,
+                     progress,
                      ts,
                      setter,
                      logger](auto const& values) {
@@ -463,6 +465,7 @@ auto CreateGitTreeFetchMap(
                              storage_config,
                              backup_to_remote,
                              key,
+                             progress,
                              setter,
                              logger](auto const& values) {
                                 GitOpValue op_result = *values[0];
@@ -472,8 +475,7 @@ auto CreateGitTreeFetchMap(
                                               /*fatal=*/true);
                                     return;
                                 }
-                                JustMRProgress::Instance().TaskTracker().Stop(
-                                    key.origin);
+                                progress->TaskTracker().Stop(key.origin);
                                 // backup to remote if needed and in native mode
                                 if (backup_to_remote and
                                     remote_api != nullptr) {
