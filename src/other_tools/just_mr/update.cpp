@@ -217,21 +217,24 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
 
     // Initialize resulting config to be updated
     auto mr_config = config->ToJson();
+
+    // Setup progress and statistics instances
+    JustMRStatistics stats{};
+    JustMRProgress progress{repos_to_update.size()};
+
     // Create async map
     auto git_update_map = CreateGitUpdateMap(git_repo->GetGitCAS(),
                                              common_args.git_path->string(),
                                              *common_args.local_launcher,
                                              &storage_config,
-                                             &JustMRStatistics::Instance(),
-                                             &JustMRProgress::Instance(),
+                                             &stats,
+                                             &progress,
                                              common_args.jobs);
 
     // set up progress observer
-    JustMRProgress::Instance().SetTotal(repos_to_update.size());
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter = JustMRProgressReporter::Reporter(
-        &JustMRStatistics::Instance(), &JustMRProgress::Instance());
+    auto reporter = JustMRProgressReporter::Reporter(&stats, &progress);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

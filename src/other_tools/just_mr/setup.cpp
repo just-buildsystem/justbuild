@@ -119,6 +119,9 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     if (main and not setup_args.sub_all) {
         JustMR::Utils::ReachableRepositories(repos, *main, setup_repos);
     }
+    Logger::Log(LogLevel::Info,
+                "Found {} repositories to set up",
+                setup_repos->to_setup.size());
 
     // setup remote execution config
     auto remote_exec_config = JustMR::Utils::CreateRemoteExecutionConfig(
@@ -192,6 +195,10 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         }
     }
 
+    // setup progress and statistics instances
+    JustMRStatistics stats{};
+    JustMRProgress progress{setup_repos->to_setup.size()};
+
     // setup the required async maps
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
@@ -206,7 +213,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
-                            &JustMRProgress::Instance(),
+                            &progress,
                             common_args.jobs);
 
     auto import_to_git_map =
@@ -226,7 +233,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               false, /* backup_to_remote */
-                              &JustMRProgress::Instance(),
+                              &progress,
                               common_args.jobs);
 
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
@@ -243,7 +250,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            &(*apis.local),
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.fetch_absent,
-                           &JustMRProgress::Instance(),
+                           &progress,
                            common_args.jobs);
 
     auto content_git_map =
@@ -259,7 +266,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &storage,
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.fetch_absent,
-                            &JustMRProgress::Instance(),
+                            &progress,
                             common_args.jobs);
 
     auto foreign_file_git_map =
@@ -306,29 +313,23 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.jobs);
 
-    auto repos_to_setup_map =
-        CreateReposToSetupMap(config,
-                              main,
-                              interactive,
-                              &commit_git_map,
-                              &content_git_map,
-                              &foreign_file_git_map,
-                              &fpath_git_map,
-                              &distdir_git_map,
-                              &tree_id_git_map,
-                              common_args.fetch_absent,
-                              &JustMRStatistics::Instance(),
-                              common_args.jobs);
+    auto repos_to_setup_map = CreateReposToSetupMap(config,
+                                                    main,
+                                                    interactive,
+                                                    &commit_git_map,
+                                                    &content_git_map,
+                                                    &foreign_file_git_map,
+                                                    &fpath_git_map,
+                                                    &distdir_git_map,
+                                                    &tree_id_git_map,
+                                                    common_args.fetch_absent,
+                                                    &stats,
+                                                    common_args.jobs);
 
     // set up progress observer
-    Logger::Log(LogLevel::Info,
-                "Found {} repositories to set up",
-                setup_repos->to_setup.size());
-    JustMRProgress::Instance().SetTotal(setup_repos->to_setup.size());
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter = JustMRProgressReporter::Reporter(
-        &JustMRStatistics::Instance(), &JustMRProgress::Instance());
+    auto reporter = JustMRProgressReporter::Reporter(&stats, &progress);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

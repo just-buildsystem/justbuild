@@ -14,6 +14,8 @@
 
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 
+#include <cstddef>
+
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -24,14 +26,14 @@ auto JustMRProgressReporter::Reporter(
     gsl::not_null<JustMRProgress*> const& progress) noexcept
     -> progress_reporter_t {
     return BaseProgressReporter::Reporter([stats, progress]() {
-        int total = progress->GetTotal();
-        int local = stats->LocalPathsCounter();
-        int cached = stats->CacheHitsCounter();
-        int run = stats->ExecutedCounter();
-        auto active = progress->TaskTracker().Active();
-        auto sample = progress->TaskTracker().Sample();
-        std::string msg;
-        msg = fmt::format("{} local, {} cached, {} done", local, cached, run);
+        auto const total = progress->GetTotal();
+        auto const local = stats->LocalPathsCounter();
+        auto const cached = stats->CacheHitsCounter();
+        auto const run = stats->ExecutedCounter();
+        auto const active = progress->TaskTracker().Active();
+        auto const sample = progress->TaskTracker().Sample();
+        auto msg =
+            fmt::format("{} local, {} cached, {} done", local, cached, run);
         if ((active > 0) && !sample.empty()) {
             msg = fmt::format("{}; {} fetches ({}{})",
                               msg,
@@ -40,10 +42,9 @@ auto JustMRProgressReporter::Reporter(
                               active > 1 ? ", ..." : "");
         }
         constexpr int kOneHundred{100};
-        int total_work = total - cached - local;
         int progress = kOneHundred;  // default if no work has to be done
-        if (total_work > 0) {
-            progress = run * kOneHundred / total_work;
+        if (auto const noops = cached + local; noops < total) {
+            progress = static_cast<int>(run * kOneHundred / (total - noops));
         }
         Logger::Log(LogLevel::Progress, "[{:3}%] {}", progress, msg);
     });

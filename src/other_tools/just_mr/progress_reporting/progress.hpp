@@ -15,32 +15,25 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_HPP
 
-#include <cstdlib>
-#include <string>
-#include <unordered_set>
-#include <utility>
-#include <vector>
+#include <cstddef>
 
 #include "src/buildtool/progress_reporting/task_tracker.hpp"
 
-class JustMRProgress {
+class JustMRProgress final {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> JustMRProgress& {
-        static JustMRProgress instance{};
-        return instance;
-    }
+    explicit JustMRProgress(std::size_t total) noexcept : total_{total} {};
 
     [[nodiscard]] auto TaskTracker() noexcept -> TaskTracker& {
         return task_tracker_;
     }
 
-    [[nodiscard]] auto GetTotal() const noexcept -> int { return total_; }
-
-    void SetTotal(int total) noexcept { total_ = total; }
+    [[nodiscard]] auto GetTotal() const noexcept -> std::size_t {
+        return total_;
+    }
 
   private:
     ::TaskTracker task_tracker_{};
-    int total_{};
+    std::size_t total_ = 0;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_PROGRESS_HPP

@@ -473,6 +473,10 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         }
     }
 
+    // setup progress and statistics instances
+    JustMRStatistics stats{};
+    JustMRProgress progress{nr_a + nr_gt};
+
     // create async maps
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
@@ -487,7 +491,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             &storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
-                            &JustMRProgress::Instance(),
+                            &progress,
                             common_args.jobs);
 
     auto archive_fetch_map = CreateArchiveFetchMap(
@@ -497,7 +501,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         &(*apis.local),
         (fetch_args.backup_to_remote and has_remote_api) ? &*apis.remote
                                                          : nullptr,
-        &JustMRStatistics::Instance(),
+        &stats,
         common_args.jobs);
 
     auto import_to_git_map =
@@ -517,15 +521,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               fetch_args.backup_to_remote,
-                              &JustMRProgress::Instance(),
+                              &progress,
                               common_args.jobs);
 
     // set up progress observer
-    JustMRProgress::Instance().SetTotal(static_cast<int>(nr_a + nr_gt));
     std::atomic<bool> done{false};
     std::condition_variable cv{};
-    auto reporter = JustMRProgressReporter::Reporter(
-        &JustMRStatistics::Instance(), &JustMRProgress::Instance());
+    auto reporter = JustMRProgressReporter::Reporter(&stats, &progress);
     auto observer =
         std::thread([reporter, &done, &cv]() { reporter(&done, &cv); });
 

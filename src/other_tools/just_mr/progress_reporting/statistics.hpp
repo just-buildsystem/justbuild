@@ -16,37 +16,28 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_STATISTICS_HPP
 
 #include <atomic>
+#include <cstddef>
 
-class JustMRStatistics {
+class JustMRStatistics final {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> JustMRStatistics& {
-        static JustMRStatistics instance{};
-        return instance;
-    }
-
-    void Reset() noexcept {
-        num_local_paths_ = 0;
-        num_cache_hits_ = 0;
-        num_executed_ = 0;
-    }
     void IncrementLocalPathsCounter() noexcept { ++num_local_paths_; }
     void IncrementCacheHitsCounter() noexcept { ++num_cache_hits_; }
     void IncrementExecutedCounter() noexcept { ++num_executed_; }
 
-    [[nodiscard]] auto LocalPathsCounter() const noexcept -> int {
+    [[nodiscard]] auto LocalPathsCounter() const noexcept -> size_t {
         return num_local_paths_;
     }
-    [[nodiscard]] auto CacheHitsCounter() const noexcept -> int {
+    [[nodiscard]] auto CacheHitsCounter() const noexcept -> size_t {
         return num_cache_hits_;
     }
-    [[nodiscard]] auto ExecutedCounter() const noexcept -> int {
+    [[nodiscard]] auto ExecutedCounter() const noexcept -> size_t {
         return num_executed_;
     }
 
   private:
-    std::atomic<int> num_local_paths_{};  // roots that are actual paths
-    std::atomic<int> num_cache_hits_{};   // no-ops
-    std::atomic<int> num_executed_{};     // actual work done
+    std::atomic<std::size_t> num_local_paths_ = 0;  // roots that are real paths
+    std::atomic<std::size_t> num_cache_hits_ = 0;   // no-ops
+    std::atomic<std::size_t> num_executed_ = 0;     // actual work done
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_STATISTICS_HPP
