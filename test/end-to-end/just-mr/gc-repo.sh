@@ -26,6 +26,7 @@ readonly DISTDIR="${PWD}/distdir"
 mkdir -p "${DISTDIR}"
 readonly ARCHIVE_CONTENT="${TEST_TMPDIR}/archive"
 readonly SCRATCH_LBR="${TEST_TMPDIR}/throw-away-build-root"
+readonly SCRATCH_FF="${TEST_TMPDIR}/scratch-space-for-foreign-file"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly OUT="${TEST_TMPDIR}/out"
 mkdir -p "${OUT}"
@@ -76,6 +77,17 @@ echo
 echo "Created archive with content ${ARCHIVE} holding tree ${ARCHIVE_TREE}"
 echo
 
+# Set up a "foreign file"
+
+echo Here be dragons > "${DISTDIR}/foreign.txt"
+FOREIGN=$("${JUST}" add-to-cas --local-build-root "${SCRATCH_LBR}" "${DISTDIR}/foreign.txt")
+rm -rf "${SCRATCH_FF}"
+mkdir -p "${SCRATCH_FF}"
+cp "${DISTDIR}/foreign.txt" "${SCRATCH_FF}/data.txt"
+FOREIGN_TREE=$("${JUST}" add-to-cas --local-build-root "${SCRATCH_LBR}" "${SCRATCH_FF}")
+echo
+echo "Foreign file ${FOREIGN} creating tree ${FOREIGN_TREE}"
+echo
 
 # Create workspace with just-mr repository configuration
 mkdir -p "${WORK}"
@@ -85,7 +97,8 @@ cat > repos.json <<EOF
 { "repositories":
   { "":
     { "repository": {"type": "file", "path": "."}
-    , "bindings": {"git": "git", "archive": "archive"}
+    , "bindings":
+      {"git": "git", "archive": "archive", "foreign": "foreign_file"}
     }
   , "git":
     { "repository":
@@ -102,10 +115,19 @@ cat > repos.json <<EOF
       , "fetch": "http://nonexistent.example.com/archive.tar"
       }
     }
+  , "foreign_file":
+    { "repository":
+      { "type": "foreign file"
+      , "content": "${FOREIGN}"
+      , "fetch": "http://nonexistent.example.com/foreign.txt"
+      , "name": "data.txt"
+      }
+    }
   }
 }
 EOF
 cat repos.json
+
 
 # Set up repos. This should get everything in the local build root.
 "${JUST_MR}" --local-build-root "${LBR}" --git "${BIN}/mock-git" \
@@ -127,6 +149,11 @@ TREE_FOUND="$(jq -r '.repositories.archive.workspace_root[1]' "${CONFIG}")"
 [ "${TREE_FOUND}" = "${ARCHIVE_TREE}" ]
 ARCHIVE_LOCATION="$(jq -r '.repositories.archive.workspace_root[2]' "${CONFIG}")"
 
+## Sanity check for foreign file
+TREE_FOUND="$(jq -r '.repositories.foreign_file.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${FOREIGN_TREE}" ]
+FOREIGN_LOCATION="$(jq -r '.repositories.foreign_file.workspace_root[2]' "${CONFIG}")"
+
 # Clean up original repositories
 rm -rf "${GIT_REPO}"
 rm -rf "${DISTDIR}"
@@ -141,6 +168,7 @@ rm -rf "${DISTDIR}"
 ## Verify the mirrored locations are gone
 [ -e "${GIT_LOCATION}" ] && exit 1 || :
 [ -e "${ARCHIVE_LOCATION}" ] && exit 1 || :
+[ -e "${FOREIGN_LOCATION}" ] && exit 1 || :
 
 # Setup repos again
 "${JUST_MR}" --local-build-root "${LBR}" \
@@ -157,5 +185,10 @@ TREE_FOUND="$(jq -r '.repositories.git.workspace_root[1]' "${CONFIG}")"
 
 ## Verify the archive is set up correctly
 TREE_FOUND="$(jq -r '.repositories.archive.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${ARCHIVE_TREE}" ]
+
+## Sanity check for foreign file
+TREE_FOUND="$(jq -r '.repositories.foreign_file.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${FOREIGN_TREE}" ]
 
 echo OK
