@@ -199,10 +199,11 @@ auto CreateImportToGitMap(
                                 [logger, target_path](auto const& msg,
                                                       bool fatal) {
                                     (*logger)(
-                                        fmt::format("While doing keep commit "
-                                                    "and setting Git tree:\n{}",
-                                                    target_path.string(),
-                                                    msg),
+                                        fmt::format(
+                                            "While doing keep commit "
+                                            "and setting Git tree {}:\n{}",
+                                            target_path.string(),
+                                            msg),
                                         fatal);
                                 });
                         KeepCommitAndSetTree(critical_git_op_map,
