@@ -39,18 +39,19 @@
   , "hdrs": ["git_update_map.hpp"]
   , "srcs": ["git_update_map.cpp"]
   , "deps":
-    [ ["src/other_tools/git_operations", "git_repo_remote"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/buildtool/storage", "config"]
+    , ["src/other_tools/just_mr/progress_reporting", "progress"]
+    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/storage", "fs_utils"]
-    , ["src/other_tools/just_mr/progress_reporting", "statistics"]
-    , ["src/other_tools/just_mr/progress_reporting", "progress"]
     ]
   }
 , "content_cas_map":

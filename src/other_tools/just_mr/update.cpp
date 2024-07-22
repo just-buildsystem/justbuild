@@ -222,6 +222,8 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                                              common_args.git_path->string(),
                                              *common_args.local_launcher,
                                              &storage_config,
+                                             &JustMRStatistics::Instance(),
+                                             &JustMRProgress::Instance(),
                                              common_args.jobs);
 
     // set up progress observer

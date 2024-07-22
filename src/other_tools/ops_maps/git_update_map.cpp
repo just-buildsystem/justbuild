@@ -17,21 +17,25 @@
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 
 auto CreateGitUpdateMap(
     GitCASPtr const& git_cas,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<JustMRStatistics*> const& stats,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitUpdateMap {
-    auto update_commits = [git_cas, git_bin, launcher, storage_config](
-                              auto /* unused */,
-                              auto setter,
-                              auto logger,
-                              auto /* unused */,
-                              auto const& key) {
+    auto update_commits = [git_cas,
+                           git_bin,
+                           launcher,
+                           storage_config,
+                           stats,
+                           progress](auto /* unused */,
+                                     auto setter,
+                                     auto logger,
+                                     auto /* unused */,
+                                     auto const& key) {
         // perform git update commit
         auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
         if (not git_repo) {
@@ -50,7 +54,7 @@ auto CreateGitUpdateMap(
             });
         // update commit
         auto id = fmt::format("{}:{}", key.repo, key.branch);
-        JustMRProgress::Instance().TaskTracker().Start(id);
+        progress->TaskTracker().Start(id);
         auto new_commit = git_repo->UpdateCommitViaTmpRepo(*storage_config,
                                                            key.repo,
                                                            key.branch,
@@ -58,11 +62,11 @@ auto CreateGitUpdateMap(
                                                            git_bin,
                                                            launcher,
                                                            wrapped_logger);
-        JustMRProgress::Instance().TaskTracker().Stop(id);
+        progress->TaskTracker().Stop(id);
         if (not new_commit) {
             return;
         }
-        JustMRStatistics::Instance().IncrementExecutedCounter();
+        stats->IncrementExecutedCounter();
         (*setter)(new_commit->c_str());
     };
     return AsyncMapConsumer<RepoDescriptionForUpdating, std::string>(

@@ -20,9 +20,12 @@
 #include <utility>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
+#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
+#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct RepoDescriptionForUpdating {
@@ -57,6 +60,8 @@ struct hash<RepoDescriptionForUpdating> {
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<JustMRStatistics*> const& stats,
+    gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitUpdateMap;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP
