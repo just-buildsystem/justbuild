@@ -622,19 +622,22 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 auto old_repo = GitRepo::Open(old);
                 auto no_logging = std::make_shared<AsyncMapConsumerLogger>(
                     [](auto /*unused*/, auto /*unused*/) {});
-                if (old_repo and GitRepo::Open(old)->CheckCommitExists(
-                                     repo_info.hash, no_logging)) {
-                    TakeCommitFromOlderGeneration(old,
-                                                  storage_config,
-                                                  repo_root,
-                                                  repo_info,
-                                                  git_cas,
-                                                  critical_git_op_map,
-                                                  progress,
-                                                  ts,
-                                                  ws_setter,
-                                                  logger);
-                    return;
+                if (old_repo) {
+                    auto check_result =
+                        old_repo->CheckCommitExists(repo_info.hash, no_logging);
+                    if (check_result and *check_result) {
+                        TakeCommitFromOlderGeneration(old,
+                                                      storage_config,
+                                                      repo_root,
+                                                      repo_info,
+                                                      git_cas,
+                                                      critical_git_op_map,
+                                                      progress,
+                                                      ts,
+                                                      ws_setter,
+                                                      logger);
+                        return;
+                    }
                 }
             }
         }
