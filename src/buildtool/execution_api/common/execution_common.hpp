@@ -107,9 +107,9 @@ static void EncodeUUIDVariant1(std::string* uuid) {
 
     // The type of HashFunction is irrelevant here. It is used for
     // identification purposes only. SHA256 is used.
-    HashFunction const hash_function{HashFunction::JustHash::Compatible};
+    HashFunction const hash_function{HashFunction::Type::PlainSHA256};
     auto value = fmt::format("{}-{}", std::to_string(kRandomConstant), seed);
-    auto uuid = hash_function.ComputeHash(value).Bytes();
+    auto uuid = hash_function.PlainHashData(value).Bytes();
     EncodeUUIDVersion4(&uuid);
     EncodeUUIDVariant1(&uuid);
     Expects(uuid.size() >= kRawLength);

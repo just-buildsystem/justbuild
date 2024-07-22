@@ -54,8 +54,8 @@ class TestStorageConfig final {
         StorageConfig::Builder builder;
         auto config = builder.SetBuildRoot(temp_dir->GetPath())
                           .SetHashType(Compatibility::IsCompatible()
-                                           ? HashFunction::JustHash::Compatible
-                                           : HashFunction::JustHash::Native)
+                                           ? HashFunction::Type::PlainSHA256
+                                           : HashFunction::Type::GitSHA1)
                           .Build();
         if (not config) {
             Logger::Log(LogLevel::Error, config.error());

@@ -76,8 +76,8 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
             object_info = *new_object_info;
         }
         else {
-            auto const hash = HashFunction{HashFunction::JustHash::Native}
-                                  .ComputeTreeHash(*data)
+            auto const hash = HashFunction{HashFunction::Type::GitSHA1}
+                                  .HashTreeData(*data)
                                   .Bytes();
             auto entries = GitRepo::ReadTreeData(
                 *data,

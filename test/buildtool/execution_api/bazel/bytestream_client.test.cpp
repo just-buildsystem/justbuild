@@ -45,8 +45,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     SECTION("Upload small blob") {
         std::string instance_name{"remote-execution"};
@@ -135,8 +135,8 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};

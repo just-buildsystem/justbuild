@@ -28,12 +28,12 @@
 /// \brief Hash function used for the entire buildtool.
 class HashFunction {
   public:
-    enum class JustHash : std::uint8_t {
-        Native,     ///< SHA1 for plain hashes, and Git for blobs and trees.
-        Compatible  ///< SHA256 for all hashes.
+    enum class Type : std::uint8_t {
+        GitSHA1,     ///< SHA1 for plain hashes, and Git for blobs and trees.
+        PlainSHA256  ///< SHA256 for all hashes.
     };
 
-    explicit HashFunction(JustHash type) noexcept : type_{type} {
+    explicit HashFunction(Type type) noexcept : type_{type} {
         static_assert(
             sizeof(HashFunction) <= sizeof(void*),
             "HashFunction is passed and stored by value. If the "
@@ -41,20 +41,18 @@ class HashFunction {
             "the way how HashFunction is passed and stored must be changed.");
     }
 
-    [[nodiscard]] auto GetHashType() const noexcept -> JustHash {
-        return type_;
-    }
+    [[nodiscard]] auto GetType() const noexcept -> Type { return type_; }
 
     /// \brief Compute the blob hash of a string.
-    [[nodiscard]] auto ComputeBlobHash(std::string const& data) const noexcept
+    [[nodiscard]] auto HashBlobData(std::string const& data) const noexcept
         -> Hasher::HashDigest;
 
     /// \brief Compute the tree hash of a string.
-    [[nodiscard]] auto ComputeTreeHash(std::string const& data) const noexcept
+    [[nodiscard]] auto HashTreeData(std::string const& data) const noexcept
         -> Hasher::HashDigest;
 
     /// \brief Compute the plain hash of a string.
-    [[nodiscard]] auto ComputeHash(std::string const& data) const noexcept
+    [[nodiscard]] auto PlainHashData(std::string const& data) const noexcept
         -> Hasher::HashDigest;
 
     /// \brief Compute the blob hash of a file or std::nullopt on IO error.
@@ -71,10 +69,10 @@ class HashFunction {
     [[nodiscard]] auto MakeHasher() const noexcept -> Hasher {
         std::optional<Hasher> hasher;
         switch (type_) {
-            case JustHash::Native:
+            case Type::GitSHA1:
                 hasher = Hasher::Create(Hasher::HashType::SHA1);
                 break;
-            case JustHash::Compatible:
+            case Type::PlainSHA256:
                 hasher = Hasher::Create(Hasher::HashType::SHA256);
                 break;
         }
@@ -83,7 +81,7 @@ class HashFunction {
     }
 
   private:
-    JustHash const type_;
+    Type const type_;
 
     using TagCreator = std::function<std::string(std::size_t)>;
 

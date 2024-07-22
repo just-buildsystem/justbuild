@@ -53,12 +53,12 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
     SetupConfig(repo_config);
     auto api = factory();
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     std::string const blob = "test";
     CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-        ArtifactDigest{hash_function.ComputeBlobHash(blob).HexString(),
+        ArtifactDigest{hash_function.HashBlobData(blob).HexString(),
                        blob.size(),
                        /*is_tree=*/false},
         blob,
@@ -139,8 +139,8 @@ static inline void RunHelloWorldCompilation(
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto api = factory();
     Executor runner{repo_config,
@@ -273,8 +273,8 @@ static inline void RunGreeterCompilation(
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto api = factory();
     Executor runner{repo_config,
@@ -416,17 +416,17 @@ static inline void TestUploadAndDownloadTrees(
     }
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
     auto foo_digest =
-        ArtifactDigest{hash_function.ComputeBlobHash(foo).HexString(),
+        ArtifactDigest{hash_function.HashBlobData(foo).HexString(),
                        foo.size(),
                        /*is_tree=*/false};
     auto bar_digest =
-        ArtifactDigest{hash_function.ComputeBlobHash(bar).HexString(),
+        ArtifactDigest{hash_function.HashBlobData(bar).HexString(),
                        bar.size(),
                        /*is_tree=*/false};
 
@@ -575,8 +575,8 @@ static inline void TestRetrieveOutputDirectories(
     auto tmpdir = GetTestDir();
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto const make_tree_id = std::string{"make_tree"};
     auto const* make_tree_cmd =

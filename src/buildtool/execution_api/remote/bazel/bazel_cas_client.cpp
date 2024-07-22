@@ -54,9 +54,9 @@ namespace {
     // Create empty blob.
     std::string empty_str{};
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
-    std::string hash = hash_function.ComputeBlobHash(empty_str).HexString();
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
+    std::string hash = hash_function.HashBlobData(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());
@@ -122,9 +122,9 @@ namespace {
     // Create empty blob.
     std::string empty_str{};
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
-    std::string hash = hash_function.ComputeBlobHash(empty_str).HexString();
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
+    std::string hash = hash_function.HashBlobData(empty_str).HexString();
     bazel_re::Digest digest{};
     digest.set_hash(NativeSupport::Prefix(hash, false));
     digest.set_size_bytes(empty_str.size());

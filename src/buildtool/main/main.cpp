@@ -122,8 +122,8 @@ void SetupLogging(LogArguments const& clargs) {
 
     auto config =
         builder
-            .SetHashType(is_compatible ? HashFunction::JustHash::Compatible
-                                       : HashFunction::JustHash::Native)
+            .SetHashType(is_compatible ? HashFunction::Type::PlainSHA256
+                                       : HashFunction::Type::GitSHA1)
             .SetRemoteExecutionArgs(
                 remote_address, remote_platform_properties, remote_dispatch)
             .Build();

@@ -64,8 +64,8 @@ TEST_CASE("BazelAPI: No input, no output", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -80,8 +80,8 @@ TEST_CASE("BazelAPI: No input, create output", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -96,8 +96,8 @@ TEST_CASE("BazelAPI: One input copied to output", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -112,8 +112,8 @@ TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -129,8 +129,8 @@ TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -147,8 +147,8 @@ TEST_CASE("BazelAPI: Retrieve file and symlink with same content to path",
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -164,8 +164,8 @@ TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -181,8 +181,8 @@ TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
     REQUIRE(auth);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};

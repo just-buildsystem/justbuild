@@ -214,8 +214,8 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     if (args.just_mr_paths->root.has_value()) {
         builder.SetBuildRoot(*args.just_mr_paths->root);
     }
-    builder.SetHashType(is_compatible ? HashFunction::JustHash::Compatible
-                                      : HashFunction::JustHash::Native);
+    builder.SetHashType(is_compatible ? HashFunction::Type::PlainSHA256
+                                      : HashFunction::Type::GitSHA1);
 
     // As just-mr does not require the TargetCache, we do not need to set any of
     // the remote execution fields for the backend description.

@@ -46,8 +46,8 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
@@ -113,8 +113,8 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,

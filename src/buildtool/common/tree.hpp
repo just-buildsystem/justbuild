@@ -87,8 +87,8 @@ class Tree {
     static auto ComputeId(inputs_t const& inputs) -> std::string {
         // The type of HashFunction is irrelevant here. It is used for
         // identification of trees. SHA256 is used.
-        HashFunction const hash_function{HashFunction::JustHash::Compatible};
-        return hash_function.ComputeHash(ComputeDescription(inputs).dump())
+        HashFunction const hash_function{HashFunction::Type::PlainSHA256};
+        return hash_function.PlainHashData(ComputeDescription(inputs).dump())
             .HexString();
     }
 };

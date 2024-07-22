@@ -960,15 +960,13 @@ TEST_CASE("built-in rules", "[target_map]") {
         CHECK(!error);
         CHECK(error_msg == "NONE");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
-        CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              storage_config.Get()
-                  .hash_function.ComputeBlobHash("bar")
-                  .HexString());
+        CHECK(
+            bar_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
+            storage_config.Get().hash_function.HashBlobData("bar").HexString());
         CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
-        CHECK(baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
-              storage_config.Get()
-                  .hash_function.ComputeBlobHash("baz")
-                  .HexString());
+        CHECK(
+            baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
+            storage_config.Get().hash_function.HashBlobData("baz").HexString());
     }
 }
 

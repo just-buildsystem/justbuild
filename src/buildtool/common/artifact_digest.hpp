@@ -79,13 +79,13 @@ class ArtifactDigest {
         -> ArtifactDigest {
         if constexpr (kType == ObjectType::Tree) {
             return ArtifactDigest{
-                hash_function.ComputeTreeHash(content).HexString(),
+                hash_function.HashTreeData(content).HexString(),
                 content.size(),
                 /*is_tree=*/true};
         }
         else {
             return ArtifactDigest{
-                hash_function.ComputeBlobHash(content).HexString(),
+                hash_function.HashBlobData(content).HexString(),
                 content.size(),
                 /*is_tree=*/false};
         }

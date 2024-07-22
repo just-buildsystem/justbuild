@@ -78,7 +78,7 @@ auto RepositoryConfig::DeduplicateRepo(std::string const& repo,
             if (data.base_desc) {
                 // Use hash of content-fixed base description as content id
                 auto hash =
-                    hash_function.ComputeHash(data.base_desc->dump()).Bytes();
+                    hash_function.PlainHashData(data.base_desc->dump()).Bytes();
                 // Add state with name, transitions, and content id
                 minimizer.AddState(repo, data.info.name_mapping, hash);
             }

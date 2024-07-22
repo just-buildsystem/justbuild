@@ -273,8 +273,8 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
@@ -360,8 +360,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();

@@ -48,9 +48,9 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
     SECTION("Valid digest and blob") {
         // digest of "test"
-        HashFunction const hash_function{
-            Compatibility::IsCompatible() ? HashFunction::JustHash::Compatible
-                                          : HashFunction::JustHash::Native};
+        HashFunction const hash_function{Compatibility::IsCompatible()
+                                             ? HashFunction::Type::PlainSHA256
+                                             : HashFunction::Type::GitSHA1};
         auto digest =
             ArtifactDigest::Create<ObjectType::File>(hash_function, content);
 

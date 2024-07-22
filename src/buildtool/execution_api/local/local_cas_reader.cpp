@@ -60,10 +60,10 @@ auto LocalCasReader::ReadGitTree(ArtifactDigest const& digest) const noexcept
                 };
 
             // Git-SHA1 hashing is used for reading from git.
-            HashFunction const hash_function{HashFunction::JustHash::Native};
+            HashFunction const hash_function{HashFunction::Type::GitSHA1};
             return GitRepo::ReadTreeData(
                 *content,
-                hash_function.ComputeTreeHash(*content).Bytes(),
+                hash_function.HashTreeData(*content).Bytes(),
                 check_symlinks,
                 /*is_hex_id=*/false);
         }

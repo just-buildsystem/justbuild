@@ -31,8 +31,8 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     std::string content("test");
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(hash_function, content));
@@ -115,8 +115,8 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     std::string content("contents of env variable");
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto test_digest = static_cast<bazel_re::Digest>(
         ArtifactDigest::Create<ObjectType::File>(hash_function, content));

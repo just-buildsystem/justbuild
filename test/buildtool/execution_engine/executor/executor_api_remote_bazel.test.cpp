@@ -42,8 +42,8 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     TestBlobUpload(&repo_config, [&] {
         return BazelApi::Ptr{new BazelApi{"remote-execution",
@@ -73,8 +73,8 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     TestHelloWorldCompilation(
         &repo_config,
@@ -111,8 +111,8 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     TestGreeterCompilation(
         &repo_config,
@@ -149,8 +149,8 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     TestUploadAndDownloadTrees(
         &repo_config,
@@ -187,8 +187,8 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
     RetryConfig retry_config{};  // default retry config
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     TestRetrieveOutputDirectories(
         &repo_config,

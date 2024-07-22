@@ -220,8 +220,8 @@ auto GarbageCollector::Compactify(StorageConfig const& storage_config,
     });
 
     auto compactify = [threshold](StorageConfig const& config) -> bool {
-        Compatibility::SetCompatible(config.hash_function.GetHashType() ==
-                                     HashFunction::JustHash::Compatible);
+        Compatibility::SetCompatible(config.hash_function.GetType() ==
+                                     HashFunction::Type::PlainSHA256);
         auto const storage = ::Generation::Create(&config);
 
         return Compactifier::RemoveInvalid(storage.CAS()) and
@@ -230,19 +230,19 @@ auto GarbageCollector::Compactify(StorageConfig const& storage_config,
     };
 
     // Compactification must be done for both native and compatible storages.
-    static constexpr std::array kHashes = {HashFunction::JustHash::Native,
-                                           HashFunction::JustHash::Compatible};
+    static constexpr std::array kHashes = {HashFunction::Type::GitSHA1,
+                                           HashFunction::Type::PlainSHA256};
     auto builder = StorageConfig::Builder{}
                        .SetBuildRoot(storage_config.build_root)
                        .SetNumGenerations(storage_config.num_generations);
 
-    return std::all_of(
-        kHashes.begin(),
-        kHashes.end(),
-        [&builder, &compactify](HashFunction::JustHash hash_type) {
-            auto const config = builder.SetHashType(hash_type).Build();
-            return config.has_value() and compactify(*config);
-        });
+    return std::all_of(kHashes.begin(),
+                       kHashes.end(),
+                       [&builder, &compactify](HashFunction::Type hash_type) {
+                           auto const config =
+                               builder.SetHashType(hash_type).Build();
+                           return config.has_value() and compactify(*config);
+                       });
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL

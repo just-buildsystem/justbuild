@@ -196,8 +196,8 @@ auto ArtifactDescription::ComputeId(nlohmann::json const& desc) noexcept
     try {
         // The type of HashFunction is irrelevant here. It is used for
         // identification and quick comparison of descriptions. SHA256 is used.
-        return HashFunction{HashFunction::JustHash::Compatible}
-            .ComputeHash(desc.dump())
+        return HashFunction{HashFunction::Type::PlainSHA256}
+            .PlainHashData(desc.dump())
             .Bytes();
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,

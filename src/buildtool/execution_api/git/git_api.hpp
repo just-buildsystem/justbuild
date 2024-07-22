@@ -196,7 +196,7 @@ class GitApi final : public IExecutionApi {
         }
 
         // GitApi works in the native mode only.
-        HashFunction const hash_function{HashFunction::JustHash::Native};
+        HashFunction const hash_function{HashFunction::Type::GitSHA1};
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.

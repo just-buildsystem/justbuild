@@ -592,8 +592,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
     }
     // get hash of distdir content
     auto distdir_content_id =
-        HashFunction{HashFunction::JustHash::Native}
-            .ComputeBlobHash(nlohmann::json(*distdir_content_for_id).dump())
+        HashFunction{HashFunction::Type::GitSHA1}
+            .HashBlobData(nlohmann::json(*distdir_content_for_id).dump())
             .HexString();
     // get the WS root as git tree
     DistdirInfo distdir_info = {

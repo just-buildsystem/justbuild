@@ -67,8 +67,7 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
 
 auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     const noexcept -> std::optional<GitRepo::tree_entries_t> {
-    ExpectsAudit(hash_function_.GetHashType() ==
-                 HashFunction::JustHash::Native);
+    ExpectsAudit(hash_function_.GetType() == HashFunction::Type::GitSHA1);
 
     auto read_blob = ReadSingleBlob(digest);
     if (not read_blob) {
@@ -97,11 +96,10 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     };
 
     std::string const& content = *read_blob->data;
-    return GitRepo::ReadTreeData(
-        content,
-        hash_function_.ComputeTreeHash(content).Bytes(),
-        check_symlinks,
-        /*is_hex_id=*/false);
+    return GitRepo::ReadTreeData(content,
+                                 hash_function_.HashTreeData(content).Bytes(),
+                                 check_symlinks,
+                                 /*is_hex_id=*/false);
 }
 
 auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
@@ -142,8 +140,7 @@ auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
 auto BazelNetworkReader::MakeAuxiliaryMap(
     std::vector<bazel_re::Directory>&& full_tree) const noexcept
     -> std::optional<DirectoryMap> {
-    ExpectsAudit(hash_function_.GetHashType() ==
-                 HashFunction::JustHash::Compatible);
+    ExpectsAudit(hash_function_.GetType() == HashFunction::Type::PlainSHA256);
 
     DirectoryMap result;
     result.reserve(full_tree.size());

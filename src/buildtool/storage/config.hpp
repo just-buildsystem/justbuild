@@ -65,7 +65,7 @@ struct StorageConfig final {
     // Number of total storage generations (default: two generations).
     std::size_t const num_generations = 2;
 
-    HashFunction const hash_function{HashFunction::JustHash::Native};
+    HashFunction const hash_function{HashFunction::Type::GitSHA1};
 
     // Hash of the execution backend description
     std::string const backend_description_id = DefaultBackendDescriptionId();
@@ -182,7 +182,7 @@ class StorageConfig::Builder final {
     }
 
     /// \brief Specify the type of the hash function
-    auto SetHashType(HashFunction::JustHash value) noexcept -> Builder& {
+    auto SetHashType(HashFunction::Type value) noexcept -> Builder& {
         hash_type_ = value;
         return *this;
     }
@@ -249,7 +249,7 @@ class StorageConfig::Builder final {
   private:
     std::optional<std::filesystem::path> build_root_;
     std::optional<std::size_t> num_generations_;
-    std::optional<HashFunction::JustHash> hash_type_;
+    std::optional<HashFunction::Type> hash_type_;
 
     // Fields for computing remote execution backend description
     std::optional<ServerAddress> remote_address_;

@@ -35,8 +35,8 @@
     StorageConfig::Builder builder;
     auto config = builder.SetBuildRoot(cache_dir)
                       .SetHashType(Compatibility::IsCompatible()
-                                       ? HashFunction::JustHash::Compatible
-                                       : HashFunction::JustHash::Native)
+                                       ? HashFunction::Type::PlainSHA256
+                                       : HashFunction::Type::GitSHA1)
                       .SetRemoteExecutionArgs(remote_config.remote_address,
                                               remote_config.platform_properties,
                                               remote_config.dispatch)

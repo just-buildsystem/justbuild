@@ -21,17 +21,17 @@
 TEST_CASE("Hash Function", "[crypto]") {
     std::string bytes{"test"};
 
-    SECTION("Native") {
-        HashFunction const hash_function{HashFunction::JustHash::Native};
+    SECTION("GitSHA1") {
+        HashFunction const hash_function{HashFunction::Type::GitSHA1};
 
         // same as: echo -n test | sha1sum
-        CHECK(hash_function.ComputeHash(bytes).HexString() ==
+        CHECK(hash_function.PlainHashData(bytes).HexString() ==
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
         // same as: echo -n test | git hash-object --stdin
-        CHECK(hash_function.ComputeBlobHash(bytes).HexString() ==
+        CHECK(hash_function.HashBlobData(bytes).HexString() ==
               "30d74d258442c7c65512eafab474568dd706c430");
         // same as: echo -n test | git hash-object -t "tree" --stdin --literally
-        CHECK(hash_function.ComputeTreeHash(bytes).HexString() ==
+        CHECK(hash_function.HashTreeData(bytes).HexString() ==
               "5f0ecc1a989593005e80f457446133250fcc43cc");
 
         auto hasher = hash_function.MakeHasher();
@@ -40,18 +40,18 @@ TEST_CASE("Hash Function", "[crypto]") {
               "a94a8fe5ccb19ba61c4c0873d391e987982fbbd3");
     }
 
-    SECTION("Compatible") {
-        HashFunction const hash_function{HashFunction::JustHash::Compatible};
+    SECTION("PlainSHA256") {
+        HashFunction const hash_function{HashFunction::Type::PlainSHA256};
 
         // all same as: echo -n test | sha256sum
         CHECK(
-            hash_function.ComputeHash(bytes).HexString() ==
+            hash_function.PlainHashData(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
         CHECK(
-            hash_function.ComputeBlobHash(bytes).HexString() ==
+            hash_function.HashBlobData(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
         CHECK(
-            hash_function.ComputeTreeHash(bytes).HexString() ==
+            hash_function.HashTreeData(bytes).HexString() ==
             "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08");
 
         auto hasher = hash_function.MakeHasher();

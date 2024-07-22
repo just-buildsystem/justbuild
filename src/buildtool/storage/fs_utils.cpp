@@ -77,7 +77,7 @@ auto GetForeignFileTreeIDFile(StorageConfig const& storage_config,
     return GetDistdirTreeIDFile(
         storage_config,
         storage_config.hash_function
-            .ComputeBlobHash(
+            .HashBlobData(
                 nlohmann::json(std::unordered_map<std::string,
                                                   std::pair<std::string, bool>>{
                                    {name, {content, executable}}})

@@ -35,7 +35,7 @@ namespace {
     // Only in compatible mode the size is checked, so an empty SHA256 hash is
     // needed.
     static auto const kEmptyHash =
-        HashFunction{HashFunction::JustHash::Compatible}.ComputeBlobHash("");
+        HashFunction{HashFunction::Type::PlainSHA256}.HashBlobData("");
     return Compatibility::IsCompatible() and          // native mode is fine
            (size_str == "0" or size_str.empty()) and  // not "0" or "" is fine
            kEmptyHash.HexString() != hash and         // empty hash is fine

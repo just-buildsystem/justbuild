@@ -186,7 +186,7 @@ template <class T>
     }
 
     // SHA256 is used since bazel types are processed here.
-    HashFunction const hash_function{HashFunction::JustHash::Compatible};
+    HashFunction const hash_function{HashFunction::Type::PlainSHA256};
     auto digest =
         ArtifactDigest::Create<ObjectType::File>(hash_function, *content);
 

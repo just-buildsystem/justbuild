@@ -31,17 +31,17 @@ namespace {
 }
 }  // namespace
 
-auto HashFunction::ComputeBlobHash(std::string const& data) const noexcept
+auto HashFunction::HashBlobData(std::string const& data) const noexcept
     -> Hasher::HashDigest {
     return HashTaggedLine(data, CreateGitBlobTag);
 }
 
-auto HashFunction::ComputeTreeHash(std::string const& data) const noexcept
+auto HashFunction::HashTreeData(std::string const& data) const noexcept
     -> Hasher::HashDigest {
     return HashTaggedLine(data, CreateGitTreeTag);
 }
 
-auto HashFunction::ComputeHash(std::string const& data) const noexcept
+auto HashFunction::PlainHashData(std::string const& data) const noexcept
     -> Hasher::HashDigest {
     return HashTaggedLine(data, std::nullopt);
 }
@@ -50,7 +50,7 @@ auto HashFunction::HashTaggedLine(std::string const& data,
                                   std::optional<TagCreator> tag_creator)
     const noexcept -> Hasher::HashDigest {
     auto hasher = MakeHasher();
-    if (type_ == JustHash::Native and tag_creator.has_value()) {
+    if (type_ == Type::GitSHA1 and tag_creator.has_value()) {
         hasher.Update(std::invoke(*tag_creator, data.size()));
     }
     hasher.Update(data);
@@ -79,7 +79,7 @@ auto HashFunction::HashTaggedFile(std::filesystem::path const& path,
                   "An overflow will occur while reading");
 
     auto hasher = MakeHasher();
-    if (type_ == JustHash::Native) {
+    if (type_ == Type::GitSHA1) {
         hasher.Update(std::invoke(tag_creator, size));
     }
 

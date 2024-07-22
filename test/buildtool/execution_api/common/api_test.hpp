@@ -132,8 +132,8 @@ using ExecProps = std::map<std::string, std::string>;
     std::string test_content("test");
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto test_digest =
         ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);
@@ -215,8 +215,8 @@ using ExecProps = std::map<std::string, std::string>;
     std::string test_content("test");
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto test_digest =
         ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);
@@ -305,8 +305,8 @@ using ExecProps = std::map<std::string, std::string>;
     std::string test_content("test");
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     auto test_digest =
         ArtifactDigest::Create<ObjectType::File>(hash_function, test_content);

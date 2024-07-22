@@ -38,8 +38,8 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     REQUIRE(FileSystemManager::CreateSymlink("file1", link));
 
     HashFunction const hash_function{Compatibility::IsCompatible()
-                                         ? HashFunction::JustHash::Compatible
-                                         : HashFunction::JustHash::Native};
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
 
     // create the corresponding blobs
     auto file1_blob = CreateBlobFromPath(file1, hash_function);
