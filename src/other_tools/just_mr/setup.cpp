@@ -306,17 +306,19 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.jobs);
 
-    auto repos_to_setup_map = CreateReposToSetupMap(config,
-                                                    main,
-                                                    interactive,
-                                                    &commit_git_map,
-                                                    &content_git_map,
-                                                    &foreign_file_git_map,
-                                                    &fpath_git_map,
-                                                    &distdir_git_map,
-                                                    &tree_id_git_map,
-                                                    common_args.fetch_absent,
-                                                    common_args.jobs);
+    auto repos_to_setup_map =
+        CreateReposToSetupMap(config,
+                              main,
+                              interactive,
+                              &commit_git_map,
+                              &content_git_map,
+                              &foreign_file_git_map,
+                              &fpath_git_map,
+                              &distdir_git_map,
+                              &tree_id_git_map,
+                              common_args.fetch_absent,
+                              &JustMRStatistics::Instance(),
+                              common_args.jobs);
 
     // set up progress observer
     Logger::Log(LogLevel::Info,
