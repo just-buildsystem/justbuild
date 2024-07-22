@@ -152,6 +152,7 @@ auto CreateContentCASMap(
              ca_info,
              serve,
              storage,
+             storage_config,
              local_api,
              remote_api,
              progress,
@@ -202,6 +203,38 @@ auto CreateContentCASMap(
                     (*setter)(nullptr);
                     return;
                 }
+                // check for blob in older generations
+                for (std::size_t generation = 1;
+                     generation < storage_config->num_generations;
+                     generation++) {
+                    auto old = storage_config->GitGenerationRoot(generation);
+                    if (FileSystemManager::IsDirectory(old)) {
+                        auto old_repo = GitRepo::Open(old);
+                        auto no_logging =
+                            std::make_shared<AsyncMapConsumerLogger>(
+                                [](auto /*unused*/, auto /*unused*/) {});
+                        if (old_repo) {
+                            auto res =
+                                old_repo->TryReadBlob(key.content, no_logging);
+                            if (res.first and res.second) {
+                                // read blob from older generation
+                                auto const& cas = storage->CAS();
+                                if (not cas.StoreBlob(
+                                        *res.second, /*is_executable=*/false)) {
+                                    (*logger)(fmt::format(
+                                                  "Failed to store content {} "
+                                                  "to local CAS",
+                                                  key.content),
+                                              /*fatal=*/true);
+                                }
+                                // content stored in CAS
+                                (*setter)(nullptr);
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 // blob not found in Git cache
                 progress->TaskTracker().Start(key.origin);
                 // add distfile to CAS
