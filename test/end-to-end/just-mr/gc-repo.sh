@@ -27,6 +27,7 @@ mkdir -p "${DISTDIR}"
 readonly ARCHIVE_CONTENT="${TEST_TMPDIR}/archive"
 readonly SCRATCH_LBR="${TEST_TMPDIR}/throw-away-build-root"
 readonly SCRATCH_FF="${TEST_TMPDIR}/scratch-space-for-foreign-file"
+readonly SCRATCH_TREE="${TEST_TMPDIR}/scratch-space-for-git-tree"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly OUT="${TEST_TMPDIR}/out"
 mkdir -p "${OUT}"
@@ -89,6 +90,24 @@ echo
 echo "Foreign file ${FOREIGN} creating tree ${FOREIGN_TREE}"
 echo
 
+# Set up a "git tree"
+cat > "${BIN}/mock-foreign-vcs" <<'EOF'
+#!/bin/sh
+
+mkdir -p foo/bar/baz
+echo foo data > foo/data.txt
+echo bar data > foo/bar/data.txt
+echo baz data > foo/bar/baz/data.txt
+EOF
+chmod 755 "${BIN}/mock-foreign-vcs"
+rm -rf "${SCRATCH_TREE}"
+mkdir -p "${SCRATCH_TREE}"
+(cd "${SCRATCH_TREE}" && "${BIN}/mock-foreign-vcs")
+FOREIGN_GIT_TREE=$("${JUST}" add-to-cas --local-build-root "${SCRATCH_LBR}" "${SCRATCH_TREE}")
+echo
+echo "Git tree ${FOREIGN_GIT_TREE}"
+echo
+
 # Create workspace with just-mr repository configuration
 mkdir -p "${WORK}"
 cd "${WORK}"
@@ -98,7 +117,11 @@ cat > repos.json <<EOF
   { "":
     { "repository": {"type": "file", "path": "."}
     , "bindings":
-      {"git": "git", "archive": "archive", "foreign": "foreign_file"}
+      { "git": "git"
+      , "archive": "archive"
+      , "foreign": "foreign_file"
+      , "tree": "git_tree"
+      }
     }
   , "git":
     { "repository":
@@ -121,6 +144,13 @@ cat > repos.json <<EOF
       , "content": "${FOREIGN}"
       , "fetch": "http://nonexistent.example.com/foreign.txt"
       , "name": "data.txt"
+      }
+    }
+  , "git_tree":
+    { "repository":
+      { "type": "git tree"
+      , "id": "${FOREIGN_GIT_TREE}"
+      , "cmd": ["${BIN}/mock-foreign-vcs"]
       }
     }
   }
@@ -154,9 +184,15 @@ TREE_FOUND="$(jq -r '.repositories.foreign_file.workspace_root[1]' "${CONFIG}")"
 [ "${TREE_FOUND}" = "${FOREIGN_TREE}" ]
 FOREIGN_LOCATION="$(jq -r '.repositories.foreign_file.workspace_root[2]' "${CONFIG}")"
 
+## Sanity check for git tree
+TREE_FOUND="$(jq -r '.repositories.git_tree.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${FOREIGN_GIT_TREE}" ]
+GIT_TREE_LOCATION="$(jq -r '.repositories.git_tree.workspace_root[2]' "${CONFIG}")"
+
 # Clean up original repositories
 rm -rf "${GIT_REPO}"
 rm -rf "${DISTDIR}"
+rm -f "${BIN}/mock-foreign-vcs"
 
 # Fully clean the non-repo cache
 "${JUST}" gc --local-build-root "${LBR}" 2>&1
@@ -169,6 +205,7 @@ rm -rf "${DISTDIR}"
 [ -e "${GIT_LOCATION}" ] && exit 1 || :
 [ -e "${ARCHIVE_LOCATION}" ] && exit 1 || :
 [ -e "${FOREIGN_LOCATION}" ] && exit 1 || :
+[ -e "${GIT_TREE_LOCATION}" ] && exit 1 || :
 
 # Setup repos again
 "${JUST_MR}" --local-build-root "${LBR}" \
@@ -190,5 +227,9 @@ TREE_FOUND="$(jq -r '.repositories.archive.workspace_root[1]' "${CONFIG}")"
 ## Sanity check for foreign file
 TREE_FOUND="$(jq -r '.repositories.foreign_file.workspace_root[1]' "${CONFIG}")"
 [ "${TREE_FOUND}" = "${FOREIGN_TREE}" ]
+
+## Sanity check for git tree
+TREE_FOUND="$(jq -r '.repositories.git_tree.workspace_root[1]' "${CONFIG}")"
+[ "${TREE_FOUND}" = "${FOREIGN_GIT_TREE}" ]
 
 echo OK
