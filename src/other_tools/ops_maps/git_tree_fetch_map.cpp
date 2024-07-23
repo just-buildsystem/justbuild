@@ -120,6 +120,125 @@ void MoveCASTreeToGit(std::string const& tree_id,
         });
 }
 
+void TagAndSetRoot(std::string tree_id,
+                   gsl::not_null<StorageConfig const*> const& storage_config,
+                   gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+                   IExecutionApi const* remote_api,
+                   bool backup_to_remote,
+                   gsl::not_null<TaskSystem*> const& ts,
+                   GitTreeFetchMap::SetterPtr const& setter,
+                   GitTreeFetchMap::LoggerPtr const& logger) {
+    auto repo = storage_config->GitRoot();
+    GitOpKey op_key = {.params =
+                           {
+                               repo,                         // target_path
+                               tree_id,                      // git_hash
+                               "",                           // branch
+                               "Keep referenced tree alive"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TREE};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [tree_id, backup_to_remote, storage_config, remote_api, logger, setter](
+            auto const& values) {
+            GitOpValue op_result = *values[0];
+            if (not op_result.result) {
+                (*logger)("Tree tagging failed",
+                          /*fatal=*/true);
+                return;
+            }
+            // backup to remote if needed and in compatibility mode
+            if (backup_to_remote and remote_api != nullptr) {
+                BackupToRemote(tree_id, *storage_config, *remote_api, logger);
+            }
+            (*setter)(false /*no cache hit*/);
+        },
+        [logger, repo, tree_id](auto const& msg, bool fatal) {
+            (*logger)(
+                fmt::format("While tagging tree {} in {} to keep it alive:\n{}",
+                            tree_id,
+                            repo.string(),
+                            msg),
+                fatal);
+        });
+}
+
+void TakeTreeFromOlderGeneration(
+    std::size_t generation,
+    std::string tree_id,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    GitCASPtr const& git_cas,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    IExecutionApi const* remote_api,
+    bool backup_to_remote,
+    gsl::not_null<TaskSystem*> const& ts,
+    GitTreeFetchMap::SetterPtr const& setter,
+    GitTreeFetchMap::LoggerPtr const& logger) {
+    auto source = storage_config->GitGenerationRoot(generation);
+    GitOpKey op_key = {.params =
+                           {
+                               source,                    // target_path
+                               tree_id,                   // git_hash
+                               "",                        // branch
+                               "Tag commit for fetching"  // message
+                           },
+                       .op_type = GitOpType::KEEP_TREE};
+    critical_git_op_map->ConsumeAfterKeysReady(
+        ts,
+        {std::move(op_key)},
+        [tree_id,
+         git_cas,
+         critical_git_op_map,
+         remote_api,
+         backup_to_remote,
+         ts,
+         setter,
+         logger,
+         source,
+         storage_config](auto const& values) {
+            GitOpValue op_result = *values[0];
+            if (not op_result.result) {
+                (*logger)("Tree tagging failed", /*fatal=*/true);
+                return;
+            }
+            auto tag = *op_result.result;
+            auto git_repo = GitRepoRemote::Open(git_cas);
+            if (not git_repo) {
+                (*logger)("Could not open main git repository", /*fatal=*/true);
+                return;
+            }
+            auto fetch_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger, tag, source](auto const& msg, bool fatal) {
+                    (*logger)(fmt::format("While fetching {} from {}:\n{}",
+                                          tag,
+                                          source.string(),
+                                          msg),
+                              fatal);
+                });
+            if (not git_repo->LocalFetchViaTmpRepo(
+                    *storage_config, source, tag, fetch_logger)) {
+                return;
+            }
+            TagAndSetRoot(tree_id,
+                          storage_config,
+                          critical_git_op_map,
+                          remote_api,
+                          backup_to_remote,
+                          ts,
+                          setter,
+                          logger);
+        },
+        [logger, source, tree_id](auto const& msg, bool fatal) {
+            (*logger)(
+                fmt::format("While tagging tree {} in {} for fetching:\n{}",
+                            source.string(),
+                            tree_id,
+                            msg),
+                fatal);
+        });
+}
+
 }  // namespace
 
 auto CreateGitTreeFetchMap(
@@ -217,6 +336,37 @@ auto CreateGitTreeFetchMap(
                     (*setter)(true /*cache hit*/);
                     return;
                 }
+
+                // Check older generations for presence of the tree
+                for (std::size_t generation = 1;
+                     generation < storage_config->num_generations;
+                     generation++) {
+                    auto old = storage_config->GitGenerationRoot(generation);
+                    if (FileSystemManager::IsDirectory(old)) {
+                        auto old_repo = GitRepo::Open(old);
+                        auto no_logging =
+                            std::make_shared<AsyncMapConsumerLogger>(
+                                [](auto /*unused*/, auto /*unused*/) {});
+                        if (old_repo) {
+                            auto check_result =
+                                old_repo->CheckTreeExists(key.hash, no_logging);
+                            if (check_result and *check_result) {
+                                TakeTreeFromOlderGeneration(generation,
+                                                            key.hash,
+                                                            storage_config,
+                                                            op_result.git_cas,
+                                                            critical_git_op_map,
+                                                            remote_api,
+                                                            backup_to_remote,
+                                                            ts,
+                                                            setter,
+                                                            logger);
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 // check if tree is known to local CAS
                 auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
                 if (local_api->IsAvailable(digest)) {
