@@ -15,11 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_CAS_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_OBJECT_CAS_HPP
 
-#include <memory>
-#include <sstream>
-#include <thread>
+#include <filesystem>
+#include <functional>
+#include <optional>
+#include <string>
 #include <utility>  // std::move
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -44,24 +46,20 @@ class ObjectCAS {
     using ExistsFunc = std::function<bool(bazel_re::Digest const&,
                                           std::filesystem::path const&)>;
 
-    /// Default callback for checking blob existence.
-    static inline ExistsFunc const kDefaultExists = [](auto /*digest*/,
-                                                       auto path) {
-        return FileSystemManager::IsFile(path);
-    };
-
     /// \brief Create new object CAS in store_path directory.
     /// The optional "exists callback" is used to check blob existence before
     /// every read and write operation. It promises that a blob for the given
     /// digest exists at the given path if true was returned.
     /// \param store_path   The path to use for storing blobs.
     /// \param exists       (optional) Function for checking blob existence.
-    explicit ObjectCAS(HashFunction hash_function,
-                       std::filesystem::path const& store_path,
-                       ExistsFunc exists = kDefaultExists)
-        : hash_function_{hash_function},
-          file_store_{store_path},
-          exists_{std::move(exists)} {}
+    explicit ObjectCAS(
+        HashFunction hash_function,
+        std::filesystem::path const& store_path,
+        std::optional<gsl::not_null<ExistsFunc>> exists = std::nullopt)
+        : file_store_{store_path},
+          exists_{exists.has_value() ? std::move(exists)->get()
+                                     : kDefaultExists},
+          hash_function_{hash_function} {}
 
     ObjectCAS(ObjectCAS const&) = delete;
     ObjectCAS(ObjectCAS&&) = delete;
@@ -109,15 +107,21 @@ class ObjectCAS {
 
   private:
     // For `Tree` the underlying storage type is non-executable file.
-    static constexpr auto kStorageType =
-        kType == ObjectType::Tree ? ObjectType::File : kType;
+    static constexpr ObjectType kStorageType =
+        IsTreeObject(kType) ? ObjectType::File : kType;
 
-    HashFunction const hash_function_;
     Logger logger_{std::string{"ObjectCAS"} + ToChar(kType)};
 
     FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
         file_store_;
-    ExistsFunc exists_;
+    gsl::not_null<ExistsFunc> exists_;
+    HashFunction const hash_function_;
+
+    /// Default callback for checking blob existence.
+    static inline ExistsFunc const kDefaultExists = [](auto const& /*digest*/,
+                                                       auto const& path) {
+        return FileSystemManager::IsFile(path);
+    };
 
     [[nodiscard]] auto CreateDigest(std::string const& bytes) const noexcept
         -> std::optional<bazel_re::Digest> {
@@ -133,7 +137,7 @@ class ObjectCAS {
         bazel_re::Digest const& digest,
         std::filesystem::path const& path) const noexcept -> bool {
         try {
-            return exists_ and exists_(digest, path);
+            return std::invoke(exists_.get(), digest, path);
         } catch (...) {
             return false;
         }

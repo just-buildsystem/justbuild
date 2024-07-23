@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -277,8 +278,7 @@ class LocalCAS {
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>
     [[nodiscard]] static auto MakeUplinker(
-        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker) ->
-        typename ObjectCAS<kType>::ExistsFunc {
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker) {
         if constexpr (kDoGlobalUplink) {
             return [uplinker](auto const& digest, auto const& /*path*/) {
                 if constexpr (IsTreeObject(kType)) {
@@ -291,7 +291,9 @@ class LocalCAS {
                 return uplinker->UplinkBlob(digest, IsExecutableObject(kType));
             };
         }
-        return ObjectCAS<kType>::kDefaultExists;
+        else {
+            return std::nullopt;
+        }
     }
 
     /// \brief Try to sync blob between file CAS and executable CAS.

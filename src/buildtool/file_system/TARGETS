@@ -29,6 +29,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
