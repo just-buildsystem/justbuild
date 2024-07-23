@@ -169,7 +169,7 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "grpc", "", "grpc++"]
-    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     ]

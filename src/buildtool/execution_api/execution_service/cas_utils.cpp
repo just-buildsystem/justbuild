@@ -14,8 +14,12 @@
 
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 
+#include <utility>
+
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/large_object_cas.hpp"
+#include "src/buildtool/storage/local_cas.hpp"
 
 static auto ToGrpc(LargeObjectError&& error) noexcept -> grpc::Status {
     switch (error.Code()) {
@@ -33,25 +37,24 @@ static auto ToGrpc(LargeObjectError&& error) noexcept -> grpc::Status {
     return grpc::Status{grpc::StatusCode::INTERNAL, "an unknown error"};
 }
 
-auto CASUtils::EnsureTreeInvariant(bazel_re::Digest const& digest,
+auto CASUtils::EnsureTreeInvariant(ArtifactDigest const& digest,
                                    std::string const& tree_data,
                                    Storage const& storage) noexcept
     -> std::optional<std::string> {
-    auto const a_digest = static_cast<ArtifactDigest>(digest);
-    auto error = storage.CAS().CheckTreeInvariant(a_digest, tree_data);
+    auto error = storage.CAS().CheckTreeInvariant(digest, tree_data);
     if (error) {
         return std::move(*error).Message();
     }
     return std::nullopt;
 }
 
-auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
+auto CASUtils::SplitBlobIdentity(ArtifactDigest const& blob_digest,
                                  Storage const& storage) noexcept
-    -> expected<std::vector<bazel_re::Digest>, grpc::Status> {
+    -> expected<std::vector<ArtifactDigest>, grpc::Status> {
     // Check blob existence.
-    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
-    auto path = a_digest.IsTree() ? storage.CAS().TreePath(a_digest)
-                                  : storage.CAS().BlobPath(a_digest, false);
+    auto path = blob_digest.IsTree()
+                    ? storage.CAS().TreePath(blob_digest)
+                    : storage.CAS().BlobPath(blob_digest, false);
     if (not path) {
         return unexpected{
             grpc::Status{grpc::StatusCode::NOT_FOUND,
@@ -62,8 +65,8 @@ auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
     // operation is stored in (file) CAS. This means for the native mode, if we
     // return the identity of a tree, we need to put the tree data in file CAS
     // and return the resulting digest.
-    auto chunk_digests = std::vector<bazel_re::Digest>{};
-    if (a_digest.IsTree()) {
+    auto chunk_digests = std::vector<ArtifactDigest>{};
+    if (blob_digest.IsTree()) {
         auto tree_data = FileSystemManager::ReadFile(*path);
         if (not tree_data) {
             return unexpected{grpc::Status{
@@ -84,50 +87,31 @@ auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
     return chunk_digests;
 }
 
-auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
+auto CASUtils::SplitBlobFastCDC(ArtifactDigest const& blob_digest,
                                 Storage const& storage) noexcept
-    -> expected<std::vector<bazel_re::Digest>, grpc::Status> {
+    -> expected<std::vector<ArtifactDigest>, grpc::Status> {
     // Split blob into chunks:
-    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
-    auto split = a_digest.IsTree() ? storage.CAS().SplitTree(a_digest)
-                                   : storage.CAS().SplitBlob(a_digest);
+    auto split = blob_digest.IsTree() ? storage.CAS().SplitTree(blob_digest)
+                                      : storage.CAS().SplitBlob(blob_digest);
 
-    // Process result:
-    if (split) {
-        std::vector<bazel_re::Digest> result;
-        result.reserve(split->size());
-        std::transform(split->begin(),
-                       split->end(),
-                       std::back_inserter(result),
-                       [](ArtifactDigest const& digest) {
-                           return static_cast<bazel_re::Digest>(digest);
-                       });
-        return result;
+    if (not split) {
+        return unexpected{ToGrpc(std::move(split).error())};
     }
-    // Process errors
-    return unexpected{ToGrpc(std::move(split).error())};
+    return *std::move(split);
 }
 
-auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
-                          std::vector<bazel_re::Digest> const& chunk_digests,
+auto CASUtils::SpliceBlob(ArtifactDigest const& blob_digest,
+                          std::vector<ArtifactDigest> const& chunk_digests,
                           Storage const& storage) noexcept
-    -> expected<bazel_re::Digest, grpc::Status> {
-    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
-    std::vector<ArtifactDigest> a_parts;
-    a_parts.reserve(chunk_digests.size());
-    std::transform(chunk_digests.begin(),
-                   chunk_digests.end(),
-                   std::back_inserter(a_parts),
-                   [](auto const& digest) { return ArtifactDigest{digest}; });
-
+    -> expected<ArtifactDigest, grpc::Status> {
     // Splice blob from chunks:
-    auto splice = a_digest.IsTree()
-                      ? storage.CAS().SpliceTree(a_digest, a_parts)
-                      : storage.CAS().SpliceBlob(a_digest, a_parts, false);
+    auto splice =
+        blob_digest.IsTree()
+            ? storage.CAS().SpliceTree(blob_digest, chunk_digests)
+            : storage.CAS().SpliceBlob(blob_digest, chunk_digests, false);
 
-    // Process result:
-    if (splice) {
-        return static_cast<bazel_re::Digest>(*splice);
+    if (not splice) {
+        return unexpected{ToGrpc(std::move(splice).error())};
     }
-    return unexpected{ToGrpc(std::move(splice).error())};
+    return *std::move(splice);
 }

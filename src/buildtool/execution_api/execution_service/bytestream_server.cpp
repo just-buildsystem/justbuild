@@ -172,8 +172,8 @@ auto BytestreamServiceImpl::Write(
         }
 
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
-        if (auto err = CASUtils::EnsureTreeInvariant(
-                static_cast<bazel_re::Digest>(dgst), *content, storage_)) {
+        if (auto err =
+                CASUtils::EnsureTreeInvariant(dgst, *content, storage_)) {
             auto const str = fmt::format("Write: {}", *std::move(err));
             logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, str};

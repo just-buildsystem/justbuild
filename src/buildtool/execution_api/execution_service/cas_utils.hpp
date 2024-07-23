@@ -20,32 +20,32 @@
 #include <vector>
 
 #include "grpcpp/support/status.h"
-#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 class CASUtils {
   public:
     [[nodiscard]] static auto EnsureTreeInvariant(
-        bazel_re::Digest const& digest,
+        ArtifactDigest const& digest,
         std::string const& tree_data,
         Storage const& storage) noexcept -> std::optional<std::string>;
 
     [[nodiscard]] static auto SplitBlobIdentity(
-        bazel_re::Digest const& blob_digest,
+        ArtifactDigest const& blob_digest,
         Storage const& storage) noexcept
-        -> expected<std::vector<bazel_re::Digest>, grpc::Status>;
+        -> expected<std::vector<ArtifactDigest>, grpc::Status>;
 
     [[nodiscard]] static auto SplitBlobFastCDC(
-        bazel_re::Digest const& blob_digest,
+        ArtifactDigest const& blob_digest,
         Storage const& storage) noexcept
-        -> expected<std::vector<bazel_re::Digest>, grpc::Status>;
+        -> expected<std::vector<ArtifactDigest>, grpc::Status>;
 
     [[nodiscard]] static auto SpliceBlob(
-        bazel_re::Digest const& blob_digest,
-        std::vector<bazel_re::Digest> const& chunk_digests,
+        ArtifactDigest const& blob_digest,
+        std::vector<ArtifactDigest> const& chunk_digests,
         Storage const& storage) noexcept
-        -> expected<bazel_re::Digest, grpc::Status>;
+        -> expected<ArtifactDigest, grpc::Status>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_EXECUTION_SERVICE_CAS_UTILS_HPP

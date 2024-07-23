@@ -331,9 +331,8 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto SplitBlob(ArtifactDigest const& blob_digest)
         const noexcept -> std::optional<std::vector<ArtifactDigest>> final {
         Logger::Log(LogLevel::Debug, "SplitBlob({})", blob_digest.hash());
-        auto split_result = CASUtils::SplitBlobFastCDC(
-            static_cast<bazel_re::Digest>(blob_digest),
-            *local_context_.storage);
+        auto split_result =
+            CASUtils::SplitBlobFastCDC(blob_digest, *local_context_.storage);
         if (not split_result) {
             Logger::Log(LogLevel::Error, split_result.error().error_message());
             return std::nullopt;
@@ -345,20 +344,12 @@ class LocalApi final : public IExecutionApi {
                << blob_digest.size() << " into " << chunk_digests.size()
                << " chunks: [ ";
             for (auto const& chunk_digest : chunk_digests) {
-                ss << chunk_digest.hash() << ":" << chunk_digest.size_bytes()
-                   << " ";
+                ss << chunk_digest.hash() << ":" << chunk_digest.size() << " ";
             }
             ss << "]";
             return ss.str();
         });
-        auto artifact_digests = std::vector<ArtifactDigest>{};
-        artifact_digests.reserve(chunk_digests.size());
-        std::transform(
-            chunk_digests.cbegin(),
-            chunk_digests.cend(),
-            std::back_inserter(artifact_digests),
-            [](auto const& digest) { return ArtifactDigest{digest}; });
-        return artifact_digests;
+        return *std::move(split_result);
     }
 
     [[nodiscard]] auto BlobSplitSupport() const noexcept -> bool final {
@@ -373,24 +364,14 @@ class LocalApi final : public IExecutionApi {
                     "SpliceBlob({}, {} chunks)",
                     blob_digest.hash(),
                     chunk_digests.size());
-        auto digests = std::vector<bazel_re::Digest>{};
-        digests.reserve(chunk_digests.size());
-        std::transform(
-            chunk_digests.cbegin(),
-            chunk_digests.cend(),
-            std::back_inserter(digests),
-            [](auto const& artifact_digest) {
-                return static_cast<bazel_re::Digest>(artifact_digest);
-            });
-        auto splice_result =
-            CASUtils::SpliceBlob(static_cast<bazel_re::Digest>(blob_digest),
-                                 digests,
-                                 *local_context_.storage);
+
+        auto splice_result = CASUtils::SpliceBlob(
+            blob_digest, chunk_digests, *local_context_.storage);
         if (not splice_result) {
             Logger::Log(LogLevel::Error, splice_result.error().error_message());
             return std::nullopt;
         }
-        return ArtifactDigest{*std::move(splice_result)};
+        return *std::move(splice_result);
     }
 
     [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final {
