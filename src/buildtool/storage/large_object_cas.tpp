@@ -29,6 +29,11 @@
 #include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
+namespace {
+inline constexpr std::size_t kHashIndex = 0;
+inline constexpr std::size_t kSizeIndex = 1;
+}  // namespace
+
 template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     bazel_re::Digest const& digest) const noexcept
@@ -66,15 +71,14 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::ReadEntry(
     try {
         std::ifstream stream(*file_path);
         nlohmann::json j = nlohmann::json::parse(stream);
-        const std::size_t size = j.at("size").template get<std::size_t>();
-        parts.reserve(size);
+        parts.reserve(j.size());
 
-        auto const& j_parts = j.at("parts");
-        for (std::size_t i = 0; i < size; ++i) {
-            bazel_re::Digest& d = parts.emplace_back();
-            d.set_hash(j_parts.at(i).at("hash").template get<std::string>());
-            d.set_size_bytes(
-                j_parts.at(i).at("size").template get<std::int64_t>());
+        for (auto const& j_part : j) {
+            auto hash = j_part.at(kHashIndex).template get<std::string>();
+            auto size = j_part.at(kSizeIndex).template get<std::size_t>();
+
+            parts.emplace_back(
+                ArtifactDigest{std::move(hash), size, /*is_tree=*/false});
         }
     } catch (...) {
         return std::nullopt;
@@ -100,12 +104,12 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::WriteEntry(
 
     nlohmann::json j;
     try {
-        j["size"] = parts.size();
-        auto& j_parts = j["parts"];
         for (auto const& part : parts) {
-            auto& j = j_parts.emplace_back();
-            j["hash"] = part.hash();
-            j["size"] = part.size_bytes();
+            auto& j_part = j.emplace_back();
+
+            ArtifactDigest const a_digest(part);
+            j_part[kHashIndex] = a_digest.hash();
+            j_part[kSizeIndex] = a_digest.size();
         }
     } catch (...) {
         return false;

@@ -54,6 +54,9 @@ A feature release on top of `1.3.0`, backwards compatible.
 - Local execution no longer has the requirement that there exist no
   more files with identical content than the hardlink limit of the
   underlying file system.
+- The size of large object entries has been reduced. The cache and
+  CAS must be cleaned up since stable versions before `1.4.0` cannot use
+  the new format.
 - Various improvements to the tests: dispatching of the summary
   action is now possible, tests are independent of a .just-mrrc
   file the user might have in their home directory
