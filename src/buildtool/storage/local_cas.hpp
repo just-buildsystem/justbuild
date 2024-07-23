@@ -160,7 +160,17 @@ class LocalCAS {
     /// error code on failure.
     [[nodiscard]] auto SplitBlob(bazel_re::Digest const& digest) const noexcept
         -> expected<std::vector<bazel_re::Digest>, LargeObjectError> {
-        return cas_file_large_.Split(digest);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        auto split_result = cas_file_large_.Split(a_digest);
+        if (not split_result) {
+            return unexpected{std::move(split_result).error()};
+        }
+        std::vector<bazel_re::Digest> result;
+        result.reserve(split_result->size());
+        std::copy(split_result->begin(),
+                  split_result->end(),
+                  std::back_inserter(result));
+        return result;
     }
 
     /// \brief Splice a blob from parts.
@@ -173,8 +183,22 @@ class LocalCAS {
                                   std::vector<bazel_re::Digest> const& parts,
                                   bool is_executable) const noexcept
         -> expected<bazel_re::Digest, LargeObjectError> {
-        return is_executable ? Splice<ObjectType::Executable>(digest, parts)
-                             : Splice<ObjectType::File>(digest, parts);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        std::vector<ArtifactDigest> a_parts;
+        a_parts.reserve(parts.size());
+        std::transform(
+            parts.begin(),
+            parts.end(),
+            std::back_inserter(a_parts),
+            [](auto const& digest) { return ArtifactDigest{digest}; });
+        auto splice_result =
+            is_executable ? Splice<ObjectType::Executable>(a_digest, a_parts)
+                          : Splice<ObjectType::File>(a_digest, a_parts);
+
+        if (not splice_result) {
+            return unexpected{std::move(splice_result).error()};
+        }
+        return static_cast<bazel_re::Digest>(*splice_result);
     }
 
     /// \brief Obtain tree path from digest.
@@ -192,7 +216,17 @@ class LocalCAS {
     /// error code on failure.
     [[nodiscard]] auto SplitTree(bazel_re::Digest const& digest) const noexcept
         -> expected<std::vector<bazel_re::Digest>, LargeObjectError> {
-        return cas_tree_large_.Split(digest);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        auto split_result = cas_tree_large_.Split(a_digest);
+        if (not split_result) {
+            return unexpected{std::move(split_result).error()};
+        }
+        std::vector<bazel_re::Digest> result;
+        result.reserve(split_result->size());
+        std::copy(split_result->begin(),
+                  split_result->end(),
+                  std::back_inserter(result));
+        return result;
     }
 
     /// \brief Splice a tree from parts.
@@ -203,7 +237,19 @@ class LocalCAS {
     [[nodiscard]] auto SpliceTree(bazel_re::Digest const& digest,
                                   std::vector<bazel_re::Digest> const& parts)
         const noexcept -> expected<bazel_re::Digest, LargeObjectError> {
-        return Splice<ObjectType::Tree>(digest, parts);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        std::vector<ArtifactDigest> a_parts;
+        a_parts.reserve(parts.size());
+        std::transform(
+            parts.begin(),
+            parts.end(),
+            std::back_inserter(a_parts),
+            [](auto const& digest) { return ArtifactDigest{digest}; });
+        auto splice_result = Splice<ObjectType::Tree>(a_digest, a_parts);
+        if (not splice_result) {
+            return unexpected{std::move(splice_result).error()};
+        }
+        return static_cast<bazel_re::Digest>(*splice_result);
     }
 
     /// \brief Check whether all parts of the tree are in the storage.
@@ -331,13 +377,13 @@ class LocalCAS {
 
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)
-    [[nodiscard]] auto TrySplice(bazel_re::Digest const& digest) const noexcept
+    [[nodiscard]] auto TrySplice(ArtifactDigest const& digest) const noexcept
         -> std::optional<LargeObject>;
 
     template <ObjectType kType>
-    [[nodiscard]] auto Splice(bazel_re::Digest const& digest,
-                              std::vector<bazel_re::Digest> const& parts)
-        const noexcept -> expected<bazel_re::Digest, LargeObjectError>;
+    [[nodiscard]] auto Splice(ArtifactDigest const& digest,
+                              std::vector<ArtifactDigest> const& parts)
+        const noexcept -> expected<ArtifactDigest, LargeObjectError>;
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL
@@ -353,10 +399,9 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
 
 template <bool kDoGlobalUplink>
 template <ObjectType kType>
-auto LocalCAS<kDoGlobalUplink>::Splice(
-    bazel_re::Digest const& digest,
-    std::vector<bazel_re::Digest> const& parts) const noexcept
-    -> expected<bazel_re::Digest, LargeObjectError> {
+auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
+                                       std::vector<ArtifactDigest> const& parts)
+    const noexcept -> expected<ArtifactDigest, LargeObjectError> {
     return unexpected{
         LargeObjectError{LargeObjectErrorCode::Internal, "not allowed"}};
 }

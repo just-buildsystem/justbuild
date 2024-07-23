@@ -59,7 +59,8 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
                                : BlobPath(digest, is_executable);
     std::optional<LargeObject> spliced;
     if (not blob_path) {
-        spliced = TrySplice<ObjectType::File>(digest);
+        spliced =
+            TrySplice<ObjectType::File>(static_cast<ArtifactDigest>(digest));
         blob_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not blob_path) {
@@ -123,7 +124,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     auto tree_path = cas_tree_.BlobPath(a_digest);
     std::optional<LargeObject> spliced;
     if (not tree_path) {
-        spliced = TrySplice<ObjectType::Tree>(digest);
+        spliced = TrySplice<ObjectType::Tree>(a_digest);
         tree_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not tree_path) {
@@ -219,7 +220,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
     auto dir_path = cas_tree_.BlobPath(a_digest);
     std::optional<LargeObject> spliced;
     if (not dir_path) {
-        spliced = TrySplice<ObjectType::Tree>(digest);
+        spliced = TrySplice<ObjectType::Tree>(a_digest);
         dir_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not dir_path) {
@@ -280,21 +281,22 @@ template <ObjectType kType, bool kIsLocalGeneration>
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkLargeObject(
     LocalGenerationCAS const& latest,
     bazel_re::Digest const& digest) const noexcept -> bool {
+    auto const a_digest = static_cast<ArtifactDigest>(digest);
     if constexpr (IsTreeObject(kType)) {
         return cas_tree_large_.LocalUplink(
-            latest, latest.cas_tree_large_, digest);
+            latest, latest.cas_tree_large_, a_digest);
     }
     else {
         return cas_file_large_.LocalUplink(
-            latest, latest.cas_file_large_, digest);
+            latest, latest.cas_file_large_, a_digest);
     }
 }
 
 template <bool kDoGlobalUplink>
 template <ObjectType kType, bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
-auto LocalCAS<kDoGlobalUplink>::TrySplice(bazel_re::Digest const& digest)
-    const noexcept -> std::optional<LargeObject> {
+auto LocalCAS<kDoGlobalUplink>::TrySplice(
+    ArtifactDigest const& digest) const noexcept -> std::optional<LargeObject> {
     auto spliced = IsTreeObject(kType) ? cas_tree_large_.TrySplice(digest)
                                        : cas_file_large_.TrySplice(digest);
     return spliced and spliced->IsValid() ? std::optional{std::move(*spliced)}
@@ -326,10 +328,9 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
     // Ensure all entries are in the storage:
     for (const auto& entry : *entries) {
         for (auto const& item : entry.second) {
-            bazel_re::Digest const digest =
-                ArtifactDigest(ToHexString(entry.first),
-                               /*size_unknown=*/0ULL,
-                               IsTreeObject(item.type));
+            auto const digest = ArtifactDigest(ToHexString(entry.first),
+                                               /*size_unknown=*/0ULL,
+                                               IsTreeObject(item.type));
 
             // To avoid splicing during search, large CASes are inspected first.
             bool const entry_exists =
@@ -352,10 +353,9 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
 
 template <bool kDoGlobalUplink>
 template <ObjectType kType>
-auto LocalCAS<kDoGlobalUplink>::Splice(
-    bazel_re::Digest const& digest,
-    std::vector<bazel_re::Digest> const& parts) const noexcept
-    -> expected<bazel_re::Digest, LargeObjectError> {
+auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
+                                       std::vector<ArtifactDigest> const& parts)
+    const noexcept -> expected<ArtifactDigest, LargeObjectError> {
     static constexpr bool kIsTree = IsTreeObject(kType);
     static constexpr bool kIsExec = IsExecutableObject(kType);
 
@@ -414,7 +414,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(
     auto const stored_digest = kIsTree ? StoreTree<kOwner>(file_path)
                                        : StoreBlob<kOwner>(file_path, kIsExec);
     if (stored_digest) {
-        return std::move(*stored_digest);
+        return ArtifactDigest{std::move(*stored_digest)};
     }
     return unexpected{
         LargeObjectError{LargeObjectErrorCode::Internal,

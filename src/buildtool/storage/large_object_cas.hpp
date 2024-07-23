@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -123,16 +123,16 @@ class LargeObjectCAS final {
     /// \brief Get the path to a large entry in the storage.
     /// \param  digest      The digest of a large object.
     /// \returns            Path to the large entry if in the storage.
-    [[nodiscard]] auto GetEntryPath(bazel_re::Digest const& digest)
-        const noexcept -> std::optional<std::filesystem::path>;
+    [[nodiscard]] auto GetEntryPath(ArtifactDigest const& digest) const noexcept
+        -> std::optional<std::filesystem::path>;
 
     /// \brief Split an object from the main CAS into chunks. If the object had
     /// been split before, it would not get split again.
     /// \param digest       The digest of the object to be split.
     /// \return             A set of chunks the resulting object is composed of
     /// or an error on failure.
-    [[nodiscard]] auto Split(bazel_re::Digest const& digest) const noexcept
-        -> expected<std::vector<bazel_re::Digest>, LargeObjectError>;
+    [[nodiscard]] auto Split(ArtifactDigest const& digest) const noexcept
+        -> expected<std::vector<ArtifactDigest>, LargeObjectError>;
 
     /// \brief Splice an object based on the reconstruction rules from the
     /// storage. This method doesn't check whether the result of splicing is
@@ -140,7 +140,7 @@ class LargeObjectCAS final {
     /// \param digest       The digest of the object to be spliced.
     /// \return             A temporary directory that contains a single file
     /// "result" on success or an error on failure.
-    [[nodiscard]] auto TrySplice(bazel_re::Digest const& digest) const noexcept
+    [[nodiscard]] auto TrySplice(ArtifactDigest const& digest) const noexcept
         -> expected<LargeObject, LargeObjectError>;
 
     /// \brief Splice an object from parts. This method doesn't check whether
@@ -149,8 +149,8 @@ class LargeObjectCAS final {
     /// \param parts        Parts to be concatenated.
     /// \return             A temporary directory that contains a single file
     /// "result" on success or an error on failure.
-    [[nodiscard]] auto Splice(bazel_re::Digest const& digest,
-                              std::vector<bazel_re::Digest> const& parts)
+    [[nodiscard]] auto Splice(ArtifactDigest const& digest,
+                              std::vector<ArtifactDigest> const& parts)
         const noexcept -> expected<LargeObject, LargeObjectError>;
 
     /// \brief Uplink large entry from this generation to latest LocalCAS
@@ -167,7 +167,7 @@ class LargeObjectCAS final {
     [[nodiscard]] auto LocalUplink(
         LocalCAS<false> const& latest,
         LargeObjectCAS<false, kType> const& latest_large,
-        bazel_re::Digest const& digest) const noexcept -> bool;
+        ArtifactDigest const& digest) const noexcept -> bool;
 
   private:
     // By default, overwrite existing entries. Unless this is a generation
@@ -185,16 +185,16 @@ class LargeObjectCAS final {
     /// \param  digest      The digest of a large object.
     /// \returns            Parts the large object is composed of, if present in
     /// the storage.
-    [[nodiscard]] auto ReadEntry(bazel_re::Digest const& digest) const noexcept
-        -> std::optional<std::vector<bazel_re::Digest>>;
+    [[nodiscard]] auto ReadEntry(ArtifactDigest const& digest) const noexcept
+        -> std::optional<std::vector<ArtifactDigest>>;
 
     /// \brief Create a new entry description and add it to the storage.
     /// \param digest       The digest of the result.
     /// \param parts        Parts the resulting object is composed of.
     /// \returns            True if the entry exists afterwards.
     [[nodiscard]] auto WriteEntry(
-        bazel_re::Digest const& digest,
-        std::vector<bazel_re::Digest> const& parts) const noexcept -> bool;
+        ArtifactDigest const& digest,
+        std::vector<ArtifactDigest> const& parts) const noexcept -> bool;
 };
 
 #include "src/buildtool/storage/large_object_cas.tpp"
