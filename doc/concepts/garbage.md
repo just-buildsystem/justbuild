@@ -194,3 +194,29 @@ for transfer to an end point that supports blob splicing.
 
 The compactification step will also be carried out if the `--no-rotate`
 option is given to `gc`.
+
+Gargabe Collection for Repository Roots
+---------------------------------------
+
+The multi-repository tool `just-mr` often has to create roots: the
+tree for an archive, an explicit `"git tree"` root, etc. All those
+roots are stored in a `git` repository in the local build root.
+They are fixed by a tagged commit to be persistent there. In this
+way, the roots are available long-term and the association between
+archive hash and resulting root can be persisted. The actual archive
+can eventually be garbage collected as the root can efficiently be
+provided by that cached association.
+
+While this setup is good at preserving roots in a quite compact
+form, there currently is no mechanism to get rid of roots that are
+no longer needed. Especially switching between projects that have
+a large number of third-party dependencies, or on projects changing
+their set of dependencies frequently, this `git` repository in the
+local build root can grow large.
+
+Therefore, the repository roots follow a similar generation regime.
+The subcommand `gc-repo` of `just-mr` rotates generations and removes
+the oldest one. Whenever an entry is not found in the youngest
+generation of the repository-root storage, older generations are
+inspected first before calling out to the network; entries found
+in older generations are promoted to the youngest.
