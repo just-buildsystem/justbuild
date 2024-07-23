@@ -113,13 +113,14 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     bazel_re::Digest const& digest,
     bool splice_result) const noexcept -> bool {
     // Determine tree path in latest generation.
-    auto tree_path_latest = latest.cas_tree_.BlobPath(digest);
+    auto const a_digest = static_cast<ArtifactDigest>(digest);
+    auto tree_path_latest = latest.cas_tree_.BlobPath(a_digest);
     if (tree_path_latest) {
         return true;
     }
 
     // Determine tree path of given generation.
-    auto tree_path = cas_tree_.BlobPath(digest);
+    auto tree_path = cas_tree_.BlobPath(a_digest);
     std::optional<LargeObject> spliced;
     if (not tree_path) {
         spliced = TrySplice<ObjectType::Tree>(digest);
@@ -213,8 +214,9 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
         return true;
     }
 
+    auto const a_digest = static_cast<ArtifactDigest>(digest);
     // Determine bazel directory path of given generation.
-    auto dir_path = cas_tree_.BlobPath(digest);
+    auto dir_path = cas_tree_.BlobPath(a_digest);
     std::optional<LargeObject> spliced;
     if (not dir_path) {
         spliced = TrySplice<ObjectType::Tree>(digest);
@@ -244,7 +246,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
     }
 
     // Determine bazel directory path in latest generation.
-    auto dir_path_latest = latest.cas_tree_.BlobPath(digest);
+    auto dir_path_latest = latest.cas_tree_.BlobPath(a_digest);
 
     if (spliced) {
         // Uplink the large entry afterwards:

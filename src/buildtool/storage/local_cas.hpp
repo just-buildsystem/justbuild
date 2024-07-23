@@ -149,8 +149,9 @@ class LocalCAS {
     [[nodiscard]] auto BlobPathNoSync(bazel_re::Digest const& digest,
                                       bool is_executable) const noexcept
         -> std::optional<std::filesystem::path> {
-        return is_executable ? cas_exec_.BlobPath(digest)
-                             : cas_file_.BlobPath(digest);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        return is_executable ? cas_exec_.BlobPath(a_digest)
+                             : cas_file_.BlobPath(a_digest);
     }
 
     /// \brief Split a blob into chunks.
@@ -181,7 +182,8 @@ class LocalCAS {
     /// \returns Path to the tree if found or nullopt otherwise.
     [[nodiscard]] auto TreePath(bazel_re::Digest const& digest) const noexcept
         -> std::optional<std::filesystem::path> {
-        return cas_tree_.BlobPath(digest);
+        auto const a_digest = static_cast<ArtifactDigest>(digest);
+        return cas_tree_.BlobPath(a_digest);
     }
 
     /// \brief Split a tree into chunks.
