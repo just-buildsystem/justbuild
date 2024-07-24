@@ -108,4 +108,16 @@
     , ["src/buildtool/logging", "logging"]
     ]
   }
+, "context":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["context"]
+  , "hdrs": ["context.hpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , "config"
+    , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common/remote", "retry_config"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "remote"]
+  }
 }
