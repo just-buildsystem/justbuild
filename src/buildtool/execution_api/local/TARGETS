@@ -55,4 +55,16 @@
     , ["src/utils/cpp", "path"]
     ]
   }
+, "context":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["context"]
+  , "hdrs": ["context.hpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , "config"
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "local"]
+  }
 }
