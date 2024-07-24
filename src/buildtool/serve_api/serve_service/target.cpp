@@ -28,7 +28,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -119,6 +118,35 @@ auto TargetService::HandleFailureLog(
     return ::grpc::Status::OK;
 }
 
+auto TargetService::CreateRemoteExecutionConfig(
+    const ::justbuild::just_serve::ServeTargetRequest* request) noexcept
+    -> expected<RemoteExecutionConfig, ::grpc::Status> {
+    // read in the execution properties
+    auto platform_properties = ExecutionProperties{};
+    for (auto const& p : request->execution_properties()) {
+        platform_properties[p.name()] = p.value();
+    }
+    // read in the dispatch list
+    if (auto msg = IsAHash(request->dispatch_info().hash()); msg) {
+        logger_->Emit(LogLevel::Error, "{}", *msg);
+        return unexpected{
+            ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *msg}};
+    }
+    auto const& dispatch_info_digest = ArtifactDigest{request->dispatch_info()};
+    auto res = GetDispatchList(dispatch_info_digest);
+    if (not res) {
+        auto err = move(res).error();
+        logger_->Emit(LogLevel::Error, "{}", err.error_message());
+        return unexpected{std::move(err)};
+    }
+    // the remote and cache addresses are kept from the stored ApiBundle
+    return RemoteExecutionConfig{
+        .remote_address = apis_.remote_config.remote_address,
+        .dispatch = *std::move(res),
+        .cache_address = apis_.remote_config.cache_address,
+        .platform_properties = std::move(platform_properties)};
+}
+
 auto TargetService::ServeTarget(
     ::grpc::ServerContext* /*context*/,
     const ::justbuild::just_serve::ServeTargetRequest* request,
@@ -146,35 +174,16 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
 
-    // start filling in the backend description
-    auto const address = apis_.remote_config.remote_address;
-    // read in the execution properties.
-    // Important: we will need to pass these platform properties also to the
-    // executor (via the graph_traverser) in order for the build to be properly
-    // dispatched to the correct remote-execution endpoint.
-    auto platform_properties = ExecutionProperties{};
-    for (auto const& p : request->execution_properties()) {
-        platform_properties[p.name()] = p.value();
+    // set up the remote execution config instance for the orchestrated build
+    auto remote_config = CreateRemoteExecutionConfig(request);
+    if (not remote_config) {
+        return std::move(remote_config).error();
     }
-    // Read in the dispatch list
-    if (auto msg = IsAHash(request->dispatch_info().hash()); msg) {
-        logger_->Emit(LogLevel::Error, "{}", *msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *msg};
-    }
-    auto const& dispatch_info_digest = ArtifactDigest{request->dispatch_info()};
-    auto res = GetDispatchList(dispatch_info_digest);
-    if (not res) {
-        auto err = move(res).error();
-        logger_->Emit(LogLevel::Error, "{}", err.error_message());
-        return err;
-    }
-    // keep dispatch list, as it needs to be passed to the executor (via the
-    // graph_traverser)
-    auto dispatch_list = *res;
 
     // get backend description
-    auto description =
-        DescribeBackend(address, platform_properties, dispatch_list);
+    auto description = DescribeBackend(remote_config->remote_address,
+                                       remote_config->platform_properties,
+                                       remote_config->dispatch);
     if (not description) {
         auto err = fmt::format("Failed to create backend description:\n{}",
                                description.error());
@@ -194,7 +203,7 @@ auto TargetService::ServeTarget(
 
     // get a target cache instance with the correct computed shard
     auto shard =
-        address
+        remote_config->remote_address
             ? std::make_optional(ArtifactDigest(*execution_backend_dgst).hash())
             : std::nullopt;
     auto const& tc = local_context_.storage->TargetCache().WithShard(shard);
@@ -490,12 +499,12 @@ auto TargetService::ServeTarget(
                                    &repository_config,
                                    &apis_.auth,
                                    &apis_.retry_config,
-                                   &apis_.remote_config};
+                                   &(*remote_config)};
         GraphTraverser const traverser{
             std::move(traverser_args),
             &repository_config,
-            std::move(platform_properties),
-            std::move(dispatch_list),
+            remote_config->platform_properties,
+            remote_config->dispatch,
             &stats,
             &progress,
             &local_apis,

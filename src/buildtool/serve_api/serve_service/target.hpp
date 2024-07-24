@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -149,6 +150,14 @@ class TargetService final : public justbuild::just_serve::Target::Service {
         std::string const& failure_scope,
         ::justbuild::just_serve::ServeTargetResponse* response) noexcept
         -> ::grpc::Status;
+
+    /// \brief Create the execution configuration needed to shard the target
+    /// cache and dispatch the build to the remote endpoint.
+    /// \returns A set up RemoteExecutionConfig or an unexpected error as
+    /// grpc::Status.
+    [[nodiscard]] auto CreateRemoteExecutionConfig(
+        const ::justbuild::just_serve::ServeTargetRequest* request) noexcept
+        -> expected<RemoteExecutionConfig, ::grpc::Status>;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP
