@@ -1791,7 +1791,7 @@ auto GitRepo::IsRepoFake() const noexcept -> bool {
 }
 
 auto GitRepo::ReadTree(std::string const& id,
-                       SymlinksCheckFunc const& check_symlinks,
+                       gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
                        bool is_hex_id,
                        bool ignore_special) const noexcept
     -> std::optional<tree_entries_t> {
@@ -1851,11 +1851,8 @@ auto GitRepo::ReadTree(std::string const& id,
                 }
             }
             // we check symlinks in bulk, optimized for network-backed repos
-            if (not check_symlinks) {
-                Logger::Log(LogLevel::Debug, "check_symlink callable is empty");
-                return std::nullopt;
-            }
-            if (not check_symlinks(symlinks)) {
+            if (not symlinks.empty() and
+                not std::invoke(check_symlinks.get(), symlinks)) {
                 Logger::Log(LogLevel::Error,
                             "found upwards symlinks in Git tree {}",
                             is_hex_id ? std::string{id} : ToHexString(id));
@@ -1928,11 +1925,11 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
 #endif
 }
 
-auto GitRepo::ReadTreeData(std::string const& data,
-                           std::string const& id,
-                           SymlinksCheckFunc const& check_symlinks,
-                           bool is_hex_id) noexcept
-    -> std::optional<tree_entries_t> {
+auto GitRepo::ReadTreeData(
+    std::string const& data,
+    std::string const& id,
+    gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
+    bool is_hex_id) noexcept -> std::optional<tree_entries_t> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
         InMemoryODBBackend b{.parent = kInMemoryODBParent};

@@ -123,6 +123,7 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/utils/cpp", "expected"]
     , ["src/buildtool/storage", "config"]
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":

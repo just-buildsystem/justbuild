@@ -23,6 +23,7 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
@@ -107,10 +108,11 @@ class GitRepo {
     /// \param check_symlinks   Function to check non-upwardness condition.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
     /// \param ignore_special   If set, treat symlinks as absent.
-    [[nodiscard]] auto ReadTree(std::string const& id,
-                                SymlinksCheckFunc const& check_symlinks,
-                                bool is_hex_id = false,
-                                bool ignore_special = false) const noexcept
+    [[nodiscard]] auto ReadTree(
+        std::string const& id,
+        gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
+        bool is_hex_id = false,
+        bool ignore_special = false) const noexcept
         -> std::optional<tree_entries_t>;
 
     /// \brief Create a flat tree from entries and store tree in CAS.
@@ -132,7 +134,7 @@ class GitRepo {
     [[nodiscard]] static auto ReadTreeData(
         std::string const& data,
         std::string const& id,
-        SymlinksCheckFunc const& check_symlinks,
+        gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
         bool is_hex_id = false) noexcept -> std::optional<tree_entries_t>;
 
     /// \brief Create a flat shallow (without objects in db) tree and return it.
