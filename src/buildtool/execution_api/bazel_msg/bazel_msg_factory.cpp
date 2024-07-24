@@ -66,8 +66,7 @@ template <class T>
 [[nodiscard]] auto CreateDirectory(
     std::vector<bazel_re::FileNode> const& files,
     std::vector<bazel_re::DirectoryNode> const& dirs,
-    std::vector<bazel_re::SymlinkNode> const& links,
-    std::vector<bazel_re::NodeProperty> const& props) noexcept
+    std::vector<bazel_re::SymlinkNode> const& links) noexcept
     -> bazel_re::Directory {
     bazel_re::Directory dir{};
 
@@ -84,77 +83,39 @@ template <class T>
     copy_nodes(dir.mutable_directories(), dirs);
     copy_nodes(dir.mutable_symlinks(), links);
 
-    std::copy(
-        props.cbegin(),
-        props.cend(),
-        pb::back_inserter(dir.mutable_node_properties()->mutable_properties()));
-
     return dir;
 }
 
-/// \brief Create protobuf message 'FileNode' without digest.
-[[nodiscard]] auto CreateFileNode(
-    std::string const& file_name,
-    ObjectType type,
-    std::vector<bazel_re::NodeProperty> const& props) noexcept
+/// \brief Create protobuf message 'FileNode'.
+[[nodiscard]] auto CreateFileNode(std::string const& file_name,
+                                  ObjectType type,
+                                  bazel_re::Digest const& digest) noexcept
     -> bazel_re::FileNode {
     bazel_re::FileNode node;
     node.set_name(file_name);
     node.set_is_executable(IsExecutableObject(type));
-    std::copy(props.cbegin(),
-              props.cend(),
-              pb::back_inserter(
-                  node.mutable_node_properties()->mutable_properties()));
+    (*node.mutable_digest()) = digest;
     return node;
 }
 
-/// \brief Create protobuf message 'DirectoryNode' without digest.
-[[nodiscard]] auto CreateDirectoryNode(std::string const& dir_name) noexcept
+/// \brief Create protobuf message 'DirectoryNode'.
+[[nodiscard]] auto CreateDirectoryNode(std::string const& dir_name,
+                                       bazel_re::Digest const& digest) noexcept
     -> bazel_re::DirectoryNode {
     bazel_re::DirectoryNode node;
     node.set_name(dir_name);
+    (*node.mutable_digest()) = digest;
     return node;
 }
 
 /// \brief Create protobuf message 'SymlinkNode'.
-[[nodiscard]] auto CreateSymlinkNode(
-    std::string const& link_name,
-    std::string const& target,
-    std::vector<bazel_re::NodeProperty> const& props) noexcept
+[[nodiscard]] auto CreateSymlinkNode(std::string const& link_name,
+                                     std::string const& target) noexcept
     -> bazel_re::SymlinkNode {
     bazel_re::SymlinkNode node;
     node.set_name(link_name);
     node.set_target(target);
-    std::copy(props.cbegin(),
-              props.cend(),
-              pb::back_inserter(
-                  node.mutable_node_properties()->mutable_properties()));
     return node;
-}
-
-/// \brief Create protobuf message FileNode from Artifact::ObjectInfo
-[[nodiscard]] auto CreateFileNodeFromObjectInfo(
-    std::string const& name,
-    Artifact::ObjectInfo const& object_info) noexcept -> bazel_re::FileNode {
-    auto file_node = CreateFileNode(name, object_info.type, {});
-
-    file_node.set_allocated_digest(gsl::owner<bazel_re::Digest*>{
-        new bazel_re::Digest{object_info.digest}});
-
-    return file_node;
-}
-
-/// \brief Create protobuf message DirectoryNode from Artifact::ObjectInfo
-[[nodiscard]] auto CreateDirectoryNodeFromObjectInfo(
-    std::string const& name,
-    Artifact::ObjectInfo const& object_info) noexcept
-    -> bazel_re::DirectoryNode {
-    auto dir_node = CreateDirectoryNode(name);
-
-    dir_node.set_allocated_digest(gsl::owner<bazel_re::Digest*>{
-        new bazel_re::Digest{object_info.digest}});
-
-    return dir_node;
 }
 
 /// \brief Create protobuf message SymlinkNode from Digest for multiple
@@ -171,7 +132,7 @@ template <class T>
     std::vector<bazel_re::SymlinkNode> symlink_nodes;
     // both loops have same length
     for (; it_name != symlink_names.end(); ++it_name, ++it_target) {
-        symlink_nodes.emplace_back(CreateSymlinkNode(*it_name, *it_target, {}));
+        symlink_nodes.emplace_back(CreateSymlinkNode(*it_name, *it_target));
     }
     return symlink_nodes;
 }
@@ -190,12 +151,8 @@ template <class T>
     auto digest =
         ArtifactDigest::Create<ObjectType::File>(hash_function, *content);
 
-    auto msg = CreateDirectoryNode(dir_name);
-    msg.set_allocated_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{digest}});
-
     return DirectoryNodeBundle{
-        .message = std::move(msg),
+        .message = CreateDirectoryNode(dir_name, digest),
         .bazel_blob = BazelBlob{
             std::move(digest), std::move(*content), /*is_exec=*/false}};
 }
@@ -305,7 +262,7 @@ template <class T>
                 }
                 if (IsTreeObject(object_info->type)) {
                     dir_nodes.emplace_back(
-                        CreateDirectoryNodeFromObjectInfo(name, *object_info));
+                        CreateDirectoryNode(name, object_info->digest));
                 }
                 else if (IsSymlinkObject(object_info->type)) {
                     // for symlinks we need to retrieve the data from the
@@ -314,18 +271,18 @@ template <class T>
                     symlink_digests.emplace_back(object_info->digest);
                 }
                 else {
-                    file_nodes.emplace_back(
-                        CreateFileNodeFromObjectInfo(name, *object_info));
+                    file_nodes.emplace_back(CreateFileNode(
+                        name, object_info->type, object_info->digest));
                 }
             }
         }
         return CreateDirectoryNodeBundle(
             root_name,
-            CreateDirectory(file_nodes,
-                            dir_nodes,
-                            CreateSymlinkNodesFromDigests(
-                                symlink_names, symlink_digests, resolve_links),
-                            {}));
+            CreateDirectory(
+                file_nodes,
+                dir_nodes,
+                CreateSymlinkNodesFromDigests(
+                    symlink_names, symlink_digests, resolve_links)));
     } catch (...) {
         return std::nullopt;
     }
@@ -382,10 +339,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                 return false;
             }
 
-            auto dir = CreateDirectoryNode(name.string());
-            dir.set_allocated_digest(
-                gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
-            dirs.emplace_back(std::move(dir));
+            dirs.emplace_back(CreateDirectoryNode(name.string(), *digest));
             return true;
         }
 
@@ -395,7 +349,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                 auto content = FileSystemManager::ReadSymlink(full_name);
                 if (content and store_symlink(*content)) {
                     symlinks.emplace_back(
-                        CreateSymlinkNode(name.string(), *content, {}));
+                        CreateSymlinkNode(name.string(), *content));
                     return true;
                 }
                 Logger::Log(LogLevel::Error,
@@ -405,9 +359,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
             }
             // create and store file
             if (auto digest = store_file(full_name, IsExecutableObject(type))) {
-                auto file = CreateFileNode(name.string(), type, {});
-                file.set_allocated_digest(gsl::owner<bazel_re::Digest*>{
-                    new bazel_re::Digest{std::move(*digest)}});
+                auto file = CreateFileNode(name.string(), type, *digest);
                 files.emplace_back(std::move(file));
                 return true;
             }
@@ -422,7 +374,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
 
     if (FileSystemManager::ReadDirectory(
             root, dir_reader, /*allow_upwards=*/true)) {
-        auto dir = CreateDirectory(files, dirs, symlinks, {});
+        auto dir = CreateDirectory(files, dirs, symlinks);
         if (auto bytes = SerializeMessage(dir)) {
             try {
                 if (auto digest = store_dir(*bytes)) {
