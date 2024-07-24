@@ -22,6 +22,8 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
+/// \brief Aggregate to be passed during analysis.
+/// \note No field is stored as const ref to avoid binding to temporaries.
 struct AnalyseContext final {
     gsl::not_null<RepositoryConfig const*> const repo_config;
     gsl::not_null<Storage const*> const storage;
