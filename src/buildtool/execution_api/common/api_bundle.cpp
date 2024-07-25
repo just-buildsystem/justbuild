@@ -29,10 +29,7 @@ ApiBundle::ApiBundle(
       retry_config{*retry_config},
       remote_config{*remote_exec_config},
       hash_function{local_context->storage_config->hash_function},
-      local{std::make_shared<LocalApi>(local_context->storage_config,
-                                       local_context->storage,
-                                       local_context->exec_config,
-                                       repo_config)},
+      local{std::make_shared<LocalApi>(local_context, repo_config)},
       remote{CreateRemote(remote_exec_config->remote_address)} {}
 
 auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const

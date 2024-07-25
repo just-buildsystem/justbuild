@@ -18,6 +18,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
@@ -31,20 +32,29 @@
 TEST_CASE("Executor<LocalApi>: Upload blob", "[executor]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-
     LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
     RepositoryConfig repo_config{};
     TestBlobUpload(&repo_config, [&] {
-        return std::make_unique<LocalApi>(
-            &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+        return std::make_unique<LocalApi>(&local_context, &repo_config);
     });
 }
 
 TEST_CASE("Executor<LocalApi>: Compile hello world", "[executor]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-
     LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -55,10 +65,7 @@ TEST_CASE("Executor<LocalApi>: Compile hello world", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return std::make_unique<LocalApi>(&storage_config.Get(),
-                                              &storage,
-                                              &local_exec_config,
-                                              &repo_config);
+            return std::make_unique<LocalApi>(&local_context, &repo_config);
         },
         &*auth_config);
 }
@@ -66,8 +73,13 @@ TEST_CASE("Executor<LocalApi>: Compile hello world", "[executor]") {
 TEST_CASE("Executor<LocalApi>: Compile greeter", "[executor]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-
     LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -78,10 +90,7 @@ TEST_CASE("Executor<LocalApi>: Compile greeter", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return std::make_unique<LocalApi>(&storage_config.Get(),
-                                              &storage,
-                                              &local_exec_config,
-                                              &repo_config);
+            return std::make_unique<LocalApi>(&local_context, &repo_config);
         },
         &*auth_config);
 }
@@ -89,8 +98,13 @@ TEST_CASE("Executor<LocalApi>: Compile greeter", "[executor]") {
 TEST_CASE("Executor<LocalApi>: Upload and download trees", "[executor]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-
     LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -101,10 +115,7 @@ TEST_CASE("Executor<LocalApi>: Upload and download trees", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return std::make_unique<LocalApi>(&storage_config.Get(),
-                                              &storage,
-                                              &local_exec_config,
-                                              &repo_config);
+            return std::make_unique<LocalApi>(&local_context, &repo_config);
         },
         &*auth_config);
 }
@@ -112,8 +123,13 @@ TEST_CASE("Executor<LocalApi>: Upload and download trees", "[executor]") {
 TEST_CASE("Executor<LocalApi>: Retrieve output directories", "[executor]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
-
     LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
     RepositoryConfig repo_config{};
     Statistics stats{};
     Progress progress{};
@@ -124,10 +140,7 @@ TEST_CASE("Executor<LocalApi>: Retrieve output directories", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return std::make_unique<LocalApi>(&storage_config.Get(),
-                                              &storage,
-                                              &local_exec_config,
-                                              &repo_config);
+            return std::make_unique<LocalApi>(&local_context, &repo_config);
         },
         &*auth_config);
 }

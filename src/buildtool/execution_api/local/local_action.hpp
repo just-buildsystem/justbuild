@@ -28,10 +28,8 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 class LocalApi;
@@ -64,9 +62,7 @@ class LocalAction final : public IExecutionAction {
 
   private:
     Logger logger_{"LocalExecution"};
-    StorageConfig const& storage_config_;
-    Storage const& storage_;
-    LocalExecutionConfig const& exec_config_;
+    LocalContext const& local_context_;
     ArtifactDigest const root_digest_{};
     std::vector<std::string> const cmdline_{};
     std::vector<std::string> output_files_{};
@@ -77,18 +73,14 @@ class LocalAction final : public IExecutionAction {
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
 
     explicit LocalAction(
-        gsl::not_null<StorageConfig const*> storage_config,
-        gsl::not_null<Storage const*> const& storage,
-        gsl::not_null<LocalExecutionConfig const*> const& exec_config,
+        gsl::not_null<LocalContext const*> local_context,
         ArtifactDigest root_digest,
         std::vector<std::string> command,
         std::vector<std::string> output_files,
         std::vector<std::string> output_dirs,
         std::map<std::string, std::string> env_vars,
         std::map<std::string, std::string> const& properties) noexcept
-        : storage_config_{*storage_config},
-          storage_{*storage},
-          exec_config_{*exec_config},
+        : local_context_{*local_context},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
           output_files_{std::move(output_files)},
@@ -113,7 +105,7 @@ class LocalAction final : public IExecutionAction {
             .env_vars = &env_vars,
             .properties = &properties_,
             .exec_dir = &exec_dir,
-            .hash_function = storage_config_.hash_function,
+            .hash_function = local_context_.storage_config->hash_function,
             .timeout = timeout_,
             .skip_action_cache = do_not_cache};
         return BazelMsgFactory::CreateActionDigestFromCommandLine(request);

@@ -17,6 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -27,23 +28,15 @@ namespace {
 class FactoryApi final {
   public:
     explicit FactoryApi(
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage,
-        gsl::not_null<LocalExecutionConfig const*> const&
-            local_exec_config) noexcept
-        : storage_config_{*storage_config},
-          storage_{*storage},
-          local_exec_config_{*local_exec_config} {}
+        gsl::not_null<LocalContext const*> const& local_context) noexcept
+        : local_context_{*local_context} {}
 
     [[nodiscard]] auto operator()() const -> IExecutionApi::Ptr {
-        return IExecutionApi::Ptr{
-            new LocalApi{&storage_config_, &storage_, &local_exec_config_}};
+        return IExecutionApi::Ptr{new LocalApi{&local_context_}};
     }
 
   private:
-    StorageConfig const& storage_config_;
-    Storage const& storage_;
-    LocalExecutionConfig const& local_exec_config_;
+    LocalContext const& local_context_;
 };
 
 }  // namespace
@@ -52,7 +45,11 @@ TEST_CASE("LocalAPI: No input, no output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestNoInputNoOutput(api_factory, {}, /*is_hermetic=*/true);
 }
@@ -61,7 +58,11 @@ TEST_CASE("LocalAPI: No input, create output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestNoInputCreateOutput(api_factory, {}, /*is_hermetic=*/true);
 }
@@ -70,7 +71,11 @@ TEST_CASE("LocalAPI: One input copied to output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestOneInputCopiedToOutput(api_factory, {}, /*is_hermetic=*/true);
 }
@@ -79,7 +84,11 @@ TEST_CASE("LocalAPI: Non-zero exit code, create output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestNonZeroExitCodeCreateOutput(api_factory, {});
 }
@@ -88,7 +97,11 @@ TEST_CASE("LocalAPI: Retrieve two identical trees to path", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestRetrieveTwoIdenticalTreesToPath(
         api_factory, {}, "two_trees", /*is_hermetic=*/true);
@@ -99,7 +112,11 @@ TEST_CASE("LocalAPI: Retrieve file and symlink with same content to path",
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestRetrieveFileAndSymlinkWithSameContentToPath(
         api_factory, {}, "file_and_symlink", /*is_hermetic=*/true);
@@ -109,7 +126,11 @@ TEST_CASE("LocalAPI: Retrieve mixed blobs and trees", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestRetrieveMixedBlobsAndTrees(
         api_factory, {}, "blobs_and_trees", /*is_hermetic=*/true);
@@ -119,7 +140,11 @@ TEST_CASE("LocalAPI: Create directory prior to execution", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
     auto const local_exec_config = CreateLocalExecConfig();
-    FactoryApi api_factory(&storage_config.Get(), &storage, &local_exec_config);
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
 
     TestCreateDirPriorToExecution(api_factory, {}, /*is_hermetic=*/true);
 }

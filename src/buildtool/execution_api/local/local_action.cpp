@@ -103,14 +103,15 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (do_cache) {
-        if (auto result = storage_.ActionCache().CachedResult(*action)) {
+        if (auto result =
+                local_context_.storage->ActionCache().CachedResult(*action)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
                 return IExecutionResponse::Ptr{
                     new LocalResponse{action->hash(),
                                       {std::move(*result), /*is_cached=*/true},
-                                      &storage_}};
+                                      local_context_.storage}};
             }
         }
     }
@@ -131,11 +132,13 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                 }
 
                 output->is_cached = true;
-                return IExecutionResponse::Ptr{new LocalResponse{
-                    action_cached->hash(), std::move(*output), &storage_}};
+                return IExecutionResponse::Ptr{
+                    new LocalResponse{action_cached->hash(),
+                                      std::move(*output),
+                                      local_context_.storage}};
             }
             return IExecutionResponse::Ptr{new LocalResponse{
-                action->hash(), std::move(*output), &storage_}};
+                action->hash(), std::move(*output), local_context_.storage}};
         }
     }
 
@@ -145,7 +148,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
 auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     -> std::optional<Output> {
     auto exec_path =
-        CreateUniquePath(storage_config_.ExecutionRoot() /
+        CreateUniquePath(local_context_.storage_config->ExecutionRoot() /
                          NativeSupport::Unprefix(action_id.hash()));
 
     if (not exec_path) {
@@ -166,7 +169,7 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     }
 
     // prepare actual command by including the launcher
-    auto cmdline = exec_config_.launcher;
+    auto cmdline = local_context_.exec_config->launcher;
     std::copy(cmdline_.begin(), cmdline_.end(), std::back_inserter(cmdline));
 
     SystemCommand system{"LocalExecution"};
@@ -186,8 +189,8 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 
         if (CollectAndStoreOutputs(&result.action, build_root)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
-                if (not storage_.ActionCache().StoreResult(action_id,
-                                                           result.action)) {
+                if (not local_context_.storage->ActionCache().StoreResult(
+                        action_id, result.action)) {
                     logger_.Emit(LogLevel::Warning,
                                  "failed to store action results");
                 }
@@ -217,8 +220,8 @@ auto LocalAction::StageInput(
         blob_path = lookup->second->GetPath() / kCopyFileName;
     }
     else {
-        blob_path =
-            storage_.CAS().BlobPath(info.digest, IsExecutableObject(info.type));
+        blob_path = local_context_.storage->CAS().BlobPath(
+            info.digest, IsExecutableObject(info.type));
     }
 
     if (not blob_path) {
@@ -257,7 +260,8 @@ auto LocalAction::StageInput(
                      res.error().message());
         return false;
     }
-    TmpDirPtr new_copy_dir = storage_config_.CreateTypedTmpDir("blob-copy");
+    TmpDirPtr new_copy_dir =
+        local_context_.storage_config->CreateTypedTmpDir("blob-copy");
     if (new_copy_dir == nullptr) {
         logger_.Emit(LogLevel::Warning,
                      "Failed to create a temporary directory for a blob copy");
@@ -291,7 +295,7 @@ auto LocalAction::StageInputs(
     if (FileSystemManager::IsRelativePath(exec_path)) {
         return false;
     }
-    auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
+    auto reader = TreeReader<LocalCasReader>{&local_context_.storage->CAS()};
     auto result = reader.RecursivelyReadTreeLeafs(
         root_digest_, exec_path, /*include_trees=*/true);
     if (not result) {
@@ -363,7 +367,7 @@ auto LocalAction::CollectOutputFileOrSymlink(
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(file_path);
-        if (content and storage_.CAS().StoreBlob(*content)) {
+        if (content and local_context_.storage->CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -372,8 +376,8 @@ auto LocalAction::CollectOutputFileOrSymlink(
     }
     else if (IsFileObject(*type)) {
         bool is_executable = IsExecutableObject(*type);
-        auto digest =
-            storage_.CAS().StoreBlob</*kOwner=*/true>(file_path, is_executable);
+        auto digest = local_context_.storage->CAS().StoreBlob</*kOwner=*/true>(
+            file_path, is_executable);
         if (digest) {
             auto out_file = bazel_re::OutputFile{};
             out_file.set_path(local_path);
@@ -402,7 +406,7 @@ auto LocalAction::CollectOutputDirOrSymlink(
     }
     if (IsSymlinkObject(*type)) {
         auto content = FileSystemManager::ReadSymlink(dir_path);
-        if (content and storage_.CAS().StoreBlob(*content)) {
+        if (content and local_context_.storage->CAS().StoreBlob(*content)) {
             auto out_symlink = bazel_re::OutputSymlink{};
             out_symlink.set_path(local_path);
             out_symlink.set_target(*content);
@@ -410,7 +414,8 @@ auto LocalAction::CollectOutputDirOrSymlink(
         }
     }
     else if (IsTreeObject(*type)) {
-        if (auto digest = CreateDigestFromLocalOwnedTree(storage_, dir_path)) {
+        if (auto digest = CreateDigestFromLocalOwnedTree(
+                *local_context_.storage, dir_path)) {
             auto out_dir = bazel_re::OutputDirectory{};
             out_dir.set_path(local_path);
             out_dir.set_allocated_tree_digest(
@@ -489,7 +494,7 @@ auto LocalAction::CollectAndStoreOutputs(
 
 auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)
     const noexcept -> gsl::owner<bazel_re::Digest*> {
-    if (auto digest = storage_.CAS().StoreBlob</*kOwner=*/true>(
+    if (auto digest = local_context_.storage->CAS().StoreBlob</*kOwner=*/true>(
             file_path, /*is_executable=*/false)) {
         return new bazel_re::Digest{std::move(*digest)};
     }

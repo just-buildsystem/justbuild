@@ -25,11 +25,10 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "grpc", "", "grpc++"]
-    , "config"
+    , "context"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]

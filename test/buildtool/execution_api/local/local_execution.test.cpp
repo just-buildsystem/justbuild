@@ -22,6 +22,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -64,11 +65,16 @@ namespace {
 TEST_CASE("LocalExecution: No input, no output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
 
     RepositoryConfig repo_config{};
-    auto const local_exec_config = CreateLocalExecConfig();
-    auto api = LocalApi(
-        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+
+    auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
@@ -112,11 +118,16 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
           "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
 
     RepositoryConfig repo_config{};
-    auto const local_exec_config = CreateLocalExecConfig();
-    auto api = LocalApi(
-        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+
+    auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test from env var");
     std::vector<std::string> const cmdline = {
@@ -165,11 +176,16 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
 TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
 
     RepositoryConfig repo_config{};
-    auto const local_exec_config = CreateLocalExecConfig();
-    auto api = LocalApi(
-        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+
+    auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(
@@ -225,11 +241,16 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
 TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
 
     RepositoryConfig repo_config{};
-    auto const local_exec_config = CreateLocalExecConfig();
-    auto api = LocalApi(
-        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+
+    auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
     auto test_digest = ArtifactDigest::Create<ObjectType::File>(
@@ -298,11 +319,16 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
 TEST_CASE("LocalExecution: Cache failed action's result", "[execution_api]") {
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
 
     RepositoryConfig repo_config{};
-    auto const local_exec_config = CreateLocalExecConfig();
-    auto api = LocalApi(
-        &storage_config.Get(), &storage, &local_exec_config, &repo_config);
+
+    auto api = LocalApi(&local_context, &repo_config);
 
     auto flag = GetTestDir() / "flag";
     std::vector<std::string> const cmdline = {
