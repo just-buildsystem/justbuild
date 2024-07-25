@@ -75,6 +75,7 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/retry.hpp"
@@ -815,12 +816,15 @@ auto main(int argc, char* argv[]) -> int {
                     .exec_config = &*local_exec_config,
                     .storage_config = &*storage_config,
                     .storage = &storage};
+                // pack the remote context instances to be passed as needed
+                RemoteContext const remote_context{
+                    .auth = &*auth_config,
+                    .retry_config = &retry_config,
+                    .exec_config = &remote_exec_config};
 
                 ApiBundle const exec_apis{&local_context,
-                                          /*repo_config=*/nullptr,
-                                          &*auth_config,
-                                          &retry_config,
-                                          &remote_exec_config};
+                                          &remote_context,
+                                          /*repo_config=*/nullptr};
 
                 return execution_server->Run(&local_context,
                                              exec_apis,
@@ -877,12 +881,15 @@ auto main(int argc, char* argv[]) -> int {
                     .exec_config = &*local_exec_config,
                     .storage_config = &*storage_config,
                     .storage = &storage};
+                // pack the remote context instances to be passed as needed
+                RemoteContext const remote_context{
+                    .auth = &*auth_config,
+                    .retry_config = &*retry_config,
+                    .exec_config = &*remote_exec_config};
 
                 ApiBundle const serve_apis{&local_context,
-                                           /*repo_config=*/nullptr,
-                                           &*auth_config,
-                                           &*retry_config,
-                                           &*remote_exec_config};
+                                           &remote_context,
+                                           /*repo_config=*/nullptr};
                 auto serve =
                     ServeApi::Create(*serve_config, &storage, &serve_apis);
 
@@ -972,12 +979,13 @@ auto main(int argc, char* argv[]) -> int {
         LocalContext const local_context{.exec_config = &*local_exec_config,
                                          .storage_config = &*storage_config,
                                          .storage = &storage};
+        // pack the remote context instances to be passed as needed
+        RemoteContext const remote_context{.auth = &*auth_config,
+                                           .retry_config = &*retry_config,
+                                           .exec_config = &*remote_exec_config};
 
-        ApiBundle const main_apis{&local_context,
-                                  &repo_config,
-                                  &*auth_config,
-                                  &*retry_config,
-                                  &*remote_exec_config};
+        ApiBundle const main_apis{
+            &local_context, &remote_context, &repo_config};
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),

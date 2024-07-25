@@ -106,6 +106,7 @@
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "log_level"]

@@ -27,6 +27,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 
 /// \brief Utility structure for instantiation of local and remote apis at the
 /// same time. If the remote api cannot be instantiated, it falls back to
@@ -34,13 +35,20 @@
 struct ApiBundle final {
     explicit ApiBundle(
         gsl::not_null<LocalContext const*> const& local_context,
-        RepositoryConfig const* repo_config,
-        gsl::not_null<Auth const*> const& authentication,
-        gsl::not_null<RetryConfig const*> const& retry_config,
-        gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config);
+        gsl::not_null<RemoteContext const*> const& remote_context,
+        RepositoryConfig const* repo_config);
 
-    [[nodiscard]] auto CreateRemote(std::optional<ServerAddress> const& address)
-        const -> gsl::not_null<IExecutionApi::Ptr>;
+    /// \brief Create a Remote object based on the given arguments.
+    /// \param address          The endpoint address.
+    /// \param authentication   The remote authentication configuration.
+    /// \param retry_config     The retry strategy configuration.
+    /// \returns A configured api: BazelApi if a remote address is given,
+    /// otherwise fall back to the already configured LocalApi instance.
+    [[nodiscard]] auto CreateRemote(
+        std::optional<ServerAddress> const& address,
+        gsl::not_null<Auth const*> const& authentication,
+        gsl::not_null<RetryConfig const*> const& retry_config) const
+        -> gsl::not_null<IExecutionApi::Ptr>;
 
     // Needed to be set before creating the remote (via CreateRemote)
     Auth const& auth;

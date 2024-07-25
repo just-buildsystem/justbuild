@@ -27,6 +27,7 @@
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
@@ -402,23 +403,21 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         Logger::Log(LogLevel::Info, "Found {} to fetch", fetchables);
     }
 
-    // setup remote execution config
-    auto remote_exec_config = JustMR::Utils::CreateRemoteExecutionConfig(
-        common_args.remote_execution_address, common_args.remote_serve_address);
-    if (not remote_exec_config) {
-        return kExitConfigError;
-    }
-
-    // setup authentication config
-    auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
-    if (not auth_config) {
-        return kExitConfigError;
-    }
-
     // setup local execution config
     auto local_exec_config =
         JustMR::Utils::CreateLocalExecutionConfig(common_args);
     if (not local_exec_config) {
+        return kExitConfigError;
+    }
+
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &*local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+
+    // setup authentication config
+    auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
+    if (not auth_config) {
         return kExitConfigError;
     }
 
@@ -428,17 +427,22 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    // pack the local context instances to be passed to ApiBundle
-    LocalContext const local_context{.exec_config = &*local_exec_config,
-                                     .storage_config = &storage_config,
-                                     .storage = &storage};
+    // setup remote execution config
+    auto remote_exec_config = JustMR::Utils::CreateRemoteExecutionConfig(
+        common_args.remote_execution_address, common_args.remote_serve_address);
+    if (not remote_exec_config) {
+        return kExitConfigError;
+    }
+
+    // pack the remote context instances to be passed to ApiBundle
+    RemoteContext const remote_context{.auth = &*auth_config,
+                                       .retry_config = &*retry_config,
+                                       .exec_config = &*remote_exec_config};
 
     // setup the APIs for archive fetches; only happens if in native mode
     ApiBundle const apis{&local_context,
-                         /*repo_config=*/nullptr,
-                         &*auth_config,
-                         &*retry_config,
-                         &*remote_exec_config};
+                         &remote_context,
+                         /*repo_config=*/nullptr};
 
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;

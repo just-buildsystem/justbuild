@@ -14,25 +14,26 @@
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
-#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
-ApiBundle::ApiBundle(
-    gsl::not_null<LocalContext const*> const& local_context,
-    RepositoryConfig const* repo_config,
-    gsl::not_null<Auth const*> const& authentication,
-    gsl::not_null<RetryConfig const*> const& retry_config,
-    gsl::not_null<RemoteExecutionConfig const*> const& remote_exec_config)
-    : auth{*authentication},
-      retry_config{*retry_config},
-      remote_config{*remote_exec_config},
+ApiBundle::ApiBundle(gsl::not_null<LocalContext const*> const& local_context,
+                     gsl::not_null<RemoteContext const*> const& remote_context,
+                     RepositoryConfig const* repo_config)
+    : auth{*remote_context->auth},
+      retry_config{*remote_context->retry_config},
+      remote_config{*remote_context->exec_config},
       hash_function{local_context->storage_config->hash_function},
       local{std::make_shared<LocalApi>(local_context, repo_config)},
-      remote{CreateRemote(remote_exec_config->remote_address)} {}
+      remote{CreateRemote(remote_context->exec_config->remote_address,
+                          remote_context->auth,
+                          remote_context->retry_config)} {}
 
-auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
+auto ApiBundle::CreateRemote(
+    std::optional<ServerAddress> const& address,
+    gsl::not_null<Auth const*> const& authentication,
+    gsl::not_null<RetryConfig const*> const& retry_config) const
     -> gsl::not_null<IExecutionApi::Ptr> {
     if (address) {
         ExecutionConfiguration config;
@@ -40,8 +41,8 @@ auto ApiBundle::CreateRemote(std::optional<ServerAddress> const& address) const
         return std::make_shared<BazelApi>("remote-execution",
                                           address->host,
                                           address->port,
-                                          &auth,
-                                          &retry_config,
+                                          authentication,
+                                          retry_config,
                                           config,
                                           hash_function);
     }

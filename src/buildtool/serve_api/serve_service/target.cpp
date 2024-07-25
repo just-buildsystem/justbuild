@@ -28,6 +28,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -493,13 +494,17 @@ auto TargetService::ServeTarget(
         traverser_args.stage = std::nullopt;
         traverser_args.rebuild = std::nullopt;
 
-        // Use a new ApiBundle that knows about local repository config for
-        // traversing.
-        ApiBundle const local_apis{&local_context_,
-                                   &repository_config,
-                                   &apis_.auth,
-                                   &apis_.retry_config,
-                                   &(*remote_config)};
+        // pack the remote context instances to be passed as needed
+        RemoteContext const dispatch_context{
+            .auth = &apis_.auth,
+            .retry_config = &apis_.retry_config,
+            .exec_config = &(*remote_config)};
+
+        // Use a new ApiBundle that knows about local repository config and
+        // dispatch endpoint for traversing
+        ApiBundle const local_apis{
+            &local_context_, &dispatch_context, &repository_config};
+
         GraphTraverser const traverser{
             std::move(traverser_args),
             &repository_config,

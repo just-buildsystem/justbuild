@@ -48,6 +48,7 @@
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
   , "private-deps":
