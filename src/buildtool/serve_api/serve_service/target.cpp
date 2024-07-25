@@ -28,7 +28,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -142,9 +141,9 @@ auto TargetService::CreateRemoteExecutionConfig(
     }
     // the remote and cache addresses are kept from the stored ApiBundle
     return RemoteExecutionConfig{
-        .remote_address = apis_.remote_config.remote_address,
+        .remote_address = remote_context_.exec_config->remote_address,
         .dispatch = *std::move(res),
-        .cache_address = apis_.remote_config.cache_address,
+        .cache_address = remote_context_.exec_config->cache_address,
         .platform_properties = std::move(platform_properties)};
 }
 
@@ -496,8 +495,8 @@ auto TargetService::ServeTarget(
 
         // pack the remote context instances to be passed as needed
         RemoteContext const dispatch_context{
-            .auth = &apis_.auth,
-            .retry_config = &apis_.retry_config,
+            .auth = remote_context_.auth,
+            .retry_config = remote_context_.retry_config,
             .exec_config = &(*remote_config)};
 
         // Use a new ApiBundle that knows about local repository config and

@@ -56,6 +56,7 @@
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/execution_service", "operation_cache"]
     , ["src/buildtool/execution_api/local", "context"]
+    , ["src/buildtool/execution_api/remote", "context"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
@@ -90,6 +91,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/utils/cpp", "expected"]
     ]
@@ -106,7 +108,6 @@
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common/remote", "retry_config"]
-    , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "log_level"]

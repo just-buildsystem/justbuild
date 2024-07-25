@@ -22,6 +22,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -51,6 +52,7 @@ class ServeServerImpl final {
     /// just execute (i.e., start remote execution services with same interface)
     auto Run(RemoteServeConfig const& serve_config,
              gsl::not_null<LocalContext const*> const& local_context,
+             gsl::not_null<RemoteContext const*> const& remote_context,
              std::optional<ServeApi> const& serve,
              ApiBundle const& apis,
              std::optional<std::uint8_t> op_exponent,

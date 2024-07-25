@@ -90,6 +90,7 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
 auto ServeServerImpl::Run(
     RemoteServeConfig const& serve_config,
     gsl::not_null<LocalContext const*> const& local_context,
+    gsl::not_null<RemoteContext const*> const& remote_context,
     std::optional<ServeApi> const& serve,
     ApiBundle const& apis,
     std::optional<std::uint8_t> op_exponent,
@@ -112,9 +113,12 @@ auto ServeServerImpl::Run(
     }
 
     SourceTreeService sts{&serve_config, local_context, &apis};
-    TargetService ts{
-        &serve_config, local_context, &apis, serve ? &*serve : nullptr};
-    ConfigurationService cs{&apis.remote_config};
+    TargetService ts{&serve_config,
+                     local_context,
+                     remote_context,
+                     &apis,
+                     serve ? &*serve : nullptr};
+    ConfigurationService cs{remote_context->exec_config};
 
     grpc::ServerBuilder builder;
 
@@ -142,7 +146,8 @@ auto ServeServerImpl::Run(
 
     // check authentication credentials; currently only TLS/SSL is supported
     std::shared_ptr<grpc::ServerCredentials> creds;
-    if (const auto* tls_auth = std::get_if<Auth::TLS>(&apis.auth.method);
+    if (const auto* tls_auth =
+            std::get_if<Auth::TLS>(&remote_context->auth->method);
         tls_auth != nullptr) {
         auto tls_opts = grpc::SslServerCredentialsOptions{};
 

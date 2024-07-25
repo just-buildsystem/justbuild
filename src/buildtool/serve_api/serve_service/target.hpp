@@ -32,6 +32,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -43,10 +44,12 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     explicit TargetService(
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
         gsl::not_null<LocalContext const*> const& local_context,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         gsl::not_null<ApiBundle const*> const& apis,
         ServeApi const* serve = nullptr) noexcept
         : serve_config_{*serve_config},
           local_context_{*local_context},
+          remote_context_{*remote_context},
           apis_{*apis},
           serve_{serve} {}
 
@@ -128,6 +131,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
   private:
     RemoteServeConfig const& serve_config_;
     LocalContext const& local_context_;
+    RemoteContext const& remote_context_;
     ApiBundle const& apis_;
     ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};

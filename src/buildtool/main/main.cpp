@@ -901,6 +901,7 @@ auto main(int argc, char* argv[]) -> int {
 
                 return serve_server->Run(*serve_config,
                                          &local_context,
+                                         &remote_context,
                                          serve,
                                          serve_apis,
                                          op_exponent,
