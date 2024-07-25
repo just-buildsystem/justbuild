@@ -822,8 +822,7 @@ auto main(int argc, char* argv[]) -> int {
                                           &retry_config,
                                           &remote_exec_config};
 
-                return execution_server->Run(*storage_config,
-                                             storage,
+                return execution_server->Run(&local_context,
                                              exec_apis,
                                              arguments.service.op_exponent)
                            ? kExitSuccess
@@ -894,9 +893,7 @@ auto main(int argc, char* argv[]) -> int {
                     with_execute ? arguments.service.op_exponent : std::nullopt;
 
                 return serve_server->Run(*serve_config,
-                                         *storage_config,
-                                         storage,
-                                         *local_exec_config,
+                                         &local_context,
                                          serve,
                                          serve_apis,
                                          op_exponent,

@@ -87,35 +87,33 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
     return std::move(server);
 }
 
-auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
-                          StorageConfig const& storage_config,
-                          Storage const& storage,
-                          LocalExecutionConfig const& local_exec_config,
-                          std::optional<ServeApi> const& serve,
-                          ApiBundle const& apis,
-                          std::optional<std::uint8_t> op_exponent,
-                          bool with_execute) -> bool {
+auto ServeServerImpl::Run(
+    RemoteServeConfig const& serve_config,
+    gsl::not_null<LocalContext const*> const& local_context,
+    std::optional<ServeApi> const& serve,
+    ApiBundle const& apis,
+    std::optional<std::uint8_t> op_exponent,
+    bool with_execute) -> bool {
     // make sure the git root directory is properly initialized
-    if (not FileSystemManager::CreateDirectory(storage_config.GitRoot())) {
+    if (not FileSystemManager::CreateDirectory(
+            local_context->storage_config->GitRoot())) {
         Logger::Log(LogLevel::Error,
                     "Could not create directory {}. Aborting",
-                    storage_config.GitRoot().string());
+                    local_context->storage_config->GitRoot().string());
         return false;
     }
-    if (not GitRepo::InitAndOpen(storage_config.GitRoot(), true)) {
-        Logger::Log(LogLevel::Error,
-                    fmt::format("could not initialize bare git repository {}",
-                                storage_config.GitRoot().string()));
+    if (not GitRepo::InitAndOpen(local_context->storage_config->GitRoot(),
+                                 true)) {
+        Logger::Log(
+            LogLevel::Error,
+            fmt::format("could not initialize bare git repository {}",
+                        local_context->storage_config->GitRoot().string()));
         return false;
     }
 
-    SourceTreeService sts{&serve_config, &storage_config, &storage, &apis};
-    TargetService ts{&serve_config,
-                     &storage_config,
-                     &storage,
-                     &local_exec_config,
-                     &apis,
-                     serve ? &*serve : nullptr};
+    SourceTreeService sts{&serve_config, local_context, &apis};
+    TargetService ts{
+        &serve_config, local_context, &apis, serve ? &*serve : nullptr};
     ConfigurationService cs{&apis.remote_config};
 
     grpc::ServerBuilder builder;
@@ -127,10 +125,10 @@ auto ServeServerImpl::Run(RemoteServeConfig const& serve_config,
     // the user has not given any remote-execution endpoint
     // so we start a "just-execute instance" on the same process
     [[maybe_unused]] ExecutionServiceImpl es{
-        &storage_config, &storage, &*apis.local, op_exponent};
-    [[maybe_unused]] ActionCacheServiceImpl ac{&storage_config, &storage};
-    [[maybe_unused]] CASServiceImpl cas{&storage_config, &storage};
-    [[maybe_unused]] BytestreamServiceImpl b{&storage_config, &storage};
+        local_context, &*apis.local, op_exponent};
+    [[maybe_unused]] ActionCacheServiceImpl ac{local_context};
+    [[maybe_unused]] CASServiceImpl cas{local_context};
+    [[maybe_unused]] BytestreamServiceImpl b{local_context};
     [[maybe_unused]] CapabilitiesServiceImpl cap{};
     [[maybe_unused]] OperarationsServiceImpl op{&es.GetOpCache()};
     if (with_execute) {

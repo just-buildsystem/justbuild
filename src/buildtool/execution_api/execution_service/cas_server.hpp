@@ -21,6 +21,7 @@
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -29,9 +30,9 @@ class CASServiceImpl final
     : public bazel_re::ContentAddressableStorage::Service {
   public:
     explicit CASServiceImpl(
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage) noexcept
-        : storage_config_{*storage_config}, storage_{*storage} {}
+        gsl::not_null<LocalContext const*> const& local_context) noexcept
+        : storage_config_{*local_context->storage_config},
+          storage_{*local_context->storage} {}
 
     // Determine if blobs are present in the CAS.
     //

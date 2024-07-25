@@ -19,13 +19,12 @@
 #include <optional>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 class ServeServerImpl final {
   public:
@@ -46,16 +45,12 @@ class ServeServerImpl final {
 
     /// \brief Start the serve service.
     /// \param serve_config     RemoteServeConfig to be used.
-    /// \param storage_config   StorageConfig to be used.
-    /// \param storage          Storage to be used.
-    /// \param local_exec_config   LocalExecutionConfig to be used.
+    /// \param local_context    Aggregate of storage and local configs to use.
     /// \param serve            ServeApi to be used.
     /// \param with_execute Flag specifying if just serve should act also as
     /// just execute (i.e., start remote execution services with same interface)
     auto Run(RemoteServeConfig const& serve_config,
-             StorageConfig const& storage_config,
-             Storage const& storage,
-             LocalExecutionConfig const& local_exec_config,
+             gsl::not_null<LocalContext const*> const& local_context,
              std::optional<ServeApi> const& serve,
              ApiBundle const& apis,
              std::optional<std::uint8_t> op_exponent,

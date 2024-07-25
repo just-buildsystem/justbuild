@@ -29,6 +29,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
@@ -61,12 +62,11 @@ class SourceTreeService final
 
     explicit SourceTreeService(
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalContext const*> const& local_context,
         gsl::not_null<ApiBundle const*> const& apis) noexcept
         : serve_config_{*serve_config},
-          storage_{*storage},
-          storage_config_{*storage_config},
+          storage_{*local_context->storage},
+          storage_config_{*local_context->storage_config},
           apis_{*apis} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.

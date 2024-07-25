@@ -25,6 +25,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -32,12 +33,11 @@
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
     explicit ExecutionServiceImpl(
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalContext const*> const& local_context,
         gsl::not_null<IExecutionApi const*> const& local_api,
         std::optional<std::uint8_t> op_exponent) noexcept
-        : storage_config_{*storage_config},
-          storage_{*storage},
+        : storage_config_{*local_context->storage_config},
+          storage_{*local_context->storage},
           api_{*local_api} {
         if (op_exponent) {
             op_cache_.SetExponent(*op_exponent);

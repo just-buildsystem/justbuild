@@ -81,15 +81,13 @@ auto ServerImpl::Create(std::optional<std::string> interface,
     return std::move(server);
 }
 
-auto ServerImpl::Run(StorageConfig const& storage_config,
-                     Storage const& storage,
+auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
                      ApiBundle const& apis,
                      std::optional<std::uint8_t> op_exponent) -> bool {
-    ExecutionServiceImpl es{
-        &storage_config, &storage, &*apis.local, op_exponent};
-    ActionCacheServiceImpl ac{&storage_config, &storage};
-    CASServiceImpl cas{&storage_config, &storage};
-    BytestreamServiceImpl b{&storage_config, &storage};
+    ExecutionServiceImpl es{local_context, &*apis.local, op_exponent};
+    ActionCacheServiceImpl ac{local_context};
+    CASServiceImpl cas{local_context};
+    BytestreamServiceImpl b{local_context};
     CapabilitiesServiceImpl cap{};
     OperarationsServiceImpl op{&es.GetOpCache()};
 

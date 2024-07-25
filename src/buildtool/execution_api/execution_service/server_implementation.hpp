@@ -20,9 +20,9 @@
 #include <optional>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 
 class ServerImpl final {
   public:
@@ -42,13 +42,11 @@ class ServerImpl final {
     auto operator=(ServerImpl&&) noexcept -> ServerImpl& = default;
 
     /// \brief Start the execution service.
-    /// \param storage_config   StorageConfig to be used.
-    /// \param storage          Storage to be used.
+    /// \param local_context    The LocalContext to be used.
     /// \param apis             Apis to be used, only local api is actually
     ///                         needed.
     /// \param op_exponent      Log2 threshold for operation cache.
-    auto Run(StorageConfig const& storage_config,
-             Storage const& storage,
+    auto Run(gsl::not_null<LocalContext const*> const& local_context,
              ApiBundle const& apis,
              std::optional<std::uint8_t> op_exponent) -> bool;
 

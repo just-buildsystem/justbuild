@@ -18,6 +18,8 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -49,8 +51,14 @@ TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
 
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
+    LocalExecutionConfig const local_exec_config{};
 
-    auto cas_server = CASServiceImpl{&storage_config.Get(), &storage};
+    // pack the local context instances to be passed
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
+    auto cas_server = CASServiceImpl{&local_context};
     auto instance_name = std::string{"remote-execution"};
 
     // Create an empty tree.

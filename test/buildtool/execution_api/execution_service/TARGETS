@@ -11,6 +11,8 @@
       , "src/buildtool/execution_api/execution_service"
       , "cas_server"
       ]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/common", "common"]

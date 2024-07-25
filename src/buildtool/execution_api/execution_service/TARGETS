@@ -9,6 +9,7 @@
     [ "operation_cache"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
@@ -33,6 +34,7 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
@@ -49,10 +51,11 @@
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/local", "context"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/storage", "storage"]
-    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
@@ -71,8 +74,7 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["src/buildtool/execution_api/common", "api_bundle"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/execution_api/local", "context"]
     ]
   , "private-deps":
     [ "execution_server"
@@ -86,7 +88,6 @@
     , ["src/buildtool/logging", "logging"]
     , ["@", "json", "", "json"]
     , ["@", "grpc", "", "grpc++"]
-    , ["src/buildtool/execution_api/remote", "config"]
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/common/remote", "port"]
@@ -101,6 +102,7 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]

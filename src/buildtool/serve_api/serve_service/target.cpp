@@ -28,7 +28,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -95,7 +94,7 @@ auto TargetService::HandleFailureLog(
                            logfile.string());
     });
     // ...but try to give the client the proper log
-    auto const& cas = storage_.CAS();
+    auto const& cas = local_context_.storage->CAS();
     auto digest = cas.StoreBlob(logfile, /*is_executable=*/false);
     if (not digest) {
         auto msg = fmt::format("Failed to store log of failed {} to local CAS",
@@ -133,13 +132,14 @@ auto TargetService::ServeTarget(
         ArtifactDigest{request->target_cache_key_id()};
 
     // acquire locks
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock =
+        RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
     if (!repo_lock) {
         auto msg = std::string("Could not acquire repo gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*local_context_.storage_config);
     if (!lock) {
         auto msg = std::string("Could not acquire CAS gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
@@ -183,7 +183,8 @@ auto TargetService::ServeTarget(
     }
 
     // add backend description to CAS
-    auto execution_backend_dgst = storage_.CAS().StoreBlob(*description);
+    auto execution_backend_dgst =
+        local_context_.storage->CAS().StoreBlob(*description);
     if (not execution_backend_dgst) {
         std::string err{
             "Failed to store execution backend description in local CAS"};
@@ -196,7 +197,7 @@ auto TargetService::ServeTarget(
         address
             ? std::make_optional(ArtifactDigest(*execution_backend_dgst).hash())
             : std::nullopt;
-    auto const& tc = storage_.TargetCache().WithShard(shard);
+    auto const& tc = local_context_.storage->TargetCache().WithShard(shard);
     auto const& tc_key =
         TargetCacheKey{{target_cache_key_digest, ObjectType::File}};
 
@@ -320,8 +321,8 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
-    auto repo_config_path =
-        storage_.CAS().BlobPath(repo_key_dgst, /*is_executable=*/false);
+    auto repo_config_path = local_context_.storage->CAS().BlobPath(
+        repo_key_dgst, /*is_executable=*/false);
     if (not repo_config_path) {
         // This should not fail unless something went really bad...
         auto msg = fmt::format(
@@ -335,7 +336,7 @@ auto TargetService::ServeTarget(
     RepositoryConfig repository_config{};
     std::string const main_repo{"0"};  // known predefined main repository name
     if (auto msg = DetermineRoots(serve_config_,
-                                  storage_config_,
+                                  *local_context_.storage_config,
                                   main_repo,
                                   *repo_config_path,
                                   &repository_config,
@@ -420,7 +421,8 @@ auto TargetService::ServeTarget(
     Progress progress{};
 
     // setup logging for analysis and build; write into a temporary file
-    auto tmp_dir = storage_config_.CreateTypedTmpDir("serve-target");
+    auto tmp_dir =
+        local_context_.storage_config->CreateTypedTmpDir("serve-target");
     if (!tmp_dir) {
         auto msg = std::string("Could not create TmpDir");
         logger_->Emit(LogLevel::Error, msg);
@@ -430,7 +432,7 @@ auto TargetService::ServeTarget(
     Logger logger{"serve-target", {LogSinkFile::CreateFactory(tmp_log)}};
 
     AnalyseContext analyse_ctx{.repo_config = &repository_config,
-                               .storage = &storage_,
+                               .storage = local_context_.storage,
                                .statistics = &stats,
                                .progress = &progress,
                                .serve = serve_};
@@ -484,10 +486,7 @@ auto TargetService::ServeTarget(
 
         // Use a new ApiBundle that knows about local repository config for
         // traversing.
-        LocalContext const local_context{.exec_config = &local_exec_config_,
-                                         .storage_config = &storage_config_,
-                                         .storage = &storage_};
-        ApiBundle const local_apis{&local_context,
+        ApiBundle const local_apis{&local_context_,
                                    &repository_config,
                                    &apis_.auth,
                                    &apis_.retry_config,
@@ -584,8 +583,10 @@ auto TargetService::ServeTargetVariables(
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
     // try in local build root Git cache
-    if (auto res = GetBlobContent(
-            storage_config_.GitRoot(), root_tree, target_file, logger_)) {
+    if (auto res = GetBlobContent(local_context_.storage_config->GitRoot(),
+                                  root_tree,
+                                  target_file,
+                                  logger_)) {
         tree_found = true;
         if (res->first) {
             if (not res->second) {
@@ -738,7 +739,8 @@ auto TargetService::ServeTargetDescription(
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
     // Get repository lock before inspecting the root git cache
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock =
+        RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
     if (!repo_lock) {
         auto msg = std::string("Could not acquire repo gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
@@ -746,8 +748,10 @@ auto TargetService::ServeTargetDescription(
     }
 
     // try in local build root Git cache
-    if (auto res = GetBlobContent(
-            storage_config_.GitRoot(), root_tree, target_file, logger_)) {
+    if (auto res = GetBlobContent(local_context_.storage_config->GitRoot(),
+                                  root_tree,
+                                  target_file,
+                                  logger_)) {
         tree_found = true;
         if (res->first) {
             if (not res->second) {
@@ -876,7 +880,7 @@ auto TargetService::ServeTargetDescription(
     }
 
     // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*local_context_.storage_config);
     if (!lock) {
         auto error_msg = fmt::format("Could not acquire gc SharedLock");
         logger_->Emit(LogLevel::Error, error_msg);
@@ -897,8 +901,9 @@ auto TargetService::ServeTargetDescription(
         logger_->Emit(LogLevel::Error, err);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
     }
-    if (auto dgst = storage_.CAS().StoreBlob(description_str,
-                                             /*is_executable=*/false)) {
+    if (auto dgst =
+            local_context_.storage->CAS().StoreBlob(description_str,
+                                                    /*is_executable=*/false)) {
         auto const& artifact_dgst = ArtifactDigest{*dgst};
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = artifact_dgst,

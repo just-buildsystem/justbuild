@@ -17,6 +17,7 @@
 
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "gsl/gsl"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -24,9 +25,9 @@
 class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
   public:
     explicit BytestreamServiceImpl(
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage) noexcept
-        : storage_config_{*storage_config}, storage_{*storage} {}
+        gsl::not_null<LocalContext const*> const& local_context) noexcept
+        : storage_config_{*local_context->storage_config},
+          storage_{*local_context->storage} {}
 
     // `Read()` is used to retrieve the contents of a resource as a sequence
     // of bytes. The bytes are returned in a sequence of responses, and the
