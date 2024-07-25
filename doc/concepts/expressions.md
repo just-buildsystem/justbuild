@@ -74,6 +74,11 @@ the value `null` is taken as default for `"default"`) and
 evaluated. The value obtained this way is the result of the
 evaluation.
 
+##### Quoting: `"'"`
+
+The value is the value of the key `"$1"` uninterpreted, if present,
+and `null` otherwise.
+
 ##### Sequential binding: `"let*"`
 
 The key `"bindings"` (default `[]`) has to be (syntactically) a

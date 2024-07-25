@@ -389,6 +389,22 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(overwrite == Expression::FromJson(R"(["bar"])"_json));
     }
 
+    SECTION("quote expression") {
+        auto expr = Expression::FromJson(R"(
+          {"type": "'", "$1": {"type": "var", "name": "this is literal"}}
+        )"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        CHECK(result == Expression::FromJson(R"(
+          {"type": "var", "name": "this is literal"})"_json));
+
+        auto expr_empty = Expression::FromJson(R"({"type": "'"})"_json);
+        REQUIRE(expr_empty);
+        auto result_empty = expr_empty.Evaluate(env, fcts);
+        CHECK(result_empty == Expression::FromJson(R"(null)"_json));
+    }
+
     SECTION("if expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "if"

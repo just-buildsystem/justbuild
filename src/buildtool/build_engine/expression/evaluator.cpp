@@ -499,6 +499,15 @@ auto VarExpr(SubExprEvaluator&& eval,
     return result;
 }
 
+auto QuoteExpr(SubExprEvaluator&& /*eval*/,
+               ExpressionPtr const& expr,
+               Configuration const& /*env*/) -> ExpressionPtr {
+    if (auto const literal = expr->At("$1")) {
+        return *literal;
+    }
+    return Expression::kNone;
+}
+
 auto IfExpr(SubExprEvaluator&& eval,
             ExpressionPtr const& expr,
             Configuration const& env) -> ExpressionPtr {
@@ -1089,6 +1098,7 @@ auto AssertNonEmptyExpr(SubExprEvaluator&& eval,
 
 auto const kBuiltInFunctions =
     FunctionMap::MakePtr({{"var", VarExpr},
+                          {"'", QuoteExpr},
                           {"if", IfExpr},
                           {"cond", CondExpr},
                           {"case", CaseExpr},
