@@ -218,10 +218,6 @@ class CASServiceImpl final
         -> ::grpc::Status override;
 
   private:
-    [[nodiscard]] auto CheckDigestConsistency(bazel_re::Digest const& ref,
-                                              bazel_re::Digest const& computed)
-        const noexcept -> std::optional<std::string>;
-
     StorageConfig const& storage_config_;
     Storage const& storage_;
     Logger logger_{"execution-service"};
