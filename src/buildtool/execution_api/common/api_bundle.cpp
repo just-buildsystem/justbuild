@@ -21,10 +21,7 @@
 ApiBundle::ApiBundle(gsl::not_null<LocalContext const*> const& local_context,
                      gsl::not_null<RemoteContext const*> const& remote_context,
                      RepositoryConfig const* repo_config)
-    : auth{*remote_context->auth},
-      retry_config{*remote_context->retry_config},
-      remote_config{*remote_context->exec_config},
-      hash_function{local_context->storage_config->hash_function},
+    : hash_function{local_context->storage_config->hash_function},
       local{std::make_shared<LocalApi>(local_context, repo_config)},
       remote{CreateRemote(remote_context->exec_config->remote_address,
                           remote_context->auth,

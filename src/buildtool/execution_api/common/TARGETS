@@ -42,12 +42,8 @@
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
     [ "common"
-    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/common/remote", "remote_common"]
-    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/execution_api/local", "context"]
-    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
