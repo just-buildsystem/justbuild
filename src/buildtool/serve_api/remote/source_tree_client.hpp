@@ -21,9 +21,8 @@
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
-#include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -33,8 +32,9 @@
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class SourceTreeClient {
   public:
-    explicit SourceTreeClient(ServerAddress const& address,
-                              gsl::not_null<Auth const*> const& auth) noexcept;
+    explicit SourceTreeClient(
+        ServerAddress const& address,
+        gsl::not_null<RemoteContext const*> const& remote_context) noexcept;
 
     // An error + data union type
     using result_t = expected<std::string, GitLookupError>;

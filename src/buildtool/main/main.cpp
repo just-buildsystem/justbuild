@@ -890,8 +890,10 @@ auto main(int argc, char* argv[]) -> int {
                 ApiBundle const serve_apis{&local_context,
                                            &remote_context,
                                            /*repo_config=*/nullptr};
-                auto serve =
-                    ServeApi::Create(*serve_config, &storage, &serve_apis);
+                auto serve = ServeApi::Create(*serve_config,
+                                              &local_context,
+                                              &remote_context,
+                                              &serve_apis);
 
                 bool with_execute =
                     not remote_exec_config->remote_address.has_value();
@@ -1021,8 +1023,8 @@ auto main(int argc, char* argv[]) -> int {
             DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        std::optional<ServeApi> serve =
-            ServeApi::Create(*serve_config, &storage, &main_apis);
+        std::optional<ServeApi> serve = ServeApi::Create(
+            *serve_config, &local_context, &remote_context, &main_apis);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL

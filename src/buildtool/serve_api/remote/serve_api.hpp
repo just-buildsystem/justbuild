@@ -30,23 +30,25 @@ class ServeApi final {};
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "src/buildtool/serve_api/remote/target_client.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 class ServeApi final {
   public:
     explicit ServeApi(ServerAddress const& address,
-                      gsl::not_null<Storage const*> const& storage,
+                      gsl::not_null<LocalContext const*> const& local_context,
+                      gsl::not_null<RemoteContext const*> const& remote_context,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : stc_{address, &apis->auth},
-          tc_{address, storage, apis},
-          cc_{address, &apis->auth, &apis->remote_config} {}
+        : stc_{address, remote_context},
+          tc_{address, local_context->storage, remote_context, apis},
+          cc_{address, remote_context} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;
@@ -56,12 +58,15 @@ class ServeApi final {
 
     [[nodiscard]] static auto Create(
         RemoteServeConfig const& serve_config,
-        gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<LocalContext const*> const& local_context,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         gsl::not_null<ApiBundle const*> const& apis) noexcept
         -> std::optional<ServeApi> {
         if (serve_config.remote_address) {
-            return std::make_optional<ServeApi>(
-                *serve_config.remote_address, storage, apis);
+            return std::make_optional<ServeApi>(*serve_config.remote_address,
+                                                local_context,
+                                                remote_context,
+                                                apis);
         }
         return std::nullopt;
     }

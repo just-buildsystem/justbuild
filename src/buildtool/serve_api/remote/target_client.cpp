@@ -23,15 +23,18 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-TargetClient::TargetClient(ServerAddress const& address,
-                           gsl::not_null<Storage const*> const& storage,
-                           gsl::not_null<ApiBundle const*> const& apis) noexcept
-    : storage_{*storage}, apis_{*apis} {
-    stub_ = justbuild::just_serve::Target::NewStub(
-        CreateChannelWithCredentials(address.host, address.port, &apis->auth));
+TargetClient::TargetClient(
+    ServerAddress const& address,
+    gsl::not_null<Storage const*> const& storage,
+    gsl::not_null<RemoteContext const*> const& remote_context,
+    gsl::not_null<ApiBundle const*> const& apis) noexcept
+    : storage_{*storage},
+      exec_config_{*remote_context->exec_config},
+      apis_{*apis} {
+    stub_ = justbuild::just_serve::Target::NewStub(CreateChannelWithCredentials(
+        address.host, address.port, remote_context->auth));
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,
@@ -60,7 +63,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     request.mutable_target_cache_key_id()->CopyFrom(key_dgst);
 
     // add execution properties to request
-    for (auto const& [k, v] : apis_.remote_config.platform_properties) {
+    for (auto const& [k, v] : exec_config_.platform_properties) {
         auto* prop = request.add_execution_properties();
         prop->set_name(k);
         prop->set_value(v);
@@ -70,7 +73,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     // to remote cas
     auto dispatch_list = nlohmann::json::array();
     try {
-        for (auto const& [props, endpoint] : apis_.remote_config.dispatch) {
+        for (auto const& [props, endpoint] : exec_config_.dispatch) {
             auto entry = nlohmann::json::array();
             entry.push_back(nlohmann::json(props));
             entry.push_back(endpoint.ToJson());

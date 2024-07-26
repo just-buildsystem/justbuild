@@ -29,6 +29,8 @@
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -53,9 +55,11 @@ using serve_target_result_t =
 /// src/buildtool/serve_api/serve_service/just_serve.proto
 class TargetClient {
   public:
-    explicit TargetClient(ServerAddress const& address,
-                          gsl::not_null<Storage const*> const& storage,
-                          gsl::not_null<ApiBundle const*> const& apis) noexcept;
+    explicit TargetClient(
+        ServerAddress const& address,
+        gsl::not_null<Storage const*> const& storage,
+        gsl::not_null<RemoteContext const*> const& remote_context,
+        gsl::not_null<ApiBundle const*> const& apis) noexcept;
 
     /// \brief Retrieve the pair of TargetCacheEntry and ObjectInfo associated
     /// to the given key.
@@ -90,6 +94,7 @@ class TargetClient {
 
   private:
     Storage const& storage_;
+    RemoteExecutionConfig const& exec_config_;
     ApiBundle const& apis_;
     std::unique_ptr<justbuild::just_serve::Target::Stub> stub_;
     Logger logger_{"RemoteTargetClient"};

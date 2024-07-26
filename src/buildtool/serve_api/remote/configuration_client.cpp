@@ -20,8 +20,19 @@
 #include <optional>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
+
+ConfigurationClient::ConfigurationClient(
+    ServerAddress address,
+    gsl::not_null<RemoteContext const*> const& remote_context) noexcept
+    : client_serve_address_{std::move(address)},
+      remote_config_{*remote_context->exec_config} {
+    stub_ = justbuild::just_serve::Configuration::NewStub(
+        CreateChannelWithCredentials(client_serve_address_.host,
+                                     client_serve_address_.port,
+                                     remote_context->auth));
+}
 
 auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
     auto const client_remote_address = remote_config_.remote_address;
