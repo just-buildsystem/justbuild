@@ -18,7 +18,6 @@
 
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
@@ -77,9 +76,11 @@ namespace {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 auto FetchAndInstallArtifacts(ApiBundle const& apis,
-                              FetchArguments const& clargs) -> bool {
+                              FetchArguments const& clargs,
+                              RemoteContext const& remote_context) -> bool {
     auto object_info = ObjectInfoFromLiberalString(
-        clargs.object_id, apis.remote_config.remote_address.has_value());
+        clargs.object_id,
+        remote_context.exec_config->remote_address.has_value());
 
     if (clargs.remember) {
         if (not apis.remote->ParallelRetrieveToCas(

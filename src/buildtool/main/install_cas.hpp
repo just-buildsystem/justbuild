@@ -17,20 +17,22 @@
 
 #include <string>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/cli.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #endif
 
+/// \note Method is public for use also in tests.
 [[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s,
                                                bool has_remote) noexcept
     -> Artifact::ObjectInfo;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 [[nodiscard]] auto FetchAndInstallArtifacts(ApiBundle const& apis,
-                                            FetchArguments const& clargs)
+                                            FetchArguments const& clargs,
+                                            RemoteContext const& remote_context)
     -> bool;
 #endif
 

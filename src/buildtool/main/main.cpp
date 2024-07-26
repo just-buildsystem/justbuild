@@ -1008,7 +1008,8 @@ auto main(int argc, char* argv[]) -> int {
                             "Failed set Git CAS {}.",
                             storage_config->GitRoot().string());
             }
-            return FetchAndInstallArtifacts(main_apis, arguments.fetch)
+            return FetchAndInstallArtifacts(
+                       main_apis, arguments.fetch, remote_context)
                        ? kExitSuccess
                        : kExitFailure;
         }
