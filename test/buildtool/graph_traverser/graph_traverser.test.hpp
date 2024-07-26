@@ -190,8 +190,7 @@ class TestProject {
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             &stats,
                             &progress,
                             &apis,
@@ -216,8 +215,7 @@ class TestProject {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         GraphTraverser const gt_get_exec{clargs_exec.gtargs,
                                          p.GetRepoConfig(),
-                                         remote_config->platform_properties,
-                                         remote_config->dispatch,
+                                         &remote_context,
                                          &stats,
                                          &progress,
                                          &apis,
@@ -270,8 +268,7 @@ class TestProject {
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             &stats,
                             &progress,
                             &apis,
@@ -319,8 +316,7 @@ class TestProject {
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             &stats,
                             &progress,
                             &apis,
@@ -335,8 +331,7 @@ class TestProject {
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
     GraphTraverser const gt_full_build{clargs_full_build.gtargs,
                                        p.GetRepoConfig(),
-                                       remote_config->platform_properties,
-                                       remote_config->dispatch,
+                                       &remote_context,
                                        &stats,
                                        &progress,
                                        &apis,
@@ -389,8 +384,7 @@ class TestProject {
 
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
-                                   remote_config->platform_properties,
-                                   remote_config->dispatch,
+                                   &remote_context,
                                    &stats,
                                    &progress,
                                    &apis,
@@ -412,8 +406,7 @@ class TestProject {
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
     GraphTraverser const gt{clargs.gtargs,
                             full_hello_world.GetRepoConfig(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             &stats,
                             &progress,
                             &apis,
@@ -464,8 +457,7 @@ static void TestBlobsUploadedAndUsed(
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      remote_config->platform_properties,
-                      remote_config->dispatch,
+                      &remote_context,
                       &stats,
                       &progress,
                       &apis,
@@ -521,8 +513,7 @@ static void TestEnvironmentVariablesSetAndUsed(
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      remote_config->platform_properties,
-                      remote_config->dispatch,
+                      &remote_context,
                       &stats,
                       &progress,
                       &apis,
@@ -578,8 +569,7 @@ static void TestTreesUsed(
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      remote_config->platform_properties,
-                      remote_config->dispatch,
+                      &remote_context,
                       &stats,
                       &progress,
                       &apis,
@@ -635,8 +625,7 @@ static void TestNestedTreesUsed(
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
-                      remote_config->platform_properties,
-                      remote_config->dispatch,
+                      &remote_context,
                       &stats,
                       &progress,
                       &apis,
@@ -693,8 +682,7 @@ static void TestFlakyHelloWorldDetected(
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{clargs.gtargs,
                                 p.GetRepoConfig(),
-                                remote_config->platform_properties,
-                                remote_config->dispatch,
+                                &remote_context,
                                 &stats,
                                 &progress,
                                 &apis,
@@ -714,8 +702,7 @@ static void TestFlakyHelloWorldDetected(
     clargs_output.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_output{clargs_output.gtargs,
                                    p.GetRepoConfig(),
-                                   remote_config->platform_properties,
-                                   remote_config->dispatch,
+                                   &remote_context,
                                    &stats,
                                    &progress,
                                    &apis,
@@ -732,8 +719,7 @@ static void TestFlakyHelloWorldDetected(
     clargs_stripped.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_stripped{clargs_stripped.gtargs,
                                      p.GetRepoConfig(),
-                                     remote_config->platform_properties,
-                                     remote_config->dispatch,
+                                     &remote_context,
                                      &stats,
                                      &progress,
                                      &apis,
@@ -750,8 +736,7 @@ static void TestFlakyHelloWorldDetected(
     clargs_ctimes.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_ctimes{clargs_ctimes.gtargs,
                                    p.GetRepoConfig(),
-                                   remote_config->platform_properties,
-                                   remote_config->dispatch,
+                                   &remote_context,
                                    &stats,
                                    &progress,
                                    &apis,

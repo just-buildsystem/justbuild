@@ -33,7 +33,6 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
-#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
@@ -76,8 +75,7 @@ class GraphTraverser {
     explicit GraphTraverser(
         CommandLineArguments clargs,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        ExecutionProperties platform_properties,
-        std::vector<DispatchEndpoint> dispatch_list,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         gsl::not_null<ApiBundle const*> const& apis,
@@ -85,8 +83,7 @@ class GraphTraverser {
         Logger const* logger = nullptr)
         : clargs_{std::move(clargs)},
           repo_config_{repo_config},
-          platform_properties_{std::move(platform_properties)},
-          dispatch_list_{std::move(dispatch_list)},
+          remote_context_{*remote_context},
           stats_{stats},
           progress_{progress},
           apis_{*apis},
@@ -226,8 +223,7 @@ class GraphTraverser {
   private:
     CommandLineArguments const clargs_;
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    ExecutionProperties platform_properties_;
-    std::vector<DispatchEndpoint> dispatch_list_;
+    RemoteContext const& remote_context_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     ApiBundle const& apis_;
@@ -361,11 +357,11 @@ class GraphTraverser {
         Executor executor{repo_config_,
                           &*apis_.local,
                           &*apis_.remote,
-                          platform_properties_,
-                          dispatch_list_,
+                          remote_context_.exec_config->platform_properties,
+                          remote_context_.exec_config->dispatch,
                           apis_.hash_function,
-                          &apis_.auth,
-                          &apis_.retry_config,
+                          remote_context_.auth,
+                          remote_context_.retry_config,
                           stats_,
                           progress_,
                           logger_,
@@ -391,18 +387,19 @@ class GraphTraverser {
         DependencyGraph const& g,
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
-        auto api_cached = apis_.CreateRemote(apis_.remote_config.cache_address,
-                                             &apis_.auth,
-                                             &apis_.retry_config);
+        auto api_cached =
+            apis_.CreateRemote(remote_context_.exec_config->cache_address,
+                               remote_context_.auth,
+                               remote_context_.retry_config);
         Rebuilder executor{repo_config_,
                            &*apis_.local,
                            &*apis_.remote,
                            &*api_cached,
-                           platform_properties_,
-                           dispatch_list_,
+                           remote_context_.exec_config->platform_properties,
+                           remote_context_.exec_config->dispatch,
                            apis_.hash_function,
-                           &apis_.auth,
-                           &apis_.retry_config,
+                           remote_context_.auth,
+                           remote_context_.retry_config,
                            stats_,
                            progress_,
                            clargs_.build.timeout};

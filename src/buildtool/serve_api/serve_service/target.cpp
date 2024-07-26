@@ -507,8 +507,7 @@ auto TargetService::ServeTarget(
         GraphTraverser const traverser{
             std::move(traverser_args),
             &repository_config,
-            remote_config->platform_properties,
-            remote_config->dispatch,
+            &dispatch_context,
             &stats,
             &progress,
             &local_apis,
