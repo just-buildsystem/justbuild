@@ -15,16 +15,19 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_HPP
 
-#include <utility>  // std::move
+#include <memory>
+#include <optional>
+#include <string>
 
 #include "gsl/gsl"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/uplinker.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 // forward declarations
 namespace build::bazel::remote::execution::v2 {
@@ -96,8 +99,35 @@ class LocalAC {
         file_store_;
     Uplinker<kDoGlobalUplink> const& uplinker_;
 
-    [[nodiscard]] auto ReadResult(bazel_re::Digest const& digest) const noexcept
-        -> std::optional<bazel_re::ActionResult>;
+    /// \brief Add an entry to the ActionCache.
+    /// \param action_id The id of the action that produced the result.
+    /// \param cas_key The key pointing at an ActionResult in the LocalCAS.
+    /// \return True if an entry was successfully added to the storage.
+    [[nodiscard]] auto WriteActionKey(
+        bazel_re::Digest const& action_id,
+        bazel_re::Digest const& cas_key) const noexcept -> bool;
+
+    /// \brief Get the key pointing at an ActionResult in the LocalCAS.
+    /// \param action_id The id of the action that produced the result.
+    /// \return The key of an Action pointing at an ActionResult in the LocalCAS
+    /// on success or an error message on failure.
+    [[nodiscard]] auto ReadActionKey(bazel_re::Digest const& action_id)
+        const noexcept -> expected<bazel_re::Digest, std::string>;
+
+    /// \brief Add an action to the LocalCAS.
+    /// \param action The action result to store.
+    /// \return The key pointing at an ActionResult present in the LocalCAS on
+    /// success or std::nullopt on failure.
+    [[nodiscard]] auto WriteAction(bazel_re::ActionResult const& action)
+        const noexcept -> std::optional<bazel_re::Digest>;
+
+    /// \brief Get the action specified by a key from the LocalCAS.
+    /// \param cas_key The key pointing at an ActionResult present in the
+    /// LocalCAS.
+    /// \return The ActionResult corresponding to a cas_key on success
+    /// or std::nullopt on failure.
+    [[nodiscard]] auto ReadAction(bazel_re::Digest const& cas_key)
+        const noexcept -> std::optional<bazel_re::ActionResult>;
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL
