@@ -499,6 +499,125 @@ auto VarExpr(SubExprEvaluator&& eval,
     return result;
 }
 
+auto OnlyInQuasiQuote(SubExprEvaluator&& /*eval*/,
+                      ExpressionPtr const& /*expr*/,
+                      Configuration const& /*env*/) -> ExpressionPtr {
+    throw Evaluator::EvaluationError{
+        R"("," and ",@" are only evaluated within quasi-quote ("`") environments.)"};
+}
+
+auto ExpandQuasiQuote(const SubExprEvaluator& eval,
+                      ExpressionPtr const& expr,
+                      Configuration const& env) -> ExpressionPtr;
+
+// NOLINTNEXTLINE(misc-no-recursion)
+auto ExpandQuasiQuoteListEntry(const SubExprEvaluator& eval,
+                               ExpressionPtr const& expr,
+                               Configuration const& env) -> ExpressionPtr {
+    if (expr->IsList()) {
+        auto result = Expression::list_t{};
+        for (auto const& entry : expr->List()) {
+            auto expanded = ExpandQuasiQuoteListEntry(eval, entry, env);
+            std::copy(expanded->List().begin(),
+                      expanded->List().end(),
+                      std::back_inserter(result));
+        }
+        return ExpressionPtr{Expression::list_t{ExpressionPtr{result}}};
+    }
+    if (expr->IsMap()) {
+        if (auto type_token = expr->At("type")) {
+            if (type_token->get()->IsString()) {
+                auto token = type_token->get()->String();
+                if (token == ",") {
+                    auto arg = expr->At("$1");
+                    if (not arg) {
+                        return ExpressionPtr{Expression::kNone};
+                    }
+                    auto result = eval(*arg, env);
+                    return ExpressionPtr{Expression::list_t{result}};
+                }
+                if (token == ",@") {
+                    auto arg = expr->At("$1");
+                    if (not arg) {
+                        return Expression::kEmptyList;
+                    }
+                    auto result = eval(*arg, env);
+                    if (not result->IsList()) {
+                        throw Evaluator::EvaluationError{fmt::format(
+                            "Argument of \",@\"-expresion {} should evaluate "
+                            "to a list, but obtained {}",
+                            expr->ToString(),
+                            result->ToString())};
+                    }
+                    return result;
+                }
+            }
+        }
+        // regular map, walk through the entries and quasiquote expand them
+        auto result = Expression::map_t::underlying_map_t{};
+        for (auto const& el : expr->Map()) {
+            auto expanded = ExpandQuasiQuote(eval, el.second, env);
+            result[el.first] = expanded;
+        }
+        return ExpressionPtr{Expression::map_t{result}};
+    }
+    // not a container, spliced literally, i.e., return singleton list
+    return ExpressionPtr{Expression::list_t{expr}};
+}
+
+// NOLINTNEXTLINE(misc-no-recursion)
+auto ExpandQuasiQuote(const SubExprEvaluator& eval,
+                      ExpressionPtr const& expr,
+                      Configuration const& env) -> ExpressionPtr {
+    if (expr->IsList()) {
+        auto result = Expression::list_t{};
+        for (auto const& entry : expr->List()) {
+            auto expanded = ExpandQuasiQuoteListEntry(eval, entry, env);
+            std::copy(expanded->List().begin(),
+                      expanded->List().end(),
+                      std::back_inserter(result));
+        }
+        return ExpressionPtr{result};
+    }
+    if (expr->IsMap()) {
+        if (auto type_token = expr->At("type")) {
+            if (type_token->get()->IsString()) {
+                auto token = type_token->get()->String();
+                if (token == ",") {
+                    auto arg = expr->At("$1");
+                    if (not arg) {
+                        return Expression::kNone;
+                    }
+                    return eval(*arg, env);
+                }
+                if (token == ",@") {
+                    throw Evaluator::EvaluationError{fmt::format(
+                        "\",@\"-expression found in non-list context: {}",
+                        expr->ToString())};
+                }
+            }
+        }
+        // regular map, walk through the entries and quasiquote expand them
+        auto result = Expression::map_t::underlying_map_t{};
+        for (auto const& el : expr->Map()) {
+            auto expanded = ExpandQuasiQuote(eval, el.second, env);
+            result[el.first] = expanded;
+        }
+        return ExpressionPtr{Expression::map_t{result}};
+    }
+    // not a container, return literal anyway
+    return expr;
+}
+
+auto QuasiQuoteExpr(SubExprEvaluator&& eval,
+                    ExpressionPtr const& expr,
+                    Configuration const& env) -> ExpressionPtr {
+    if (auto const to_expand = expr->At("$1")) {
+        return ExpandQuasiQuote(eval, *to_expand, env);
+    }
+    return Expression::kNone;
+}
+
 auto QuoteExpr(SubExprEvaluator&& /*eval*/,
                ExpressionPtr const& expr,
                Configuration const& /*env*/) -> ExpressionPtr {
@@ -1099,6 +1218,9 @@ auto AssertNonEmptyExpr(SubExprEvaluator&& eval,
 auto const kBuiltInFunctions =
     FunctionMap::MakePtr({{"var", VarExpr},
                           {"'", QuoteExpr},
+                          {"`", QuasiQuoteExpr},
+                          {",", OnlyInQuasiQuote},
+                          {",@", OnlyInQuasiQuote},
                           {"if", IfExpr},
                           {"cond", CondExpr},
                           {"case", CaseExpr},

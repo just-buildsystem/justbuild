@@ -405,6 +405,60 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK(result_empty == Expression::FromJson(R"(null)"_json));
     }
 
+    SECTION("quasi-quote expression") {
+        auto expr = Expression::FromJson(R"({"type": "`", "$1":
+          { "foo": {"type": ",", "$1": {"type": "var", "name": "foo_var"}}
+          , "bar": [ 1, 2, ["deep", "literals"]
+                   , {"type": ",@", "$1": {"type": "var", "name": "bar_var"}}
+                   , 3
+                   , {"type": ",", "$1": {"type": "var", "name": "bar_plain"}}
+                   , 4, 5
+                   , {"type": ",", "$1": {"type": "var", "name": "foo_var"}}
+                   , [ "deep", "expansion"
+                    , {"type": ",", "$1": {"type": "var", "name": "bar_plain"}}
+                    , {"type": ",@", "$1": {"type": "var", "name": "bar_var"}}
+                    , {"type": ",", "$1": {"type": "var", "name": "foo_var"}}
+                    ]
+                   ]
+          }
+        })"_json);
+        REQUIRE(expr);
+        env = env.Update("foo_var", "foo value"s);
+        env = env.Update("bar_var",
+                         Expression::FromJson(R"(["b", "a", "r"])"_json));
+        env =
+            env.Update("bar_plain",
+                       Expression::FromJson(R"(["kept", "as", "list"])"_json));
+        auto result = expr.Evaluate(env, fcts);
+        auto expected = Expression::FromJson(R"(
+          { "foo": "foo value"
+          , "bar": [ 1, 2, ["deep", "literals"]
+                   , "b", "a", "r"
+                   , 3
+                   , ["kept", "as", "list"]
+                   , 4, 5
+                   , "foo value"
+                   , [ "deep", "expansion"
+                     , ["kept", "as", "list"]
+                     , "b", "a", "r"
+                     , "foo value"
+                     ]
+                   ]
+         })"_json);
+
+        CHECK(result == expected);
+
+        auto doc_example_a = Expression::FromJson(
+            R"({"type": "`", "$1": [1, 2, {"type": ",@", "$1": [3, 4]}]})"_json);
+        auto result_a = doc_example_a.Evaluate(env, fcts);
+        CHECK(result_a == Expression::FromJson(R"([1, 2, 3, 4])"_json));
+
+        auto doc_example_b = Expression::FromJson(
+            R"({"type": "`", "$1": [1, 2, {"type": ",", "$1": [3, 4]}]})"_json);
+        auto result_b = doc_example_b.Evaluate(env, fcts);
+        CHECK(result_b == Expression::FromJson(R"([1, 2, [3, 4]])"_json));
+    }
+
     SECTION("if expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "if"
