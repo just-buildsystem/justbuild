@@ -827,6 +827,7 @@ auto main(int argc, char* argv[]) -> int {
                                           /*repo_config=*/nullptr};
 
                 return execution_server->Run(&local_context,
+                                             &remote_context,
                                              exec_apis,
                                              arguments.service.op_exponent)
                            ? kExitSuccess

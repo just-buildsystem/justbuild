@@ -23,6 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 
 class ServerImpl final {
   public:
@@ -43,10 +44,12 @@ class ServerImpl final {
 
     /// \brief Start the execution service.
     /// \param local_context    The LocalContext to be used.
+    /// \param remote_context   The RemoteContext to be used.
     /// \param apis             Apis to be used, only local api is actually
     ///                         needed.
     /// \param op_exponent      Log2 threshold for operation cache.
     auto Run(gsl::not_null<LocalContext const*> const& local_context,
+             gsl::not_null<RemoteContext const*> const& remote_context,
              ApiBundle const& apis,
              std::optional<std::uint8_t> op_exponent) -> bool;
 

@@ -34,7 +34,6 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -82,6 +81,7 @@ auto ServerImpl::Create(std::optional<std::string> interface,
 }
 
 auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
+                     gsl::not_null<RemoteContext const*> const& remote_context,
                      ApiBundle const& apis,
                      std::optional<std::uint8_t> op_exponent) -> bool {
     ExecutionServiceImpl es{local_context, &*apis.local, op_exponent};
@@ -102,7 +102,8 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
 
     // check authentication credentials; currently only TLS/SSL is supported
     std::shared_ptr<grpc::ServerCredentials> creds;
-    if (const auto* tls_auth = std::get_if<Auth::TLS>(&apis.auth.method);
+    if (const auto* tls_auth =
+            std::get_if<Auth::TLS>(&remote_context->auth->method);
         tls_auth != nullptr) {
         auto tls_opts = grpc::SslServerCredentialsOptions{};
 
