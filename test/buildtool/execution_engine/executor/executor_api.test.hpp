@@ -33,6 +33,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -137,6 +138,9 @@ static inline void RunHelloWorldCompilation(
     REQUIRE(remote_config);
 
     RetryConfig retry_config{};  // default retry config
+    RemoteContext const remote_context{.auth = auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &*remote_config};
 
     HashFunction const hash_function{Compatibility::IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
@@ -146,11 +150,8 @@ static inline void RunHelloWorldCompilation(
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    remote_config->platform_properties,
-                    remote_config->dispatch,
+                    &remote_context,
                     hash_function,
-                    auth,
-                    &retry_config,
                     stats,
                     progress};
 
@@ -271,6 +272,9 @@ static inline void RunGreeterCompilation(
     REQUIRE(remote_config);
 
     RetryConfig retry_config{};  // default retry config
+    RemoteContext const remote_context{.auth = auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &*remote_config};
 
     HashFunction const hash_function{Compatibility::IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
@@ -280,11 +284,8 @@ static inline void RunGreeterCompilation(
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    remote_config->platform_properties,
-                    remote_config->dispatch,
+                    &remote_context,
                     hash_function,
-                    auth,
-                    &retry_config,
                     stats,
                     progress};
 
@@ -450,15 +451,15 @@ static inline void TestUploadAndDownloadTrees(
     REQUIRE(remote_config);
 
     RetryConfig retry_config{};  // default retry config
+    RemoteContext const remote_context{.auth = auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &*remote_config};
 
     Executor runner{repo_config,
                     api.get(),
                     api.get(),
-                    remote_config->platform_properties,
-                    remote_config->dispatch,
+                    &remote_context,
                     hash_function,
-                    auth,
-                    &retry_config,
                     stats,
                     progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
@@ -610,6 +611,9 @@ static inline void TestRetrieveOutputDirectories(
     REQUIRE(remote_config);
 
     RetryConfig retry_config{};  // default retry config
+    RemoteContext const remote_context{.auth = auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &*remote_config};
 
     SECTION("entire action output as directory") {
         auto const make_tree_desc = create_action({}, {""});
@@ -629,11 +633,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        remote_config->platform_properties,
-                        remote_config->dispatch,
+                        &remote_context,
                         hash_function,
-                        auth,
-                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -685,11 +686,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        remote_config->platform_properties,
-                        remote_config->dispatch,
+                        &remote_context,
                         hash_function,
-                        auth,
-                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -758,11 +756,8 @@ static inline void TestRetrieveOutputDirectories(
         Executor runner{repo_config,
                         api.get(),
                         api.get(),
-                        remote_config->platform_properties,
-                        remote_config->dispatch,
+                        &remote_context,
                         hash_function,
-                        auth,
-                        &retry_config,
                         stats,
                         progress};
         REQUIRE(runner.Process(action));
@@ -833,11 +828,8 @@ static inline void TestRetrieveOutputDirectories(
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             hash_function,
-                            auth,
-                            &retry_config,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));
@@ -861,11 +853,8 @@ static inline void TestRetrieveOutputDirectories(
             Executor runner{repo_config,
                             api.get(),
                             api.get(),
-                            remote_config->platform_properties,
-                            remote_config->dispatch,
+                            &remote_context,
                             hash_function,
-                            auth,
-                            &retry_config,
                             stats,
                             progress};
             CHECK_FALSE(runner.Process(action));

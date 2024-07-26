@@ -30,6 +30,8 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -289,15 +291,16 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -312,15 +315,16 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -335,15 +339,16 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -383,15 +388,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -409,15 +415,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -435,15 +442,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -464,15 +472,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -490,15 +499,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 
@@ -519,15 +529,16 @@ TEST_CASE("Executor: Process action", "[executor]") {
         Statistics stats{};
         Progress progress{};
         Auth auth{};
-        RetryConfig retry_config{};  // default retry config
+        RetryConfig retry_config{};             // default retry config
+        RemoteExecutionConfig remote_config{};  // default remote config
+        RemoteContext const remote_context{.auth = &auth,
+                                           .retry_config = &retry_config,
+                                           .exec_config = &remote_config};
         Executor runner{&repo_config,
                         api.get(),
                         api.get(),
-                        /*properties=*/{},
-                        /*dispatch_list=*/{},
+                        &remote_context,
                         hash_function,
-                        &auth,
-                        &retry_config,
                         &stats,
                         &progress};
 

@@ -28,10 +28,7 @@
 #include <vector>
 
 #include "gsl/gsl"
-#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/remote/remote_common.hpp"
-#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
@@ -42,6 +39,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -60,11 +58,9 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         IExecutionApi const& api,
-        ExecutionProperties const& properties,
-        std::vector<DispatchEndpoint> const& dispatch_list,
+        ExecutionProperties const& merged_properties,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         HashFunction hash_function,
-        gsl::not_null<Auth const*> const& auth,
-        gsl::not_null<RetryConfig const*> const& retry_config,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
         gsl::not_null<Statistics*> const& stats,
@@ -112,8 +108,9 @@ class ExecutorImpl {
             stats->IncrementActionsQueuedCounter();
         }
 
+        // get the alternative endpoint
         auto alternative_api = GetAlternativeEndpoint(
-            properties, dispatch_list, auth, retry_config, hash_function);
+            merged_properties, remote_context, hash_function);
         if (alternative_api) {
             if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -134,7 +131,7 @@ class ExecutorImpl {
                                                action->OutputFilePaths(),
                                                action->OutputDirPaths(),
                                                action->Env(),
-                                               properties);
+                                               merged_properties);
 
         if (remote_action == nullptr) {
             logger.Emit(LogLevel::Error,
@@ -670,13 +667,15 @@ class ExecutorImpl {
     }
 
   private:
+    /// \brief Get the alternative endpoint based on a specified set of platform
+    /// properties. These are checked against the dispatch list of an existing
+    /// remote context.
     [[nodiscard]] static inline auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
-        const std::vector<DispatchEndpoint>& dispatch_list,
-        const gsl::not_null<Auth const*>& auth,
-        const gsl::not_null<RetryConfig const*>& retry_config,
+        const gsl::not_null<RemoteContext const*>& remote_context,
         HashFunction hash_function) -> std::unique_ptr<BazelApi> {
-        for (auto const& [pred, endpoint] : dispatch_list) {
+        for (auto const& [pred, endpoint] :
+             remote_context->exec_config->dispatch) {
             bool match = true;
             for (auto const& [k, v] : pred) {
                 auto v_it = properties.find(k);
@@ -694,8 +693,8 @@ class ExecutorImpl {
                     "alternative remote execution",
                     endpoint.host,
                     endpoint.port,
-                    auth,
-                    retry_config,
+                    remote_context->auth,
+                    remote_context->retry_config,
                     config,
                     hash_function);
             }
@@ -714,11 +713,8 @@ class Executor {
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         gsl::not_null<IExecutionApi const*> const& local_api,
         gsl::not_null<IExecutionApi const*> const& remote_api,
-        ExecutionProperties properties,
-        std::vector<DispatchEndpoint> dispatch_list,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         HashFunction hash_function,
-        gsl::not_null<Auth const*> const& auth,
-        gsl::not_null<RetryConfig const*> const& retry_config,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         Logger const* logger = nullptr,  // log in caller logger, if given
@@ -726,11 +722,8 @@ class Executor {
         : repo_config_{repo_config},
           local_api_{*local_api},
           remote_api_{*remote_api},
-          properties_{std::move(properties)},
-          dispatch_list_{std::move(dispatch_list)},
+          remote_context_{*remote_context},
           hash_function_{hash_function},
-          auth_{*auth},
-          retry_config_{*retry_config},
           stats_{stats},
           progress_{progress},
           logger_{logger},
@@ -750,12 +743,11 @@ class Executor {
                 *logger_,
                 action,
                 remote_api_,
-                Impl::MergeProperties(properties_,
-                                      action->ExecutionProperties()),
-                dispatch_list_,
+                Impl::MergeProperties(
+                    remote_context_.exec_config->platform_properties,
+                    action->ExecutionProperties()),
+                &remote_context_,
                 hash_function_,
-                &auth_,
-                &retry_config_,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
                 stats_,
@@ -772,11 +764,11 @@ class Executor {
             logger,
             action,
             remote_api_,
-            Impl::MergeProperties(properties_, action->ExecutionProperties()),
-            dispatch_list_,
+            Impl::MergeProperties(
+                remote_context_.exec_config->platform_properties,
+                action->ExecutionProperties()),
+            &remote_context_,
             hash_function_,
-            &auth_,
-            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
             stats_,
@@ -819,11 +811,8 @@ class Executor {
     gsl::not_null<const RepositoryConfig*> repo_config_;
     IExecutionApi const& local_api_;
     IExecutionApi const& remote_api_;
-    ExecutionProperties properties_;
-    std::vector<DispatchEndpoint> dispatch_list_;
+    RemoteContext const& remote_context_;
     HashFunction const hash_function_;
-    Auth const& auth_;
-    RetryConfig const& retry_config_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     Logger const* logger_;
@@ -846,11 +835,8 @@ class Rebuilder {
         gsl::not_null<IExecutionApi const*> const& local_api,
         gsl::not_null<IExecutionApi const*> const& remote_api,
         gsl::not_null<IExecutionApi const*> const& api_cached,
-        ExecutionProperties properties,
-        std::vector<DispatchEndpoint> dispatch_list,
+        gsl::not_null<RemoteContext const*> const& remote_context,
         HashFunction hash_function,
-        gsl::not_null<Auth const*> const& auth,
-        gsl::not_null<RetryConfig const*> const& retry_config,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
@@ -858,11 +844,8 @@ class Rebuilder {
           local_api_{*local_api},
           remote_api_{*remote_api},
           api_cached_{*api_cached},
-          properties_{std::move(properties)},
-          dispatch_list_{std::move(dispatch_list)},
+          remote_context_{*remote_context},
           hash_function_{hash_function},
-          auth_{*auth},
-          retry_config_{*retry_config},
           stats_{stats},
           progress_{progress},
           timeout_{timeout} {}
@@ -876,11 +859,11 @@ class Rebuilder {
             logger,
             action,
             remote_api_,
-            Impl::MergeProperties(properties_, action->ExecutionProperties()),
-            dispatch_list_,
+            Impl::MergeProperties(
+                remote_context_.exec_config->platform_properties,
+                action->ExecutionProperties()),
+            &remote_context_,
             hash_function_,
-            &auth_,
-            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
             stats_,
@@ -895,11 +878,11 @@ class Rebuilder {
             logger_cached,
             action,
             api_cached_,
-            Impl::MergeProperties(properties_, action->ExecutionProperties()),
-            dispatch_list_,
+            Impl::MergeProperties(
+                remote_context_.exec_config->platform_properties,
+                action->ExecutionProperties()),
+            &remote_context_,
             hash_function_,
-            &auth_,
-            &retry_config_,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
             stats_,
@@ -949,11 +932,8 @@ class Rebuilder {
     IExecutionApi const& local_api_;
     IExecutionApi const& remote_api_;
     IExecutionApi const& api_cached_;
-    ExecutionProperties properties_;
-    std::vector<DispatchEndpoint> dispatch_list_;
+    RemoteContext const& remote_context_;
     HashFunction const hash_function_;
-    Auth const& auth_;
-    RetryConfig const& retry_config_;
     gsl::not_null<Statistics*> stats_;
     gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;
