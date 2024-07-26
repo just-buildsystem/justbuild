@@ -18,6 +18,8 @@ A feature release on top of `1.3.0`, backwards compatible.
   will not lead to an inconsistent state; however, the directories
   at the old location will not be used anymore while still using
   disk space.
+- The expression language has been extended to contain quote and
+  quasi-quote expressions.
 
 ### Fixes
 
