@@ -17,6 +17,7 @@
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     , ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
+    , ["utils", "test_api_bundle"]
     , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
@@ -42,6 +43,7 @@
     , ["", "catch-main"]
     , ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
+    , ["utils", "test_api_bundle"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }

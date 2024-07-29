@@ -35,6 +35,7 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "test/utils/executor/test_api_bundle.hpp"
 
 /// \brief Mockup API test config.
 struct TestApiConfig {
@@ -296,9 +297,9 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -320,9 +321,9 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -344,9 +345,9 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -393,9 +394,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -420,9 +421,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -447,9 +448,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -477,9 +478,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -504,9 +505,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,
@@ -534,9 +535,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
         RemoteContext const remote_context{.auth = &auth,
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{&repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         &stats,

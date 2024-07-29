@@ -34,6 +34,7 @@
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -172,8 +173,7 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        IExecutionApi const& remote_api,
-        IExecutionApi const& local_api,
+        ApiBundle const& apis,
         HashFunction hash_function) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
         auto const file_path_opt = artifact->Content().FilePath();
@@ -196,16 +196,17 @@ class ExecutorImpl {
                     << std::endl;
                 return oss.str();
             });
-            if (not remote_api.IsAvailable(object_info_opt->digest)) {
+            if (not apis.remote->IsAvailable(object_info_opt->digest)) {
                 // Check if requested artifact is available in local CAS and
                 // upload to remote CAS in case it is.
-                if (local_api.IsAvailable(object_info_opt->digest) and
-                    local_api.RetrieveToCas({*object_info_opt}, remote_api)) {
+                if (apis.local->IsAvailable(object_info_opt->digest) and
+                    apis.local->RetrieveToCas({*object_info_opt},
+                                              *apis.remote)) {
                     return true;
                 }
 
                 if (not VerifyOrUploadKnownArtifact(
-                        remote_api,
+                        *apis.remote,
                         artifact->Content().Repository(),
                         repo_config,
                         *object_info_opt)) {
@@ -233,7 +234,7 @@ class ExecutorImpl {
         });
         auto repo = artifact->Content().Repository();
         auto new_info = UploadFile(
-            remote_api, hash_function, repo, repo_config, *file_path_opt);
+            *apis.remote, hash_function, repo, repo_config, *file_path_opt);
         if (not new_info) {
             Logger::Log(LogLevel::Error,
                         "artifact in {} could not be uploaded to CAS.",
@@ -711,8 +712,7 @@ class Executor {
   public:
     explicit Executor(
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<IExecutionApi const*> const& local_api,
-        gsl::not_null<IExecutionApi const*> const& remote_api,
+        gsl::not_null<ApiBundle const*> const& apis,
         gsl::not_null<RemoteContext const*> const& remote_context,
         HashFunction hash_function,
         gsl::not_null<Statistics*> const& stats,
@@ -720,8 +720,7 @@ class Executor {
         Logger const* logger = nullptr,  // log in caller logger, if given
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
-          local_api_{*local_api},
-          remote_api_{*remote_api},
+          apis_{*apis},
           remote_context_{*remote_context},
           hash_function_{hash_function},
           stats_{stats},
@@ -742,7 +741,7 @@ class Executor {
             auto const response = Impl::ExecuteAction(
                 *logger_,
                 action,
-                remote_api_,
+                *apis_.remote,
                 Impl::MergeProperties(
                     remote_context_.exec_config->platform_properties,
                     action->ExecutionProperties()),
@@ -763,7 +762,7 @@ class Executor {
         auto const response = Impl::ExecuteAction(
             logger,
             action,
-            remote_api_,
+            *apis_.remote,
             Impl::MergeProperties(
                 remote_context_.exec_config->platform_properties,
                 action->ExecutionProperties()),
@@ -790,27 +789,18 @@ class Executor {
         // to avoid always creating a logger we might not need, which is a
         // non-copyable and non-movable object, we need some code duplication
         if (logger_ != nullptr) {
-            return Impl::VerifyOrUploadArtifact(*logger_,
-                                                artifact,
-                                                repo_config_,
-                                                remote_api_,
-                                                local_api_,
-                                                hash_function_);
+            return Impl::VerifyOrUploadArtifact(
+                *logger_, artifact, repo_config_, apis_, hash_function_);
         }
 
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
-        return Impl::VerifyOrUploadArtifact(logger,
-                                            artifact,
-                                            repo_config_,
-                                            remote_api_,
-                                            local_api_,
-                                            hash_function_);
+        return Impl::VerifyOrUploadArtifact(
+            logger, artifact, repo_config_, apis_, hash_function_);
     }
 
   private:
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    IExecutionApi const& local_api_;
-    IExecutionApi const& remote_api_;
+    ApiBundle const& apis_;
     RemoteContext const& remote_context_;
     HashFunction const hash_function_;
     gsl::not_null<Statistics*> stats_;
@@ -832,18 +822,18 @@ class Rebuilder {
     /// \param timeout      Timeout for action execution.
     Rebuilder(
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<IExecutionApi const*> const& local_api,
-        gsl::not_null<IExecutionApi const*> const& remote_api,
-        gsl::not_null<IExecutionApi const*> const& api_cached,
+        gsl::not_null<ApiBundle const*> const& apis,
         gsl::not_null<RemoteContext const*> const& remote_context,
         HashFunction hash_function,
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
         : repo_config_{repo_config},
-          local_api_{*local_api},
-          remote_api_{*remote_api},
-          api_cached_{*api_cached},
+          apis_{*apis},
+          api_cached_{
+              apis->MakeRemote(remote_context->exec_config->cache_address,
+                               remote_context->auth,
+                               remote_context->retry_config)},
           remote_context_{*remote_context},
           hash_function_{hash_function},
           stats_{stats},
@@ -858,7 +848,7 @@ class Rebuilder {
         auto response = Impl::ExecuteAction(
             logger,
             action,
-            remote_api_,
+            *apis_.remote,
             Impl::MergeProperties(
                 remote_context_.exec_config->platform_properties,
                 action->ExecutionProperties()),
@@ -877,7 +867,7 @@ class Rebuilder {
         auto response_cached = Impl::ExecuteAction(
             logger_cached,
             action,
-            api_cached_,
+            *api_cached_,
             Impl::MergeProperties(
                 remote_context_.exec_config->platform_properties,
                 action->ExecutionProperties()),
@@ -907,12 +897,8 @@ class Rebuilder {
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact)
         const noexcept -> bool {
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
-        return Impl::VerifyOrUploadArtifact(logger,
-                                            artifact,
-                                            repo_config_,
-                                            remote_api_,
-                                            local_api_,
-                                            hash_function_);
+        return Impl::VerifyOrUploadArtifact(
+            logger, artifact, repo_config_, apis_, hash_function_);
     }
 
     [[nodiscard]] auto DumpFlakyActions() const noexcept -> nlohmann::json {
@@ -929,9 +915,8 @@ class Rebuilder {
 
   private:
     gsl::not_null<const RepositoryConfig*> repo_config_;
-    IExecutionApi const& local_api_;
-    IExecutionApi const& remote_api_;
-    IExecutionApi const& api_cached_;
+    ApiBundle const& apis_;
+    gsl::not_null<IExecutionApi::Ptr> const api_cached_;
     RemoteContext const& remote_context_;
     HashFunction const hash_function_;
     gsl::not_null<Statistics*> stats_;

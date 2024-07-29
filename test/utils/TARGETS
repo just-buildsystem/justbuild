@@ -170,6 +170,18 @@
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   }
+, "test_api_bundle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["test_api_bundle"]
+  , "hdrs": ["executor/test_api_bundle.hpp"]
+  , "stage": ["test", "utils"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    ]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]

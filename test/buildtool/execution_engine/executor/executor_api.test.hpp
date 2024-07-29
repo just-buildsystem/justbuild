@@ -38,6 +38,7 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "test/utils/executor/test_api_bundle.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
@@ -147,13 +148,9 @@ static inline void RunHelloWorldCompilation(
                                          : HashFunction::Type::GitSHA1};
 
     auto api = factory();
-    Executor runner{repo_config,
-                    api.get(),
-                    api.get(),
-                    &remote_context,
-                    hash_function,
-                    stats,
-                    progress};
+    auto const apis = CreateTestApiBundle(hash_function, api);
+    Executor runner{
+        repo_config, &apis, &remote_context, hash_function, stats, progress};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -281,13 +278,9 @@ static inline void RunGreeterCompilation(
                                          : HashFunction::Type::GitSHA1};
 
     auto api = factory();
-    Executor runner{repo_config,
-                    api.get(),
-                    api.get(),
-                    &remote_context,
-                    hash_function,
-                    stats,
-                    progress};
+    auto const apis = CreateTestApiBundle(hash_function, api);
+    Executor runner{
+        repo_config, &apis, &remote_context, hash_function, stats, progress};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -455,13 +448,9 @@ static inline void TestUploadAndDownloadTrees(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    Executor runner{repo_config,
-                    api.get(),
-                    api.get(),
-                    &remote_context,
-                    hash_function,
-                    stats,
-                    progress};
+    auto const apis = CreateTestApiBundle(hash_function, api);
+    Executor runner{
+        repo_config, &apis, &remote_context, hash_function, stats, progress};
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -630,9 +619,9 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         stats,
@@ -683,9 +672,9 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         stats,
@@ -753,9 +742,9 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
+        auto const apis = CreateTestApiBundle(hash_function, api);
         Executor runner{repo_config,
-                        api.get(),
-                        api.get(),
+                        &apis,
                         &remote_context,
                         hash_function,
                         stats,
@@ -825,9 +814,9 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
+            auto const apis = CreateTestApiBundle(hash_function, api);
             Executor runner{repo_config,
-                            api.get(),
-                            api.get(),
+                            &apis,
                             &remote_context,
                             hash_function,
                             stats,
@@ -850,9 +839,9 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
+            auto const apis = CreateTestApiBundle(hash_function, api);
             Executor runner{repo_config,
-                            api.get(),
-                            api.get(),
+                            &apis,
                             &remote_context,
                             hash_function,
                             stats,
