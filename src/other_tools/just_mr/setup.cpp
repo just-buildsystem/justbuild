@@ -27,6 +27,7 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -149,9 +150,12 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &*local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &*local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &*auth_config,
                          &*retry_config,

@@ -32,6 +32,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
@@ -112,9 +113,11 @@ TEST_CASE("simple targets", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -566,9 +569,11 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -665,9 +670,11 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -776,9 +783,11 @@ TEST_CASE("built-in rules", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -999,9 +1008,11 @@ TEST_CASE("target reference", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -1153,9 +1164,11 @@ TEST_CASE("trees", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -1271,9 +1284,11 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,
@@ -1448,9 +1463,11 @@ TEST_CASE("wrong arguments", "[target_map]") {
     RemoteExecutionConfig remote_exec_config{};
     Auth auth{};
     RetryConfig retry_config{};
-    ApiBundle const apis{&storage_config.Get(),
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &auth,
                          &retry_config,

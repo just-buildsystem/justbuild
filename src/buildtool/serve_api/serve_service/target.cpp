@@ -28,6 +28,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -483,9 +484,10 @@ auto TargetService::ServeTarget(
 
         // Use a new ApiBundle that knows about local repository config for
         // traversing.
-        ApiBundle const local_apis{&storage_config_,
-                                   &storage_,
-                                   &local_exec_config_,
+        LocalContext const local_context{.exec_config = &local_exec_config_,
+                                         .storage_config = &storage_config_,
+                                         .storage = &storage_};
+        ApiBundle const local_apis{&local_context,
                                    &repository_config,
                                    &apis_.auth,
                                    &apis_.retry_config,

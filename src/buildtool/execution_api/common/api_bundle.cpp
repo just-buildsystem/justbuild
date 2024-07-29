@@ -20,9 +20,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
 ApiBundle::ApiBundle(
-    gsl::not_null<StorageConfig const*> const& storage_config,
-    gsl::not_null<Storage const*> const& storage,
-    gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
+    gsl::not_null<LocalContext const*> const& local_context,
     RepositoryConfig const* repo_config,
     gsl::not_null<Auth const*> const& authentication,
     gsl::not_null<RetryConfig const*> const& retry_config,
@@ -30,10 +28,10 @@ ApiBundle::ApiBundle(
     : auth{*authentication},
       retry_config{*retry_config},
       remote_config{*remote_exec_config},
-      hash_function{storage_config->hash_function},
-      local{std::make_shared<LocalApi>(storage_config,
-                                       storage,
-                                       local_exec_config,
+      hash_function{local_context->storage_config->hash_function},
+      local{std::make_shared<LocalApi>(local_context->storage_config,
+                                       local_context->storage,
+                                       local_context->exec_config,
                                        repo_config)},
       remote{CreateRemote(remote_exec_config->remote_address)} {}
 

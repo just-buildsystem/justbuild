@@ -25,6 +25,7 @@
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -427,10 +428,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &*local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+
     // setup the APIs for archive fetches; only happens if in native mode
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &*local_exec_config,
+    ApiBundle const apis{&local_context,
                          /*repo_config=*/nullptr,
                          &*auth_config,
                          &*retry_config,

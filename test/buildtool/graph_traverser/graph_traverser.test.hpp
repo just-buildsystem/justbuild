@@ -33,6 +33,7 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/jsonfs.hpp"
@@ -171,13 +172,12 @@ class TestProject {
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             remote_config->platform_properties,
@@ -205,9 +205,7 @@ class TestProject {
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
         RetryConfig retry_config{};  // default retry config
-        ApiBundle const apis{&storage_config,
-                             &storage,
-                             &local_exec_config,
+        ApiBundle const apis{&local_context,
                              p.GetRepoConfig(),
                              auth,
                              &retry_config,
@@ -251,13 +249,12 @@ class TestProject {
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             remote_config->platform_properties,
@@ -292,13 +289,12 @@ class TestProject {
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
                             remote_config->platform_properties,
@@ -353,9 +349,11 @@ class TestProject {
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{&local_context,
                          full_hello_world.GetRepoConfig(),
                          auth,
                          &retry_config,
@@ -420,13 +418,12 @@ static void TestBlobsUploadedAndUsed(
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       remote_config->platform_properties,
@@ -469,13 +466,12 @@ static void TestEnvironmentVariablesSetAndUsed(
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       remote_config->platform_properties,
@@ -518,13 +514,12 @@ static void TestTreesUsed(
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       remote_config->platform_properties,
@@ -567,13 +562,12 @@ static void TestNestedTreesUsed(
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
                       remote_config->platform_properties,
@@ -615,13 +609,12 @@ static void TestFlakyHelloWorldDetected(
     Statistics stats{};
     Progress progress{};
     RetryConfig retry_config{};  // default retry config
-    ApiBundle const apis{&storage_config,
-                         &storage,
-                         &local_exec_config,
-                         p.GetRepoConfig(),
-                         auth,
-                         &retry_config,
-                         remote_config};
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    ApiBundle const apis{
+        &local_context, p.GetRepoConfig(), auth, &retry_config, remote_config};
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");

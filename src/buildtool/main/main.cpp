@@ -39,7 +39,6 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -73,6 +72,8 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/describe.hpp"
@@ -794,6 +795,8 @@ auto main(int argc, char* argv[]) -> int {
                                    arguments.service.pid_file);
 
             if (execution_server) {
+                RetryConfig
+                    retry_config{};  // default is enough, as remote is not used
                 // Use default remote configuration.
                 RemoteExecutionConfig remote_exec_config{};
 
@@ -807,12 +810,13 @@ auto main(int argc, char* argv[]) -> int {
                 StoreTargetCacheShard(
                     *storage_config, storage, remote_exec_config);
 
-                RetryConfig
-                    retry_config{};  // default is enough, as remote is not used
+                // pack the local context instances to be passed as needed
+                LocalContext const local_context{
+                    .exec_config = &*local_exec_config,
+                    .storage_config = &*storage_config,
+                    .storage = &storage};
 
-                ApiBundle const exec_apis{&*storage_config,
-                                          &storage,
-                                          &*local_exec_config,
+                ApiBundle const exec_apis{&local_context,
                                           /*repo_config=*/nullptr,
                                           &*auth_config,
                                           &retry_config,
@@ -869,9 +873,13 @@ auto main(int argc, char* argv[]) -> int {
                 StoreTargetCacheShard(
                     *storage_config, storage, *remote_exec_config);
 
-                ApiBundle const serve_apis{&*storage_config,
-                                           &storage,
-                                           &*local_exec_config,
+                // pack the local context instances to be passed as needed
+                LocalContext const local_context{
+                    .exec_config = &*local_exec_config,
+                    .storage_config = &*storage_config,
+                    .storage = &storage};
+
+                ApiBundle const serve_apis{&local_context,
                                            /*repo_config=*/nullptr,
                                            &*auth_config,
                                            &*retry_config,
@@ -963,9 +971,12 @@ auto main(int argc, char* argv[]) -> int {
         Progress progress{};
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        ApiBundle const main_apis{&*storage_config,
-                                  &storage,
-                                  &*local_exec_config,
+        // pack the local context instances to be passed to ApiBundle
+        LocalContext const local_context{.exec_config = &*local_exec_config,
+                                         .storage_config = &*storage_config,
+                                         .storage = &storage};
+
+        ApiBundle const main_apis{&local_context,
                                   &repo_config,
                                   &*auth_config,
                                   &*retry_config,

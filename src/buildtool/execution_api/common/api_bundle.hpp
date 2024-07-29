@@ -25,19 +25,15 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 /// \brief Utility structure for instantiation of local and remote apis at the
 /// same time. If the remote api cannot be instantiated, it falls back to
 /// exactly the same instance that local api is (&*remote == & *local).
 struct ApiBundle final {
     explicit ApiBundle(
-        gsl::not_null<StorageConfig const*> const& storage_config,
-        gsl::not_null<Storage const*> const& storage,
-        gsl::not_null<LocalExecutionConfig const*> const& local_exec_config,
+        gsl::not_null<LocalContext const*> const& local_context,
         RepositoryConfig const* repo_config,
         gsl::not_null<Auth const*> const& authentication,
         gsl::not_null<RetryConfig const*> const& retry_config,
