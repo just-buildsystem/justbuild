@@ -288,16 +288,17 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
             ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File)
             .Id();
 
+    Auth auth{};
+    RetryConfig retry_config{};             // default retry config
+    RemoteExecutionConfig remote_config{};  // default remote config
+    RemoteContext const remote_context{.auth = &auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &remote_config};
+
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -316,12 +317,6 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -340,12 +335,6 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -385,16 +374,17 @@ TEST_CASE("Executor: Process action", "[executor]") {
     auto const output2_id =
         ArtifactDescription::CreateAction(action_id, "output2.exe").Id();
 
+    Auth auth{};
+    RetryConfig retry_config{};             // default retry config
+    RemoteExecutionConfig remote_config{};  // default remote config
+    RemoteContext const remote_context{.auth = &auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &remote_config};
+
     SECTION("Processing succeeds for valid config") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -416,12 +406,6 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -443,12 +427,6 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -473,12 +451,6 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -500,12 +472,6 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
@@ -530,12 +496,6 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
         Progress progress{};
-        Auth auth{};
-        RetryConfig retry_config{};             // default retry config
-        RemoteExecutionConfig remote_config{};  // default remote config
-        RemoteContext const remote_context{.auth = &auth,
-                                           .retry_config = &retry_config,
-                                           .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
