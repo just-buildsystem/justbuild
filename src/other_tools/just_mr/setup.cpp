@@ -161,9 +161,9 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                        .retry_config = &*retry_config,
                                        .exec_config = &*remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;

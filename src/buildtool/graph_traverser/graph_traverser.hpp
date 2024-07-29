@@ -385,9 +385,9 @@ class GraphTraverser {
         std::vector<ArtifactIdentifier> const& artifact_ids) const -> bool {
         // setup rebuilder with api for cache endpoint
         auto api_cached =
-            apis_.CreateRemote(remote_context_.exec_config->cache_address,
-                               remote_context_.auth,
-                               remote_context_.retry_config);
+            apis_.MakeRemote(remote_context_.exec_config->cache_address,
+                             remote_context_.auth,
+                             remote_context_.retry_config);
         Rebuilder executor{repo_config_,
                            &*apis_.local,
                            &*apis_.remote,

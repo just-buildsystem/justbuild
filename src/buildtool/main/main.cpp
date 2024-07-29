@@ -822,9 +822,10 @@ auto main(int argc, char* argv[]) -> int {
                     .retry_config = &retry_config,
                     .exec_config = &remote_exec_config};
 
-                ApiBundle const exec_apis{&local_context,
-                                          &remote_context,
-                                          /*repo_config=*/nullptr};
+                auto const exec_apis =
+                    ApiBundle::Create(&local_context,
+                                      &remote_context,
+                                      /*repo_config=*/nullptr);
 
                 return execution_server->Run(&local_context,
                                              &remote_context,
@@ -888,9 +889,10 @@ auto main(int argc, char* argv[]) -> int {
                     .retry_config = &*retry_config,
                     .exec_config = &*remote_exec_config};
 
-                ApiBundle const serve_apis{&local_context,
-                                           &remote_context,
-                                           /*repo_config=*/nullptr};
+                auto const serve_apis =
+                    ApiBundle::Create(&local_context,
+                                      &remote_context,
+                                      /*repo_config=*/nullptr);
                 auto serve = ServeApi::Create(*serve_config,
                                               &local_context,
                                               &remote_context,
@@ -988,8 +990,8 @@ auto main(int argc, char* argv[]) -> int {
                                            .retry_config = &*retry_config,
                                            .exec_config = &*remote_exec_config};
 
-        ApiBundle const main_apis{
-            &local_context, &remote_context, &repo_config};
+        auto const main_apis =
+            ApiBundle::Create(&local_context, &remote_context, &repo_config);
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),

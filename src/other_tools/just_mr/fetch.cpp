@@ -440,9 +440,9 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                        .exec_config = &*remote_exec_config};
 
     // setup the APIs for archive fetches; only happens if in native mode
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     bool const has_remote_api =
         apis.local != apis.remote and not common_args.compatible;

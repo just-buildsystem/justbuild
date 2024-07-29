@@ -126,9 +126,9 @@ TEST_CASE("simple targets", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
     AnalyseContext ctx{.repo_config = &repo_config,
@@ -589,9 +589,9 @@ TEST_CASE("configuration deduplication", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -699,9 +699,9 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -821,9 +821,9 @@ TEST_CASE("built-in rules", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -1055,9 +1055,9 @@ TEST_CASE("target reference", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -1220,9 +1220,9 @@ TEST_CASE("trees", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -1349,9 +1349,9 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
@@ -1537,9 +1537,9 @@ TEST_CASE("wrong arguments", "[target_map]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &remote_exec_config};
 
-    ApiBundle const apis{&local_context,
-                         &remote_context,
-                         /*repo_config=*/nullptr};
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
 
     auto serve =
         ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);

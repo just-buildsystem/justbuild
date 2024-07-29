@@ -18,16 +18,33 @@
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 
-ApiBundle::ApiBundle(gsl::not_null<LocalContext const*> const& local_context,
-                     gsl::not_null<RemoteContext const*> const& remote_context,
-                     RepositoryConfig const* repo_config)
-    : hash_function{local_context->storage_config->hash_function},
-      local{std::make_shared<LocalApi>(local_context, repo_config)},
-      remote{CreateRemote(remote_context->exec_config->remote_address,
-                          remote_context->auth,
-                          remote_context->retry_config)} {}
+/// \note Some logic from MakeRemote is duplicated here as that method cannot
+/// be used without the hash_function field being set prior to the call.
+auto ApiBundle::Create(
+    gsl::not_null<LocalContext const*> const& local_context,
+    gsl::not_null<RemoteContext const*> const& remote_context,
+    RepositoryConfig const* repo_config) -> ApiBundle {
+    auto const hash_fct = local_context->storage_config->hash_function;
+    IExecutionApi::Ptr local_api =
+        std::make_shared<LocalApi>(local_context, repo_config);
+    IExecutionApi::Ptr remote_api = local_api;
+    if (auto const address = remote_context->exec_config->remote_address) {
+        ExecutionConfiguration config;
+        config.skip_cache_lookup = false;
+        remote_api = std::make_shared<BazelApi>("remote-execution",
+                                                address->host,
+                                                address->port,
+                                                remote_context->auth,
+                                                remote_context->retry_config,
+                                                config,
+                                                hash_fct);
+    }
+    return ApiBundle{.hash_function = hash_fct,
+                     .local = std::move(local_api),
+                     .remote = std::move(remote_api)};
+}
 
-auto ApiBundle::CreateRemote(
+auto ApiBundle::MakeRemote(
     std::optional<ServerAddress> const& address,
     gsl::not_null<Auth const*> const& authentication,
     gsl::not_null<RetryConfig const*> const& retry_config) const

@@ -186,7 +186,8 @@ class TestProject {
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -264,7 +265,8 @@ class TestProject {
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -312,7 +314,8 @@ class TestProject {
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser const gt{clargs.gtargs,
                             p.GetRepoConfig(),
@@ -379,8 +382,8 @@ class TestProject {
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{
-        &local_context, &remote_context, full_hello_world.GetRepoConfig()};
+    auto const apis = ApiBundle::Create(
+        &local_context, &remote_context, full_hello_world.GetRepoConfig());
 
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    full_hello_world.GetRepoConfig(),
@@ -453,7 +456,8 @@ static void TestBlobsUploadedAndUsed(
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -509,7 +513,8 @@ static void TestEnvironmentVariablesSetAndUsed(
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -565,7 +570,8 @@ static void TestTreesUsed(
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -621,7 +627,8 @@ static void TestNestedTreesUsed(
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     GraphTraverser gt{clargs.gtargs,
                       p.GetRepoConfig(),
@@ -676,7 +683,8 @@ static void TestFlakyHelloWorldDetected(
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    ApiBundle const apis{&local_context, &remote_context, p.GetRepoConfig()};
+    auto const apis =
+        ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");

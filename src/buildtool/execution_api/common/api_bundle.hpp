@@ -29,10 +29,13 @@
 /// same time. If the remote api cannot be instantiated, it falls back to
 /// exactly the same instance that local api is (&*remote == & *local).
 struct ApiBundle final {
-    explicit ApiBundle(
+    /// \brief Create an ApiBundle instance.
+    /// \note A creator method is used instead of a constructor to allow for
+    /// tests to instantiate ApiBundles with own implementations of the APIs.
+    [[nodiscard]] static auto Create(
         gsl::not_null<LocalContext const*> const& local_context,
         gsl::not_null<RemoteContext const*> const& remote_context,
-        RepositoryConfig const* repo_config);
+        RepositoryConfig const* repo_config) -> ApiBundle;
 
     /// \brief Create a Remote object based on the given arguments.
     /// \param address          The endpoint address.
@@ -40,13 +43,12 @@ struct ApiBundle final {
     /// \param retry_config     The retry strategy configuration.
     /// \returns A configured api: BazelApi if a remote address is given,
     /// otherwise fall back to the already configured LocalApi instance.
-    [[nodiscard]] auto CreateRemote(
+    [[nodiscard]] auto MakeRemote(
         std::optional<ServerAddress> const& address,
         gsl::not_null<Auth const*> const& authentication,
         gsl::not_null<RetryConfig const*> const& retry_config) const
         -> gsl::not_null<IExecutionApi::Ptr>;
 
-    // Needed to be set before creating the remote (via CreateRemote)
     HashFunction const hash_function;
     // 7 bytes of alignment.
 

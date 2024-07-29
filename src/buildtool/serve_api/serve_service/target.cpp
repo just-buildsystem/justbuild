@@ -501,8 +501,8 @@ auto TargetService::ServeTarget(
 
         // Use a new ApiBundle that knows about local repository config and
         // dispatch endpoint for traversing
-        ApiBundle const local_apis{
-            &local_context_, &dispatch_context, &repository_config};
+        auto const local_apis = ApiBundle::Create(
+            &local_context_, &dispatch_context, &repository_config);
 
         GraphTraverser const traverser{
             std::move(traverser_args),
