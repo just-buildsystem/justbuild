@@ -1047,26 +1047,59 @@
           , "cond": {"type": "var", "name": "objects"}
           , "else": {"type": "empty_map"}
           , "then":
-            { "type": "ACTION"
-            , "outs": [{"type": "var", "name": "libpath"}]
-            , "inputs":
-              { "type": "map_union"
-              , "$1":
-                [ {"type": "var", "name": "TOOLCHAIN"}
-                , {"type": "var", "name": "objects"}
+            { "type": "let*"
+            , "bindings":
+              [ [ "staged objects"
+                , { "type": "to_subdir"
+                  , "subdir": "work"
+                  , "$1": {"type": "var", "name": "objects"}
+                  }
                 ]
-              }
-            , "env":
-              {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
-            , "cmd":
-              { "type": "++"
-              , "$1":
-                [ [ {"type": "var", "name": "AR", "default": "ar"}
-                  , "cqs"
-                  , {"type": "var", "name": "libpath"}
-                  ]
-                , {"type": "keys", "$1": {"type": "var", "name": "objects"}}
+              , [ "staged libpath"
+                , { "type": "join"
+                  , "$1": ["work/", {"type": "var", "name": "libpath"}]
+                  }
                 ]
+              , [ "staged lib"
+                , { "type": "ACTION"
+                  , "outs": [{"type": "var", "name": "staged libpath"}]
+                  , "inputs":
+                    { "type": "map_union"
+                    , "$1":
+                      [ {"type": "var", "name": "TOOLCHAIN"}
+                      , {"type": "var", "name": "staged objects"}
+                      ]
+                    }
+                  , "env":
+                    { "type": "var"
+                    , "name": "ENV"
+                    , "default": {"type": "empty_map"}
+                    }
+                  , "cmd":
+                    { "type": "++"
+                    , "$1":
+                      [ [ {"type": "var", "name": "AR", "default": "ar"}
+                        , "cqs"
+                        , {"type": "var", "name": "staged libpath"}
+                        ]
+                      , { "type": "keys"
+                        , "$1": {"type": "var", "name": "staged objects"}
+                        }
+                      ]
+                    }
+                  }
+                ]
+              , [ "lib artifact"
+                , { "type": "lookup"
+                  , "map": {"type": "var", "name": "staged lib"}
+                  , "key": {"type": "var", "name": "staged libpath"}
+                  }
+                ]
+              ]
+            , "body":
+              { "type": "singleton_map"
+              , "key": {"type": "var", "name": "libpath"}
+              , "value": {"type": "var", "name": "lib artifact"}
               }
             }
           }
