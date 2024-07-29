@@ -426,7 +426,7 @@ void NetworkFetchAndSetPresentRoot(
     if (not fetched) {
         // log fetch failure and list the remotes tried
         (*logger)(
-            fmt::format("While trying to fetch from provided remotes:{}Fetch "
+            fmt::format("While trying to fetch from provided remotes:\n{}Fetch "
                         "failed for the provided remotes{}",
                         err_messages,
                         remotes_buffer),
