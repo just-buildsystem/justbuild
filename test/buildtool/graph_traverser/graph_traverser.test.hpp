@@ -36,6 +36,7 @@
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/jsonfs.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -189,13 +190,14 @@ class TestProject {
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser const gt{clargs.gtargs,
-                            p.GetRepoConfig(),
-                            &remote_context,
-                            &stats,
-                            &progress,
-                            &apis,
-                            [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser const gt{
+        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -214,13 +216,8 @@ class TestProject {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        GraphTraverser const gt_get_exec{clargs_exec.gtargs,
-                                         p.GetRepoConfig(),
-                                         &remote_context,
-                                         &stats,
-                                         &progress,
-                                         &apis,
-                                         [](auto done, auto cv) {}};
+        GraphTraverser const gt_get_exec{
+            clargs_exec.gtargs, &exec_context, [](auto done, auto cv) {}};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
@@ -268,13 +265,14 @@ class TestProject {
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser const gt{clargs.gtargs,
-                            p.GetRepoConfig(),
-                            &remote_context,
-                            &stats,
-                            &progress,
-                            &apis,
-                            [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser const gt{
+        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -317,13 +315,14 @@ class TestProject {
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser const gt{clargs.gtargs,
-                            p.GetRepoConfig(),
-                            &remote_context,
-                            &stats,
-                            &progress,
-                            &apis,
-                            [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser const gt{
+        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -332,13 +331,8 @@ class TestProject {
     CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
-    GraphTraverser const gt_full_build{clargs_full_build.gtargs,
-                                       p.GetRepoConfig(),
-                                       &remote_context,
-                                       &stats,
-                                       &progress,
-                                       &apis,
-                                       [](auto done, auto cv) {}};
+    GraphTraverser const gt_full_build{
+        clargs_full_build.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
@@ -382,16 +376,18 @@ class TestProject {
                                        .retry_config = &retry_config,
                                        .exec_config = remote_config};
 
-    auto const apis = ApiBundle::Create(
+    auto const full_apis = ApiBundle::Create(
         &local_context, &remote_context, full_hello_world.GetRepoConfig());
 
-    GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
-                                   full_hello_world.GetRepoConfig(),
-                                   &remote_context,
-                                   &stats,
-                                   &progress,
-                                   &apis,
-                                   [](auto done, auto cv) {}};
+    ExecutionContext const full_context{
+        .repo_config = full_hello_world.GetRepoConfig(),
+        .apis = &full_apis,
+        .remote_context = &remote_context,
+        .statistics = &stats,
+        .progress = &progress};
+
+    GraphTraverser const gt_upload{
+        clargs_update_cpp.gtargs, &full_context, [](auto done, auto cv) {}};
     auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
 
@@ -407,13 +403,18 @@ class TestProject {
     TestProject hello_world_known_cpp("hello_world_known_source");
 
     auto const clargs = hello_world_known_cpp.CmdLineArgs();
-    GraphTraverser const gt{clargs.gtargs,
-                            full_hello_world.GetRepoConfig(),
-                            &remote_context,
-                            &stats,
-                            &progress,
-                            &apis,
-                            [](auto done, auto cv) {}};
+
+    auto const apis_known = ApiBundle::Create(
+        &local_context, &remote_context, hello_world_known_cpp.GetRepoConfig());
+
+    ExecutionContext const context_known{
+        .repo_config = hello_world_known_cpp.GetRepoConfig(),
+        .apis = &apis_known,
+        .remote_context = &remote_context,
+        .statistics = &stats,
+        .progress = &progress};
+    GraphTraverser const gt{
+        clargs.gtargs, &context_known, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -459,13 +460,13 @@ static void TestBlobsUploadedAndUsed(
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser gt{clargs.gtargs,
-                      p.GetRepoConfig(),
-                      &remote_context,
-                      &stats,
-                      &progress,
-                      &apis,
-                      [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -516,13 +517,13 @@ static void TestEnvironmentVariablesSetAndUsed(
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser gt{clargs.gtargs,
-                      p.GetRepoConfig(),
-                      &remote_context,
-                      &stats,
-                      &progress,
-                      &apis,
-                      [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -573,13 +574,13 @@ static void TestTreesUsed(
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser gt{clargs.gtargs,
-                      p.GetRepoConfig(),
-                      &remote_context,
-                      &stats,
-                      &progress,
-                      &apis,
-                      [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -630,13 +631,13 @@ static void TestNestedTreesUsed(
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
-    GraphTraverser gt{clargs.gtargs,
-                      p.GetRepoConfig(),
-                      &remote_context,
-                      &stats,
-                      &progress,
-                      &apis,
-                      [](auto done, auto cv) {}};
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
+    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -686,15 +687,16 @@ static void TestFlakyHelloWorldDetected(
     auto const apis =
         ApiBundle::Create(&local_context, &remote_context, p.GetRepoConfig());
 
+    ExecutionContext const exec_context{.repo_config = p.GetRepoConfig(),
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = &stats,
+                                        .progress = &progress};
+
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
-        GraphTraverser const gt{clargs.gtargs,
-                                p.GetRepoConfig(),
-                                &remote_context,
-                                &stats,
-                                &progress,
-                                &apis,
-                                [](auto done, auto cv) {}};
+        GraphTraverser const gt{
+            clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
         auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -708,13 +710,8 @@ static void TestFlakyHelloWorldDetected(
     // make_exe[flaky]->make_output[miss]
     auto clargs_output = p.CmdLineArgs();
     clargs_output.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_output{clargs_output.gtargs,
-                                   p.GetRepoConfig(),
-                                   &remote_context,
-                                   &stats,
-                                   &progress,
-                                   &apis,
-                                   [](auto done, auto cv) {}};
+    GraphTraverser const gt_output{
+        clargs_output.gtargs, &exec_context, [](auto done, auto cv) {}};
     REQUIRE(gt_output.BuildAndStage(clargs_output.graph_description,
                                     clargs_output.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -725,13 +722,8 @@ static void TestFlakyHelloWorldDetected(
     // make_exe[flaky]->make_output[miss]->strip_time [miss]
     auto clargs_stripped = p.CmdLineArgs("_entry_points_stripped");
     clargs_stripped.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_stripped{clargs_stripped.gtargs,
-                                     p.GetRepoConfig(),
-                                     &remote_context,
-                                     &stats,
-                                     &progress,
-                                     &apis,
-                                     [](auto done, auto cv) {}};
+    GraphTraverser const gt_stripped{
+        clargs_stripped.gtargs, &exec_context, [](auto done, auto cv) {}};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -742,13 +734,8 @@ static void TestFlakyHelloWorldDetected(
     // make_exe[flaky]->make_output[miss]->strip_time[miss]->list_ctimes [flaky]
     auto clargs_ctimes = p.CmdLineArgs("_entry_points_ctimes");
     clargs_ctimes.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_ctimes{clargs_ctimes.gtargs,
-                                   p.GetRepoConfig(),
-                                   &remote_context,
-                                   &stats,
-                                   &progress,
-                                   &apis,
-                                   [](auto done, auto cv) {}};
+    GraphTraverser const gt_ctimes{
+        clargs_ctimes.gtargs, &exec_context, [](auto done, auto cv) {}};
     REQUIRE(gt_ctimes.BuildAndStage(clargs_ctimes.graph_description,
                                     clargs_ctimes.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 2);

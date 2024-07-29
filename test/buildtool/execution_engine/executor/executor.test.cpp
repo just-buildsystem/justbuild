@@ -32,6 +32,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -298,12 +299,12 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -322,12 +323,12 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -346,12 +347,12 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(not runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -395,12 +396,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -422,12 +423,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -449,12 +450,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -479,12 +480,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -506,12 +507,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));
@@ -536,12 +537,12 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                            .retry_config = &retry_config,
                                            .exec_config = &remote_config};
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{&repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        &stats,
-                        &progress};
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
+        Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
         CHECK(runner.Process(g.ArtifactNodeWithId(known_cpp_id)));

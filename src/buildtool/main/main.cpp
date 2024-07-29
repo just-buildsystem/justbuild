@@ -76,6 +76,7 @@
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/retry.hpp"
@@ -992,16 +993,17 @@ auto main(int argc, char* argv[]) -> int {
 
         auto const main_apis =
             ApiBundle::Create(&local_context, &remote_context, &repo_config);
+        ExecutionContext const exec_context{.repo_config = &repo_config,
+                                            .apis = &main_apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
         GraphTraverser const traverser{
             {jobs,
              std::move(arguments.build),
              std::move(stage_args),
              std::move(rebuild_args)},
-            &repo_config,
-            &remote_context,
-            &stats,
-            &progress,
-            &main_apis,
+            &exec_context,
             ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {

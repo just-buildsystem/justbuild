@@ -12,6 +12,7 @@
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
+    , ["@", "src", "src/buildtool/execution_engine/executor", "context"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "jsonfs"]
     , ["@", "src", "src/buildtool/graph_traverser", "graph_traverser"]

@@ -29,12 +29,10 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -42,6 +40,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -173,8 +172,7 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ArtifactNode const*> const& artifact,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        ApiBundle const& apis,
-        HashFunction hash_function) noexcept -> bool {
+        ApiBundle const& apis) noexcept -> bool {
         auto const object_info_opt = artifact->Content().Info();
         auto const file_path_opt = artifact->Content().FilePath();
         // If there is no object info and no file path, the artifact can not be
@@ -233,8 +231,11 @@ class ExecutorImpl {
             return oss.str();
         });
         auto repo = artifact->Content().Repository();
-        auto new_info = UploadFile(
-            *apis.remote, hash_function, repo, repo_config, *file_path_opt);
+        auto new_info = UploadFile(*apis.remote,
+                                   apis.hash_function,
+                                   repo,
+                                   repo_config,
+                                   *file_path_opt);
         if (not new_info) {
             Logger::Log(LogLevel::Error,
                         "artifact in {} could not be uploaded to CAS.",
@@ -710,23 +711,17 @@ class Executor {
     using CF = IExecutionAction::CacheFlag;
 
   public:
+    /// \brief Create rebuilder for action comparision of two endpoints.
+    /// \param context  Execution context. References all the required
+    /// information needed to execute actions on a specified remote endpoint.
+    /// \param logger   Overwrite the default logger. Useful for orchestrated
+    /// builds, i.e., triggered by just serve.
+    /// \param timeout  Timeout for action execution.
     explicit Executor(
-        gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<ApiBundle const*> const& apis,
-        gsl::not_null<RemoteContext const*> const& remote_context,
-        HashFunction hash_function,
-        gsl::not_null<Statistics*> const& stats,
-        gsl::not_null<Progress*> const& progress,
+        gsl::not_null<ExecutionContext const*> const& context,
         Logger const* logger = nullptr,  // log in caller logger, if given
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
-        : repo_config_{repo_config},
-          apis_{*apis},
-          remote_context_{*remote_context},
-          hash_function_{hash_function},
-          stats_{stats},
-          progress_{progress},
-          logger_{logger},
-          timeout_{timeout} {}
+        : context_{*context}, logger_{logger}, timeout_{timeout} {}
 
     /// \brief Run an action in a blocking manner
     /// This method must be thread-safe as it could be called in parallel
@@ -741,20 +736,22 @@ class Executor {
             auto const response = Impl::ExecuteAction(
                 *logger_,
                 action,
-                *apis_.remote,
+                *context_.apis->remote,
                 Impl::MergeProperties(
-                    remote_context_.exec_config->platform_properties,
+                    context_.remote_context->exec_config->platform_properties,
                     action->ExecutionProperties()),
-                &remote_context_,
-                hash_function_,
+                context_.remote_context,
+                context_.apis->hash_function,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
-                stats_,
-                progress_);
+                context_.statistics,
+                context_.progress);
             // check response and save digests of results
-            return not response or
-                   Impl::ParseResponse(
-                       *logger_, *response, action, stats_, progress_);
+            return not response or Impl::ParseResponse(*logger_,
+                                                       *response,
+                                                       action,
+                                                       context_.statistics,
+                                                       context_.progress);
         }
 
         Logger logger("action:" + action->Content().Id());
@@ -762,21 +759,23 @@ class Executor {
         auto const response = Impl::ExecuteAction(
             logger,
             action,
-            *apis_.remote,
+            *context_.apis->remote,
             Impl::MergeProperties(
-                remote_context_.exec_config->platform_properties,
+                context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
-            &remote_context_,
-            hash_function_,
+            context_.remote_context,
+            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
-            stats_,
-            progress_);
+            context_.statistics,
+            context_.progress);
 
         // check response and save digests of results
-        return not response or
-               Impl::ParseResponse(
-                   logger, *response, action, stats_, progress_);
+        return not response or Impl::ParseResponse(logger,
+                                                   *response,
+                                                   action,
+                                                   context_.statistics,
+                                                   context_.progress);
     }
 
     /// \brief Check artifact is available to the CAS or upload it.
@@ -790,21 +789,16 @@ class Executor {
         // non-copyable and non-movable object, we need some code duplication
         if (logger_ != nullptr) {
             return Impl::VerifyOrUploadArtifact(
-                *logger_, artifact, repo_config_, apis_, hash_function_);
+                *logger_, artifact, context_.repo_config, *context_.apis);
         }
 
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
         return Impl::VerifyOrUploadArtifact(
-            logger, artifact, repo_config_, apis_, hash_function_);
+            logger, artifact, context_.repo_config, *context_.apis);
     }
 
   private:
-    gsl::not_null<const RepositoryConfig*> repo_config_;
-    ApiBundle const& apis_;
-    RemoteContext const& remote_context_;
-    HashFunction const hash_function_;
-    gsl::not_null<Statistics*> stats_;
-    gsl::not_null<Progress*> progress_;
+    ExecutionContext const& context_;
     Logger const* logger_;
     std::chrono::milliseconds timeout_;
 };
@@ -816,28 +810,19 @@ class Rebuilder {
 
   public:
     /// \brief Create rebuilder for action comparision of two endpoints.
-    /// \param api          Rebuild endpoint, executes without action cache.
-    /// \param api_cached   Reference endpoint, serves everything from cache.
-    /// \param properties   Platform properties for execution.
-    /// \param timeout      Timeout for action execution.
-    Rebuilder(
-        gsl::not_null<const RepositoryConfig*> const& repo_config,
-        gsl::not_null<ApiBundle const*> const& apis,
-        gsl::not_null<RemoteContext const*> const& remote_context,
-        HashFunction hash_function,
-        gsl::not_null<Statistics*> const& stats,
-        gsl::not_null<Progress*> const& progress,
+    /// \param context  Execution context. References all the required
+    /// information needed to perform a rebuild, during which the results of
+    /// executing actions on the regular remote endpoint and the cache endpoint
+    /// are compared.
+    /// \param timeout  Timeout for action execution.
+    explicit Rebuilder(
+        gsl::not_null<ExecutionContext const*> const& context,
         std::chrono::milliseconds timeout = IExecutionAction::kDefaultTimeout)
-        : repo_config_{repo_config},
-          apis_{*apis},
-          api_cached_{
-              apis->MakeRemote(remote_context->exec_config->cache_address,
-                               remote_context->auth,
-                               remote_context->retry_config)},
-          remote_context_{*remote_context},
-          hash_function_{hash_function},
-          stats_{stats},
-          progress_{progress},
+        : context_{*context},
+          api_cached_{context_.apis->MakeRemote(
+              context_.remote_context->exec_config->cache_address,
+              context_.remote_context->auth,
+              context_.remote_context->retry_config)},
           timeout_{timeout} {}
 
     [[nodiscard]] auto Process(
@@ -848,16 +833,16 @@ class Rebuilder {
         auto response = Impl::ExecuteAction(
             logger,
             action,
-            *apis_.remote,
+            *context_.apis->remote,
             Impl::MergeProperties(
-                remote_context_.exec_config->platform_properties,
+                context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
-            &remote_context_,
-            hash_function_,
+            context_.remote_context,
+            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
-            stats_,
-            progress_);
+            context_.statistics,
+            context_.progress);
 
         if (not response) {
             return true;  // action without response (e.g., tree action)
@@ -869,14 +854,14 @@ class Rebuilder {
             action,
             *api_cached_,
             Impl::MergeProperties(
-                remote_context_.exec_config->platform_properties,
+                context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
-            &remote_context_,
-            hash_function_,
+            context_.remote_context,
+            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
-            stats_,
-            progress_);
+            context_.statistics,
+            context_.progress);
 
         if (not response_cached) {
             logger_cached.Emit(LogLevel::Error,
@@ -888,8 +873,8 @@ class Rebuilder {
         return Impl::ParseResponse(logger,
                                    *response,
                                    action,
-                                   stats_,
-                                   progress_,
+                                   context_.statistics,
+                                   context_.progress,
                                    /*count_as_executed=*/true);
     }
 
@@ -898,7 +883,7 @@ class Rebuilder {
         const noexcept -> bool {
         Logger logger("artifact:" + ToHexString(artifact->Content().Id()));
         return Impl::VerifyOrUploadArtifact(
-            logger, artifact, repo_config_, apis_, hash_function_);
+            logger, artifact, context_.repo_config, *context_.apis);
     }
 
     [[nodiscard]] auto DumpFlakyActions() const noexcept -> nlohmann::json {
@@ -914,13 +899,8 @@ class Rebuilder {
     }
 
   private:
-    gsl::not_null<const RepositoryConfig*> repo_config_;
-    ApiBundle const& apis_;
+    ExecutionContext const& context_;
     gsl::not_null<IExecutionApi::Ptr> const api_cached_;
-    RemoteContext const& remote_context_;
-    HashFunction const hash_function_;
-    gsl::not_null<Statistics*> stats_;
-    gsl::not_null<Progress*> progress_;
     std::chrono::milliseconds timeout_;
     mutable std::mutex m_;
     mutable std::vector<std::string> cache_misses_{};
@@ -934,9 +914,10 @@ class Rebuilder {
     void DetectFlakyAction(IExecutionResponse::Ptr const& response,
                            IExecutionResponse::Ptr const& response_cached,
                            Action const& action) const noexcept {
+        auto& stats = *context_.statistics;
         if (response and response_cached and
             response_cached->ActionDigest() == response->ActionDigest()) {
-            stats_->IncrementRebuiltActionComparedCounter();
+            stats.IncrementRebuiltActionComparedCounter();
             auto artifacts = response->Artifacts();
             auto artifacts_cached = response_cached->Artifacts();
             std::ostringstream msg{};
@@ -947,10 +928,10 @@ class Rebuilder {
                 }
             }
             if (msg.tellp() > 0) {
-                stats_->IncrementActionsFlakyCounter();
+                stats.IncrementActionsFlakyCounter();
                 bool tainted = action.MayFail() or action.NoCache();
                 if (tainted) {
-                    stats_->IncrementActionsFlakyTaintedCounter();
+                    stats.IncrementActionsFlakyTaintedCounter();
                 }
                 Logger::Log(tainted ? LogLevel::Debug : LogLevel::Warning,
                             "{}",
@@ -958,7 +939,7 @@ class Rebuilder {
             }
         }
         else {
-            stats_->IncrementRebuiltActionMissingCounter();
+            stats.IncrementRebuiltActionMissingCounter();
             std::unique_lock lock{m_};
             cache_misses_.emplace_back(action.Id());
         }

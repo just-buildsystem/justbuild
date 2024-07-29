@@ -35,6 +35,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -149,8 +150,13 @@ static inline void RunHelloWorldCompilation(
 
     auto api = factory();
     auto const apis = CreateTestApiBundle(hash_function, api);
-    Executor runner{
-        repo_config, &apis, &remote_context, hash_function, stats, progress};
+
+    ExecutionContext const exec_context{.repo_config = repo_config,
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = stats,
+                                        .progress = progress};
+    Executor runner{&exec_context};
 
     // upload local artifacts
     auto const* main_cpp_node = g.ArtifactNodeWithId(main_cpp_id);
@@ -279,8 +285,13 @@ static inline void RunGreeterCompilation(
 
     auto api = factory();
     auto const apis = CreateTestApiBundle(hash_function, api);
-    Executor runner{
-        repo_config, &apis, &remote_context, hash_function, stats, progress};
+
+    ExecutionContext const exec_context{.repo_config = repo_config,
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = stats,
+                                        .progress = progress};
+    Executor runner{&exec_context};
 
     // upload local artifacts
     for (auto const& id : {greet_hpp_id, greet_cpp_id, main_cpp_id}) {
@@ -449,8 +460,14 @@ static inline void TestUploadAndDownloadTrees(
                                        .exec_config = &*remote_config};
 
     auto const apis = CreateTestApiBundle(hash_function, api);
-    Executor runner{
-        repo_config, &apis, &remote_context, hash_function, stats, progress};
+
+    ExecutionContext const exec_context{.repo_config = repo_config,
+                                        .apis = &apis,
+                                        .remote_context = &remote_context,
+                                        .statistics = stats,
+                                        .progress = progress};
+    Executor runner{&exec_context};
+
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
     REQUIRE(runner.Process(g.ArtifactNodeWithId(bar_id)));
 
@@ -620,12 +637,13 @@ static inline void TestRetrieveOutputDirectories(
         // run action
         auto api = factory();
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        stats,
-                        progress};
+
+        ExecutionContext const exec_context{.repo_config = repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = stats,
+                                            .progress = progress};
+        Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -673,12 +691,13 @@ static inline void TestRetrieveOutputDirectories(
         // run action
         auto api = factory();
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        stats,
-                        progress};
+
+        ExecutionContext const exec_context{.repo_config = repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = stats,
+                                            .progress = progress};
+        Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -743,12 +762,13 @@ static inline void TestRetrieveOutputDirectories(
         // run action
         auto api = factory();
         auto const apis = CreateTestApiBundle(hash_function, api);
-        Executor runner{repo_config,
-                        &apis,
-                        &remote_context,
-                        hash_function,
-                        stats,
-                        progress};
+
+        ExecutionContext const exec_context{.repo_config = repo_config,
+                                            .apis = &apis,
+                                            .remote_context = &remote_context,
+                                            .statistics = stats,
+                                            .progress = progress};
+        Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
         // read output
@@ -815,12 +835,14 @@ static inline void TestRetrieveOutputDirectories(
             // run action
             auto api = factory();
             auto const apis = CreateTestApiBundle(hash_function, api);
-            Executor runner{repo_config,
-                            &apis,
-                            &remote_context,
-                            hash_function,
-                            stats,
-                            progress};
+
+            ExecutionContext const exec_context{
+                .repo_config = repo_config,
+                .apis = &apis,
+                .remote_context = &remote_context,
+                .statistics = stats,
+                .progress = progress};
+            Executor runner{&exec_context};
             CHECK_FALSE(runner.Process(action));
         }
 
@@ -840,12 +862,14 @@ static inline void TestRetrieveOutputDirectories(
             // run action
             auto api = factory();
             auto const apis = CreateTestApiBundle(hash_function, api);
-            Executor runner{repo_config,
-                            &apis,
-                            &remote_context,
-                            hash_function,
-                            stats,
-                            progress};
+
+            ExecutionContext const exec_context{
+                .repo_config = repo_config,
+                .apis = &apis,
+                .remote_context = &remote_context,
+                .statistics = stats,
+                .progress = progress};
+            Executor runner{&exec_context};
             CHECK_FALSE(runner.Process(action));
         }
     }

@@ -28,6 +28,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
@@ -503,14 +504,15 @@ auto TargetService::ServeTarget(
         // dispatch endpoint for traversing
         auto const local_apis = ApiBundle::Create(
             &local_context_, &dispatch_context, &repository_config);
+        ExecutionContext const exec_context{.repo_config = &repository_config,
+                                            .apis = &local_apis,
+                                            .remote_context = &dispatch_context,
+                                            .statistics = &stats,
+                                            .progress = &progress};
 
         GraphTraverser const traverser{
             std::move(traverser_args),
-            &repository_config,
-            &dispatch_context,
-            &stats,
-            &progress,
-            &local_apis,
+            &exec_context,
             ProgressReporter::Reporter(&stats, &progress, &logger),
             &logger};
 

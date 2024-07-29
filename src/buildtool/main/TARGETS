@@ -23,6 +23,7 @@
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
     , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/execution_engine/executor", "context"]
     , [ "src/buildtool/execution_api/execution_service"
       , "server_implementation"
       ]
