@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
+#define INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
+
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
@@ -691,3 +694,5 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
         }
     }
 }
+
+#endif  // INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
