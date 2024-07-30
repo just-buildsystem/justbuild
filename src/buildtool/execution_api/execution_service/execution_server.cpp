@@ -41,7 +41,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     const noexcept -> std::pair<std::optional<::bazel_re::Action>,
                                 std::optional<std::string>> {
     // get action description
-    if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
+    if (auto error_msg = IsAHash(request->action_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
@@ -52,18 +52,15 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         logger_.Emit(LogLevel::Error, "{}", str);
         return {std::nullopt, str};
     }
+
     ::bazel_re::Action action{};
-    {
-        std::ifstream f(*path);
-        if (not action.ParseFromIstream(&f)) {
-            auto str = fmt::format("failed to parse action from blob {}",
-                                   request->action_digest().hash());
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return {std::nullopt, str};
-        }
+    if (std::ifstream f(*path); not action.ParseFromIstream(&f)) {
+        auto str = fmt::format("failed to parse action from blob {}",
+                               request->action_digest().hash());
+        logger_.Emit(LogLevel::Error, "{}", str);
+        return {std::nullopt, std::move(str)};
     }
-    if (auto error_msg = IsAHash(action.input_root_digest().hash());
-        error_msg) {
+    if (auto error_msg = IsAHash(action.input_root_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
@@ -83,7 +80,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
 auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     const noexcept -> std::pair<std::optional<::bazel_re::Command>,
                                 std::optional<std::string>> {
-    if (auto error_msg = IsAHash(action.command_digest().hash()); error_msg) {
+    if (auto error_msg = IsAHash(action.command_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return {std::nullopt, *error_msg};
     }
@@ -96,14 +93,11 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     }
 
     ::bazel_re::Command c{};
-    {
-        std::ifstream f(*path);
-        if (not c.ParseFromIstream(&f)) {
-            auto str = fmt::format("failed to parse command from blob {}",
-                                   action.command_digest().hash());
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return {std::nullopt, str};
-        }
+    if (std::ifstream f(*path); not c.ParseFromIstream(&f)) {
+        auto str = fmt::format("failed to parse command from blob {}",
+                               action.command_digest().hash());
+        logger_.Emit(LogLevel::Error, "{}", str);
+        return {std::nullopt, std::move(str)};
     }
     return {c, std::nullopt};
 }
@@ -389,7 +383,7 @@ auto ExecutionServiceImpl::WaitExecution(
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
     auto const& hash = request->name();
-    if (auto error_msg = IsAHash(hash); error_msg) {
+    if (auto error_msg = IsAHash(hash)) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
     }
