@@ -38,19 +38,18 @@ static void UpdateTimeStamp(::google::longrunning::Operation* op) {
 }
 
 auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
-    const noexcept -> std::pair<std::optional<::bazel_re::Action>,
-                                std::optional<std::string>> {
+    const noexcept -> expected<::bazel_re::Action, std::string> {
     // get action description
     if (auto error_msg = IsAHash(request->action_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
-        return {std::nullopt, *error_msg};
+        return unexpected{std::move(*error_msg)};
     }
     auto path = storage_.CAS().BlobPath(request->action_digest(), false);
     if (not path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, str};
+        return unexpected{std::move(str)};
     }
 
     ::bazel_re::Action action{};
@@ -58,11 +57,11 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         auto str = fmt::format("failed to parse action from blob {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, std::move(str)};
+        return unexpected{std::move(str)};
     }
     if (auto error_msg = IsAHash(action.input_root_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
-        return {std::nullopt, *error_msg};
+        return unexpected{*std::move(error_msg)};
     }
     path = Compatibility::IsCompatible()
                ? storage_.CAS().BlobPath(action.input_root_digest(), false)
@@ -72,24 +71,23 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         auto str = fmt::format("could not retrieve input root {} from cas",
                                action.input_root_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, str};
+        return unexpected{std::move(str)};
     }
-    return {std::move(action), std::nullopt};
+    return std::move(action);
 }
 
 auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
-    const noexcept -> std::pair<std::optional<::bazel_re::Command>,
-                                std::optional<std::string>> {
+    const noexcept -> expected<::bazel_re::Command, std::string> {
     if (auto error_msg = IsAHash(action.command_digest().hash())) {
         logger_.Emit(LogLevel::Error, "{}", *error_msg);
-        return {std::nullopt, *error_msg};
+        return unexpected{*std::move(error_msg)};
     }
     auto path = storage_.CAS().BlobPath(action.command_digest(), false);
     if (not path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                action.command_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, str};
+        return unexpected{std::move(str)};
     }
 
     ::bazel_re::Command c{};
@@ -97,9 +95,9 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
         auto str = fmt::format("failed to parse command from blob {}",
                                action.command_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, std::move(str)};
+        return unexpected{std::move(str)};
     }
-    return {c, std::nullopt};
+    return std::move(c);
 }
 
 static auto GetEnvVars(::bazel_re::Command const& c)
@@ -117,12 +115,10 @@ static auto GetEnvVars(::bazel_re::Command const& c)
 auto ExecutionServiceImpl::GetIExecutionAction(
     ::bazel_re::ExecuteRequest const* request,
     ::bazel_re::Action const& action) const
-    -> std::pair<std::optional<IExecutionAction::Ptr>,
-                 std::optional<std::string>> {
-
-    auto [c, msg_c] = GetCommand(action);
+    -> expected<IExecutionAction::Ptr, std::string> {
+    auto c = GetCommand(action);
     if (not c) {
-        return {std::nullopt, *msg_c};
+        return unexpected{std::move(c).error()};
     }
 
     auto env_vars = GetEnvVars(*c);
@@ -139,12 +135,12 @@ auto ExecutionServiceImpl::GetIExecutionAction(
         auto str = fmt::format("could not create action from {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return {std::nullopt, str};
+        return unexpected{std::move(str)};
     }
     i_execution_action->SetCacheFlag(
         action.do_not_cache() ? IExecutionAction::CacheFlag::DoNotCacheOutput
                               : IExecutionAction::CacheFlag::CacheOutput);
-    return {std::move(i_execution_action), std::nullopt};
+    return std::move(i_execution_action);
 }
 
 static auto CreateTreeDigestFromDirectoryDigest(
@@ -236,12 +232,12 @@ auto ExecutionServiceImpl::AddResult(
     ::bazel_re::ExecuteResponse* response,
     IExecutionResponse::Ptr const& i_execution_response,
     std::string const& action_hash) const noexcept
-    -> std::optional<std::string> {
+    -> expected<std::monostate, std::string> {
     if (not AddOutputPaths(response, i_execution_response, storage_)) {
         auto str = fmt::format("Error in creating output paths of action {}",
                                action_hash);
         logger_.Emit(LogLevel::Error, "{}", str);
-        return std::nullopt;
+        return unexpected{std::move(str)};
     }
     auto* result = response->mutable_result();
     result->set_exit_code(i_execution_response->ExitCode());
@@ -252,7 +248,7 @@ auto ExecutionServiceImpl::AddResult(
             auto str =
                 fmt::format("Could not store stderr of action {}", action_hash);
             logger_.Emit(LogLevel::Error, "{}", str);
-            return str;
+            return unexpected{std::move(str)};
         }
         result->mutable_stderr_digest()->CopyFrom(*dgst);
     }
@@ -263,11 +259,11 @@ auto ExecutionServiceImpl::AddResult(
             auto str =
                 fmt::format("Could not store stdout of action {}", action_hash);
             logger_.Emit(LogLevel::Error, "{}", str);
-            return str;
+            return unexpected{std::move(str)};
         }
         result->mutable_stdout_digest()->CopyFrom(*dgst);
     }
-    return std::nullopt;
+    return std::monostate{};
 }
 
 static void AddStatus(::bazel_re::ExecuteResponse* response) noexcept {
@@ -280,18 +276,16 @@ static void AddStatus(::bazel_re::ExecuteResponse* response) noexcept {
 auto ExecutionServiceImpl::GetResponse(
     ::bazel_re::ExecuteRequest const* request,
     IExecutionResponse::Ptr const& i_execution_response) const noexcept
-    -> std::pair<std::optional<::bazel_re::ExecuteResponse>,
-                 std::optional<std::string>> {
-
+    -> expected<::bazel_re::ExecuteResponse, std::string> {
     ::bazel_re::ExecuteResponse response{};
     AddStatus(&response);
-    auto err = AddResult(
+    auto result = AddResult(
         &response, i_execution_response, request->action_digest().hash());
-    if (err) {
-        return {std::nullopt, *err};
+    if (not result) {
+        return unexpected{std::move(result).error()};
     }
     response.set_cached_result(i_execution_response->IsCached());
-    return {response, std::nullopt};
+    return std::move(response);
 }
 
 auto ExecutionServiceImpl::StoreActionResult(
@@ -299,16 +293,16 @@ auto ExecutionServiceImpl::StoreActionResult(
     IExecutionResponse::Ptr const& i_execution_response,
     ::bazel_re::ExecuteResponse const& execute_response,
     ::bazel_re::Action const& action) const noexcept
-    -> std::optional<std::string> {
+    -> expected<std::monostate, std::string> {
     if (i_execution_response->ExitCode() == 0 and not action.do_not_cache() and
         not storage_.ActionCache().StoreResult(request->action_digest(),
                                                execute_response.result())) {
         auto str = fmt::format("Could not store action result for action {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return str;
+        return unexpected{std::move(str)};
     }
-    return std::nullopt;
+    return std::monostate{};
 }
 void ExecutionServiceImpl::WriteResponse(
     ::bazel_re::ExecuteResponse const& execute_response,
@@ -336,13 +330,15 @@ auto ExecutionServiceImpl::Execute(
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
-    auto [action, msg_a] = GetAction(request);
+    auto action = GetAction(request);
     if (not action) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg_a};
+        return ::grpc::Status{grpc::StatusCode::INTERNAL,
+                              std::move(action).error()};
     }
-    auto [i_execution_action, msg] = GetIExecutionAction(request, *action);
+    auto i_execution_action = GetIExecutionAction(request, *action);
     if (not i_execution_action) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg};
+        return ::grpc::Status{grpc::StatusCode::INTERNAL,
+                              std::move(i_execution_action).error()};
     }
 
     logger_.Emit(LogLevel::Info, "Execute {}", request->action_digest().hash());
@@ -363,15 +359,17 @@ auto ExecutionServiceImpl::Execute(
         request->action_digest().hash(),
         std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count());
 
-    auto [execute_response, msg_r] = GetResponse(request, i_execution_response);
+    auto execute_response = GetResponse(request, i_execution_response);
     if (not execute_response) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg_r};
+        return ::grpc::Status{grpc::StatusCode::INTERNAL,
+                              std::move(execute_response).error()};
     }
 
-    auto err_s = StoreActionResult(
+    auto store_result = StoreActionResult(
         request, i_execution_response, *execute_response, *action);
-    if (err_s) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, *err_s};
+    if (not store_result) {
+        return ::grpc::Status{grpc::StatusCode::INTERNAL,
+                              std::move(store_result).error()};
     }
     WriteResponse(*execute_response, writer, &op);
     return ::grpc::Status::OK;

@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <utility>
+#include <variant>  //std::monostate
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
@@ -29,6 +29,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class ExecutionServiceImpl final : public bazel_re::Execution::Service {
   public:
@@ -138,30 +139,27 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     Logger logger_{"execution-service"};
 
     [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)
-        const noexcept -> std::pair<std::optional<::bazel_re::Action>,
-                                    std::optional<std::string>>;
+        const noexcept -> expected<::bazel_re::Action, std::string>;
+
     [[nodiscard]] auto GetCommand(::bazel_re::Action const& action)
-        const noexcept -> std::pair<std::optional<::bazel_re::Command>,
-                                    std::optional<std::string>>;
+        const noexcept -> expected<::bazel_re::Command, std::string>;
 
     [[nodiscard]] auto GetIExecutionAction(
         ::bazel_re::ExecuteRequest const* request,
         ::bazel_re::Action const& action) const
-        -> std::pair<std::optional<IExecutionAction::Ptr>,
-                     std::optional<std::string>>;
+        -> expected<IExecutionAction::Ptr, std::string>;
 
     [[nodiscard]] auto GetResponse(
         ::bazel_re::ExecuteRequest const* request,
         IExecutionResponse::Ptr const& i_execution_response) const noexcept
-        -> std::pair<std::optional<::bazel_re::ExecuteResponse>,
-                     std::optional<std::string>>;
+        -> expected<::bazel_re::ExecuteResponse, std::string>;
 
     [[nodiscard]] auto StoreActionResult(
         ::bazel_re::ExecuteRequest const* request,
         IExecutionResponse::Ptr const& i_execution_response,
         ::bazel_re::ExecuteResponse const& execute_response,
         ::bazel_re::Action const& action) const noexcept
-        -> std::optional<std::string>;
+        -> expected<std::monostate, std::string>;
 
     void WriteResponse(
         ::bazel_re::ExecuteResponse const& execute_response,
@@ -171,7 +169,8 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     [[nodiscard]] auto AddResult(
         ::bazel_re::ExecuteResponse* response,
         IExecutionResponse::Ptr const& i_execution_response,
-        std::string const& hash) const noexcept -> std::optional<std::string>;
+        std::string const& hash) const noexcept
+        -> expected<std::monostate, std::string>;
 };
 
 #endif
