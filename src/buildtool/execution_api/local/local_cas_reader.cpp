@@ -14,8 +14,13 @@
 
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 
+#include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <stack>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -24,6 +29,13 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
+
+namespace {
+[[nodiscard]] auto AssembleTree(
+    bazel_re::Directory root,
+    std::unordered_map<ArtifactDigest, bazel_re::Directory> directories)
+    -> bazel_re::Tree;
+}  // namespace
 
 auto LocalCasReader::ReadDirectory(ArtifactDigest const& digest) const noexcept
     -> std::optional<bazel_re::Directory> {
@@ -36,6 +48,38 @@ auto LocalCasReader::ReadDirectory(ArtifactDigest const& digest) const noexcept
     Logger::Log(
         LogLevel::Error, "Directory {} not found in CAS", digest.hash());
     return std::nullopt;
+}
+
+auto LocalCasReader::MakeTree(ArtifactDigest const& root) const noexcept
+    -> std::optional<bazel_re::Tree> {
+    try {
+        std::unordered_map<ArtifactDigest, bazel_re::Directory> directories;
+
+        std::stack<ArtifactDigest> to_check;
+        to_check.push(root);
+        while (not to_check.empty()) {
+            auto current = to_check.top();
+            to_check.pop();
+
+            if (directories.contains(current)) {
+                continue;
+            }
+
+            auto read_dir = ReadDirectory(current);
+            if (not read_dir) {
+                return std::nullopt;
+            }
+            for (auto const& node : read_dir->directories()) {
+                to_check.push(ArtifactDigest{node.digest()});
+            }
+            directories.insert_or_assign(std::move(current),
+                                         *std::move(read_dir));
+        }
+        auto root_directory = directories.extract(root).mapped();
+        return AssembleTree(std::move(root_directory), std::move(directories));
+    } catch (...) {
+        return std::nullopt;
+    }
 }
 
 auto LocalCasReader::ReadGitTree(ArtifactDigest const& digest) const noexcept
@@ -112,3 +156,29 @@ auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
     }
     return true;
 }
+
+namespace {
+[[nodiscard]] auto AssembleTree(
+    bazel_re::Directory root,
+    std::unordered_map<ArtifactDigest, bazel_re::Directory> directories)
+    -> bazel_re::Tree {
+    using Pair = std::pair<ArtifactDigest const, bazel_re::Directory>;
+    std::vector<Pair*> sorted;
+    sorted.reserve(directories.size());
+    for (auto& p : directories) {
+        sorted.push_back(&p);
+    }
+    std::sort(sorted.begin(), sorted.end(), [](Pair const* l, Pair const* r) {
+        return l->first.hash() < r->first.hash();
+    });
+
+    ::bazel_re::Tree result{};
+    (*result.mutable_root()) = std::move(root);
+    result.mutable_children()->Reserve(gsl::narrow<int>(sorted.size()));
+    std::transform(sorted.begin(),
+                   sorted.end(),
+                   ::pb::back_inserter(result.mutable_children()),
+                   [](Pair* p) { return std::move(p->second); });
+    return result;
+}
+}  // namespace

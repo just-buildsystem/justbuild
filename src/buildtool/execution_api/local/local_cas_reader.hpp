@@ -38,6 +38,9 @@ class LocalCasReader final {
     [[nodiscard]] auto ReadDirectory(ArtifactDigest const& digest)
         const noexcept -> std::optional<bazel_re::Directory>;
 
+    [[nodiscard]] auto MakeTree(ArtifactDigest const& root) const noexcept
+        -> std::optional<bazel_re::Tree>;
+
     [[nodiscard]] auto ReadGitTree(ArtifactDigest const& digest) const noexcept
         -> std::optional<GitRepo::tree_entries_t>;
 

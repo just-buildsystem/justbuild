@@ -17,12 +17,12 @@
 #include <algorithm>
 #include <fstream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 
 #include "execution_server.hpp"
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
+#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
@@ -153,129 +153,16 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     return {std::move(i_execution_action), std::nullopt};
 }
 
-static auto GetDirectoryFromDigest(::bazel_re::Digest const& digest,
-                                   Storage const& storage) noexcept
-    -> std::optional<::bazel_re::Directory> {
-    // determine directory path from digest
-    auto const& path = storage.CAS().BlobPath(digest, /*is_executable=*/false);
-    if (not path) {
-        return std::nullopt;
-    }
-
-    // read directory content from path
-    auto const& content = FileSystemManager::ReadFile(*path);
-    if (not content) {
-        return std::nullopt;
-    }
-
-    // parse directory content
-    ::bazel_re::Directory dir{};
-    if (not dir.ParseFromString(*content)) {
-        return std::nullopt;
-    }
-    return dir;
-}
-
-// NOLINTNEXTLINE(misc-no-recursion)
-static auto CollectChildDirectoriesRecursively(
-    ::bazel_re::Directory const& root,
-    Storage const& storage,
-    gsl::not_null<std::unordered_map<::bazel_re::Digest,
-                                     ::bazel_re::Directory>*> map) noexcept
-    -> bool {
-    return std::all_of(root.directories().begin(),
-                       root.directories().end(),
-                       // NOLINTNEXTLINE(misc-no-recursion)
-                       [&map, &storage](auto const& node) {
-                           if (map->find(node.digest()) != map->end()) {
-                               return true;
-                           }
-                           auto tmp_root =
-                               GetDirectoryFromDigest(node.digest(), storage);
-                           if (not tmp_root) {
-                               return false;
-                           }
-                           if (not CollectChildDirectoriesRecursively(
-                                   *tmp_root, storage, map)) {
-                               return false;
-                           }
-                           try {
-                               map->emplace(node.digest(), *tmp_root);
-                           } catch (...) {
-                               return false;
-                           }
-                           return true;
-                       });
-}
-
-static auto GetChildrenFromDirectory(::bazel_re::Directory const& root,
-                                     Storage const& storage) noexcept
-    -> std::optional<std::vector<::bazel_re::Directory>> {
-    // determine child directories
-    std::unordered_map<::bazel_re::Digest, ::bazel_re::Directory> map{};
-    if (not CollectChildDirectoriesRecursively(root, storage, &map)) {
-        return std::nullopt;
-    }
-
-    // extract digests from child directories
-    std::vector<::bazel_re::Digest> digests{};
-    digests.reserve(map.size());
-    std::transform(map.begin(),
-                   map.end(),
-                   std::back_inserter(digests),
-                   [](auto const& pair) { return pair.first; });
-
-    // sort digests
-    std::sort(digests.begin(),
-              digests.end(),
-              [](auto const& left, auto const& right) {
-                  return left.hash() < right.hash();
-              });
-
-    // extract directory messages
-    std::vector<::bazel_re::Directory> children{};
-    children.reserve(digests.size());
-    std::transform(digests.begin(),
-                   digests.end(),
-                   std::back_inserter(children),
-                   [&map](auto const& digest) { return map[digest]; });
-
-    return children;
-}
-
 static auto CreateTreeDigestFromDirectoryDigest(
     ::bazel_re::Digest const& dir_digest,
     Storage const& storage) noexcept -> std::optional<::bazel_re::Digest> {
-    // determine root directory message
-    auto root = GetDirectoryFromDigest(dir_digest, storage);
-    if (not root) {
-        return std::nullopt;
+    LocalCasReader reader(&storage.CAS());
+    if (auto tree = reader.MakeTree(ArtifactDigest{dir_digest})) {
+        // serialize and store tree message
+        auto content = tree->SerializeAsString();
+        return storage.CAS().StoreBlob(content, /*is_executable=*/false);
     }
-
-    // determine child directory messages
-    auto children = GetChildrenFromDirectory(*root, storage);
-    if (not children) {
-        return std::nullopt;
-    }
-
-    // create tree message
-    ::bazel_re::Tree tree{};
-    tree.set_allocated_root(
-        gsl::owner<::bazel_re::Directory*>{new ::bazel_re::Directory{*root}});
-    tree.mutable_children()->Reserve(gsl::narrow<int>((*children).size()));
-    std::copy((*children).begin(),
-              (*children).end(),
-              ::pb::back_inserter(tree.mutable_children()));
-
-    // serialize and store tree message
-    auto content = tree.SerializeAsString();
-    auto tree_digest =
-        storage.CAS().StoreBlob(content, /*is_executable=*/false);
-    if (not tree_digest) {
-        return std::nullopt;
-    }
-
-    return tree_digest;
+    return std::nullopt;
 }
 
 static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
