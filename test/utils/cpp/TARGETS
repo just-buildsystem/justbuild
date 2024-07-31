@@ -9,6 +9,17 @@
     ]
   , "stage": ["test", "utils", "cpp"]
   }
+, "path_rebase":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["path_rebase"]
+  , "srcs": ["path_rebase.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/utils/cpp", "path_rebase"]
+    ]
+  , "stage": ["test", "utils", "cpp"]
+  }
 , "file_locking":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["file_locking"]
@@ -37,6 +48,6 @@
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
-  , "deps": ["path", "file_locking", "prefix"]
+  , "deps": ["path", "path_rebase", "file_locking", "prefix"]
   }
 }

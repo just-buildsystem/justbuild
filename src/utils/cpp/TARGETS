@@ -48,6 +48,12 @@
   , "hdrs": ["path.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "path_rebase":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["path_rebase"]
+  , "hdrs": ["path_rebase.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 , "vector":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["vector"]
