@@ -29,6 +29,7 @@ class Action {
 
     Action(std::string action_id,
            std::vector<std::string> command,
+           std::string cwd,
            std::map<std::string, std::string> env_vars,
            std::optional<std::string> may_fail,
            bool no_cache,
@@ -36,6 +37,7 @@ class Action {
            std::map<std::string, std::string> execution_properties)
         : id_{std::move(action_id)},
           command_{std::move(command)},
+          cwd_{std::move(cwd)},
           env_{std::move(env_vars)},
           may_fail_{std::move(may_fail)},
           no_cache_{no_cache},
@@ -47,6 +49,7 @@ class Action {
            std::map<std::string, std::string> env_vars)
         : Action(std::move(action_id),
                  std::move(command),
+                 "",
                  std::move(env_vars),
                  std::nullopt,
                  false,
@@ -63,6 +66,8 @@ class Action {
         -> std::vector<std::string> const& {
         return command_;
     }
+
+    [[nodiscard]] auto Cwd() const -> std::string { return cwd_; }
 
     [[nodiscard]] auto Env() const& noexcept
         -> std::map<std::string, std::string> {
@@ -98,6 +103,7 @@ class Action {
   private:
     ActionIdentifier id_{};
     std::vector<std::string> command_{};
+    std::string cwd_{};
     std::map<std::string, std::string> env_{};
     bool is_tree_{};
     std::optional<std::string> may_fail_{};

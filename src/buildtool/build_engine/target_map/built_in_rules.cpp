@@ -1341,6 +1341,7 @@ void GenericRuleWithDeps(
         outs,
         out_dirs,
         argv,
+        "",
         env_val,
         std::nullopt,
         false,

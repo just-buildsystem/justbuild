@@ -697,6 +697,7 @@ void withDependencies(
                   outputs,
                   output_dirs,
                   std::move(cmd),
+                  "",
                   env_exp,
                   may_fail,
                   no_cache,

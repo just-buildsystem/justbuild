@@ -199,6 +199,7 @@ auto BuildMaps::Target::Utils::createAction(
     const ActionDescription::outputs_t& output_files,
     const ActionDescription::outputs_t& output_dirs,
     std::vector<std::string> command,
+    std::string cwd,
     const ExpressionPtr& env,
     std::optional<std::string> may_fail,
     bool no_cache,
@@ -213,6 +214,7 @@ auto BuildMaps::Target::Utils::createAction(
     hasher.Update(hash_vector(hash_function, output_files));
     hasher.Update(hash_vector(hash_function, output_dirs));
     hasher.Update(hash_vector(hash_function, command));
+    hasher.Update(hash_vector(hash_function, std::vector<std::string>{cwd}));
     hasher.Update(env->ToHash());
     hasher.Update(hash_vector(hash_function,
                               may_fail ? std::vector<std::string>{*may_fail}
@@ -242,6 +244,7 @@ auto BuildMaps::Target::Utils::createAction(
                                                output_dirs,
                                                Action{std::move(action_id),
                                                       std::move(command),
+                                                      std::move(cwd),
                                                       std::move(env_vars),
                                                       std::move(may_fail),
                                                       no_cache,

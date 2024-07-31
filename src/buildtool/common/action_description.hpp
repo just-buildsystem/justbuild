@@ -83,6 +83,19 @@ class ActionDescription {
                 output_dirs = std::vector<std::string>{};
             }
 
+            std::string cwd{};
+            auto cwd_it = desc.find("cwd");
+            if (cwd_it != desc.end()) {
+                if (cwd_it->is_string()) {
+                    cwd = *cwd_it;
+                }
+                else {
+                    Logger::Log(LogLevel::Error,
+                                "cwd, if given, has to be a string");
+                    return std::nullopt;
+                }
+            }
+
             auto optional_key_value_reader =
                 [](nlohmann::json const& action_desc,
                    std::string const& key) -> nlohmann::json {
@@ -160,6 +173,7 @@ class ActionDescription {
                 std::move(*output_dirs),
                 Action{id,
                        std::move(*command),
+                       cwd,
                        env,
                        may_fail,
                        no_cache,
@@ -205,6 +219,9 @@ class ActionDescription {
         }
         if (action_.TimeoutScale() != 1.0) {
             json["timeout scaling"] = action_.TimeoutScale();
+        }
+        if (not action_.Cwd().empty()) {
+            json["cwd"] = action_.Cwd();
         }
         if (not action_.ExecutionProperties().empty()) {
             json["execution properties"] = action_.ExecutionProperties();
