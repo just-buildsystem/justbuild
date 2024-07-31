@@ -154,13 +154,6 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         IExecutionResponse::Ptr const& i_execution_response) const noexcept
         -> expected<::bazel_re::ExecuteResponse, std::string>;
 
-    [[nodiscard]] auto StoreActionResult(
-        ::bazel_re::ExecuteRequest const* request,
-        IExecutionResponse::Ptr const& i_execution_response,
-        ::bazel_re::ExecuteResponse const& execute_response,
-        ::bazel_re::Action const& action) const noexcept
-        -> expected<std::monostate, std::string>;
-
     void WriteResponse(
         ::bazel_re::ExecuteResponse const& execute_response,
         ::grpc::ServerWriter<::google::longrunning::Operation>* writer,

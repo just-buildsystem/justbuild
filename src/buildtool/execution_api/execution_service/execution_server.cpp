@@ -288,22 +288,6 @@ auto ExecutionServiceImpl::GetResponse(
     return std::move(response);
 }
 
-auto ExecutionServiceImpl::StoreActionResult(
-    ::bazel_re::ExecuteRequest const* request,
-    IExecutionResponse::Ptr const& i_execution_response,
-    ::bazel_re::ExecuteResponse const& execute_response,
-    ::bazel_re::Action const& action) const noexcept
-    -> expected<std::monostate, std::string> {
-    if (i_execution_response->ExitCode() == 0 and not action.do_not_cache() and
-        not storage_.ActionCache().StoreResult(request->action_digest(),
-                                               execute_response.result())) {
-        auto str = fmt::format("Could not store action result for action {}",
-                               request->action_digest().hash());
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return unexpected{std::move(str)};
-    }
-    return std::monostate{};
-}
 void ExecutionServiceImpl::WriteResponse(
     ::bazel_re::ExecuteResponse const& execute_response,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
@@ -365,12 +349,18 @@ auto ExecutionServiceImpl::Execute(
                               std::move(execute_response).error()};
     }
 
-    auto store_result = StoreActionResult(
-        request, i_execution_response, *execute_response, *action);
-    if (not store_result) {
-        return ::grpc::Status{grpc::StatusCode::INTERNAL,
-                              std::move(store_result).error()};
+    if (i_execution_response->ExitCode() == 0 and not action->do_not_cache()) {
+        if (not storage_.ActionCache().StoreResult(
+                request->action_digest(), execute_response->result())) {
+            auto const str =
+                fmt::format("Could not store action result for action {}",
+                            request->action_digest().hash());
+
+            logger_.Emit(LogLevel::Error, str);
+            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        }
     }
+
     WriteResponse(*execute_response, writer, &op);
     return ::grpc::Status::OK;
 }
