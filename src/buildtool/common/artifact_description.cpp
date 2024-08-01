@@ -17,7 +17,7 @@
 #include <cstddef>
 
 #include "nlohmann/json.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/json.hpp"
@@ -42,7 +42,8 @@ namespace {
 [[nodiscard]] auto CreateLocalArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription>;
 
-[[nodiscard]] auto CreateKnownArtifactDescription(nlohmann::json const& data)
+[[nodiscard]] auto CreateKnownArtifactDescription(HashFunction::Type hash_type,
+                                                  nlohmann::json const& data)
     -> std::optional<ArtifactDescription>;
 
 [[nodiscard]] auto CreateActionArtifactDescription(nlohmann::json const& data)
@@ -79,7 +80,8 @@ auto ArtifactDescription::CreateTree(std::string tree_id) noexcept
     return ArtifactDescription{std::move(tree_id)};
 }
 
-auto ArtifactDescription::FromJson(nlohmann::json const& json) noexcept
+auto ArtifactDescription::FromJson(HashFunction::Type hash_type,
+                                   nlohmann::json const& json) noexcept
     -> std::optional<ArtifactDescription> {
     try {
         auto const type = ExtractValueAs<std::string>(
@@ -107,7 +109,7 @@ auto ArtifactDescription::FromJson(nlohmann::json const& json) noexcept
             return CreateLocalArtifactDescription(*data);
         }
         if (*type == "KNOWN") {
-            return CreateKnownArtifactDescription(*data);
+            return CreateKnownArtifactDescription(hash_type, *data);
         }
         if (*type == "ACTION") {
             return CreateActionArtifactDescription(*data);
@@ -259,7 +261,8 @@ auto CreateLocalArtifactDescription(nlohmann::json const& data)
     return std::nullopt;
 }
 
-auto CreateKnownArtifactDescription(nlohmann::json const& data)
+auto CreateKnownArtifactDescription(HashFunction::Type hash_type,
+                                    nlohmann::json const& data)
     -> std::optional<ArtifactDescription> {
     auto const blob_id =
         ExtractValueAs<std::string>(data, "id", [](std::string const& error) {
@@ -284,9 +287,15 @@ auto CreateKnownArtifactDescription(nlohmann::json const& data)
         });
     if (blob_id.has_value() and size.has_value() and file_type.has_value() and
         file_type->size() == 1) {
-        auto const& object_type = FromChar((*file_type)[0]);
-        ArtifactDigest digest{*blob_id, *size, IsTreeObject(object_type)};
-        return ArtifactDescription::CreateKnown(std::move(digest), object_type);
+        auto const object_type = FromChar((*file_type)[0]);
+
+        auto digest = ArtifactDigestFactory::Create(
+            hash_type, *blob_id, *size, IsTreeObject(object_type));
+        if (not digest) {
+            return std::nullopt;
+        }
+        return ArtifactDescription::CreateKnown(*std::move(digest),
+                                                object_type);
     }
     return std::nullopt;
 }

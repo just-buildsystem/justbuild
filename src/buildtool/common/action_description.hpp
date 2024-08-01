@@ -26,6 +26,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/json.hpp"
@@ -45,7 +46,8 @@ class ActionDescription {
           action_{std::move(action)},
           inputs_{std::move(inputs)} {}
 
-    [[nodiscard]] static auto FromJson(std::string const& id,
+    [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
+                                       std::string const& id,
                                        nlohmann::json const& desc) noexcept
         -> std::optional<ActionDescription::Ptr> {
         try {
@@ -119,7 +121,8 @@ class ActionDescription {
 
             inputs_t inputs{};
             for (auto const& [path, input_desc] : input.items()) {
-                auto artifact = ArtifactDescription::FromJson(input_desc);
+                auto artifact =
+                    ArtifactDescription::FromJson(hash_type, input_desc);
                 if (not artifact) {
                     return std::nullopt;
                 }

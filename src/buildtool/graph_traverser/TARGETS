@@ -7,6 +7,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_engine/executor", "context"]
     , ["src/buildtool/execution_engine/executor", "executor"]

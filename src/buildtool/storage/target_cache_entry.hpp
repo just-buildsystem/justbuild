@@ -27,21 +27,25 @@
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 
 // Entry for target cache. Created from target, contains TargetResult.
 class TargetCacheEntry {
   public:
-    explicit TargetCacheEntry(nlohmann::json desc) : desc_(std::move(desc)) {}
+    explicit TargetCacheEntry(HashFunction::Type hash_type, nlohmann::json desc)
+        : hash_type_{hash_type}, desc_(std::move(desc)) {}
 
     // Create the entry from target with replacement artifacts/infos.
     // Replacement artifacts must replace all non-known artifacts by known.
     [[nodiscard]] static auto FromTarget(
+        HashFunction::Type hash_type,
         AnalysedTargetPtr const& target,
         std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
             replacements) noexcept -> std::optional<TargetCacheEntry>;
 
     // Create a target-cache entry from a json description.
-    [[nodiscard]] static auto FromJson(nlohmann::json desc) noexcept
+    [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
+                                       nlohmann::json desc) noexcept
         -> TargetCacheEntry;
 
     // Obtain TargetResult from cache entry.
@@ -70,6 +74,7 @@ class TargetCacheEntry {
     }
 
   private:
+    HashFunction::Type hash_type_;
     nlohmann::json desc_;
 };
 

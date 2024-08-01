@@ -23,6 +23,7 @@
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 class ArtifactDescription final {
@@ -65,7 +66,8 @@ class ArtifactDescription final {
         return std::holds_alternative<Tree>(data_);
     }
 
-    [[nodiscard]] static auto FromJson(nlohmann::json const& json) noexcept
+    [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
+                                       nlohmann::json const& json) noexcept
         -> std::optional<ArtifactDescription>;
 
     [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json;

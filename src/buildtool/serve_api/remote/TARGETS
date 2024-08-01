@@ -76,6 +76,7 @@
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "configuration_client":

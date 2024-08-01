@@ -22,6 +22,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TargetResult {
@@ -30,7 +31,8 @@ struct TargetResult {
     ExpressionPtr runfiles{};
     bool is_cacheable{provides.IsCacheable()};
 
-    [[nodiscard]] static auto FromJson(nlohmann::json const& json) noexcept
+    [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
+                                       nlohmann::json const& json) noexcept
         -> std::optional<TargetResult>;
 
     [[nodiscard]] auto ToJson() const -> nlohmann::json;

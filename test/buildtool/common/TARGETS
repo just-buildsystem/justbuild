@@ -11,6 +11,7 @@
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }
@@ -24,6 +25,8 @@
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "action_description"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "common"]
   }

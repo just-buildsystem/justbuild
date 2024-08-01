@@ -35,6 +35,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -179,10 +180,13 @@ class GraphTraverser {
         }
         auto const [blobs, tree_descs, actions] = *desc;
 
+        HashFunction::Type const hash_type =
+            context_.apis->hash_function.GetType();
         std::vector<ActionDescription::Ptr> action_descriptions{};
         action_descriptions.reserve(actions.size());
         for (auto const& [id, description] : actions.items()) {
-            auto action = ActionDescription::FromJson(id, description);
+            auto action =
+                ActionDescription::FromJson(hash_type, id, description);
             if (not action) {
                 return std::nullopt;  // Error already logged
             }
@@ -191,7 +195,7 @@ class GraphTraverser {
 
         std::vector<Tree::Ptr> trees{};
         for (auto const& [id, description] : tree_descs.items()) {
-            auto tree = Tree::FromJson(id, description);
+            auto tree = Tree::FromJson(hash_type, id, description);
             if (not tree) {
                 return std::nullopt;
             }
@@ -200,7 +204,8 @@ class GraphTraverser {
 
         std::map<std::string, ArtifactDescription> artifact_descriptions{};
         for (auto const& [rel_path, description] : artifacts.items()) {
-            auto artifact = ArtifactDescription::FromJson(description);
+            auto artifact =
+                ArtifactDescription::FromJson(hash_type, description);
             if (not artifact) {
                 return std::nullopt;  // Error already logged
             }

@@ -14,6 +14,7 @@
 
 #include "src/buildtool/main/build_utils.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -94,7 +95,8 @@ auto CreateTargetCacheWriterMap(
                 return;
             }
             auto const& target = cache_targets.at(tc_key);
-            auto entry = TargetCacheEntry::FromTarget(target, extra_infos);
+            auto entry = TargetCacheEntry::FromTarget(
+                apis->hash_function.GetType(), target, extra_infos);
             if (not entry) {
                 (*logger)(
                     fmt::format("Failed creating target cache entry for key {}",

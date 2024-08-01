@@ -51,6 +51,7 @@
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "gsl"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
   , "private-deps":
@@ -59,7 +60,6 @@
     , ["src/utils/cpp", "type_safe_arithmetic"]
     , ["src/utils/cpp", "path"]
     , ["src/buildtool/crypto", "hasher"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 }

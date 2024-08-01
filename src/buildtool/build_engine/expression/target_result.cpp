@@ -180,6 +180,7 @@ auto SerializeTargetResultWithReplacement(
 
 // NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DeserializeExpression(
+    HashFunction::Type hash_type,
     nlohmann::json const& entry,
     nlohmann::json const& nodes,
     std::unordered_set<std::string> const& provided_artifacts,
@@ -198,7 +199,8 @@ auto SerializeTargetResultWithReplacement(
     auto const& json = nodes.at(id);
     if (json.is_object()) {
         if (provided_artifacts.contains(id)) {
-            if (auto artifact = ArtifactDescription::FromJson(json)) {
+            if (auto artifact =
+                    ArtifactDescription::FromJson(hash_type, json)) {
                 auto result = ExpressionPtr{*artifact};
                 sofar->emplace(id, result);
                 return result;
@@ -209,14 +211,16 @@ auto SerializeTargetResultWithReplacement(
             if (json["type"] == "ABSTRACT_NODE") {
                 auto node_type = json["node_type"].get<std::string>();
                 auto target_fields =
-                    DeserializeExpression(json["target_fields"],
+                    DeserializeExpression(hash_type,
+                                          json["target_fields"],
                                           nodes,
                                           provided_artifacts,
                                           provided_nodes,
                                           provided_results,
                                           sofar);
                 auto string_fields =
-                    DeserializeExpression(json["string_fields"],
+                    DeserializeExpression(hash_type,
+                                          json["string_fields"],
                                           nodes,
                                           provided_artifacts,
                                           provided_nodes,
@@ -230,7 +234,8 @@ auto SerializeTargetResultWithReplacement(
                 return result;
             }
             if (json["type"] == "VALUE_NODE") {
-                auto value = DeserializeExpression(json["result"],
+                auto value = DeserializeExpression(hash_type,
+                                                   json["result"],
                                                    nodes,
                                                    provided_artifacts,
                                                    provided_nodes,
@@ -243,19 +248,22 @@ auto SerializeTargetResultWithReplacement(
             return ExpressionPtr{nullptr};
         }
         if (provided_results.contains(id)) {
-            auto artifact_stage = DeserializeExpression(json["artifact_stage"],
+            auto artifact_stage = DeserializeExpression(hash_type,
+                                                        json["artifact_stage"],
                                                         nodes,
                                                         provided_artifacts,
                                                         provided_nodes,
                                                         provided_results,
                                                         sofar);
-            auto runfiles = DeserializeExpression(json["runfiles"],
+            auto runfiles = DeserializeExpression(hash_type,
+                                                  json["runfiles"],
                                                   nodes,
                                                   provided_artifacts,
                                                   provided_nodes,
                                                   provided_results,
                                                   sofar);
-            auto provides = DeserializeExpression(json["provides"],
+            auto provides = DeserializeExpression(hash_type,
+                                                  json["provides"],
                                                   nodes,
                                                   provided_artifacts,
                                                   provided_nodes,
@@ -273,7 +281,8 @@ auto SerializeTargetResultWithReplacement(
 
         Expression::map_t::underlying_map_t map{};
         for (auto const& [key, val] : json.items()) {
-            auto new_val = DeserializeExpression(val.get<std::string>(),
+            auto new_val = DeserializeExpression(hash_type,
+                                                 val.get<std::string>(),
                                                  nodes,
                                                  provided_artifacts,
                                                  provided_nodes,
@@ -293,7 +302,8 @@ auto SerializeTargetResultWithReplacement(
         Expression::list_t list{};
         list.reserve(json.size());
         for (auto const& val : json) {
-            auto new_val = DeserializeExpression(val.get<std::string>(),
+            auto new_val = DeserializeExpression(hash_type,
+                                                 val.get<std::string>(),
                                                  nodes,
                                                  provided_artifacts,
                                                  provided_nodes,
@@ -335,12 +345,13 @@ auto SerializeTargetResultWithReplacement(
     return artifacts;
 }
 
-[[nodiscard]] auto DeserializeArtifactMap(nlohmann::json const& json)
+[[nodiscard]] auto DeserializeArtifactMap(HashFunction::Type hash_type,
+                                          nlohmann::json const& json)
     -> ExpressionPtr {
     if (json.is_object()) {
         Expression::map_t::underlying_map_t map{};
         for (auto const& [key, val] : json.items()) {
-            auto artifact = ArtifactDescription::FromJson(val);
+            auto artifact = ArtifactDescription::FromJson(hash_type, val);
             if (not artifact) {
                 return ExpressionPtr{nullptr};
             }
@@ -388,10 +399,12 @@ auto JsonSet(nlohmann::json const& j) -> std::unordered_set<std::string> {
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-[[nodiscard]] auto DeserializeProvidesMap(nlohmann::json const& json)
+[[nodiscard]] auto DeserializeProvidesMap(HashFunction::Type hash_type,
+                                          nlohmann::json const& json)
     -> ExpressionPtr {
     std::unordered_map<std::string, ExpressionPtr> sofar{};
-    return DeserializeExpression(json["entry"],
+    return DeserializeExpression(hash_type,
+                                 json["entry"],
                                  json["nodes"],
                                  JsonSet(json["provided_artifacts"]),
                                  JsonSet(json["provided_nodes"]),
@@ -434,12 +447,13 @@ auto TargetResult::ReplaceNonKnownAndToJson(
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-auto TargetResult::FromJson(nlohmann::json const& json) noexcept
+auto TargetResult::FromJson(HashFunction::Type hash_type,
+                            nlohmann::json const& json) noexcept
     -> std::optional<TargetResult> {
     try {
-        auto artifacts = DeserializeArtifactMap(json["artifacts"]);
-        auto runfiles = DeserializeArtifactMap(json["runfiles"]);
-        auto provides = DeserializeProvidesMap(json["provides"]);
+        auto artifacts = DeserializeArtifactMap(hash_type, json["artifacts"]);
+        auto runfiles = DeserializeArtifactMap(hash_type, json["runfiles"]);
+        auto provides = DeserializeProvidesMap(hash_type, json["provides"]);
         if (artifacts and runfiles and provides) {
             return TargetResult{artifacts, provides, runfiles};
         }

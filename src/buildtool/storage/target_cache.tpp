@@ -19,6 +19,7 @@
 #include <tuple>  //std::ignore
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 
@@ -92,7 +93,8 @@ auto TargetCache<kDoGlobalUplink>::Read(
             if (auto value = FileSystemManager::ReadFile(*path)) {
                 try {
                     return std::make_pair(
-                        TargetCacheEntry{nlohmann::json::parse(*value)},
+                        TargetCacheEntry{hash_type,
+                                         nlohmann::json::parse(*value)},
                         std::move(*info));
                 } catch (std::exception const& ex) {
                     logger_->Emit(LogLevel::Warning,
@@ -161,7 +163,8 @@ auto TargetCache<kDoGlobalUplink>::LocalUplinkEntry(
     } catch (std::exception const& ex) {
         return false;
     }
-    auto entry = TargetCacheEntry::FromJson(json_desc);
+    auto entry =
+        TargetCacheEntry::FromJson(cas_.GetHashFunction().GetType(), json_desc);
 
     // Uplink the implied export targets first
     for (auto const& implied_digest : entry.ToImplied()) {

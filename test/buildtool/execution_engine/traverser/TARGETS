@@ -10,6 +10,8 @@
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/traverser", "traverser"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "traverser"]
   }

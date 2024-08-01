@@ -109,9 +109,9 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
-  , "private-deps":
-    [["src/utils/cpp", "json"], ["src/buildtool/crypto", "hash_function"]]
+  , "private-deps": [["src/utils/cpp", "json"], "artifact_digest_factory"]
   , "stage": ["src", "buildtool", "common"]
   }
 , "action_description":
@@ -125,6 +125,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "json"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }

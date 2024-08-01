@@ -24,6 +24,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 namespace {
@@ -173,7 +174,8 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                                 obj_info.ToString())};
             }
             try {
-                auto const& result = TargetCacheEntry::FromJson(
+                auto const result = TargetCacheEntry::FromJson(
+                    storage_.GetHashFunction().GetType(),
                     nlohmann::json::parse(*target_value_str));
                 // return the target cache value information
                 return serve_target_result_t{std::in_place_index<3>,

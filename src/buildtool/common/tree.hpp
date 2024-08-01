@@ -54,13 +54,15 @@ class Tree {
         return ArtifactDescription::CreateTree(id_);
     }
 
-    [[nodiscard]] static auto FromJson(std::string const& id,
+    [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
+                                       std::string const& id,
                                        nlohmann::json const& json)
         -> std::optional<Tree::Ptr> {
         auto inputs = inputs_t{};
         inputs.reserve(json.size());
         for (auto const& [path, artifact] : json.items()) {
-            auto artifact_desc = ArtifactDescription::FromJson(artifact);
+            auto artifact_desc =
+                ArtifactDescription::FromJson(hash_type, artifact);
             if (not artifact_desc) {
                 return std::nullopt;
             }

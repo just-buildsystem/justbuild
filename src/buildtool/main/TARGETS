@@ -317,6 +317,7 @@
     [ ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "archive":

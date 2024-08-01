@@ -24,6 +24,8 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
 
@@ -182,8 +184,12 @@ class TestProject {
         auto inputs_desc = ActionDescription::inputs_t{};
         if (not inputs.empty()) {
             command.emplace_back("FROM");
+            auto const hash_type = Compatibility::IsCompatible()
+                                       ? HashFunction::Type::PlainSHA256
+                                       : HashFunction::Type::GitSHA1;
             for (auto const& input_desc : inputs) {
-                auto artifact = ArtifactDescription::FromJson(input_desc);
+                auto artifact =
+                    ArtifactDescription::FromJson(hash_type, input_desc);
                 REQUIRE(artifact);
                 auto const input_id = artifact->Id();
                 command.push_back(input_id);
