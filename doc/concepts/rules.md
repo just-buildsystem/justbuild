@@ -178,12 +178,19 @@ following arguments.
    non-empty list of strings. The 0'th element of that list will
    also be the program to be executed.
 
+ - `"cwd"` The directory inside the action root to change to before
+   executing the command. The directory has to be given as a string
+   decribing a non-upwards relative path. This field is optional
+   and defaults to `""`.
+
  - `"env"` The environment in which the command should be executed,
    given as a map of strings to strings.
 
  - `"outs"` and `"out_dirs"` Two list of strings naming the files
    and directories, respectively, the command is expected to
-   create. It is an error if the command fails to create the
+   create. Those paths are interpreted relative to the action root
+   (not relative to `"cwd"`).
+   It is an error if the command fails to create the
    promised output files. These two lists have to be disjoint, but
    an entry of `"outs"` may well name a location inside one of the
    `"out_dirs"`.

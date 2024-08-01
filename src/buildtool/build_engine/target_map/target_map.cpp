@@ -593,6 +593,18 @@ void withDependencies(
                   }
                   cmd.emplace_back(arg->String());
               }
+              auto cwd_exp =
+                  eval(expr->Get("cwd", Expression::kEmptyString), env);
+              if (not cwd_exp->IsString()) {
+                  throw Evaluator::EvaluationError{
+                      fmt::format("cwd has to be a string, but found {}",
+                                  cwd_exp->ToString())};
+              }
+              if (not PathIsNonUpwards(cwd_exp->String())) {
+                  throw Evaluator::EvaluationError{fmt::format(
+                      "cwd has to be a non-upwards relative path, but found {}",
+                      cwd_exp->ToString())};
+              }
               auto env_exp = eval(expr->Get("env", empty_map_exp), env);
               if (not env_exp->IsMap()) {
                   throw Evaluator::EvaluationError{
@@ -697,7 +709,7 @@ void withDependencies(
                   outputs,
                   output_dirs,
                   std::move(cmd),
-                  "",
+                  cwd_exp->String(),
                   env_exp,
                   may_fail,
                   no_cache,
