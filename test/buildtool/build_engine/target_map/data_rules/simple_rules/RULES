@@ -194,4 +194,15 @@
       }
     }
   }
+, "action":
+  { "string_fields": ["cmd", "outs"]
+  , "expression":
+    { "type": "RESULT"
+    , "artifacts":
+      { "type": "ACTION"
+      , "cmd": {"type": "FIELD", "name": "cmd"}
+      , "outs": {"type": "FIELD", "name": "outs"}
+      }
+    }
+  }
 }

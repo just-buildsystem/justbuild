@@ -546,6 +546,56 @@ TEST_CASE("simple targets", "[target_map]") {
         CHECK(result->Actions()[1]->ToJson()["input"]["in"]["data"]["path"] ==
               "simple_targets/bar.txt");
     }
+
+    SECTION("ok outs") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "ok outs"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        auto artifacts_desc = result->Artifacts()->ToJson();
+        CHECK(artifacts_desc["foo/bar/baz.txt"]["type"] == "ACTION");
+    }
+
+    SECTION("bad outs") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "bad outs"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(error);
+        CHECK(error_msg != "NONE");
+    }
 }
 
 TEST_CASE("configuration deduplication", "[target_map]") {

@@ -87,4 +87,14 @@
   {"type": "file_gen", "name": "generated.txt", "data": "Hello World!"}
 , "generate symlink":
   {"type": "symlink", "name": "generated_link", "data": "dummy_link_target"}
+, "ok outs":
+  { "type": ["simple_rules", "action"]
+  , "cmd": ["sh", "-c", "mkdir foo/bar && echo hello > foo/bar/baz.txt"]
+  , "outs": ["foo/bar/baz.txt"]
+  }
+, "bad outs":
+  { "type": ["simple_rules", "action"]
+  , "cmd": ["sh", "-c", "echo hello > ../hello.txt"]
+  , "outs": ["../hello.txt"]
+  }
 }
