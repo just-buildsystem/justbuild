@@ -136,6 +136,7 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     auto i_execution_action = api_.CreateAction(
         ArtifactDigest{action.input_root_digest()},
         {c->arguments().begin(), c->arguments().end()},
+        c->working_directory(),
         {c->output_files().begin(), c->output_files().end()},
         {c->output_directories().begin(), c->output_directories().end()},
         env_vars,

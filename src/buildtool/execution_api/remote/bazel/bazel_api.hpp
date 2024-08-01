@@ -58,6 +58,7 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
+        std::string const& cwd,
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,

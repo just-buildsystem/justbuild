@@ -210,6 +210,7 @@ template <class T>
     // [Action][build.bazel.remote.execution.v2.Action] for migration.
     // (https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L646)
     msg.set_allocated_platform(CreatePlatform(*request.properties).release());
+    msg.set_working_directory(*request.cwd);
     std::copy(request.command_line->begin(),
               request.command_line->end(),
               pb::back_inserter(msg.mutable_arguments()));

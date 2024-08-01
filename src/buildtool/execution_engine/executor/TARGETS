@@ -19,6 +19,7 @@
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path_rebase"]
     , ["src/utils/cpp", "prefix"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]

@@ -26,6 +26,7 @@ BazelAction::BazelAction(
     std::shared_ptr<BazelNetwork> network,
     bazel_re::Digest root_digest,
     std::vector<std::string> command,
+    std::string cwd,
     std::vector<std::string> output_files,
     std::vector<std::string> output_dirs,
     std::map<std::string, std::string> const& env_vars,
@@ -33,6 +34,7 @@ BazelAction::BazelAction(
     : network_{std::move(network)},
       root_digest_{std::move(root_digest)},
       cmdline_{std::move(command)},
+      cwd_{std::move(cwd)},
       output_files_{std::move(output_files)},
       output_dirs_{std::move(output_dirs)},
       env_vars_{BazelMsgFactory::CreateMessageVectorFromMap<
@@ -122,6 +124,7 @@ auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
     }
     BazelMsgFactory::ActionDigestRequest request{
         .command_line = &cmdline_,
+        .cwd = &cwd_,
         .output_files = &output_files_,
         .output_dirs = &output_dirs_,
         .env_vars = &env_vars_,

@@ -82,6 +82,7 @@ class BuildCleanupAnchor {
 
 auto LocalAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
+
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateActionDigest(root_digest_, not do_cache);
     if (not action) {
@@ -174,7 +175,7 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 
     SystemCommand system{"LocalExecution"};
     auto const exit_code =
-        system.Execute(cmdline, env_vars_, build_root, *exec_path);
+        system.Execute(cmdline, env_vars_, build_root / cwd_, *exec_path);
     if (exit_code.has_value()) {
         Output result{};
         result.action.set_exit_code(*exit_code);
@@ -187,7 +188,7 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
             result.action.set_allocated_stderr_digest(digest_ptr);
         }
 
-        if (CollectAndStoreOutputs(&result.action, build_root)) {
+        if (CollectAndStoreOutputs(&result.action, build_root / cwd_)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
                 if (not local_context_.storage->ActionCache().StoreResult(
                         action_id, result.action)) {
@@ -343,14 +344,15 @@ auto LocalAction::CreateDirectoryStructure(
     };
     return std::all_of(output_files_.begin(),
                        output_files_.end(),
-                       [&exec_path, &create_dir](auto const& local_path) {
-                           auto dir = (exec_path / local_path).parent_path();
+                       [this, &exec_path, &create_dir](auto const& local_path) {
+                           auto dir =
+                               (exec_path / cwd_ / local_path).parent_path();
                            return create_dir(dir);
                        }) and
            std::all_of(output_dirs_.begin(),
                        output_dirs_.end(),
-                       [&exec_path, &create_dir](auto const& local_path) {
-                           return create_dir(exec_path / local_path);
+                       [this, &exec_path, &create_dir](auto const& local_path) {
+                           return create_dir(exec_path / cwd_ / local_path);
                        });
 }
 

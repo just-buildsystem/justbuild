@@ -44,6 +44,7 @@ class BazelAction final : public IExecutionAction {
     std::shared_ptr<BazelNetwork> const network_;
     bazel_re::Digest const root_digest_;
     std::vector<std::string> const cmdline_;
+    std::string const cwd_;
     std::vector<std::string> output_files_;
     std::vector<std::string> output_dirs_;
     std::vector<bazel_re::Command_EnvironmentVariable> const env_vars_;
@@ -55,6 +56,7 @@ class BazelAction final : public IExecutionAction {
         std::shared_ptr<BazelNetwork> network,
         bazel_re::Digest root_digest,
         std::vector<std::string> command,
+        std::string cwd,
         std::vector<std::string> output_files,
         std::vector<std::string> output_dirs,
         std::map<std::string, std::string> const& env_vars,

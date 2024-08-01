@@ -70,8 +70,13 @@ using ExecProps = std::map<std::string, std::string>;
 
     auto api = api_factory();
 
-    auto action = api->CreateAction(
-        *api->UploadTree({}), {"echo", "-n", test_content}, {}, {}, {}, props);
+    auto action = api->CreateAction(*api->UploadTree({}),
+                                    {"echo", "-n", test_content},
+                                    "",
+                                    {},
+                                    {},
+                                    {},
+                                    props);
 
     SECTION("Cache execution result in action cache") {
         action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
@@ -147,6 +152,7 @@ using ExecProps = std::map<std::string, std::string>;
         {"/bin/sh",
          "-c",
          "set -e\necho -n " + test_content + " > " + output_path},
+        "",
         {output_path},
         {},
         {},
@@ -238,6 +244,7 @@ using ExecProps = std::map<std::string, std::string>;
     auto action =
         api->CreateAction(*api->UploadTree({{input_path, &input_artifact}}),
                           {"cp", input_path, output_path},
+                          "",
                           {output_path},
                           {},
                           {},
@@ -320,6 +327,7 @@ using ExecProps = std::map<std::string, std::string>;
                                      "-c",
                                      "set -e\necho -n " + test_content + " > " +
                                          output_path + "\nexit 1\n"},
+                                    "",
                                     {output_path},
                                     {},
                                     {},
@@ -412,6 +420,7 @@ using ExecProps = std::map<std::string, std::string>;
 
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", make_cmd("root")},
+                                    "",
                                     {},
                                     {"root"},
                                     env,
@@ -484,6 +493,7 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
 
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", make_cmd("root")},
+                                    "",
                                     {},
                                     {"root"},
                                     env,
@@ -552,6 +562,7 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
 
     auto action = api->CreateAction(*api->UploadTree({}),
                                     {"/bin/sh", "-c", cmd},
+                                    "",
                                     {foo_path.string(), link_path.string()},
                                     {bar_path.parent_path().string()},
                                     env,
@@ -619,6 +630,7 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
         {"/bin/sh",
          "-c",
          fmt::format("set -e\n [ -d {} ]", output_path.string())},
+        "",
         {},
         {output_path},
         {},

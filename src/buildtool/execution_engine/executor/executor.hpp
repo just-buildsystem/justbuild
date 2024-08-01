@@ -46,6 +46,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path_rebase.hpp"
 #include "src/utils/cpp/prefix.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
@@ -125,11 +126,17 @@ class ExecutorImpl {
             }
         }
 
+        auto base = action->Content().Cwd();
+        auto cwd_relative_output_files =
+            RebasePathStringsRelativeTo(base, action->OutputFilePaths());
+        auto cwd_relative_output_dirs =
+            RebasePathStringsRelativeTo(base, action->OutputDirPaths());
         auto remote_action = (alternative_api ? *alternative_api : api)
                                  .CreateAction(*root_digest,
                                                action->Command(),
-                                               action->OutputFilePaths(),
-                                               action->OutputDirPaths(),
+                                               base,
+                                               cwd_relative_output_files,
+                                               cwd_relative_output_dirs,
                                                action->Env(),
                                                merged_properties);
 
@@ -477,11 +484,16 @@ class ExecutorImpl {
         IExecutionResponse::ArtifactInfos const& artifacts,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         bool fail_artifacts) noexcept {
+        auto base = action->Content().Cwd();
         for (auto const& [name, node] : action->OutputFiles()) {
-            node->Content().SetObjectInfo(artifacts.at(name), fail_artifacts);
+            node->Content().SetObjectInfo(
+                artifacts.at(RebasePathStringRelativeTo(base, name)),
+                fail_artifacts);
         }
         for (auto const& [name, node] : action->OutputDirs()) {
-            node->Content().SetObjectInfo(artifacts.at(name), fail_artifacts);
+            node->Content().SetObjectInfo(
+                artifacts.at(RebasePathStringRelativeTo(base, name)),
+                fail_artifacts);
         }
     }
 
@@ -507,11 +519,14 @@ class ExecutorImpl {
     /// are present in the artifacts map
     [[nodiscard]] static auto CheckOutputsExist(
         IExecutionResponse::ArtifactInfos const& artifacts,
-        std::vector<Action::LocalPath> const& outputs) noexcept -> bool {
-        return std::all_of(
-            outputs.begin(), outputs.end(), [&artifacts](auto const& output) {
-                return artifacts.contains(output);
-            });
+        std::vector<Action::LocalPath> const& outputs,
+        std::string base) noexcept -> bool {
+        return std::all_of(outputs.begin(),
+                           outputs.end(),
+                           [&artifacts, &base](auto const& output) {
+                               return artifacts.contains(
+                                   RebasePathStringRelativeTo(base, output));
+                           });
     }
 
     /// \brief Parse response and write object info to DAG's artifact nodes.
@@ -566,8 +581,10 @@ class ExecutorImpl {
         auto output_dirs = action->OutputDirPaths();
 
         if (artifacts.empty() or
-            not CheckOutputsExist(artifacts, output_files) or
-            not CheckOutputsExist(artifacts, output_dirs)) {
+            not CheckOutputsExist(
+                artifacts, output_files, action->Content().Cwd()) or
+            not CheckOutputsExist(
+                artifacts, output_dirs, action->Content().Cwd())) {
             logger.Emit(LogLevel::Error, [&] {
                 std::string message{
                     "action executed with missing outputs.\n"

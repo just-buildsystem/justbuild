@@ -144,6 +144,9 @@ struct BazelMsgFactory::ActionDigestRequest final {
     /// \brief The command line.
     VectorPtr<std::string> const command_line;
 
+    /// \brief The workingg direcotry
+    gsl::not_null<std::string const*> const cwd;
+
     /// \brief The paths of output files.
     VectorPtr<std::string> const output_files;
 

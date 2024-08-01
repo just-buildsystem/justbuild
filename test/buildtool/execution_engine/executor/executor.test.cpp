@@ -146,6 +146,7 @@ class TestApi : public IExecutionApi {
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
+        std::string const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::map<std::string, std::string> const& /*unused*/,

@@ -46,7 +46,8 @@ class IExecutionApi {
     /// \brief Create a new action.
     /// \param[in] root_digest  Digest of the build root.
     /// \param[in] command      Command as argv vector
-    /// \param[in] output_files List of paths to output files.
+    /// \param[in] cwd          Working direcotry, relative to execution root
+    /// \param[in] output_files List of paths to output files, relative to cwd
     /// \param[in] output_dirs  List of paths to output directories.
     /// \param[in] env_vars     The environment variables to set.
     /// \param[in] properties   Platform properties to set.
@@ -54,6 +55,7 @@ class IExecutionApi {
     [[nodiscard]] virtual auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
+        std::string const& cwd,
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,

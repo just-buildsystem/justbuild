@@ -65,6 +65,7 @@ class LocalAction final : public IExecutionAction {
     LocalContext const& local_context_;
     ArtifactDigest const root_digest_{};
     std::vector<std::string> const cmdline_{};
+    std::string const cwd_{};
     std::vector<std::string> output_files_{};
     std::vector<std::string> output_dirs_{};
     std::map<std::string, std::string> const env_vars_{};
@@ -76,6 +77,7 @@ class LocalAction final : public IExecutionAction {
         gsl::not_null<LocalContext const*> local_context,
         ArtifactDigest root_digest,
         std::vector<std::string> command,
+        std::string cwd,
         std::vector<std::string> output_files,
         std::vector<std::string> output_dirs,
         std::map<std::string, std::string> env_vars,
@@ -83,6 +85,7 @@ class LocalAction final : public IExecutionAction {
         : local_context_{*local_context},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
+          cwd_{std::move(cwd)},
           output_files_{std::move(output_files)},
           output_dirs_{std::move(output_dirs)},
           env_vars_{std::move(env_vars)},
@@ -100,6 +103,7 @@ class LocalAction final : public IExecutionAction {
 
         BazelMsgFactory::ActionDigestRequest request{
             .command_line = &cmdline_,
+            .cwd = &cwd_,
             .output_files = &output_files_,
             .output_dirs = &output_dirs_,
             .env_vars = &env_vars,

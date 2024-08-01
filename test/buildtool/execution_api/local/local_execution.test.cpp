@@ -79,7 +79,7 @@ TEST_CASE("LocalExecution: No input, no output", "[execution_api]") {
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
     auto action =
-        api.CreateAction(*api.UploadTree({}), cmdline, {}, {}, {}, {});
+        api.CreateAction(*api.UploadTree({}), cmdline, "", {}, {}, {}, {});
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -134,6 +134,7 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
         "/bin/sh", "-c", "set -e\necho -n ${MYCONTENT}"};
     auto action = api.CreateAction(*api.UploadTree({}),
                                    cmdline,
+                                   "",
                                    {},
                                    {},
                                    {{"MYCONTENT", test_content}},
@@ -198,7 +199,7 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
         "set -e\necho -n " + test_content + " > " + output_path};
 
     auto action = api.CreateAction(
-        *api.UploadTree({}), cmdline, {output_path}, {}, {}, {});
+        *api.UploadTree({}), cmdline, "", {output_path}, {}, {}, {});
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -273,6 +274,7 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto action =
         api.CreateAction(*api.UploadTree({{input_path, &local_artifact}}),
                          cmdline,
+                         "",
                          {output_path},
                          {},
                          {},
@@ -335,7 +337,7 @@ TEST_CASE("LocalExecution: Cache failed action's result", "[execution_api]") {
         "sh", "-c", fmt::format("[ -f '{}' ]", flag.string())};
 
     auto action =
-        api.CreateAction(*api.UploadTree({}), cmdline, {}, {}, {}, {});
+        api.CreateAction(*api.UploadTree({}), cmdline, "", {}, {}, {}, {});
     REQUIRE(action);
 
     action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
