@@ -160,32 +160,6 @@ class LocalResponse final : public IExecutionResponse {
             }
         }
 
-        // collect all symlinks and store them
-        for (auto const& link : action_result.output_file_symlinks()) {
-            try {
-                artifacts.emplace(
-                    link.path(),
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest::Create<ObjectType::File>(
-                            storage_.GetHashFunction(), link.target()),
-                        .type = ObjectType::Symlink});
-            } catch (...) {
-                return false;
-            }
-        }
-        for (auto const& link : action_result.output_directory_symlinks()) {
-            try {
-                artifacts.emplace(
-                    link.path(),
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest::Create<ObjectType::File>(
-                            storage_.GetHashFunction(), link.target()),
-                        .type = ObjectType::Symlink});
-            } catch (...) {
-                return false;
-            }
-        }
-
         // collect directories and store them
         for (auto const& dir : action_result.output_directories()) {
             try {
