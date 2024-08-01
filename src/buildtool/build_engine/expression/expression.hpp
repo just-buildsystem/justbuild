@@ -244,6 +244,8 @@ class Expression {
         Expression::FromJson("[]"_json);
     inline static ExpressionPtr const kEmptyMapExpr =
         Expression::FromJson(R"({"type": "empty_map"})"_json);
+    inline static ExpressionPtr const kEmptyString =
+        Expression::FromJson(R"("")"_json);
     inline static ExpressionPtr const kOne = Expression::FromJson("1.0"_json);
     inline static ExpressionPtr const kTrue = Expression::FromJson("true"_json);
     inline static ExpressionPtr const kFalse =
