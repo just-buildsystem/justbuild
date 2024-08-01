@@ -78,6 +78,12 @@
       }
     }
   }
+, "cwd":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["cwd"]
+  , "test": ["cwd.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -92,6 +98,7 @@
         , "conflicts"
         , "incomplete-retry"
         , "error-reporting"
+        , "cwd"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "DROP_IO_HEAVY_TESTS"}
