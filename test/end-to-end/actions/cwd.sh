@@ -18,6 +18,7 @@ set -e
 readonly ROOT="$(pwd)"
 readonly LBR="${TMPDIR}/local-build-root"
 readonly OUT="${TMPDIR}/out"
+mkdir -p "${OUT}"
 readonly JUST="${ROOT}/bin/tool-under-test"
 
 mkdir work
@@ -82,18 +83,33 @@ cat > TARGETS <<'EOF'
   , "outs": ["work/hello.txt", "log/log.txt"]
   , "deps": ["inputs"]
   }
+, "rule-unrelated-cwd":
+  { "type": "action"
+  , "cmd":
+    ["sh", "../tools/bin/generate.sh", "../work/name.txt", "../work/hello.txt"]
+  , "cwd": ["unrelated"]
+  , "outs": ["work/hello.txt", "log/log.txt"]
+  , "deps": ["inputs"]
+  }
+, "generic-unrelated-cwd":
+  { "type": "generic"
+  , "cmds": ["sh ../tools/bin/generate.sh ../work/name.txt ../work/hello.txt"]
+  , "cwd": "unrelated"
+  , "outs": ["work/hello.txt", "log/log.txt"]
+  , "deps": ["inputs"]
+  }
 }
 EOF
 cat > generate.sh <<'EOF'
-echo -n 'Hello ' > hello.txt
-cat $1 >> hello.txt
-echo '!' >> hello.txt
+echo -n 'Hello ' > ${2:-hello.txt}
+cat $1 >> ${2:-hello.txt}
+echo '!' >> ${2:-hello.txt}
 mkdir -p ../log
 echo DoNe >> ../log/log.txt
 EOF
 echo -n WoRlD > name.txt
 
-for target in rule generic
+for target in rule generic rule-unrelated-cwd generic-unrelated-cwd
 do
 
 echo
@@ -101,7 +117,11 @@ echo Action obtained for target $target
 echo
 "${JUST}" analyse \
           --local-build-root "${LBR}" \
-          --dump-actions - "$target" 2>&1
+          --dump-actions "${OUT}/${target}-actions.json" \
+          "$target" 2>&1
+echo
+cat "${OUT}/${target}-actions.json"
+echo
 
 echo
 echo Verify correct action execution for target $target
@@ -115,5 +135,12 @@ grep WoRlD "${OUT}/$target/work/hello.txt"
 grep DoNe "${OUT}/$target/log/log.txt"
 
 done
+
+# Verify the input trees
+
+[ $(jq '.[0].input | keys | . == ["tools/bin/generate.sh", "work/name.txt"]' "${OUT}/rule-actions.json") = true ]
+[ $(jq '.[0].input | keys | . == ["tools/bin/generate.sh", "work/name.txt"]' "${OUT}/generic-actions.json") = true ]
+[ $(jq '.[0].input | keys | . == ["tools/bin/generate.sh", "unrelated", "work/name.txt"]' "${OUT}/rule-unrelated-cwd-actions.json") = true ]
+[ $(jq '.[0].input | keys | . == ["tools/bin/generate.sh", "unrelated", "work/name.txt"]' "${OUT}/generic-unrelated-cwd-actions.json") = true ]
 
 echo OK
