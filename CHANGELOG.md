@@ -4,6 +4,8 @@ A feature release on top of `1.3.0`, backwards compatible.
 
 ### New features
 
+- User-defined rules, as well as the built-in rule `"generic"` can
+  now specify a subdirectory in which an action is to be executed.
 - `just-mr` now supports garbage collection for repository roots
   via the `gc-repo` subcommand. This follows the same two-generation
   approach as garbage collection for the cache-CAS pair; in
