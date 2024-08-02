@@ -42,6 +42,7 @@ namespace {
 auto const kGenericRuleFields =
     std::unordered_set<std::string>{"arguments_config",
                                     "cmds",
+                                    "cwd",
                                     "deps",
                                     "env",
                                     "execution properties",
@@ -1196,6 +1197,31 @@ void GenericRuleWithDeps(
         cmd_ss << x->String();
         cmd_ss << "\n";
     }
+    auto cwd_exp =
+        desc->ReadOptionalExpression("cwd", Expression::kEmptyString);
+    if (not cwd_exp) {
+        return;
+    }
+    auto cwd_value = cwd_exp.Evaluate(
+        param_config, string_fields_fcts, [&logger](auto const& msg) {
+            (*logger)(fmt::format("While evaluating cwd:\n{}", msg), true);
+        });
+    if (not cwd_value) {
+        return;
+    }
+    if (not cwd_value->IsString()) {
+        (*logger)(fmt::format("cwd has to evaluate to a string, but found {}",
+                              cwd_value->ToString()),
+                  true);
+        return;
+    }
+    if (not PathIsNonUpwards(cwd_value->String())) {
+        (*logger)(fmt::format("cwd has to evalute to a non-upwards relative "
+                              "path, but found {}",
+                              cwd_value->ToString()),
+                  true);
+        return;
+    }
     auto const& empty_map_exp = Expression::kEmptyMapExpr;
     auto env_exp = desc->ReadOptionalExpression("env", empty_map_exp);
     if (not env_exp) {
@@ -1341,7 +1367,7 @@ void GenericRuleWithDeps(
         outs,
         out_dirs,
         argv,
-        "",
+        cwd_value->String(),
         env_val,
         std::nullopt,
         false,
