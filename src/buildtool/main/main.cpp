@@ -1126,6 +1126,27 @@ auto main(int argc, char* argv[]) -> int {
                 os << serve_errors.dump() << std::endl;
             }
             if (result) {
+                Logger::Log(LogLevel::Info,
+                            "Analysed target {}",
+                            result->id.ToShortString());
+
+                {
+                    auto cached = stats.ExportsCachedCounter();
+                    auto served = stats.ExportsServedCounter();
+                    auto uncached = stats.ExportsUncachedCounter();
+                    auto not_eligible = stats.ExportsNotEligibleCounter();
+                    Logger::Log(
+                        served + cached + uncached + not_eligible > 0
+                            ? LogLevel::Info
+                            : LogLevel::Debug,
+                        "Export targets found: {} cached, {}{} uncached, "
+                        "{} not eligible for caching",
+                        cached,
+                        served > 0 ? fmt::format("{} served, ", served) : "",
+                        uncached,
+                        not_eligible);
+                }
+
                 if (arguments.analysis.graph_file) {
                     result_map.ToFile(
                         *arguments.analysis.graph_file, &stats, &progress);
@@ -1149,27 +1170,6 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitSuccess;
                 }
 #ifndef BOOTSTRAP_BUILD_TOOL
-                Logger::Log(LogLevel::Info,
-                            "Analysed target {}",
-                            result->id.ToShortString());
-
-                {
-                    auto cached = stats.ExportsCachedCounter();
-                    auto served = stats.ExportsServedCounter();
-                    auto uncached = stats.ExportsUncachedCounter();
-                    auto not_eligible = stats.ExportsNotEligibleCounter();
-                    Logger::Log(
-                        served + cached + uncached + not_eligible > 0
-                            ? LogLevel::Info
-                            : LogLevel::Debug,
-                        "Export targets found: {} cached, {}{} uncached, "
-                        "{} not eligible for caching",
-                        cached,
-                        served > 0 ? fmt::format("{} served, ", served) : "",
-                        uncached,
-                        not_eligible);
-                }
-
                 ReportTaintedness(*result);
                 auto const& [actions, blobs, trees] =
                     result_map.ToResult(&stats, &progress);
