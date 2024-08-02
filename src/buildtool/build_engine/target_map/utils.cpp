@@ -149,6 +149,47 @@ auto BuildMaps::Target::Utils::tree_conflict(const ExpressionPtr& map)
     return std::nullopt;
 }
 
+auto BuildMaps::Target::Utils::add_dir_for(
+    const std::string& cwd,
+    ExpressionPtr stage,
+    gsl::not_null<std::vector<Tree::Ptr>*> trees) -> ExpressionPtr {
+    // if working top-level, there is nothing to add; this is also
+    // the common case
+    if ((cwd.empty()) or (cwd == ".")) {
+        return stage;
+    }
+    auto cwd_path = std::filesystem::path{cwd};
+    for (auto const& [path, artifact] : stage->Map()) {
+        if ((path.empty()) or (path == ".")) {
+            // top-level artifact (tree); cannot add tree for cwd
+            return stage;
+        }
+        auto p = std::filesystem::path{path};
+        for (auto c = cwd_path; not c.empty(); c = c.parent_path()) {
+            if (c == p) {
+                // adding cwd would add a tree conflict; so nothing to add
+                return stage;
+            }
+        }
+        for (; not p.empty(); p = p.parent_path()) {
+            if (p == cwd_path) {
+                // adding cwd would add a tree conflict; so nothing to add
+                return stage;
+            }
+        }
+    }
+    // As we can add cwd without tree conflicts, we have to in order to
+    // ensure that installing this stage implies a directory at cwd.
+    std::unordered_map<std::string, ArtifactDescription> artifacts{};
+    auto empty_tree = std::make_shared<Tree>(std::move(artifacts));
+    auto empty_tree_id = empty_tree->Id();
+    trees->emplace_back(std::move(empty_tree));
+    auto empty_tree_exp =
+        ExpressionPtr{ArtifactDescription::CreateTree(empty_tree_id)};
+    auto cwd_tree = ExpressionPtr{Expression::map_t{cwd, empty_tree_exp}};
+    return ExpressionPtr{Expression::map_t{stage, cwd_tree}};
+}
+
 auto BuildMaps::Target::Utils::getTainted(
     std::set<std::string>* tainted,
     const Configuration& config,

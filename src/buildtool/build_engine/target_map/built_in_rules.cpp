@@ -1354,6 +1354,9 @@ void GenericRuleWithDeps(
     for (auto const& dep : dependency_values) {
         inputs = ExpressionPtr{Expression::map_t{inputs, (*dep)->Artifacts()}};
     }
+    std::vector<Tree::Ptr> trees{};
+    inputs = BuildMaps::Target::Utils::add_dir_for(
+        cwd_value->String(), inputs, &trees);
 
     std::vector<std::string> argv{};
     argv.reserve(sh_val->List().size() + 1);
@@ -1393,7 +1396,7 @@ void GenericRuleWithDeps(
             .runfiles = empty_map},
         std::vector<ActionDescription::Ptr>{action},
         std::vector<std::string>{},
-        std::vector<Tree::Ptr>{},
+        std::move(trees),
         std::move(effective_vars),
         std::move(tainted),
         std::move(implied_export),

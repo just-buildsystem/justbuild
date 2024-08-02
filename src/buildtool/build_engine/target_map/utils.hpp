@@ -56,6 +56,10 @@ auto artifacts_tree(const ExpressionPtr& map)
 auto tree_conflict(const ExpressionPtr& /* map */)
     -> std::optional<std::string>;
 
+auto add_dir_for(const std::string& cwd,
+                 ExpressionPtr stage,
+                 gsl::not_null<std::vector<Tree::Ptr>*> trees) -> ExpressionPtr;
+
 auto getTainted(std::set<std::string>* tainted,
                 const Configuration& config,
                 const ExpressionPtr& tainted_exp,

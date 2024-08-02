@@ -513,7 +513,8 @@ void withDependencies(
               return eval(expr->Get("default", empty_list), env);
           }},
          {"ACTION",
-          [&actions, &rule](auto&& eval, auto const& expr, auto const& env) {
+          [&actions, &rule, &trees](
+              auto&& eval, auto const& expr, auto const& env) {
               auto const& empty_map_exp = Expression::kEmptyMapExpr;
               auto inputs_exp = eval(expr->Get("inputs", empty_map_exp), env);
               if (not inputs_exp->IsMap()) {
@@ -605,6 +606,8 @@ void withDependencies(
                       "cwd has to be a non-upwards relative path, but found {}",
                       cwd_exp->ToString())};
               }
+              auto final_inputs = BuildMaps::Target::Utils::add_dir_for(
+                  cwd_exp->String(), inputs_exp, &trees);
               auto env_exp = eval(expr->Get("env", empty_map_exp), env);
               if (not env_exp->IsMap()) {
                   throw Evaluator::EvaluationError{
@@ -716,7 +719,7 @@ void withDependencies(
                   timeout_scale_exp->IsNumber() ? timeout_scale_exp->Number()
                                                 : 1.0,
                   execution_properties,
-                  inputs_exp);
+                  final_inputs);
               auto action_id = action->Id();
               actions.emplace_back(std::move(action));
               for (auto const& out : outputs) {
