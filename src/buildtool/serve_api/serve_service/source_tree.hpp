@@ -20,6 +20,7 @@
 #include <mutex>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -176,6 +177,11 @@ class SourceTreeService final
                                    bool sync_tree,
                                    ServeArchiveTreeResponse* response)
         -> ::grpc::Status;
+
+    template <ObjectType kType, typename TResponse>
+    [[nodiscard]] auto SyncGitEntryToCas(std::string const& object_hash,
+                                         std::filesystem::path const& repo_path)
+        const noexcept -> std::remove_cvref_t<decltype(TResponse::OK)>;
 
     /// \brief Resolves a tree from given repository with respect to symlinks.
     /// The resolved tree will always be placed in the Git cache.
