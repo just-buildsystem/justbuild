@@ -15,7 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_AUTH_AUTHENTICATION_HPP
 #define INCLUDED_SRC_BUILDTOOL_AUTH_AUTHENTICATION_HPP
 
+#include <cerrno>  // for errno
 #include <cstdint>
+#include <cstring>  // for strerror()
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -201,6 +203,13 @@ class Auth::TLS::Builder final {
             // if the file does not exist, it will throw an exception
             auto file = std::filesystem::canonical(x);
             std::ifstream cert{file};
+            if (cert.fail()) {
+                Logger::Log(LogLevel::Error,
+                            "Certification file {} failed to open with:\n{}",
+                            file.string(),
+                            strerror(errno));
+                return std::nullopt;
+            }
             std::string tmp((std::istreambuf_iterator<char>(cert)),
                             std::istreambuf_iterator<char>());
             return tmp;
