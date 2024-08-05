@@ -925,6 +925,31 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
     return ExpressionPtr{Expression::map_t{result}};
 }
 
+auto FromSubdirExpr(SubExprEvaluator&& eval,
+                    ExpressionPtr const& expr,
+                    Configuration const& env) -> ExpressionPtr {
+    auto d = eval(expr["$1"], env);
+    auto s = eval(expr->Get("subdir", "."s), env);
+    std::filesystem::path subdir{s->String()};
+    auto result = Expression::map_t::underlying_map_t{};
+    for (auto const& el : d->Map()) {
+        auto new_path = ToNormalPath(
+            std::filesystem::path(el.first).lexically_relative(subdir));
+        if (PathIsNonUpwards(new_path)) {
+            auto new_key = new_path.string();
+            if (auto it = result.find(new_key);
+                it != result.end() &&
+                (!((it->second == el.second) && el.second->IsCacheable()))) {
+                throw Evaluator::EvaluationError{
+                    fmt::format("Staging conflict for path {}",
+                                nlohmann::json(new_key).dump())};
+            }
+            result.emplace(std::move(new_key), el.second);
+        }
+    }
+    return ExpressionPtr{Expression::map_t{result}};
+}
+
 auto ForeachExpr(SubExprEvaluator&& eval,
                  ExpressionPtr const& expr,
                  Configuration const& env) -> ExpressionPtr {
@@ -1259,6 +1284,7 @@ auto const kBuiltInFunctions =
                                return Union</*kDisjoint=*/false>(exp);
                            })},
                           {"to_subdir", ToSubdirExpr},
+                          {"from_subdir", FromSubdirExpr},
                           {"foreach", ForeachExpr},
                           {"foreach_map", ForeachMapExpr},
                           {"foldl", FoldLeftExpr},

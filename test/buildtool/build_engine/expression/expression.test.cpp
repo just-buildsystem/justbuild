@@ -1335,14 +1335,14 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             , "$1": "PLACEHOLDER" })"_json);
         REQUIRE(expr);
 
-        auto literal_foo = Expression::FromJson(
-            R"({"type": "'", "$1": {"foo":true}})"_json);
+        auto literal_foo =
+            Expression::FromJson(R"({"type": "'", "$1": {"foo":true}})"_json);
         REQUIRE(literal_foo);
-        auto literal_foo_false = Expression::FromJson(
-            R"({"type": "'", "$1": {"foo":false}})"_json);
+        auto literal_foo_false =
+            Expression::FromJson(R"({"type": "'", "$1": {"foo":false}})"_json);
         REQUIRE(literal_foo_false);
-        auto literal_bar = Expression::FromJson(
-            R"({"type": "'", "$1": {"bar":false}})"_json);
+        auto literal_bar =
+            Expression::FromJson(R"({"type": "'", "$1": {"bar":false}})"_json);
         REQUIRE(literal_bar);
 
         expr = Replace(expr, "$1", list_t{literal_foo, literal_bar});
@@ -1457,6 +1457,60 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
                             , "bar": "world" }}})"_json);
         REQUIRE(expr);
 
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+    }
+
+    SECTION("from_subdir") {
+        auto expr = Expression::FromJson(R"(
+       {"type": "from_subdir", "subdir": "foo"
+       , "$1": {"type": "'", "$1":
+          { "foo/a/b/c": "abc.txt"
+          , "foo/a/other": "other.txt"
+          , "foo/top": "top.xt"
+          , "foo/a/b/../d/e": "make canonical"
+          , "bar/a/b/c": "ignore bar/a/b/c"
+          , "bar/a/b/../b/c": "also ingnore other path"
+          }}}
+      )"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        CHECK(result == Expression::FromJson(R"(
+          { "a/b/c": "abc.txt"
+          , "a/other": "other.txt"
+          , "top": "top.xt"
+          , "a/d/e": "make canonical"
+          }
+      )"_json));
+    }
+
+    SECTION("from_subdir trivial conflict") {
+        auto expr = Expression::FromJson(R"(
+      {"type": "from_subdir", "subdir": "foo"
+       , "$1": {"type": "'", "$1":
+          { "foo/a/b/c": "abc.txt"
+          , "foo/a/b/../b/c": "abc.txt"
+          }}}
+      )"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        CHECK(result == Expression::FromJson(R"(
+       {"a/b/c": "abc.txt"}
+      )"_json));
+    }
+
+    SECTION("from_subdir conflict") {
+        auto expr = Expression::FromJson(R"(
+       {"type": "from_subdir", "subdir": "foo"
+       , "$1": {"type": "'", "$1":
+          { "foo/a/b/c": "one value"
+          , "foo/a/b/../b/c": "different value"
+          }}}
+      )"_json);
+        REQUIRE(expr);
         CHECK_FALSE(expr.Evaluate(env, fcts));
     }
 

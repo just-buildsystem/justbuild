@@ -353,6 +353,17 @@ those) argument(s) to obtain the final result.
    is an error if the values for keys in conflicting positions
    are name-containing.
 
+ - `"from_subdir"` The argument has to be a map (not necessarily of
+   artifacts). The keys of this map, as well as the value of keyword
+   argument `"subdir"` (string, default `"."`) are interpreted as
+   paths; only those key-value pairs of the argument map are kept
+   where the key refers to an entry in the specified `"subdir"`,
+   and for those the path relative to the subdir is taken as new
+   key. Those paths relative to the subdir are taken in canonical
+   form; it is an error if non-trivial conflicts arise that way,
+   i.e., if two keys that are kept normalize to the same relative
+   path while the repsective values are different.
+
 ##### Binary functions
 
  - `"=="` The result is `true` is the arguments are equal,

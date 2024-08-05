@@ -21,7 +21,8 @@ A feature release on top of `1.3.0`, backwards compatible.
   at the old location will not be used anymore while still using
   disk space.
 - The expression language has been extended to contain quote and
-  quasi-quote expressions.
+  quasi-quote expressions, as well as a new built-in function
+  `"from_subdir"`.
 
 ### Fixes
 
