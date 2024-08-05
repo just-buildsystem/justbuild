@@ -345,14 +345,9 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK_FALSE(result);
     }
 
-    fcts = FunctionMap::MakePtr(
-        "literal", [](auto&& /*eval*/, auto const& expr, auto const& /*env*/) {
-            return expr->Get("$1", Expression::none_t{});
-        });
-
     SECTION("custom function") {
         auto expr = Expression::FromJson(R"(
-            { "type": "literal"
+            { "type": "'"
             , "$1": "PLACEHOLDER" })"_json);
         REQUIRE(expr);
 
@@ -533,7 +528,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
 
         SECTION("Map condition") {
             auto literal = Expression::FromJson(
-                R"({"type": "literal", "$1": {"foo": "bar"}})"_json);
+                R"({"type": "'", "$1": {"foo": "bar"}})"_json);
             REQUIRE(literal);
             expr = Replace(expr, "cond", literal);
             REQUIRE(expr);
@@ -543,7 +538,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             CHECK(success == Expression::FromJson(R"("success")"_json));
 
             auto empty =
-                Expression::FromJson(R"({"type": "literal", "$1": {}})"_json);
+                Expression::FromJson(R"({"type": "'", "$1": {}})"_json);
             REQUIRE(empty);
             expr = Replace(expr, "cond", empty);
             REQUIRE(expr);
@@ -774,7 +769,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
 
         // test evaluation of list elements
         expr = Replace(expr, "$1", list_t{foo, Expression::FromJson(R"(
-            {"type": "literal"
+            {"type": "'"
             , "$1": true})"_json)});
         REQUIRE(expr);
         auto evaluated = expr.Evaluate(env, fcts);
@@ -825,7 +820,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
 
         // test evaluation of list elements
         expr = Replace(expr, "$1", list_t{foo, Expression::FromJson(R"(
-            {"type": "literal"
+            {"type": "'"
             , "$1": true})"_json)});
         REQUIRE(expr);
         auto evaluated = expr.Evaluate(env, fcts);
@@ -1142,7 +1137,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
     SECTION("keys expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "keys"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foo": true
                             , "bar": false
                             , "baz": true }}})"_json);
@@ -1157,7 +1152,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
     SECTION("values expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "values"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foo": true
                             , "bar": "foo"
                             , "baz": 1 }}})"_json);
@@ -1173,7 +1168,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         auto expr = Expression::FromJson(R"(
             { "type": "lookup"
             , "key": "PLACEHOLDER"
-            , "map": { "type": "literal"
+            , "map": { "type": "'"
                     , "$1": { "foo": true
                             , "bar": 1 }}})"_json);
         REQUIRE(expr);
@@ -1212,7 +1207,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         auto expr = Expression::FromJson(R"(
             { "type": "lookup"
             , "key": "PLACEHOLDER"
-            , "map": { "type": "literal"
+            , "map": { "type": "'"
                      , "$1": { "foo": false
                              , "bar": 1
                              , "baz" : null}}
@@ -1341,13 +1336,13 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         REQUIRE(expr);
 
         auto literal_foo = Expression::FromJson(
-            R"({"type": "literal", "$1": {"foo":true}})"_json);
+            R"({"type": "'", "$1": {"foo":true}})"_json);
         REQUIRE(literal_foo);
         auto literal_foo_false = Expression::FromJson(
-            R"({"type": "literal", "$1": {"foo":false}})"_json);
+            R"({"type": "'", "$1": {"foo":false}})"_json);
         REQUIRE(literal_foo_false);
         auto literal_bar = Expression::FromJson(
-            R"({"type": "literal", "$1": {"bar":false}})"_json);
+            R"({"type": "'", "$1": {"bar":false}})"_json);
         REQUIRE(literal_bar);
 
         expr = Replace(expr, "$1", list_t{literal_foo, literal_bar});
@@ -1383,7 +1378,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
     SECTION("map_union expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "map_union"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": [ {"foo": true}
                             , {"bar": false}] }})"_json);
         REQUIRE(expr);
@@ -1407,7 +1402,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         auto expr = Expression::FromJson(R"(
             { "type": "to_subdir"
             , "subdir": "prefix"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foo": "hello"
                             , "bar": "world" }}})"_json);
         REQUIRE(expr);
@@ -1424,7 +1419,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         auto expr = Expression::FromJson(R"(
             { "type": "to_subdir"
             , "subdir": "prefix"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foo": "hello"
                             , "./foo": "world" }}})"_json);
         REQUIRE(expr);
@@ -1437,7 +1432,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             { "type": "to_subdir"
             , "subdir": "prefix"
             , "flat" : "YES"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foobar/data/foo": "hello"
                             , "foobar/include/foo": "hello"
                             , "bar": "world" }}})"_json);
@@ -1456,7 +1451,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
             { "type": "to_subdir"
             , "subdir": "prefix"
             , "flat" : "YES"
-            , "$1": { "type": "literal"
+            , "$1": { "type": "'"
                     , "$1": { "foobar/data/foo": "HELLO"
                             , "foobar/include/foo": "hello"
                             , "bar": "world" }}})"_json);
@@ -1510,7 +1505,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
 
         // range is map with one entry
         expr = Add(expr, "range", Expression::FromJson(R"(
-            { "type": "literal"
+            { "type": "'"
             , "$1": {"foo": "bar"}})"_json));
         REQUIRE(expr);
 
@@ -1521,7 +1516,7 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
 
         // range is map with multiple entries
         expr = Replace(expr, "range", Expression::FromJson(R"(
-            { "type": "literal"
+            { "type": "'"
             , "$1": {"foo": "bar", "bar": "baz"}})"_json));
         REQUIRE(expr);
 
