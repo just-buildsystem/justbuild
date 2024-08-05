@@ -14,7 +14,8 @@
 
 #include "src/other_tools/just_mr/launch.hpp"
 
-#include <cerrno>  // for errno
+#include <cerrno>   // for errno
+#include <cstring>  // for strerror()
 #include <filesystem>
 #include <utility>
 
@@ -256,6 +257,6 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     [[maybe_unused]] auto res =
         execvp(argv[0], static_cast<char* const*>(argv.data()));
     // execvp returns only if command errored out
-    Logger::Log(LogLevel::Error, "execvp failed with error code {}", errno);
+    Logger::Log(LogLevel::Error, "execvp failed with:\n{}", strerror(errno));
     return kExitExecError;
 }

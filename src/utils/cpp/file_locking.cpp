@@ -14,7 +14,8 @@
 
 #include "src/utils/cpp/file_locking.hpp"
 
-#include <cerrno>  // for errno
+#include <cerrno>   // for errno
+#include <cstring>  // for strerror()
 
 #ifdef __unix__
 #include <sys/file.h>
@@ -56,11 +57,10 @@ auto LockFile::Acquire(std::filesystem::path const& fspath,
         // attach flock
         auto err = flock(fileno(file_handle), is_shared ? LOCK_SH : LOCK_EX);
         if (err != 0) {
-            Logger::Log(
-                LogLevel::Error,
-                "LockFile: applying lock to file {} failed with errno {}",
-                lock_file->string(),
-                errno);
+            Logger::Log(LogLevel::Error,
+                        "LockFile: applying lock to file {} failed with:\n{}",
+                        lock_file->string(),
+                        strerror(errno));
             fclose(file_handle);
             return std::nullopt;
         }
