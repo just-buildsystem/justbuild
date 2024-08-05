@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 
 #include <array>
+#include <cerrno>  // for errno
 #include <chrono>
 #include <cstddef>
 #include <cstdio>   // for std::fopen

@@ -14,6 +14,8 @@
 
 #include "src/utils/cpp/file_locking.hpp"
 
+#include <cerrno>  // for errno
+
 #ifdef __unix__
 #include <sys/file.h>
 #else

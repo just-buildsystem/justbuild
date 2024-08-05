@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_COMMAND_HPP
 
 #include <array>
+#include <cerrno>  // for errno
 #include <cstdio>
 #include <cstring>  // for strerror()
 #include <iostream>

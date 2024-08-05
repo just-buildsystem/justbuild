@@ -14,6 +14,7 @@
 
 #include "src/other_tools/just_mr/launch.hpp"
 
+#include <cerrno>  // for errno
 #include <filesystem>
 #include <utility>
 
