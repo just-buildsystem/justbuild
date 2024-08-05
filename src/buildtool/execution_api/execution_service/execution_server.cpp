@@ -28,7 +28,8 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
-static void UpdateTimeStamp(::google::longrunning::Operation* op) {
+namespace {
+void UpdateTimeStamp(::google::longrunning::Operation* op) {
     ::google::protobuf::Timestamp t;
     t.set_seconds(
         std::chrono::duration_cast<std::chrono::seconds>(
@@ -36,6 +37,21 @@ static void UpdateTimeStamp(::google::longrunning::Operation* op) {
             .count());
     op->mutable_metadata()->PackFrom(t);
 }
+
+[[nodiscard]] auto ToBazelOutputDirectory(std::string path,
+                                          ArtifactDigest const& digest,
+                                          Storage const& storage) noexcept
+    -> expected<bazel_re::OutputDirectory, std::string>;
+
+[[nodiscard]] auto ToBazelOutputSymlink(std::string path,
+                                        ArtifactDigest const& digest,
+                                        Storage const& storage) noexcept
+    -> expected<bazel_re::OutputSymlink, std::string>;
+
+[[nodiscard]] auto ToBazelOutputFile(std::string path,
+                                     Artifact::ObjectInfo const& info) noexcept
+    -> ::bazel_re::OutputFile;
+}  // namespace
 
 auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     const noexcept -> expected<::bazel_re::Action, std::string> {
@@ -143,86 +159,50 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     return std::move(i_execution_action);
 }
 
-static auto CreateTreeDigestFromDirectoryDigest(
-    ::bazel_re::Digest const& dir_digest,
-    Storage const& storage) noexcept -> std::optional<::bazel_re::Digest> {
-    LocalCasReader reader(&storage.CAS());
-    if (auto tree = reader.MakeTree(ArtifactDigest{dir_digest})) {
-        // serialize and store tree message
-        auto content = tree->SerializeAsString();
-        return storage.CAS().StoreBlob(content, /*is_executable=*/false);
-    }
-    return std::nullopt;
-}
-
 static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
                            IExecutionResponse::Ptr const& execution,
                            Storage const& storage) noexcept -> bool {
     auto const& artifacts = execution->Artifacts();
     auto const& dir_symlinks = execution->DirectorySymlinks();
+
+    auto& result_files = *response->mutable_result()->mutable_output_files();
+    auto& result_file_links =
+        *response->mutable_result()->mutable_output_file_symlinks();
+    auto& result_dirs =
+        *response->mutable_result()->mutable_output_directories();
+    auto& result_dir_links =
+        *response->mutable_result()->mutable_output_directory_symlinks();
+
     auto const size = static_cast<int>(artifacts.size());
-    response->mutable_result()->mutable_output_files()->Reserve(size);
-    response->mutable_result()->mutable_output_file_symlinks()->Reserve(size);
-    response->mutable_result()->mutable_output_directory_symlinks()->Reserve(
-        size);
-    response->mutable_result()->mutable_output_directories()->Reserve(size);
+    result_files.Reserve(size);
+    result_file_links.Reserve(size);
+    result_dirs.Reserve(size);
+    result_dir_links.Reserve(size);
 
     for (auto const& [path, info] : artifacts) {
-        auto dgst = static_cast<::bazel_re::Digest>(info.digest);
-
         if (info.type == ObjectType::Tree) {
-            ::bazel_re::OutputDirectory out_dir;
-            *(out_dir.mutable_path()) = path;
-            if (not Compatibility::IsCompatible()) {
-                // In native mode: Set the directory digest directly.
-                *(out_dir.mutable_tree_digest()) = std::move(dgst);
+            auto out_dir = ToBazelOutputDirectory(path, info.digest, storage);
+            if (not out_dir) {
+                return false;
             }
-            else {
-                // In compatible mode: Create a tree digest from directory
-                // digest on the fly and set tree digest.
-                auto digest =
-                    CreateTreeDigestFromDirectoryDigest(dgst, storage);
-                if (not digest) {
-                    return false;
-                }
-                *(out_dir.mutable_tree_digest()) = std::move(*digest);
-            }
-            response->mutable_result()->mutable_output_directories()->Add(
-                std::move(out_dir));
+            result_dirs.Add(*std::move(out_dir));
         }
         else if (info.type == ObjectType::Symlink) {
-            ::bazel_re::OutputSymlink out_link;
-            *(out_link.mutable_path()) = path;
-            // recover the target of the symlink
-            auto cas_path =
-                storage.CAS().BlobPath(dgst, /*is_executable=*/false);
-            if (not cas_path) {
+            auto out_link = ToBazelOutputSymlink(path, info.digest, storage);
+            if (not out_link) {
                 return false;
             }
-            auto const& content = FileSystemManager::ReadFile(*cas_path);
-            if (not content) {
-                return false;
-            }
-            *(out_link.mutable_target()) = *content;
             if (dir_symlinks.contains(path)) {
                 // directory symlink
-                response->mutable_result()
-                    ->mutable_output_directory_symlinks()
-                    ->Add(std::move(out_link));
+                result_dir_links.Add(*std::move(out_link));
             }
             else {
                 // file symlinks
-                response->mutable_result()->mutable_output_file_symlinks()->Add(
-                    std::move(out_link));
+                result_file_links.Add(*std::move(out_link));
             }
         }
         else {
-            ::bazel_re::OutputFile out_file;
-            *(out_file.mutable_path()) = path;
-            *(out_file.mutable_digest()) = std::move(dgst);
-            out_file.set_is_executable(info.type == ObjectType::Executable);
-            response->mutable_result()->mutable_output_files()->Add(
-                std::move(out_file));
+            result_files.Add(ToBazelOutputFile(path, info));
         }
     }
     return true;
@@ -391,3 +371,75 @@ auto ExecutionServiceImpl::WaitExecution(
     logger_.Emit(LogLevel::Trace, "Finished WaitExecution {}", hash);
     return ::grpc::Status::OK;
 }
+
+namespace {
+[[nodiscard]] auto ToBazelOutputDirectory(std::string path,
+                                          ArtifactDigest const& digest,
+                                          Storage const& storage) noexcept
+    -> expected<bazel_re::OutputDirectory, std::string> {
+    ::bazel_re::OutputDirectory out_dir{};
+    *(out_dir.mutable_path()) = std::move(path);
+
+    if (Compatibility::IsCompatible()) {
+        // In compatible mode: Create a tree digest from directory
+        // digest on the fly and set tree digest.
+        LocalCasReader reader(&storage.CAS());
+        auto tree = reader.MakeTree(digest);
+        if (not tree) {
+            auto error =
+                fmt::format("Failed to build bazel Tree for {}", digest.hash());
+            return unexpected{std::move(error)};
+        }
+
+        auto cas_digest = storage.CAS().StoreBlob(tree->SerializeAsString(),
+                                                  /*is_executable=*/false);
+        if (not cas_digest) {
+            auto error = fmt::format(
+                "Failed to add to the storage the bazel Tree for {}",
+                digest.hash());
+            return unexpected{std::move(error)};
+        }
+        *(out_dir.mutable_tree_digest()) = *std::move(cas_digest);
+    }
+    else {
+        // In native mode: Set the directory digest directly.
+        *(out_dir.mutable_tree_digest()) = digest;
+    }
+    return std::move(out_dir);
+}
+
+[[nodiscard]] auto ToBazelOutputSymlink(std::string path,
+                                        ArtifactDigest const& digest,
+                                        Storage const& storage) noexcept
+    -> expected<bazel_re::OutputSymlink, std::string> {
+    ::bazel_re::OutputSymlink out_link{};
+    *(out_link.mutable_path()) = std::move(path);
+    // recover the target of the symlink
+    auto cas_path = storage.CAS().BlobPath(digest, /*is_executable=*/false);
+    if (not cas_path) {
+        auto error =
+            fmt::format("Failed to recover the symlink for {}", digest.hash());
+        return unexpected{std::move(error)};
+    }
+
+    auto content = FileSystemManager::ReadFile(*cas_path);
+    if (not content) {
+        auto error = fmt::format("Failed to read the symlink content for {}",
+                                 digest.hash());
+        return unexpected{std::move(error)};
+    }
+
+    *(out_link.mutable_target()) = *std::move(content);
+    return std::move(out_link);
+}
+
+[[nodiscard]] auto ToBazelOutputFile(std::string path,
+                                     Artifact::ObjectInfo const& info) noexcept
+    -> ::bazel_re::OutputFile {
+    ::bazel_re::OutputFile out_file{};
+    *(out_file.mutable_path()) = std::move(path);
+    *(out_file.mutable_digest()) = info.digest;
+    out_file.set_is_executable(IsExecutableObject(info.type));
+    return out_file;
+}
+}  // namespace
