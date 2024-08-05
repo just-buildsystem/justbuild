@@ -156,7 +156,7 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
     return result;
 }
 
-auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
+auto BazelNetworkReader::ReadSingleBlob(bazel_re::Digest const& digest)
     const noexcept -> std::optional<ArtifactBlob> {
     auto blob = cas_.ReadSingleBlob(instance_name_, digest);
     if (blob and Validate(*blob)) {
@@ -164,6 +164,25 @@ auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
             ArtifactDigest{blob->digest}, blob->data, blob->is_exec};
     }
     return std::nullopt;
+}
+
+auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
+    const noexcept -> std::optional<ArtifactBlob> {
+    return ReadSingleBlob(static_cast<bazel_re::Digest>(digest));
+}
+
+auto BazelNetworkReader::ReadIncrementally(
+    std::vector<ArtifactDigest> const& digests) const noexcept
+    -> IncrementalReader {
+    std::vector<bazel_re::Digest> bazel_digests;
+    bazel_digests.reserve(digests.size());
+    std::transform(digests.begin(),
+                   digests.end(),
+                   std::back_inserter(bazel_digests),
+                   [](ArtifactDigest const& d) {
+                       return static_cast<bazel_re::Digest>(d);
+                   });
+    return ReadIncrementally(std::move(bazel_digests));
 }
 
 auto BazelNetworkReader::ReadIncrementally(
@@ -255,7 +274,7 @@ auto BazelNetworkReader::IncrementalReader::iterator::operator*() const noexcept
             std::vector<bazel_re::Digest> request{begin_, current_};
             return owner_.BatchReadBlobs(request);
         }
-        if (auto blob = owner_.ReadSingleBlob(ArtifactDigest{*begin_})) {
+        if (auto blob = owner_.ReadSingleBlob(*begin_)) {
             return {std::move(*blob)};
         }
     }

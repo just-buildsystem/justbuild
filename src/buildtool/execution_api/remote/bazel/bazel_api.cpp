@@ -52,7 +52,7 @@
 namespace {
 
 [[nodiscard]] auto RetrieveToCas(
-    std::vector<bazel_re::Digest> const& digests,
+    std::vector<ArtifactDigest> const& digests,
     IExecutionApi const& api,
     std::shared_ptr<BazelNetwork> const& network,
     std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
@@ -121,16 +121,8 @@ namespace {
         std::vector<ArtifactDigest>{digest_set.begin(), digest_set.end()};
 
     auto missing_artifact_digests = other_api.IsAvailable(unique_digests);
-
-    auto missing_digests = std::vector<bazel_re::Digest>{};
-    missing_digests.reserve(digest_set.size());
-    std::transform(missing_artifact_digests.begin(),
-                   missing_artifact_digests.end(),
-                   std::back_inserter(missing_digests),
-                   [](auto const& digest) {
-                       return static_cast<bazel_re::Digest>(digest);
-                   });
-    if (not ::RetrieveToCas(missing_digests, other_api, network, info_map)) {
+    if (not ::RetrieveToCas(
+            missing_artifact_digests, other_api, network, info_map)) {
         return false;
     }
 
@@ -241,7 +233,7 @@ auto BazelApi::CreateAction(
     }
 
     // Obtain file digests from artifact infos
-    std::vector<bazel_re::Digest> file_digests{};
+    std::vector<ArtifactDigest> file_digests{};
     std::vector<std::size_t> artifact_pos{};
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
@@ -276,7 +268,7 @@ auto BazelApi::CreateAction(
     auto size = file_digests.size();
     auto reader = network_->CreateReader();
     std::size_t count{};
-    for (auto blobs : reader.ReadIncrementally(std::move(file_digests))) {
+    for (auto blobs : reader.ReadIncrementally(file_digests)) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
@@ -344,7 +336,7 @@ auto BazelApi::CreateAction(
     }
 
     // Recursively process trees.
-    std::vector<bazel_re::Digest> blob_digests{};
+    std::vector<ArtifactDigest> blob_digests{};
     for (auto const& dgst : missing_artifacts_info->digests) {
         auto const& info = missing_artifacts_info->back_map[dgst];
         if (IsTreeObject(info.type)) {

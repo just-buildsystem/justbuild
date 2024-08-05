@@ -41,7 +41,7 @@ auto ProcessDirectoryMessage(HashFunction hash_function,
 auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     -> std::string {
     auto reader = network_->CreateReader();
-    if (auto blob = reader.ReadSingleBlob(ArtifactDigest{id})) {
+    if (auto blob = reader.ReadSingleBlob(id)) {
         return *blob->data;
     }
     Logger::Log(LogLevel::Warning,

@@ -62,8 +62,15 @@ class BazelNetworkReader final {
                                 DumpCallback const& dumper) const noexcept
         -> bool;
 
+    [[nodiscard]] auto ReadSingleBlob(bazel_re::Digest const& digest)
+        const noexcept -> std::optional<ArtifactBlob>;
+
     [[nodiscard]] auto ReadSingleBlob(ArtifactDigest const& digest)
         const noexcept -> std::optional<ArtifactBlob>;
+
+    [[nodiscard]] auto ReadIncrementally(
+        std::vector<ArtifactDigest> const& digests) const noexcept
+        -> IncrementalReader;
 
     [[nodiscard]] auto ReadIncrementally(std::vector<bazel_re::Digest> digests)
         const noexcept -> IncrementalReader;
