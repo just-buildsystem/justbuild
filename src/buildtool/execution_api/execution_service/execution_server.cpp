@@ -38,19 +38,11 @@ void UpdateTimeStamp(::google::longrunning::Operation* op) {
     op->mutable_metadata()->PackFrom(t);
 }
 
-[[nodiscard]] auto ToBazelOutputDirectory(std::string path,
-                                          ArtifactDigest const& digest,
-                                          Storage const& storage) noexcept
-    -> expected<bazel_re::OutputDirectory, std::string>;
-
-[[nodiscard]] auto ToBazelOutputSymlink(std::string path,
-                                        ArtifactDigest const& digest,
-                                        Storage const& storage) noexcept
-    -> expected<bazel_re::OutputSymlink, std::string>;
-
-[[nodiscard]] auto ToBazelOutputFile(std::string path,
-                                     Artifact::ObjectInfo const& info) noexcept
-    -> ::bazel_re::OutputFile;
+[[nodiscard]] auto ToBazelActionResult(
+    IExecutionResponse::ArtifactInfos const& artifacts,
+    IExecutionResponse::DirSymlinks const& dir_symlinks,
+    Storage const& storage) noexcept
+    -> expected<bazel_re::ActionResult, std::string>;
 }  // namespace
 
 auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
@@ -159,66 +151,21 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     return std::move(i_execution_action);
 }
 
-static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
-                           IExecutionResponse::Ptr const& execution,
-                           Storage const& storage) noexcept -> bool {
-    auto const& artifacts = execution->Artifacts();
-    auto const& dir_symlinks = execution->DirectorySymlinks();
-
-    auto& result_files = *response->mutable_result()->mutable_output_files();
-    auto& result_file_links =
-        *response->mutable_result()->mutable_output_file_symlinks();
-    auto& result_dirs =
-        *response->mutable_result()->mutable_output_directories();
-    auto& result_dir_links =
-        *response->mutable_result()->mutable_output_directory_symlinks();
-
-    auto const size = static_cast<int>(artifacts.size());
-    result_files.Reserve(size);
-    result_file_links.Reserve(size);
-    result_dirs.Reserve(size);
-    result_dir_links.Reserve(size);
-
-    for (auto const& [path, info] : artifacts) {
-        if (info.type == ObjectType::Tree) {
-            auto out_dir = ToBazelOutputDirectory(path, info.digest, storage);
-            if (not out_dir) {
-                return false;
-            }
-            result_dirs.Add(*std::move(out_dir));
-        }
-        else if (info.type == ObjectType::Symlink) {
-            auto out_link = ToBazelOutputSymlink(path, info.digest, storage);
-            if (not out_link) {
-                return false;
-            }
-            if (dir_symlinks.contains(path)) {
-                // directory symlink
-                result_dir_links.Add(*std::move(out_link));
-            }
-            else {
-                // file symlinks
-                result_file_links.Add(*std::move(out_link));
-            }
-        }
-        else {
-            result_files.Add(ToBazelOutputFile(path, info));
-        }
-    }
-    return true;
-}
-
 auto ExecutionServiceImpl::AddResult(
     ::bazel_re::ExecuteResponse* response,
     IExecutionResponse::Ptr const& i_execution_response,
     std::string const& action_hash) const noexcept
     -> expected<std::monostate, std::string> {
-    if (not AddOutputPaths(response, i_execution_response, storage_)) {
-        auto str = fmt::format("Error in creating output paths of action {}",
-                               action_hash);
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return unexpected{std::move(str)};
+    auto action_result =
+        ToBazelActionResult(i_execution_response->Artifacts(),
+                            i_execution_response->DirectorySymlinks(),
+                            storage_);
+    if (not action_result) {
+        logger_.Emit(LogLevel::Error, "{}", action_result.error());
+        return unexpected{std::move(action_result).error()};
     }
+    (*response->mutable_result()) = *std::move(action_result);
+
     auto* result = response->mutable_result();
     result->set_exit_code(i_execution_response->ExitCode());
     if (i_execution_response->HasStdErr()) {
@@ -441,5 +388,51 @@ namespace {
     *(out_file.mutable_digest()) = info.digest;
     out_file.set_is_executable(IsExecutableObject(info.type));
     return out_file;
+}
+
+[[nodiscard]] auto ToBazelActionResult(
+    IExecutionResponse::ArtifactInfos const& artifacts,
+    IExecutionResponse::DirSymlinks const& dir_symlinks,
+    Storage const& storage) noexcept
+    -> expected<bazel_re::ActionResult, std::string> {
+    bazel_re::ActionResult result{};
+    auto& result_files = *result.mutable_output_files();
+    auto& result_file_links = *result.mutable_output_file_symlinks();
+    auto& result_dirs = *result.mutable_output_directories();
+    auto& result_dir_links = *result.mutable_output_directory_symlinks();
+
+    auto const size = static_cast<int>(artifacts.size());
+    result_files.Reserve(size);
+    result_file_links.Reserve(size);
+    result_dirs.Reserve(size);
+    result_dir_links.Reserve(size);
+
+    for (auto const& [path, info] : artifacts) {
+        if (info.type == ObjectType::Tree) {
+            auto out_dir = ToBazelOutputDirectory(path, info.digest, storage);
+            if (not out_dir) {
+                return unexpected{std::move(out_dir).error()};
+            }
+            result_dirs.Add(*std::move(out_dir));
+        }
+        else if (info.type == ObjectType::Symlink) {
+            auto out_link = ToBazelOutputSymlink(path, info.digest, storage);
+            if (not out_link) {
+                return unexpected{std::move(out_link).error()};
+            }
+            if (dir_symlinks.contains(path)) {
+                // directory symlink
+                result_dir_links.Add(*std::move(out_link));
+            }
+            else {
+                // file symlinks
+                result_file_links.Add(*std::move(out_link));
+            }
+        }
+        else {
+            result_files.Add(ToBazelOutputFile(path, info));
+        }
+    }
+    return std::move(result);
 }
 }  // namespace
