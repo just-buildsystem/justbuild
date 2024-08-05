@@ -6,6 +6,7 @@
     , "name"
     , "test.sh"
     , "keep"
+    , "keep-dirs"
     , "runner"
     , "deps-fieldname"
     , "deps-transition"
@@ -184,6 +185,16 @@
             ]
           }
         ]
+      , [ "out_dirs"
+        , { "type": "foreach"
+          , "var": "dir_path"
+          , "range": {"type": "var", "name": "keep-dirs"}
+          , "body":
+            { "type": "join"
+            , "$1": ["work/", {"type": "var", "name": "dir_path"}]
+            }
+          }
+        ]
       , [ "inputs"
         , { "type": "map_union"
           , "$1":
@@ -210,6 +221,7 @@
       , "then":
         { "type": "ACTION"
         , "outs": {"type": "var", "name": "outs"}
+        , "out_dirs": {"type": "var", "name": "out_dirs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
@@ -225,6 +237,7 @@
       , "else":
         { "type": "ACTION"
         , "outs": {"type": "var", "name": "outs"}
+        , "out_dirs": {"type": "var", "name": "out_dirs"}
         , "inputs": {"type": "var", "name": "inputs"}
         , "cmd": {"type": "var", "name": "cmd"}
         , "env": {"type": "var", "name": "test_env"}
@@ -254,6 +267,7 @@
     , "name"
     , "test.sh"
     , "keep"
+    , "keep-dirs"
     , "runner"
     , "deps-fieldname"
     , "deps-transition"
