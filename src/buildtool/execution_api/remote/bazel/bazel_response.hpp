@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
 
+#include <optional>
 #include <string>
 #include <utility>  // std::move
 #include <vector>
@@ -53,22 +54,20 @@ class BazelResponse final : public IExecutionResponse {
         return output_.cached_result;
     };
 
-    auto ActionDigest() const noexcept -> std::string final {
+    auto ActionDigest() const noexcept -> std::string const& final {
         return action_id_;
     }
 
-    auto Artifacts() noexcept -> ArtifactInfos final;
-
-    auto ArtifactsWithDirSymlinks() noexcept
-        -> std::pair<ArtifactInfos, DirSymlinks> final;
+    auto Artifacts() noexcept -> ArtifactInfos const& final;
+    auto DirectorySymlinks() noexcept -> DirSymlinks const& final;
 
   private:
     std::string action_id_{};
     std::shared_ptr<BazelNetwork> const network_{};
     BazelExecutionClient::ExecutionOutput output_{};
-    ArtifactInfos artifacts_{};
-    DirSymlinks dir_symlinks_{};
-    bool populated_{false};
+    ArtifactInfos artifacts_;
+    DirSymlinks dir_symlinks_;
+    bool populated_ = false;
 
     explicit BazelResponse(std::string action_id,
                            std::shared_ptr<BazelNetwork> network,
@@ -85,7 +84,7 @@ class BazelResponse final : public IExecutionResponse {
         return id.size_bytes() != 0;
     }
 
-    [[nodiscard]] auto Populate() noexcept -> bool;
+    void Populate() noexcept;
 
     [[nodiscard]] auto UploadTreeMessageDirectories(
         bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest>;

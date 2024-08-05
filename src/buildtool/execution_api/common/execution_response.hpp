@@ -56,13 +56,12 @@ class IExecutionResponse {
 
     [[nodiscard]] virtual auto StdOut() noexcept -> std::string = 0;
 
-    [[nodiscard]] virtual auto ActionDigest() const noexcept -> std::string = 0;
+    [[nodiscard]] virtual auto ActionDigest() const noexcept
+        -> std::string const& = 0;
 
-    [[nodiscard]] virtual auto Artifacts() noexcept -> ArtifactInfos = 0;
-
-    // Artifacts plus extra useful info
-    [[nodiscard]] virtual auto ArtifactsWithDirSymlinks() noexcept
-        -> std::pair<ArtifactInfos, DirSymlinks> = 0;
+    [[nodiscard]] virtual auto Artifacts() noexcept -> ArtifactInfos const& = 0;
+    [[nodiscard]] virtual auto DirectorySymlinks() noexcept
+        -> DirSymlinks const& = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_RESPONSE_HPP

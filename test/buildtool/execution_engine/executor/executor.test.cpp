@@ -83,10 +83,37 @@ class TestResponse : public IExecutionResponse {
     [[nodiscard]] auto HasStdOut() const noexcept -> bool final { return true; }
     [[nodiscard]] auto StdErr() noexcept -> std::string final { return {}; }
     [[nodiscard]] auto StdOut() noexcept -> std::string final { return {}; }
-    [[nodiscard]] auto ActionDigest() const noexcept -> std::string final {
-        return {};
+    [[nodiscard]] auto ActionDigest() const noexcept
+        -> std::string const& final {
+        static const std::string kEmptyHash;
+        return kEmptyHash;
     }
-    [[nodiscard]] auto Artifacts() noexcept -> ArtifactInfos final {
+    [[nodiscard]] auto Artifacts() noexcept -> ArtifactInfos const& final {
+        if (not populated_) {
+            Populate();
+        }
+        return artifacts_;
+    }
+    [[nodiscard]] auto DirectorySymlinks() noexcept
+        -> DirSymlinks const& final {
+        static const DirSymlinks kEmptySymlinks{};
+        return kEmptySymlinks;
+    }
+
+  private:
+    TestApiConfig config_{};
+    ArtifactInfos artifacts_;
+    bool populated_ = false;
+
+    explicit TestResponse(TestApiConfig config) noexcept
+        : config_{std::move(config)} {}
+
+    void Populate() noexcept {
+        if (populated_) {
+            return;
+        }
+        populated_ = true;
+
         ArtifactInfos artifacts{};
         artifacts.reserve(config_.execution.outputs.size());
 
@@ -99,21 +126,11 @@ class TestResponse : public IExecutionResponse {
                         .digest = ArtifactDigest{path, 0, /*is_tree=*/false},
                         .type = ObjectType::File});
             } catch (...) {
-                return {};
+                return;
             }
         }
-
-        return artifacts;
+        artifacts_ = std::move(artifacts);
     }
-    [[nodiscard]] auto ArtifactsWithDirSymlinks() noexcept
-        -> std::pair<ArtifactInfos, DirSymlinks> final {
-        return {};
-    }
-
-  private:
-    TestApiConfig config_{};
-    explicit TestResponse(TestApiConfig config) noexcept
-        : config_{std::move(config)} {}
 };
 
 /// \brief Mockup Action, stores only config

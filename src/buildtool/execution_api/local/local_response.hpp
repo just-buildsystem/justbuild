@@ -67,31 +67,27 @@ class LocalResponse final : public IExecutionResponse {
     }
     auto IsCached() const noexcept -> bool final { return output_.is_cached; };
 
-    auto ActionDigest() const noexcept -> std::string final {
+    auto ActionDigest() const noexcept -> std::string const& final {
         return action_id_;
     }
 
-    auto Artifacts() noexcept -> ArtifactInfos final {
-        return ArtifactsWithDirSymlinks().first;
+    auto Artifacts() noexcept -> ArtifactInfos const& final {
+        Populate();
+        return artifacts_;
     }
 
-    auto ArtifactsWithDirSymlinks() noexcept
-        -> std::pair<ArtifactInfos, DirSymlinks> final {
-        // make sure to populate only once
-        populated_ = Populate();
-        if (not populated_) {
-            return {};
-        }
-        return std::pair(artifacts_, dir_symlinks_);
-    };
+    auto DirectorySymlinks() noexcept -> DirSymlinks const& final {
+        Populate();
+        return dir_symlinks_;
+    }
 
   private:
     std::string action_id_{};
     LocalAction::Output output_{};
     Storage const& storage_;
-    ArtifactInfos artifacts_{};
-    DirSymlinks dir_symlinks_{};
-    bool populated_{false};
+    ArtifactInfos artifacts_;
+    DirSymlinks dir_symlinks_;
+    bool populated_ = false;
 
     explicit LocalResponse(
         std::string action_id,
@@ -101,10 +97,13 @@ class LocalResponse final : public IExecutionResponse {
           output_{std::move(output)},
           storage_{*storage} {}
 
-    [[nodiscard]] auto Populate() noexcept -> bool {
+    void Populate() noexcept {
+        // Initialized only once lazily
         if (populated_) {
-            return true;
+            return;
         }
+        populated_ = true;
+
         ArtifactInfos artifacts{};
         auto const& action_result = output_.action;
         artifacts.reserve(
@@ -116,7 +115,7 @@ class LocalResponse final : public IExecutionResponse {
             static_cast<std::size_t>(action_result.output_directories_size()));
 
         DirSymlinks dir_symlinks{};
-        dir_symlinks_.reserve(static_cast<std::size_t>(
+        dir_symlinks.reserve(static_cast<std::size_t>(
             action_result.output_directory_symlinks_size()));
 
         // collect files and store them
@@ -129,7 +128,7 @@ class LocalResponse final : public IExecutionResponse {
                         .type = file.is_executable() ? ObjectType::Executable
                                                      : ObjectType::File});
             } catch (...) {
-                return false;
+                return;
             }
         }
 
@@ -143,7 +142,7 @@ class LocalResponse final : public IExecutionResponse {
                             storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
-                return false;
+                return;
             }
         }
         for (auto const& link : action_result.output_directory_symlinks()) {
@@ -156,7 +155,7 @@ class LocalResponse final : public IExecutionResponse {
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
             } catch (...) {
-                return false;
+                return;
             }
         }
 
@@ -169,12 +168,11 @@ class LocalResponse final : public IExecutionResponse {
                         .digest = ArtifactDigest{dir.tree_digest()},
                         .type = ObjectType::Tree});
             } catch (...) {
-                return false;
+                return;
             }
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
-        return true;
     }
 };
 

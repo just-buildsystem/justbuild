@@ -50,24 +50,23 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     return std::string{};
 }
 
-auto BazelResponse::Artifacts() noexcept -> ArtifactInfos {
-    return ArtifactsWithDirSymlinks().first;
+auto BazelResponse::Artifacts() noexcept -> ArtifactInfos const& {
+    Populate();
+    return artifacts_;
 }
 
-auto BazelResponse::ArtifactsWithDirSymlinks() noexcept
-    -> std::pair<ArtifactInfos, DirSymlinks> {
-    // make sure to populate only once
-    populated_ = Populate();
-    if (not populated_) {
-        return {};
-    }
-    return std::pair(artifacts_, dir_symlinks_);
+auto BazelResponse::DirectorySymlinks() noexcept -> DirSymlinks const& {
+    Populate();
+    return dir_symlinks_;
 }
 
-auto BazelResponse::Populate() noexcept -> bool {
+void BazelResponse::Populate() noexcept {
+    // Initialized only once lazily
     if (populated_) {
-        return true;
+        return;
     }
+    populated_ = true;
+
     ArtifactInfos artifacts{};
     auto const& action_result = output_.action_result;
     artifacts.reserve(
@@ -91,7 +90,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                                                  ? ObjectType::Executable
                                                  : ObjectType::File});
         } catch (...) {
-            return false;
+            return;
         }
     }
 
@@ -105,7 +104,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                         network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
-            return false;
+            return;
         }
     }
     for (auto const& link : action_result.output_directory_symlinks()) {
@@ -118,7 +117,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                     .type = ObjectType::Symlink});
             dir_symlinks.emplace(link.path());  // add it to set
         } catch (...) {
-            return false;
+            return;
         }
     }
 
@@ -133,12 +132,12 @@ auto BazelResponse::Populate() noexcept -> bool {
                         .digest = ArtifactDigest{tree.tree_digest()},
                         .type = ObjectType::Tree});
             } catch (...) {
-                return false;
+                return;
             }
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
-        return true;
+        return;
     }
 
     // obtain tree digests for output directories
@@ -159,7 +158,7 @@ auto BazelResponse::Populate() noexcept -> bool {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
                     *tree_blob.data);
                 if (not tree) {
-                    return false;
+                    return;
                 }
 
                 // The server does not store the Directory messages it just
@@ -168,21 +167,20 @@ auto BazelResponse::Populate() noexcept -> bool {
                 // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
-                    return false;
+                    return;
                 }
                 artifacts.emplace(
                     action_result.output_directories(pos).path(),
                     Artifact::ObjectInfo{.digest = *root_digest,
                                          .type = ObjectType::Tree});
             } catch (...) {
-                return false;
+                return;
             }
             ++pos;
         }
     }
     artifacts_ = std::move(artifacts);
     dir_symlinks_ = std::move(dir_symlinks);
-    return true;
 }
 
 auto BazelResponse::UploadTreeMessageDirectories(

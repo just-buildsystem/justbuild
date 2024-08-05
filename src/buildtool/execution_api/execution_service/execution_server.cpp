@@ -281,15 +281,16 @@ static auto CreateTreeDigestFromDirectoryDigest(
 static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
                            IExecutionResponse::Ptr const& execution,
                            Storage const& storage) noexcept -> bool {
-    auto const& artifacts_plus = execution->ArtifactsWithDirSymlinks();
-    auto const& size = static_cast<int>(artifacts_plus.first.size());
+    auto const& artifacts = execution->Artifacts();
+    auto const& dir_symlinks = execution->DirectorySymlinks();
+    auto const size = static_cast<int>(artifacts.size());
     response->mutable_result()->mutable_output_files()->Reserve(size);
     response->mutable_result()->mutable_output_file_symlinks()->Reserve(size);
     response->mutable_result()->mutable_output_directory_symlinks()->Reserve(
         size);
     response->mutable_result()->mutable_output_directories()->Reserve(size);
 
-    for (auto const& [path, info] : artifacts_plus.first) {
+    for (auto const& [path, info] : artifacts) {
         auto dgst = static_cast<::bazel_re::Digest>(info.digest);
 
         if (info.type == ObjectType::Tree) {
@@ -326,7 +327,7 @@ static auto AddOutputPaths(::bazel_re::ExecuteResponse* response,
                 return false;
             }
             *(out_link.mutable_target()) = *content;
-            if (artifacts_plus.second.contains(path)) {
+            if (dir_symlinks.contains(path)) {
                 // directory symlink
                 response->mutable_result()
                     ->mutable_output_directory_symlinks()
