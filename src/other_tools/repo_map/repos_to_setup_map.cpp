@@ -805,7 +805,7 @@ auto CreateReposToSetupMap(
                               auto /* unused */,
                               auto const& key) {
         auto repos = (*config)["repositories"];
-        if (main && (key == *main) && interactive) {
+        if (main and (key == *main) and interactive) {
             // no repository checkout required
             nlohmann::json cfg({});
             SetReposTakeOver(&cfg, repos, key);

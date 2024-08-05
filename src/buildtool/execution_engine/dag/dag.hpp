@@ -440,7 +440,7 @@ class DependencyGraph : DirectedAcyclicGraph {
         }
 
         [[nodiscard]] auto HasBuilderAction() const noexcept -> bool {
-            return !base::Children().empty();
+            return not base::Children().empty();
         }
 
         [[nodiscard]] auto BuilderActionNode() const noexcept

@@ -95,7 +95,7 @@ auto LargeObjectUtils::GenerateFile(std::filesystem::path const& path,
 
     try {
         std::ofstream stream(path);
-        for (std::size_t i = 0; i < step_count && stream.good(); ++i) {
+        for (std::size_t i = 0; i < step_count and stream.good(); ++i) {
             const std::size_t index = (pool_index + i * pool_shift) % kPoolSize;
             if (i != step_count - 1) {
                 stream << Pool::Instance()[index];

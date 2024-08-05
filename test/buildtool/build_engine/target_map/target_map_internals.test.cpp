@@ -55,11 +55,11 @@ TEST_CASE("No conflict", "[tree_conflict]") {
     REQUIRE(no_overlap);
     auto no_overlap_conflict =
         BuildMaps::Target::Utils::tree_conflict(no_overlap);
-    CHECK(!no_overlap_conflict);
+    CHECK(not no_overlap_conflict);
 
     auto single_root = Expression::FromJson(R"({ ".": "content-1"})"_json);
     REQUIRE(single_root);
     auto single_root_conflict =
         BuildMaps::Target::Utils::tree_conflict(single_root);
-    CHECK(!single_root_conflict);
+    CHECK(not single_root_conflict);
 }

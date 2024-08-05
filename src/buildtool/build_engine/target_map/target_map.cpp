@@ -973,7 +973,7 @@ void withDependencies(
             }
             auto occurrences =
                 ListDependencies(object, deps_by_transition, effective_conf);
-            if (!occurrences.empty()) {
+            if (not occurrences.empty()) {
                 return fmt::format(
                     "\nArtifact {} occurs in direct dependencies{}",
                     object->ToString(),

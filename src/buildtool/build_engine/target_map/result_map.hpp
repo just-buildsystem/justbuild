@@ -224,8 +224,8 @@ class ResultTargetMap {
                           [](auto const& left, auto const& right) {
                               auto left_target = left.first.ToString();
                               auto right_target = right.first.ToString();
-                              return (left_target < right_target) ||
-                                     (left_target == right_target &&
+                              return (left_target < right_target) or
+                                     (left_target == right_target and
                                       left.second < right.second);
                           });
             }

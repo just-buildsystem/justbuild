@@ -36,7 +36,7 @@ static constexpr std::size_t kSHA256Length = 64;
 static auto IsValidHash(std::string const& x) -> bool {
     auto error_msg = IsAHash(x);
     auto const& length = x.size();
-    return !error_msg and
+    return not error_msg and
            ((Compatibility::IsCompatible() and length == kSHA256Length) or
             length == kGitSHA1Length);
 }
@@ -63,7 +63,7 @@ auto CASServiceImpl::FindMissingBlobs(
     const ::bazel_re::FindMissingBlobsRequest* request,
     ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str =
             fmt::format("FindMissingBlobs: could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
@@ -72,7 +72,7 @@ auto CASServiceImpl::FindMissingBlobs(
     for (auto const& x : request->blob_digests()) {
         auto const& hash = x.hash();
 
-        if (!IsValidHash(hash)) {
+        if (not IsValidHash(hash)) {
             logger_.Emit(LogLevel::Error,
                          "FindMissingBlobs: unsupported digest {}",
                          hash);
@@ -120,7 +120,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
     const ::bazel_re::BatchUpdateBlobsRequest* request,
     ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str =
             fmt::format("BatchUpdateBlobs: could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
@@ -129,7 +129,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
         logger_.Emit(LogLevel::Trace, "BatchUpdateBlobs: {}", hash);
-        if (!IsValidHash(hash)) {
+        if (not IsValidHash(hash)) {
             auto const& str =
                 fmt::format("BatchUpdateBlobs: unsupported digest {}", hash);
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -149,7 +149,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
                                       str};
             }
             auto const& dgst = storage_.CAS().StoreTree(x.data());
-            if (!dgst) {
+            if (not dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload tree {}", hash);
                 logger_.Emit(LogLevel::Error, "{}", str);
@@ -163,7 +163,7 @@ auto CASServiceImpl::BatchUpdateBlobs(
         }
         else {
             auto const& dgst = storage_.CAS().StoreBlob(x.data(), false);
-            if (!dgst) {
+            if (not dgst) {
                 auto const& str = fmt::format(
                     "BatchUpdateBlobs: could not upload blob {}", hash);
                 logger_.Emit(LogLevel::Error, "{}", str);
@@ -184,7 +184,7 @@ auto CASServiceImpl::BatchReadBlobs(
     const ::bazel_re::BatchReadBlobsRequest* request,
     ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str = fmt::format("BatchReadBlobs: Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, "{}", str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
@@ -199,7 +199,7 @@ auto CASServiceImpl::BatchReadBlobs(
         else {
             path = storage_.CAS().BlobPath(digest, false);
         }
-        if (!path) {
+        if (not path) {
             google::rpc::Status status;
             status.set_code(grpc::StatusCode::NOT_FOUND);
             r->mutable_status()->CopyFrom(status);

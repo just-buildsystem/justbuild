@@ -60,7 +60,7 @@ void WithFlexibleVariables(
     auto target_name = key.target.GetNamedTarget();
     auto repo_key = context->repo_config->RepositoryKey(*context->storage,
                                                         target_name.repository);
-    if (!repo_key) {
+    if (not repo_key) {
         (*logger)(fmt::format("Failed to obtain repository key for repo \"{}\"",
                               target_name.repository),
                   /*fatal=*/true);
@@ -134,7 +134,7 @@ void WithFlexibleVariables(
         }
     }
 
-    if (!target_cache_value) {
+    if (not target_cache_value) {
         (*logger)(fmt::format("Could not get target cache value for key {}",
                               target_cache_key->Id().ToString()),
                   /*fatal=*/true);
@@ -240,7 +240,7 @@ auto BuildMaps::Target::CreateAbsentTargetMap(
             auto const& repo_name = key.target.ToModule().repository;
             auto target_root_id =
                 context->repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
-            if (!target_root_id) {
+            if (not target_root_id) {
                 (*logger)(fmt::format("Failed to get the target root id for "
                                       "repository \"{}\"",
                                       repo_name),

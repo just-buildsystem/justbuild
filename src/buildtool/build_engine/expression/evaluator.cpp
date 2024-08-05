@@ -862,8 +862,9 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
         for (auto const& el : d->Map()) {
             std::filesystem::path k{el.first};
             auto new_key = ToNormalPath(subdir / k.filename()).string();
-            if (result.contains(new_key) &&
-                !((result[new_key] == el.second) && el.second->IsCacheable())) {
+            if (result.contains(new_key) and
+                not((result[new_key] == el.second) and
+                    el.second->IsCacheable())) {
                 // Check if the user specifed an error message for that case,
                 // otherwise just generate a generic error message.
                 auto msg_expr = expr->Map().Find("msg");
@@ -895,8 +896,8 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
         for (auto const& el : d->Map()) {
             auto new_key = ToNormalPath(subdir / el.first).string();
             if (auto it = result.find(new_key);
-                it != result.end() &&
-                (!((it->second == el.second) && el.second->IsCacheable()))) {
+                it != result.end() and
+                (not((it->second == el.second) and el.second->IsCacheable()))) {
                 auto msg_expr = expr->Map().Find("msg");
                 if (not msg_expr) {
                     throw Evaluator::EvaluationError{fmt::format(

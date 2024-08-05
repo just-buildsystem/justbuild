@@ -34,7 +34,7 @@ auto JustMRProgressReporter::Reporter(
         auto const sample = progress->TaskTracker().Sample();
         auto msg =
             fmt::format("{} local, {} cached, {} done", local, cached, run);
-        if ((active > 0) && !sample.empty()) {
+        if ((active > 0) and not sample.empty()) {
             msg = fmt::format("{}; {} fetches ({}{})",
                               msg,
                               active,

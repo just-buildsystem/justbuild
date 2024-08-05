@@ -47,18 +47,18 @@ struct RefCaptureCallable {
 
 TEST_CASE("Default constructed task is empty", "[task]") {
     Task t;
-    CHECK(!t);
-    CHECK(!(Task()));
-    CHECK(!(Task{}));
+    CHECK(not t);
+    CHECK(not(Task()));
+    CHECK(not(Task{}));
 }
 
 TEST_CASE("Task constructed from empty function is empty", "[task]") {
     std::function<void()> empty_function;
     Task t_from_empty_function{empty_function};
 
-    CHECK(!Task(std::function<void()>{}));
-    CHECK(!Task(empty_function));
-    CHECK(!t_from_empty_function);
+    CHECK(not Task(std::function<void()>{}));
+    CHECK(not Task(empty_function));
+    CHECK(not t_from_empty_function);
 }
 
 TEST_CASE("Task constructed from user defined callable object is not empty",

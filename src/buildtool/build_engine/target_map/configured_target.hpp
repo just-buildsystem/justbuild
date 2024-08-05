@@ -35,7 +35,7 @@ struct ConfiguredTarget {
     [[nodiscard]] auto operator==(
         BuildMaps::Target::ConfiguredTarget const& other) const noexcept
         -> bool {
-        return target == other.target && config == other.config;
+        return target == other.target and config == other.config;
     }
 
     [[nodiscard]] auto ToString() const noexcept -> std::string {

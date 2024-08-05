@@ -528,7 +528,7 @@ auto CreateGitTreeFetchMap(
                                 err_str = *cmd_err;
                             }
                             std::string output{};
-                            if (!out_str.empty() || !err_str.empty()) {
+                            if (not out_str.empty() or not err_str.empty()) {
                                 output =
                                     fmt::format(".\nOutput of command:\n{}{}",
                                                 out_str,

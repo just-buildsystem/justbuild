@@ -31,13 +31,13 @@ auto ActionCacheServiceImpl::GetActionResult(
                  "GetActionResult: {}",
                  request->action_digest().hash());
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     auto x = storage_.ActionCache().CachedResult(request->action_digest());
-    if (!x) {
+    if (not x) {
         return grpc::Status{
             grpc::StatusCode::NOT_FOUND,
             fmt::format("{} missing from AC", request->action_digest().hash())};

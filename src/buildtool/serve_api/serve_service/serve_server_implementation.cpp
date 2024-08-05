@@ -48,7 +48,7 @@ namespace {
 template <typename T>
 auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
     std::ofstream of{file};
-    if (!of.good()) {
+    if (not of.good()) {
         Logger::Log(LogLevel::Error,
                     "Could not open {}. Make sure to have write permissions",
                     file);
@@ -167,7 +167,7 @@ auto ServeServerImpl::Run(
         fmt::format("{}:{}", interface_, port_), creds, &port_);
 
     auto server = builder.BuildAndStart();
-    if (!server) {
+    if (not server) {
         Logger::Log(LogLevel::Error, "Could not start serve service");
         return false;
     }
@@ -177,8 +177,8 @@ auto ServeServerImpl::Run(
     nlohmann::json const& info = {
         {"interface", interface_}, {"port", port_}, {"pid", pid}};
 
-    if (!pid_file_.empty()) {
-        if (!TryWrite(pid_file_, pid)) {
+    if (not pid_file_.empty()) {
+        if (not TryWrite(pid_file_, pid)) {
             server->Shutdown();
             return false;
         }
@@ -192,8 +192,8 @@ auto ServeServerImpl::Run(
                             with_execute ? "s" : "",
                             info_str));
 
-    if (!info_file_.empty()) {
-        if (!TryWrite(info_file_, info_str)) {
+    if (not info_file_.empty()) {
+        if (not TryWrite(info_file_, info_str)) {
             server->Shutdown();
             return false;
         }

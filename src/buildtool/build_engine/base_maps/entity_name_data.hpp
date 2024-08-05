@@ -35,7 +35,7 @@ struct AnonymousTarget {
 
     [[nodiscard]] auto operator==(AnonymousTarget const& other) const noexcept
         -> bool {
-        return rule_map == other.rule_map && target_node == other.target_node;
+        return rule_map == other.rule_map and target_node == other.target_node;
     }
 };
 
@@ -72,8 +72,8 @@ struct NamedTarget {
     [[nodiscard]] auto ToString() const -> std::string;
     [[nodiscard]] friend auto operator==(NamedTarget const& x,
                                          NamedTarget const& y) -> bool {
-        return x.repository == y.repository && x.module == y.module &&
-               x.name == y.name && x.reference_t == y.reference_t;
+        return x.repository == y.repository and x.module == y.module and
+               x.name == y.name and x.reference_t == y.reference_t;
     }
     [[nodiscard]] friend auto operator!=(NamedTarget const& x,
                                          NamedTarget const& y) -> bool {

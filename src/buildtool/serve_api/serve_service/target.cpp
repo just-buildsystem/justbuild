@@ -163,13 +163,13 @@ auto TargetService::ServeTarget(
     // acquire locks
     auto repo_lock =
         RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
-    if (!repo_lock) {
+    if (not repo_lock) {
         auto msg = std::string("Could not acquire repo gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
     auto lock = GarbageCollector::SharedLock(*local_context_.storage_config);
-    if (!lock) {
+    if (not lock) {
         auto msg = std::string("Could not acquire CAS gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
@@ -217,7 +217,7 @@ auto TargetService::ServeTarget(
         // make sure all artifacts referenced in the target cache value are in
         // the remote cas
         std::vector<Artifact::ObjectInfo> artifacts;
-        if (!target_entry->first.ToArtifacts(&artifacts)) {
+        if (not target_entry->first.ToArtifacts(&artifacts)) {
             auto msg = fmt::format(
                 "Failed to extract artifacts from target cache entry {}",
                 target_entry->second.ToString());
@@ -291,7 +291,7 @@ auto TargetService::ServeTarget(
                       this,
                       &target_cache_key_digest,
                       &error_msg](std::string const& key) -> bool {
-        if (!target_description_dict->At(key)) {
+        if (not target_description_dict->At(key)) {
             error_msg =
                 fmt::format("TargetCacheKey {} does not contain key \"{}\"",
                             target_cache_key_digest.hash(),
@@ -302,8 +302,8 @@ auto TargetService::ServeTarget(
         return true;
     };
 
-    if (!check_key("repo_key") or !check_key("target_name") or
-        !check_key("effective_config")) {
+    if (not check_key("repo_key") or not check_key("target_name") or
+        not check_key("effective_config")) {
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, error_msg};
     }
 
@@ -433,7 +433,7 @@ auto TargetService::ServeTarget(
     // setup logging for analysis and build; write into a temporary file
     auto tmp_dir =
         local_context_.storage_config->CreateTypedTmpDir("serve-target");
-    if (!tmp_dir) {
+    if (not tmp_dir) {
         auto msg = std::string("Could not create TmpDir");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
@@ -557,7 +557,7 @@ auto TargetService::ServeTarget(
         // make sure all artifacts referenced in the target cache value are in
         // the remote cas
         std::vector<Artifact::ObjectInfo> tc_artifacts;
-        if (!target_entry->first.ToArtifacts(&tc_artifacts)) {
+        if (not target_entry->first.ToArtifacts(&tc_artifacts)) {
             auto msg = fmt::format(
                 "Failed to extract artifacts from target cache entry {}",
                 target_entry->second.ToString());
@@ -755,7 +755,7 @@ auto TargetService::ServeTargetDescription(
     // Get repository lock before inspecting the root git cache
     auto repo_lock =
         RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
-    if (!repo_lock) {
+    if (not repo_lock) {
         auto msg = std::string("Could not acquire repo gc SharedLock");
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
@@ -895,7 +895,7 @@ auto TargetService::ServeTargetDescription(
 
     // acquire lock for CAS
     auto lock = GarbageCollector::SharedLock(*local_context_.storage_config);
-    if (!lock) {
+    if (not lock) {
         auto error_msg = fmt::format("Could not acquire gc SharedLock");
         logger_->Emit(LogLevel::Error, error_msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, error_msg};

@@ -599,7 +599,7 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
                 }
             }
 
-            if (is_main_repo && keyword_carg) {
+            if (is_main_repo and keyword_carg) {
                 *keyword_root = FileRoot{*keyword_carg};
             }
         };
@@ -645,7 +645,7 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
                 *keyword_file_name = *it;
             }
 
-            if (is_main_repo && keyword_carg) {
+            if (is_main_repo and keyword_carg) {
                 *keyword_file_name = *keyword_carg;
             }
         };

@@ -25,7 +25,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     const ::bazel_re::GetCapabilitiesRequest*
     /*request*/,
     ::bazel_re::ServerCapabilities* response) -> ::grpc::Status {
-    if (!Compatibility::IsCompatible()) {
+    if (not Compatibility::IsCompatible()) {
         auto const* str = "GetCapabilities not implemented";
         Logger::Log(LogLevel::Error, str);
         return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};

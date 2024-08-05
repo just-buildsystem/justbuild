@@ -45,7 +45,7 @@ auto FileChunker::IsOpen() const noexcept -> bool {
 }
 
 auto FileChunker::Finished() const noexcept -> bool {
-    return stream_.eof() && pos_ == size_;
+    return stream_.eof() and pos_ == size_;
 }
 
 auto FileChunker::NextChunk() noexcept -> std::optional<std::string> {

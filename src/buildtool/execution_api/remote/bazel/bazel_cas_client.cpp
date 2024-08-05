@@ -292,7 +292,7 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
     while (stream->Read(&response)) {
         result = ProcessResponseContents<bazel_re::Directory>(response);
         auto const& next_page_token = response.next_page_token();
-        if (!next_page_token.empty()) {
+        if (not next_page_token.empty()) {
             // recursively call this function with token for next page
             auto next_result =
                 GetTree(instance_name, root_digest, page_size, next_page_token);
@@ -335,7 +335,7 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
                                          blob.digest.hash(),
                                          blob.digest.size_bytes()),
                              *blob.data);
-    if (!ok) {
+    if (not ok) {
         logger_.Emit(LogLevel::Error,
                      "Failed to write {}:{}",
                      blob.digest.hash(),

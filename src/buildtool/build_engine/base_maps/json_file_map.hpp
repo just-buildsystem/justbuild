@@ -113,7 +113,7 @@ auto CreateJsonFileMap(
                 true);
             return;
         }
-        if (!json.is_object()) {
+        if (not json.is_object()) {
             (*logger)(fmt::format("JSON in {} is not an object.",
                                   json_file_path.string()),
                       true);

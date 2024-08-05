@@ -490,7 +490,7 @@ auto GitRepoRemote::UpdateCommitViaTmpRepo(
                 err_str = *cmd_err;
             }
             std::string output{};
-            if (!out_str.empty() || !err_str.empty()) {
+            if (not out_str.empty() or not err_str.empty()) {
                 output = fmt::format(" with output:\n{}{}", out_str, err_str);
             }
             (*logger)(fmt::format("List remote commits command {} failed{}",
@@ -644,7 +644,7 @@ auto GitRepoRemote::FetchViaTmpRepo(StorageConfig const& storage_config,
                 err_str = *cmd_err;
             }
             std::string output{};
-            if (!out_str.empty() || !err_str.empty()) {
+            if (not out_str.empty() or not err_str.empty()) {
                 output = fmt::format(" with output:\n{}{}", out_str, err_str);
             }
             (*logger)(fmt::format("Fetch command {} failed{}",

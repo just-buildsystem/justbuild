@@ -60,7 +60,7 @@ namespace {
     gsl::not_null<RetryArguments*> const& rargs) noexcept -> bool {
     auto max_attempts = config["max-attempts"];
     if (max_attempts.IsNotNull()) {
-        if (!max_attempts->IsNumber()) {
+        if (not max_attempts->IsNumber()) {
             Logger::Log(
                 LogLevel::Error,
                 "Invalid value for \"max-attempts\" {}. It must be a number.",
@@ -71,7 +71,7 @@ namespace {
     }
     auto initial_backoff = config["initial-backoff-seconds"];
     if (initial_backoff.IsNotNull()) {
-        if (!initial_backoff->IsNumber()) {
+        if (not initial_backoff->IsNumber()) {
             Logger::Log(LogLevel::Error,
                         "Invalid value \"initial-backoff-seconds\" {}. It must "
                         "be a number.",
@@ -83,7 +83,7 @@ namespace {
     }
     auto max_backoff = config["max-backoff-seconds"];
     if (max_backoff.IsNotNull()) {
-        if (!max_backoff->IsNumber()) {
+        if (not max_backoff->IsNumber()) {
             Logger::Log(LogLevel::Error,
                         "Invalid value for \"max-backoff-seconds\" {}. It must "
                         "be a number.",
@@ -407,7 +407,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->endpoint.remote_execution_address = address->String();
         }
-        if (!ParseRetryCliOptions(serve_config, &clargs->retry)) {
+        if (not ParseRetryCliOptions(serve_config, &clargs->retry)) {
             std::exit(kExitFailure);
         }
     }

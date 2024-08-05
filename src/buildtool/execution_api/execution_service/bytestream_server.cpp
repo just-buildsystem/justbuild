@@ -50,7 +50,7 @@ auto BytestreamServiceImpl::Read(
     // remote-execution/blobs/62f408d64bca5de775c4b1dbc3288fc03afd6b19eb/0
     std::istringstream iss{request->resource_name()};
     auto hash = ParseResourceName(request->resource_name());
-    if (!hash) {
+    if (not hash) {
         auto str = fmt::format("could not parse {}", request->resource_name());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
@@ -62,7 +62,7 @@ auto BytestreamServiceImpl::Read(
     }
 
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
@@ -79,7 +79,7 @@ auto BytestreamServiceImpl::Read(
         path =
             storage_.CAS().BlobPath(static_cast<bazel_re::Digest>(dgst), false);
     }
-    if (!path) {
+    if (not path) {
         auto str = fmt::format("could not find {}", *hash);
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, str};
@@ -90,7 +90,7 @@ auto BytestreamServiceImpl::Read(
     std::string buffer(kChunkSize, '\0');
     bool done = false;
     blob.seekg(request->read_offset());
-    while (!done) {
+    while (not done) {
         blob.read(buffer.data(), kChunkSize);
         if (blob.eof()) {
             // do not send random bytes
@@ -111,7 +111,7 @@ auto BytestreamServiceImpl::Write(
     reader->Read(&request);
     logger_.Emit(LogLevel::Debug, "write {}", request.resource_name());
     auto hash = ParseResourceName(request.resource_name());
-    if (!hash) {
+    if (not hash) {
         auto str = fmt::format("could not parse {}", request.resource_name());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
@@ -126,13 +126,13 @@ auto BytestreamServiceImpl::Write(
                  request.write_offset(),
                  request.finish_write());
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
     auto tmp_dir = storage_config_.CreateTypedTmpDir("execution-service");
-    if (!tmp_dir) {
+    if (not tmp_dir) {
         return ::grpc::Status{::grpc::StatusCode::INTERNAL,
                               "could not create TmpDir"};
     }
@@ -142,7 +142,7 @@ auto BytestreamServiceImpl::Write(
         of.write(request.data().data(),
                  static_cast<std::streamsize>(request.data().size()));
     }
-    while (!request.finish_write() && reader->Read(&request)) {
+    while (not request.finish_write() and reader->Read(&request)) {
         std::ofstream of{tmp, std::ios::binary | std::ios::app};
         of.write(request.data().data(),
                  static_cast<std::streamsize>(request.data().size()));

@@ -103,7 +103,7 @@ auto BuildMaps::Target::Utils::artifacts_tree(const ExpressionPtr& map)
     for (auto const& [key, artifact] : map->Map()) {
         auto location = ToNormalPath(std::filesystem::path{key}).string();
         if (auto it = result.find(location);
-            it != result.end() && !(it->second == artifact)) {
+            it != result.end() and not(it->second == artifact)) {
             return location;
         }
         result.emplace(std::move(location), artifact);

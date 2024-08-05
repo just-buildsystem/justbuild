@@ -46,8 +46,8 @@ struct GitOpParams {
     [[nodiscard]] auto operator==(GitOpParams const& other) const noexcept
         -> bool {
         // not all fields are keys
-        return target_path == other.target_path && git_hash == other.git_hash &&
-               branch == other.branch;
+        return target_path == other.target_path and
+               git_hash == other.git_hash and branch == other.branch;
     }
 };
 

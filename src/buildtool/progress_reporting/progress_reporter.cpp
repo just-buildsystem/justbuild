@@ -32,10 +32,10 @@ auto ProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
         int queued = stats->ActionsQueuedCounter();
         int active = queued - run - cached;
         std::string now_msg;
-        if (active > 0 and !sample.empty()) {
+        if (active > 0 and not sample.empty()) {
             auto const& origin_map = progress->OriginMap();
             auto origins = origin_map.find(sample);
-            if (origins != origin_map.end() and !origins->second.empty()) {
+            if (origins != origin_map.end() and not origins->second.empty()) {
                 auto const& origin = origins->second[0];
                 now_msg = fmt::format(" ({}#{}{})",
                                       origin.first.target.ToString(),

@@ -114,7 +114,7 @@ TEST_CASE("LogSinkFile", "[logging]") {
         for (auto const& line : lines) {
             CHECK_THAT(
                 line,
-                Catch::Matchers::ContainsSubstring("somecontent") ||
+                Catch::Matchers::ContainsSubstring("somecontent") or
                     Catch::Matchers::ContainsSubstring("this is thread"));
         }
     }

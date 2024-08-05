@@ -100,7 +100,7 @@ TEST_CASE("non existent") {
     auto consumer = [&as_expected](auto values) {
         // Missing optional files are expected to result in empty objects with
         // no entries in it.
-        if (values[0]->is_object() && values[0]->empty()) {
+        if (values[0]->is_object() and values[0]->empty()) {
             as_expected = true;
         };
     };

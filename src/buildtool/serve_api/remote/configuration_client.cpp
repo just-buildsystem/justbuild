@@ -36,7 +36,7 @@ ConfigurationClient::ConfigurationClient(
 
 auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
     auto const client_remote_address = remote_config_.remote_address;
-    if (!client_remote_address) {
+    if (not client_remote_address) {
         logger_.Emit(LogLevel::Error,
                      "Internal error: the remote execution endpoint should "
                      "have been set.");

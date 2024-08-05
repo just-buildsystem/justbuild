@@ -540,7 +540,7 @@ class ExecutorImpl {
         bool count_as_executed = false) -> bool {
         logger.Emit(LogLevel::Trace, "finished execution");
 
-        if (!response) {
+        if (not response) {
             logger.Emit(LogLevel::Trace, "response is empty");
             return false;
         }
@@ -609,7 +609,7 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         IExecutionResponse::Ptr const& response) noexcept {
-        if (!response) {
+        if (not response) {
             logger.Emit(LogLevel::Error, "response is empty");
             return;
         }
@@ -657,7 +657,7 @@ class ExecutorImpl {
         msg << nlohmann::json(action->Env()).dump();
         auto const& origin_map = progress->OriginMap();
         auto origins = origin_map.find(action->Content().Id());
-        if (origins != origin_map.end() and !origins->second.empty()) {
+        if (origins != origin_map.end() and not origins->second.empty()) {
             msg << "\nrequested by";
             for (auto const& origin : origins->second) {
                 msg << "\n - ";

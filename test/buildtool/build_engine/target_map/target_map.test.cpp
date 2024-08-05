@@ -175,7 +175,7 @@ TEST_CASE("simple targets", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         auto artifacts = result->Artifacts();
         ExpressionPtr artifact = artifacts->Get("c/d/foo", none_t{});
@@ -201,7 +201,7 @@ TEST_CASE("simple targets", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         auto artifacts = result->Artifacts();
         ExpressionPtr artifact = artifacts->Get("c/d/link", none_t{});
@@ -799,7 +799,7 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["index.txt"]["type"] == "KNOWN");
         CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt;link");
@@ -823,7 +823,7 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["index.txt"]["type"] == "KNOWN");
         CHECK(result->Blobs()[0] == "bar.txt;baz.txt;foo.txt;link");
@@ -920,7 +920,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->Map().size() == 1);
         CHECK(result->Artifacts()->ToJson()["out"]["type"] == "ACTION");
@@ -945,7 +945,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts() == result->RunFiles());
         auto stage = result->Artifacts()->ToJson();
@@ -991,7 +991,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["generated.txt"]["type"] ==
               "KNOWN");
@@ -1017,7 +1017,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["generated_link"]["type"] ==
               "KNOWN");
@@ -1051,7 +1051,7 @@ TEST_CASE("built-in rules", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(bar_result->Artifacts()->ToJson()["foo.txt."]["type"] == "KNOWN");
         CHECK(
@@ -1155,7 +1155,7 @@ TEST_CASE("target reference", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["hello.txt"]["type"] == "ACTION");
         CHECK(result->Artifacts()->ToJson()["hello.txt"]["data"]["path"] ==
@@ -1187,7 +1187,7 @@ TEST_CASE("target reference", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["link"]["type"] == "ACTION");
         CHECK(result->Artifacts()->ToJson()["link"]["data"]["path"] == "link");
@@ -1218,7 +1218,7 @@ TEST_CASE("target reference", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Artifacts()->ToJson()["absolute"]["data"]["path"] ==
               "x/x/foo");
@@ -1319,7 +1319,7 @@ TEST_CASE("trees", "[target_map]") {
                     error_msg = msg;
                 });
         }
-        CHECK(!error);
+        CHECK(not error);
         CHECK(error_msg == "NONE");
         CHECK(result->Actions().size() == 1);
         CHECK(result->Actions()[0]->ToJson()["input"]["tree"]["type"] ==

@@ -46,7 +46,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
         return {std::nullopt, *error_msg};
     }
     auto path = storage_.CAS().BlobPath(request->action_digest(), false);
-    if (!path) {
+    if (not path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -55,7 +55,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
     ::bazel_re::Action action{};
     {
         std::ifstream f(*path);
-        if (!action.ParseFromIstream(&f)) {
+        if (not action.ParseFromIstream(&f)) {
             auto str = fmt::format("failed to parse action from blob {}",
                                    request->action_digest().hash());
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -71,7 +71,7 @@ auto ExecutionServiceImpl::GetAction(::bazel_re::ExecuteRequest const* request)
                ? storage_.CAS().BlobPath(action.input_root_digest(), false)
                : storage_.CAS().TreePath(action.input_root_digest());
 
-    if (!path) {
+    if (not path) {
         auto str = fmt::format("could not retrieve input root {} from cas",
                                action.input_root_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -88,7 +88,7 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
         return {std::nullopt, *error_msg};
     }
     auto path = storage_.CAS().BlobPath(action.command_digest(), false);
-    if (!path) {
+    if (not path) {
         auto str = fmt::format("could not retrieve blob {} from cas",
                                action.command_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -98,7 +98,7 @@ auto ExecutionServiceImpl::GetCommand(::bazel_re::Action const& action)
     ::bazel_re::Command c{};
     {
         std::ifstream f(*path);
-        if (!c.ParseFromIstream(&f)) {
+        if (not c.ParseFromIstream(&f)) {
             auto str = fmt::format("failed to parse command from blob {}",
                                    action.command_digest().hash());
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -127,7 +127,7 @@ auto ExecutionServiceImpl::GetIExecutionAction(
                  std::optional<std::string>> {
 
     auto [c, msg_c] = GetCommand(action);
-    if (!c) {
+    if (not c) {
         return {std::nullopt, *msg_c};
     }
 
@@ -141,7 +141,7 @@ auto ExecutionServiceImpl::GetIExecutionAction(
         {c->output_directories().begin(), c->output_directories().end()},
         env_vars,
         {});
-    if (!i_execution_action) {
+    if (not i_execution_action) {
         auto str = fmt::format("could not create action from {}",
                                request->action_digest().hash());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -366,7 +366,7 @@ auto ExecutionServiceImpl::AddResult(
     if (i_execution_response->HasStdErr()) {
         auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdErr(),
                                              /*is_executable=*/false);
-        if (!dgst) {
+        if (not dgst) {
             auto str =
                 fmt::format("Could not store stderr of action {}", action_hash);
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -377,7 +377,7 @@ auto ExecutionServiceImpl::AddResult(
     if (i_execution_response->HasStdOut()) {
         auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdOut(),
                                              /*is_executable=*/false);
-        if (!dgst) {
+        if (not dgst) {
             auto str =
                 fmt::format("Could not store stdout of action {}", action_hash);
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -448,18 +448,18 @@ auto ExecutionServiceImpl::Execute(
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
     -> ::grpc::Status {
     auto lock = GarbageCollector::SharedLock(storage_config_);
-    if (!lock) {
+    if (not lock) {
         auto str = fmt::format("Could not acquire SharedLock");
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
     auto [action, msg_a] = GetAction(request);
-    if (!action) {
+    if (not action) {
         return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg_a};
     }
     auto [i_execution_action, msg] = GetIExecutionAction(request, *action);
-    if (!i_execution_action) {
+    if (not i_execution_action) {
         return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg};
     }
 
@@ -482,7 +482,7 @@ auto ExecutionServiceImpl::Execute(
         std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count());
 
     auto [execute_response, msg_r] = GetResponse(request, i_execution_response);
-    if (!execute_response) {
+    if (not execute_response) {
         return ::grpc::Status{grpc::StatusCode::INTERNAL, *msg_r};
     }
 
@@ -509,14 +509,14 @@ auto ExecutionServiceImpl::WaitExecution(
     std::optional<::google::longrunning::Operation> op;
     do {
         op = op_cache_.Query(hash);
-        if (!op) {
+        if (not op) {
             auto const& str = fmt::format(
                 "Executing action {} not found in internal cache.", hash);
             logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    } while (!op->done());
+    } while (not op->done());
     writer->Write(*op);
     logger_.Emit(LogLevel::Trace, "Finished WaitExecution {}", hash);
     return ::grpc::Status::OK;

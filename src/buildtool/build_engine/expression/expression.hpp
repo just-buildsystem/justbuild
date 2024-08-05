@@ -210,7 +210,7 @@ class Expression {
 
     template <class T>
     [[nodiscard]] auto operator!=(T const& other) const noexcept -> bool {
-        return !(*this == other);
+        return not(*this == other);
     }
     [[nodiscard]] auto operator[](
         std::string const& key) const& -> ExpressionPtr const&;

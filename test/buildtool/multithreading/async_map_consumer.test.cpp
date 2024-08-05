@@ -237,7 +237,7 @@ TEST_CASE("ErrorPropagation", "[async_map_consumer]") {
             [&fail_cont_counter]() { fail_cont_counter++; });
     }
     CHECK(execution_failed);
-    CHECK(!consumer_called);
+    CHECK(not consumer_called);
     CHECK(fail_cont_counter == 1);
 }
 

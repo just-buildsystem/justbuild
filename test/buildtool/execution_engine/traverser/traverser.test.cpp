@@ -174,12 +174,12 @@ class TestProject {
                                     action_id, std::filesystem::path{output})
                                     .Id();
             auto [_, is_inserted] = artifacts_to_be_built_.insert(out_id);
-            if (!is_inserted) {
+            if (not is_inserted) {
                 return false;
             }
         }
         auto inputs_desc = ActionDescription::inputs_t{};
-        if (!inputs.empty()) {
+        if (not inputs.empty()) {
             command.emplace_back("FROM");
             for (auto const& input_desc : inputs) {
                 auto artifact = ArtifactDescription::FromJson(input_desc);

@@ -78,7 +78,7 @@ class FileSystemManager {
         auto operator=(DirectoryAnchor const&) -> DirectoryAnchor& = delete;
         auto operator=(DirectoryAnchor&&) -> DirectoryAnchor& = delete;
         ~DirectoryAnchor() noexcept {
-            if (!kRestorePath.empty()) {
+            if (not kRestorePath.empty()) {
                 try {
                     std::filesystem::current_path(kRestorePath);
                 } catch (std::exception const& e) {
@@ -483,11 +483,11 @@ class FileSystemManager {
         std::filesystem::path const& file) noexcept -> bool {
         try {
             auto status = std::filesystem::symlink_status(file);
-            if (!std::filesystem::exists(status)) {
+            if (not std::filesystem::exists(status)) {
                 return true;
             }
-            if (!std::filesystem::is_regular_file(status) and
-                !std::filesystem::is_symlink(status)) {
+            if (not std::filesystem::is_regular_file(status) and
+                not std::filesystem::is_symlink(status)) {
                 return false;
             }
             return std::filesystem::remove(file);
@@ -505,10 +505,10 @@ class FileSystemManager {
         -> bool {
         try {
             auto status = std::filesystem::symlink_status(dir);
-            if (!std::filesystem::exists(status)) {
+            if (not std::filesystem::exists(status)) {
                 return true;
             }
-            if (!std::filesystem::is_directory(status)) {
+            if (not std::filesystem::is_directory(status)) {
                 return false;
             }
             if (recursively) {
@@ -582,7 +582,7 @@ class FileSystemManager {
         -> bool {
         try {
             auto const status = std::filesystem::symlink_status(file);
-            if (!std::filesystem::is_regular_file(status)) {
+            if (not std::filesystem::is_regular_file(status)) {
                 return false;
             }
         } catch (std::exception const& e) {
@@ -1080,7 +1080,7 @@ class FileSystemManager {
         }
         try {
             std::ofstream writer{file};
-            if (!writer.is_open()) {
+            if (not writer.is_open()) {
                 Logger::Log(
                     LogLevel::Error, "can not open file {}", file.string());
                 return false;
@@ -1220,7 +1220,7 @@ class FileSystemManager {
             while ((len = read(in.fd, buf.data(), buf.size())) > 0) {
                 ssize_t wlen{};
                 ssize_t written_len{};
-                while (written_len < len &&
+                while (written_len < len and
                        (wlen = write(out.fd,
                                      buf.data() + written_len,  // NOLINT
                                      len - written_len)) > 0) {

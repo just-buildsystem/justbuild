@@ -32,7 +32,7 @@ struct ModuleName {
 
     [[nodiscard]] auto operator==(ModuleName const& other) const noexcept
         -> bool {
-        return module == other.module && repository == other.repository;
+        return module == other.module and repository == other.repository;
     }
 };
 }  // namespace BuildMaps::Base

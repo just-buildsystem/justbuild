@@ -414,7 +414,7 @@ static inline auto SetupCacheArguments(
            "--local-build-root",
            [clargs](auto const& build_root_raw) {
                std::filesystem::path root = ToNormalPath(build_root_raw);
-               if (!root.is_absolute()) {
+               if (not root.is_absolute()) {
                    try {
                        root = std::filesystem::absolute(root);
                    } catch (std::exception const& e) {

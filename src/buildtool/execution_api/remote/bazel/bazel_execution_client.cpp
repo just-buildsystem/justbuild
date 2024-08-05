@@ -91,7 +91,7 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
             reader(stub_->Execute(&context, request));
 
         auto [op, fatal, error_msg] = ReadExecution(reader.get(), wait);
-        if (!op.has_value()) {
+        if (not op.has_value()) {
             return {
                 .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
         }
@@ -127,7 +127,7 @@ auto BazelExecutionClient::WaitExecution(std::string const& execution_handle)
 
         auto [op, fatal, error_msg] =
             ReadExecution(reader.get(), /*wait=*/true);
-        if (!op.has_value()) {
+        if (not op.has_value()) {
             return {
                 .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
         }

@@ -27,7 +27,7 @@
 /// \returns Nullopt on success, error message on failure.
 [[nodiscard]] static inline auto IsAHash(std::string const& s) noexcept
     -> std::optional<std::string> {
-    if (!std::all_of(s.begin(), s.end(), [](unsigned char c) {
+    if (not std::all_of(s.begin(), s.end(), [](unsigned char c) {
             return std::isxdigit(c);
         })) {
         return fmt::format("Invalid hash {}", s);

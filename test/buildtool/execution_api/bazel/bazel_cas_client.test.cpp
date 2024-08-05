@@ -61,7 +61,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         auto digests = cas_client.FindMissingBlobs(instance_name, {digest});
         CHECK(digests.size() <= 1);
 
-        if (!digests.empty()) {
+        if (not digests.empty()) {
             // Upload blob, if not found
             std::vector<gsl::not_null<BazelBlob const*>> to_upload{&blob};
             CHECK(cas_client.BatchUpdateBlobs(

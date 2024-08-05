@@ -37,8 +37,8 @@ struct AbsentTargetDescription {
 
     [[nodiscard]] auto operator==(
         AbsentTargetDescription const& other) const noexcept -> bool {
-        return target_root_id == other.target_root_id &&
-               target_file == other.target_file && target == other.target;
+        return target_root_id == other.target_root_id and
+               target_file == other.target_file and target == other.target;
     }
 };
 

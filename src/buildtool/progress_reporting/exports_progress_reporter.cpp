@@ -45,7 +45,7 @@ auto ExportsProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
                 has_serve ? fmt::format(", {} served", served) : "",
                 uncached + not_eligible);
 
-            if ((active > 0) && !sample.empty()) {
+            if ((active > 0) and not sample.empty()) {
                 msg = fmt::format(
                     "{} ({}{})", msg, sample, active > 1 ? ", ..." : "");
             }

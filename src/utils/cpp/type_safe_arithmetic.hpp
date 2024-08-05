@@ -87,7 +87,7 @@ class type_safe_arithmetic {
     constexpr auto get() const -> value_t { return m_value; }
 
     constexpr void set(value_t value) {
-        Expects(value >= min_value && value <= max_value &&
+        Expects(value >= min_value and value <= max_value and
                 "value output of range");
         m_value = value;
     }

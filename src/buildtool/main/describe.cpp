@@ -292,7 +292,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         auto const& repo_name = id.target.ToModule().repository;
         auto target_root_id =
             repo_config->TargetRoot(repo_name)->GetAbsentTreeId();
-        if (!target_root_id) {
+        if (not target_root_id) {
             Logger::Log(
                 LogLevel::Error,
                 "Failed to get the target root id for repository \"{}\"",
@@ -313,8 +313,8 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
             }
             auto const& desc_info =
                 Artifact::ObjectInfo{.digest = *dgst, .type = ObjectType::File};
-            if (!apis.local->IsAvailable(*dgst)) {
-                if (!apis.remote->RetrieveToCas({desc_info}, *apis.local)) {
+            if (not apis.local->IsAvailable(*dgst)) {
+                if (not apis.remote->RetrieveToCas({desc_info}, *apis.local)) {
                     Logger::Log(LogLevel::Error,
                                 "Failed to retrieve blob {} from remote CAS",
                                 desc_info.ToString());

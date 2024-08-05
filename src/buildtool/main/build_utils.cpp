@@ -152,7 +152,7 @@ void WriteTargetCacheEntries(
     if (strategy == TargetCacheWriteStrategy::Disable) {
         return;
     }
-    if (!cache_targets.empty()) {
+    if (not cache_targets.empty()) {
         Logger::Log(logger,
                     LogLevel::Info,
                     "Backing up artifacts of {} export targets",

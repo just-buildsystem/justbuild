@@ -611,7 +611,7 @@ class GraphTraverser {
             msg_dbg += fmt::format("\n  {}: {}", path, id);
         }
 
-        if (not clargs_.build.show_runfiles and !runfiles.empty()) {
+        if (not clargs_.build.show_runfiles and not runfiles.empty()) {
             message += fmt::format("\n({} runfiles omitted.)", runfiles.size());
         }
 

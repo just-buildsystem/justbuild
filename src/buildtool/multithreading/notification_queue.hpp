@@ -92,7 +92,7 @@ class NotificationQueue {
     [[nodiscard]] auto pop() -> std::optional<Task> {
         std::unique_lock lock{mutex_};
         auto there_is_something_to_pop_or_we_are_done = [&]() {
-            return !queue_.empty() || done_;
+            return not queue_.empty() or done_;
         };
         if (not there_is_something_to_pop_or_we_are_done()) {
             total_workload_->Decrement();
@@ -113,7 +113,7 @@ class NotificationQueue {
     // otherwise pops the front element of the queue and returns it
     [[nodiscard]] auto try_pop() -> std::optional<Task> {
         std::unique_lock lock{mutex_, std::try_to_lock};
-        if (!lock || queue_.empty()) {
+        if (not lock or queue_.empty()) {
             return std::nullopt;
         }
         auto t = std::move(queue_.front());
@@ -140,7 +140,7 @@ class NotificationQueue {
     [[nodiscard]] auto try_push(FunctionType&& f) -> bool {
         {
             std::unique_lock lock{mutex_, std::try_to_lock};
-            if (!lock) {
+            if (not lock) {
                 return false;
             }
             total_workload_->Increment();

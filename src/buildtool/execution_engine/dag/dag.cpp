@@ -80,21 +80,21 @@ auto DependencyGraph::LinkNodePointers(
     gsl::not_null<ActionNode*> const& action_node,
     std::vector<NamedArtifactNodePtr> const& input_nodes) noexcept -> bool {
     for (auto const& named_file : output_files) {
-        if (!named_file.node->AddBuilderActionNode(action_node) ||
-            !action_node->AddOutputFile(named_file)) {
+        if (not named_file.node->AddBuilderActionNode(action_node) or
+            not action_node->AddOutputFile(named_file)) {
             return false;
         }
     }
     for (auto const& named_dir : output_dirs) {
-        if (!named_dir.node->AddBuilderActionNode(action_node) ||
-            !action_node->AddOutputDir(named_dir)) {
+        if (not named_dir.node->AddBuilderActionNode(action_node) or
+            not action_node->AddOutputDir(named_dir)) {
             return false;
         }
     }
 
     for (auto const& named_node : input_nodes) {
-        if (!named_node.node->AddConsumerActionNode(action_node) ||
-            !action_node->AddDependency(named_node)) {
+        if (not named_node.node->AddConsumerActionNode(action_node) or
+            not action_node->AddDependency(named_node)) {
             return false;
         }
     }
