@@ -137,16 +137,9 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     OperationCache op_cache_;
     Logger logger_{"execution-service"};
 
-    [[nodiscard]] auto GetAction(::bazel_re::ExecuteRequest const* request)
-        const noexcept -> expected<::bazel_re::Action, std::string>;
-
-    [[nodiscard]] auto GetCommand(::bazel_re::Action const& action)
-        const noexcept -> expected<::bazel_re::Command, std::string>;
-
-    [[nodiscard]] auto GetIExecutionAction(
-        ::bazel_re::ExecuteRequest const* request,
-        ::bazel_re::Action const& action) const
-        -> expected<IExecutionAction::Ptr, std::string>;
+    [[nodiscard]] auto ToIExecutionAction(::bazel_re::Action const& action,
+                                          ::bazel_re::Command const& command)
+        const noexcept -> std::optional<IExecutionAction::Ptr>;
 
     [[nodiscard]] auto ToBazelExecuteResponse(
         IExecutionResponse::Ptr const& i_execution_response) const noexcept
