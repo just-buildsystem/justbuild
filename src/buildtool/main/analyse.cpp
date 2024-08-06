@@ -75,6 +75,19 @@ namespace Target = BuildMaps::Target;
     if (action->GraphAction().MayFail()) {
         provides["may_fail"] = *(action->GraphAction().MayFail());
     }
+    if (action->GraphAction().NoCache()) {
+        provides["no_cache"] = true;
+    }
+    if (action->GraphAction().TimeoutScale() != 1.0) {
+        provides["timeout scaling"] = action->GraphAction().TimeoutScale();
+    }
+    if (not action->GraphAction().Cwd().empty()) {
+        provides["cwd"] = action->GraphAction().Cwd();
+    }
+    if (not action->GraphAction().ExecutionProperties().empty()) {
+        provides["execution properties"] =
+            action->GraphAction().ExecutionProperties();
+    }
 
     auto provides_exp = Expression::FromJson(provides);
     return std::make_shared<AnalysedTarget const>(

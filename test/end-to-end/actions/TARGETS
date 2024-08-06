@@ -84,6 +84,12 @@
   , "test": ["cwd.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "request-action-input":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["request-action-input"]
+  , "test": ["request-action-input.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": "install"
   , "tainted": ["test"]
@@ -99,6 +105,7 @@
         , "incomplete-retry"
         , "error-reporting"
         , "cwd"
+        , "request-action-input"
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "DROP_IO_HEAVY_TESTS"}
