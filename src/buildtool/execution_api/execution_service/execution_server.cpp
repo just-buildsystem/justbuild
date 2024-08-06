@@ -151,68 +151,50 @@ auto ExecutionServiceImpl::GetIExecutionAction(
     return std::move(i_execution_action);
 }
 
-auto ExecutionServiceImpl::AddResult(
-    ::bazel_re::ExecuteResponse* response,
-    IExecutionResponse::Ptr const& i_execution_response,
-    std::string const& action_hash) const noexcept
-    -> expected<std::monostate, std::string> {
-    auto action_result =
-        ToBazelActionResult(i_execution_response->Artifacts(),
-                            i_execution_response->DirectorySymlinks(),
-                            storage_);
-    if (not action_result) {
-        logger_.Emit(LogLevel::Error, "{}", action_result.error());
-        return unexpected{std::move(action_result).error()};
-    }
-    (*response->mutable_result()) = *std::move(action_result);
-
-    auto* result = response->mutable_result();
-    result->set_exit_code(i_execution_response->ExitCode());
-    if (i_execution_response->HasStdErr()) {
-        auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdErr(),
-                                             /*is_executable=*/false);
-        if (not dgst) {
-            auto str =
-                fmt::format("Could not store stderr of action {}", action_hash);
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return unexpected{std::move(str)};
-        }
-        result->mutable_stderr_digest()->CopyFrom(*dgst);
-    }
-    if (i_execution_response->HasStdOut()) {
-        auto dgst = storage_.CAS().StoreBlob(i_execution_response->StdOut(),
-                                             /*is_executable=*/false);
-        if (not dgst) {
-            auto str =
-                fmt::format("Could not store stdout of action {}", action_hash);
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return unexpected{std::move(str)};
-        }
-        result->mutable_stdout_digest()->CopyFrom(*dgst);
-    }
-    return std::monostate{};
-}
-
-static void AddStatus(::bazel_re::ExecuteResponse* response) noexcept {
-    ::google::rpc::Status status{};
-    // we run the action locally, so no communication issues should happen
-    status.set_code(grpc::StatusCode::OK);
-    *(response->mutable_status()) = status;
-}
-
-auto ExecutionServiceImpl::GetResponse(
-    ::bazel_re::ExecuteRequest const* request,
+auto ExecutionServiceImpl::ToBazelExecuteResponse(
     IExecutionResponse::Ptr const& i_execution_response) const noexcept
     -> expected<::bazel_re::ExecuteResponse, std::string> {
-    ::bazel_re::ExecuteResponse response{};
-    AddStatus(&response);
-    auto result = AddResult(
-        &response, i_execution_response, request->action_digest().hash());
+    auto result = ToBazelActionResult(i_execution_response->Artifacts(),
+                                      i_execution_response->DirectorySymlinks(),
+                                      storage_);
     if (not result) {
         return unexpected{std::move(result).error()};
     }
-    response.set_cached_result(i_execution_response->IsCached());
-    return std::move(response);
+
+    auto action_result = *std::move(result);
+
+    action_result.set_exit_code(i_execution_response->ExitCode());
+    if (i_execution_response->HasStdErr()) {
+        auto cas_digest =
+            storage_.CAS().StoreBlob(i_execution_response->StdErr(),
+                                     /*is_executable=*/false);
+        if (not cas_digest) {
+            return unexpected{
+                fmt::format("Could not store stderr of action {}",
+                            i_execution_response->ActionDigest())};
+        }
+        action_result.mutable_stderr_digest()->CopyFrom(*cas_digest);
+    }
+
+    if (i_execution_response->HasStdOut()) {
+        auto cas_digest =
+            storage_.CAS().StoreBlob(i_execution_response->StdOut(),
+                                     /*is_executable=*/false);
+        if (not cas_digest) {
+            return unexpected{
+                fmt::format("Could not store stdout of action {}",
+                            i_execution_response->ActionDigest())};
+        }
+        action_result.mutable_stdout_digest()->CopyFrom(*cas_digest);
+    }
+
+    ::bazel_re::ExecuteResponse bazel_response{};
+    (*bazel_response.mutable_result()) = std::move(action_result);
+    bazel_response.set_cached_result(i_execution_response->IsCached());
+
+    // we run the action locally, so no communication issues should happen
+    bazel_response.mutable_status()->set_code(grpc::StatusCode::OK);
+    return std::move(bazel_response);
 }
 
 void ExecutionServiceImpl::WriteResponse(
@@ -270,12 +252,14 @@ auto ExecutionServiceImpl::Execute(
         request->action_digest().hash(),
         std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count());
 
-    auto execute_response = GetResponse(request, i_execution_response);
+    auto execute_response = ToBazelExecuteResponse(i_execution_response);
     if (not execute_response) {
+        logger_.Emit(LogLevel::Error, execute_response.error());
         return ::grpc::Status{grpc::StatusCode::INTERNAL,
                               std::move(execute_response).error()};
     }
 
+    // Store the result in action cache
     if (i_execution_response->ExitCode() == 0 and not action->do_not_cache()) {
         if (not storage_.ActionCache().StoreResult(
                 request->action_digest(), execute_response->result())) {

@@ -18,7 +18,6 @@
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <variant>  //std::monostate
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
@@ -149,8 +148,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         ::bazel_re::Action const& action) const
         -> expected<IExecutionAction::Ptr, std::string>;
 
-    [[nodiscard]] auto GetResponse(
-        ::bazel_re::ExecuteRequest const* request,
+    [[nodiscard]] auto ToBazelExecuteResponse(
         IExecutionResponse::Ptr const& i_execution_response) const noexcept
         -> expected<::bazel_re::ExecuteResponse, std::string>;
 
@@ -158,12 +156,6 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         ::bazel_re::ExecuteResponse const& execute_response,
         ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
         ::google::longrunning::Operation* op) noexcept;
-
-    [[nodiscard]] auto AddResult(
-        ::bazel_re::ExecuteResponse* response,
-        IExecutionResponse::Ptr const& i_execution_response,
-        std::string const& hash) const noexcept
-        -> expected<std::monostate, std::string>;
 };
 
 #endif
