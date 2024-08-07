@@ -29,7 +29,8 @@
 #include "src/utils/cpp/verify_hash.hpp"
 
 namespace {
-void UpdateTimeStamp(::google::longrunning::Operation* op) {
+void UpdateTimeStamp(
+    gsl::not_null<::google::longrunning::Operation*> const& op) {
     ::google::protobuf::Timestamp t;
     t.set_seconds(
         std::chrono::duration_cast<std::chrono::seconds>(
@@ -135,15 +136,14 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
 void ExecutionServiceImpl::WriteResponse(
     ::bazel_re::ExecuteResponse const& execute_response,
     ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
-    ::google::longrunning::Operation* op) noexcept {
-
+    ::google::longrunning::Operation&& op) noexcept {
     // send response to the client
-    op->mutable_response()->PackFrom(execute_response);
-    op->set_done(true);
-    UpdateTimeStamp(op);
+    op.mutable_response()->PackFrom(execute_response);
+    op.set_done(true);
+    UpdateTimeStamp(&op);
 
-    op_cache_.Set(op->name(), *op);
-    writer->Write(*op);
+    op_cache_.Set(op.name(), op);
+    writer->Write(op);
 }
 
 auto ExecutionServiceImpl::Execute(
@@ -223,7 +223,7 @@ auto ExecutionServiceImpl::Execute(
         }
     }
 
-    WriteResponse(*execute_response, writer, &op);
+    WriteResponse(*execute_response, writer, std::move(op));
     return ::grpc::Status::OK;
 }
 

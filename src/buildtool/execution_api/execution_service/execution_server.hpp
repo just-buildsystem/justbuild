@@ -148,7 +148,7 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     void WriteResponse(
         ::bazel_re::ExecuteResponse const& execute_response,
         ::grpc::ServerWriter<::google::longrunning::Operation>* writer,
-        ::google::longrunning::Operation* op) noexcept;
+        ::google::longrunning::Operation&& op) noexcept;
 };
 
 #endif
