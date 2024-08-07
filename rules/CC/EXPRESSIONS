@@ -61,6 +61,27 @@
     , "body": {"type": "var", "name": "AR"}
     }
   }
+, "default-ARFLAGS":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "ARFLAGS"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["ARFLAGS", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , [ "ARFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "ARFLAGS"}
+          , "then": {"type": "var", "name": "ARFLAGS"}
+          , "else": ["cqs"]
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "ARFLAGS"}
+    }
+  }
 , "default-CFLAGS":
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
@@ -922,6 +943,7 @@
     , "flags": "flags"
     , "objects": "objects"
     , "default-AR": "default-AR"
+    , "default-ARFLAGS": "default-ARFLAGS"
     , "default-ENV": "default-ENV"
     , "default-PATH": "default-PATH"
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
@@ -973,6 +995,7 @@
             }
           }
         ]
+      , ["ARFLAGS", {"type": "CALL_EXPRESSION", "name": "default-ARFLAGS"}]
       , [ "ENV"
         , { "type": "map_union"
           , "$1":
@@ -1078,10 +1101,9 @@
                   , "cmd":
                     { "type": "++"
                     , "$1":
-                      [ [ {"type": "var", "name": "AR", "default": "ar"}
-                        , "cqs"
-                        , {"type": "var", "name": "staged libpath"}
-                        ]
+                      [ [{"type": "var", "name": "AR", "default": "ar"}]
+                      , {"type": "var", "name": "ARFLAGS"}
+                      , [{"type": "var", "name": "staged libpath"}]
                       , { "type": "keys"
                         , "$1": {"type": "var", "name": "staged objects"}
                         }

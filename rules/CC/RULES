@@ -13,6 +13,7 @@
     , "CFLAGS"
     , "CXXFLAGS"
     , "LDFLAGS"
+    , "ARFLAGS"
     , "ADD_COMPILE_FLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
@@ -56,6 +57,11 @@
     , "LDFLAGS":
       [ "Linker flags for linking the final CC library. Specifying this field"
       , "overwrites values from \"base\"."
+      ]
+    , "ARFLAGS":
+      [ "Arguments to tell the archiver to create an archive with the specified"
+      , "object files. If the \"ARFLAGS\" specified in the defaults target are"
+      , "empty, the rules will use [\"cqs\"]."
       ]
     , "ADD_COMPILE_FLAGS":
       [ "Additional compilation flags for C and C++. Specifying this field"
@@ -113,6 +119,7 @@
       , ["CFLAGS", {"type": "FIELD", "name": "CFLAGS"}]
       , ["CXXFLAGS", {"type": "FIELD", "name": "CXXFLAGS"}]
       , ["LDFLAGS", {"type": "FIELD", "name": "LDFLAGS"}]
+      , ["ARFLAGS", {"type": "FIELD", "name": "ARFLAGS"}]
       , ["AR", {"type": "FIELD", "name": "AR"}]
       , ["PATH", {"type": "FIELD", "name": "PATH"}]
       , ["provider", "CC"]
@@ -152,6 +159,14 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "LDFLAGS"}
           , "then": {"type": "var", "name": "LDFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+          }
+        ]
+      , ["provider", "ARFLAGS"]
+      , [ "ARFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "ARFLAGS"}
+          , "then": {"type": "var", "name": "ARFLAGS"}
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
@@ -350,6 +365,7 @@
           , "CXXFLAGS"
           , "LDFLAGS"
           , "AR"
+          , "ARFLAGS"
           , "PATH"
           , "ENV"
           , "TOOLCHAIN"
