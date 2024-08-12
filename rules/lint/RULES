@@ -1,0 +1,187 @@
+{ "targets":
+  { "doc":
+    [ "Run a given linter on the lint information provided by the given targets."
+    ]
+  , "target_fields": ["linter", "config", "summarizer", "targets"]
+  , "tainted": ["lint"]
+  , "field_doc":
+    { "linter":
+      [ "Single artifact running the lint checks."
+      , ""
+      , "This artifact with"
+      , "- argv[1] the file to lint, and"
+      , "- argv[2:] the original command line."
+      , "This invocation happens in an environment with"
+      , "- CONFIG pointing to the directory with all the artifacts given"
+      , "  by the field \"config\"."
+      , "- OUT pointing to a directory to which files with the lint result"
+      , "  can be written."
+      , "The linter is supposed to indicate by the exit code whether the"
+      , "indicated file complies with the given linting policy, with 0 meaning"
+      , "compliant."
+      , "Stdout and stderr, as well as the directory ${OUT} can be used to"
+      , "provide additional information."
+      ]
+    , "config": ["Any configuration or other files needed by the linter."]
+    , "summarizer":
+      [ "Single artifact generating a summary of the individual lint results."
+      , "It will be called in a directory where all subdirectories with names"
+      , "consisting entirely of digits are the results of the individual lint"
+      , "actions. Those are given as"
+      , " - a file result with content PASS if and only if the lint action"
+      , "   exited 0,"
+      , " - files stdout and stderr with stdout and stderr of the lint"
+      , "   action, and"
+      , " - a directory out with the additional information provided by the"
+      , "   lint action."
+      , "The summarizer is required to indicate the overall result by the exit"
+      , "code, produce a human-readable summary on stdout, and optionally"
+      , "additional information in the directory ${OUT}."
+      ]
+    , "call_lint": ["Launcher for the linter"]
+    , "call_summary": ["Launcher for the summarizer"]
+    }
+  , "implicit": {"call_lint": ["call_lint"], "call_summary": ["call_summary"]}
+  , "config_transitions":
+    {"targets": [{"type": "singleton_map", "key": "LINT", "value": true}]}
+  , "anonymous":
+    {"lint": {"target": "targets", "provider": "lint", "rule_map": {}}}
+  , "imports":
+    { "stage": ["", "stage_singleton_field"]
+    , "artifacts": ["", "field_artifacts"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "linter"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "linter"], ["location", "linter"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+          }
+        ]
+      , [ "runner"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "call_lint"], ["location", "runner"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+          }
+        ]
+      , [ "config"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "config"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+          }
+        ]
+      , [ "lint results"
+        , { "type": "foreach"
+          , "range": {"type": "FIELD", "name": "lint"}
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ [ "src"
+                , { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "_"}
+                  , "provider": "src"
+                  }
+                ]
+              , [ "cmd"
+                , { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "_"}
+                  , "provider": "cmd"
+                  }
+                ]
+              , [ "src input"
+                , { "type": "DEP_ARTIFACTS"
+                  , "dep": {"type": "var", "name": "_"}
+                  }
+                ]
+              ]
+            , "body":
+              { "type": "TREE"
+              , "$1":
+                { "type": "ACTION"
+                , "inputs":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "var", "name": "runner"}
+                    , {"type": "var", "name": "linter"}
+                    , { "type": "to_subdir"
+                      , "subdir": "work"
+                      , "$1": {"type": "var", "name": "src input"}
+                      }
+                    , { "type": "to_subdir"
+                      , "subdir": "config"
+                      , "$1": {"type": "var", "name": "config"}
+                      }
+                    ]
+                  }
+                , "cmd":
+                  { "type": "++"
+                  , "$1":
+                    [ ["./runner", {"type": "var", "name": "src"}]
+                    , {"type": "var", "name": "cmd"}
+                    ]
+                  }
+                , "outs": ["stdout", "stderr", "result"]
+                , "out_dirs": ["out"]
+                , "may_fail": ["lint"]
+                , "fail_message":
+                  { "type": "join"
+                  , "$1": ["lint failed for ", {"type": "var", "name": "src"}]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "summary input"
+        , {"type": "enumerate", "$1": {"type": "var", "name": "lint results"}}
+        ]
+      , [ "summarizer"
+        , { "type": "let*"
+          , "bindings":
+            [["fieldname", "summarizer"], ["location", "summarizer"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+          }
+        ]
+      , [ "runner"
+        , { "type": "let*"
+          , "bindings": [["fieldname", "call_summary"], ["location", "runner"]]
+          , "body": {"type": "CALL_EXPRESSION", "name": "stage"}
+          }
+        ]
+      , [ "summary"
+        , { "type": "ACTION"
+          , "inputs":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "runner"}
+              , {"type": "var", "name": "summarizer"}
+              , { "type": "to_subdir"
+                , "subdir": "work"
+                , "$1": {"type": "var", "name": "summary input"}
+                }
+              ]
+            }
+          , "cmd": ["./runner"]
+          , "outs": ["report", "result"]
+          , "out_dirs": ["out"]
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "map_union"
+        , "$1":
+          [ {"type": "var", "name": "summary"}
+          , { "type": "singleton_map"
+            , "key": "work"
+            , "value":
+              {"type": "TREE", "$1": {"type": "var", "name": "summary input"}}
+            }
+          ]
+        }
+      }
+    }
+  }
+}
