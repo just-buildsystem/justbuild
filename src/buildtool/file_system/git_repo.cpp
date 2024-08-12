@@ -16,6 +16,9 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <map>
+#include <sstream>
+#include <string_view>
 #include <thread>
 #include <unordered_set>
 
@@ -115,11 +118,32 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     }
 }
 
+[[nodiscard]] auto ObjectTypeToPerm(ObjectType type) noexcept -> std::string {
+    switch (type) {
+        case ObjectType::File:
+            return "100644";
+        case ObjectType::Executable:
+            return "100755";
+        case ObjectType::Tree:
+            return "40000";
+        case ObjectType::Symlink:
+            return "120000";
+    }
+    return "";  // make gcc happy
+}
+
 #ifndef NDEBUG
-[[nodiscard]] auto ValidateEntries(GitRepo::tree_entries_t const& entries)
-    -> bool {
-    return std::all_of(entries.begin(), entries.end(), [](auto entry) {
+/// \brief Debug-level check that given tree entries are consistent. If needed,
+/// also check that the entries are in the underlying object database of the
+/// provided CAS instance.
+[[nodiscard]] auto ValidateEntries(GitRepo::tree_entries_t const& entries,
+                                   GitCASPtr const& cas = nullptr) -> bool {
+    return std::all_of(entries.begin(), entries.end(), [cas](auto entry) {
         auto const& [id, nodes] = entry;
+        // if CAS given, check that the entry is in the object database
+        if (cas != nullptr and not cas->ReadHeader(id)) {
+            return false;
+        }
         // for a given raw id, either all entries are trees or none of them
         return std::all_of(
                    nodes.begin(),
@@ -1861,6 +1885,7 @@ auto GitRepo::ReadTree(std::string const& id,
         }
 
 #ifndef NDEBUG
+        // Check consistency of entries. No need to check if entries exist.
         EnsuresAudit(ValidateEntries(entries));
 #endif
 
@@ -1880,48 +1905,68 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
     return std::nullopt;
 #else
 #ifndef NDEBUG
-    ExpectsAudit(ValidateEntries(entries));
+    // Check consistency of entries. Also check that entries exist.
+    ExpectsAudit(ValidateEntries(entries, GetGitCAS()));
 #endif  // NDEBUG
     // share the odb lock
     std::shared_lock lock{GetGitCAS()->mutex_};
 
-    git_treebuilder* builder_ptr{nullptr};
-    if (git_treebuilder_new(&builder_ptr, repo_->Ptr(), nullptr) != 0) {
-        Logger::Log(LogLevel::Debug, "failed to create Git tree builder");
-        return std::nullopt;
-    }
-    auto builder =
-        std::unique_ptr<git_treebuilder, decltype(&treebuilder_closer)>{
-            builder_ptr, treebuilder_closer};
+    try {
+        // As the libgit2 treebuilder checks for magic names and does not allow
+        // us to add any and all entries to a Git tree, we resort to
+        // constructing the tree content ourselves and add it manually to the
+        // repository ODB.
 
-    for (auto const& [raw_id, es] : entries) {
-        auto id = GitObjectID(raw_id, /*is_hex_id=*/false);
-        for (auto const& entry : es) {
-            if (not id or git_treebuilder_insert(
-                              nullptr,
-                              builder.get(),
-                              entry.name.c_str(),
-                              &(*id),
-                              ObjectTypeToGitFileMode(entry.type)) != 0) {
-                Logger::Log(
-                    LogLevel::Debug,
-                    "failed adding object {} to Git tree{}",
-                    ToHexString(raw_id),
-                    id ? fmt::format(" with:\n{}", GitLastError()) : "");
-                return std::nullopt;
+        // We need to sort the filenames according to Git rules: tree entries
+        // need to be considered "as if" their filename has a trailing
+        // separator ('/').
+        std::map<std::string, std::pair<std::string, ObjectType>> sorted;
+        for (auto const& [raw_id, es] : entries) {
+            for (auto const& entry : es) {
+                sorted.emplace(
+                    entry.name + (IsTreeObject(entry.type) ? "/" : ""),
+                    std::make_pair(raw_id, entry.type));
             }
         }
-    }
 
-    git_oid oid;
-    if (git_treebuilder_write(&oid, builder.get()) != 0) {
+        // Compute the tree content. For tree entries the trailing slash needs
+        // to be removed from filename before appending it.
+        std::stringstream tree_content{};
+        for (auto const& [name, entry] : sorted) {
+            std::string_view const filename{
+                name.data(),
+                name.size() -
+                    static_cast<std::size_t>(IsTreeObject(entry.second))};
+            // tree format: "<perm> <filename>\0<binary_hash>[next entries...]"
+            tree_content << fmt::format("{} {}",
+                                        ObjectTypeToPerm(entry.second),
+                                        filename)
+                         << '\0' << entry.first;
+        }
+
+        // Write tree to ODB and return raw id string
+        git_oid oid;
+        auto const tree_content_str = tree_content.str();
+        if (git_odb_write(&oid,
+                          GetGitOdb().get(),
+                          tree_content_str.c_str(),
+                          tree_content_str.size(),
+                          GIT_OBJECT_TREE) != 0) {
+            Logger::Log(LogLevel::Debug,
+                        "failed writing tree to ODB with:\n{}",
+                        GitLastError());
+            return std::nullopt;
+        }
+        auto raw_id = ToRawString(oid);
+        if (not raw_id) {
+            return std::nullopt;
+        }
+        return std::move(*raw_id);
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "creating tree failed with:\n{}", ex.what());
         return std::nullopt;
     }
-    auto raw_id = ToRawString(oid);
-    if (not raw_id) {
-        return std::nullopt;
-    }
-    return std::move(*raw_id);
 #endif
 }
 
