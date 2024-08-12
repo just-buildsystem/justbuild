@@ -805,6 +805,214 @@
       }
     }
   }
+, "lint information":
+  { "vars":
+    [ "srcs"
+    , "hdrs"
+    , "private-hdrs"
+    , "compile-deps"
+    , "cflags-files"
+    , "lint-deps fieldnames"
+    , "deps-transition"
+    , "compile-args"
+    ]
+  , "imports":
+    { "objects": "objects"
+    , "list_provider": ["./", "..", "field_list_provider"]
+    , "default-TOOLCHAIN": "default-TOOLCHAIN"
+    , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
+    , "compiler": "compiler"
+    , "flags": "flags"
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "NON_SYSTEM_TOOLS"
+        , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
+        ]
+      , ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
+      , [ "COMPILE_FLAGS"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "flags"}
+            , {"type": "var", "name": "compile-args"}
+            ]
+          }
+        ]
+      , [ "include tree"
+        , { "type": "singleton_map"
+          , "key": "include"
+          , "value":
+            {"type": "TREE", "$1": {"type": "var", "name": "compile-deps"}}
+          }
+        ]
+      , [ "all hdrs"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "include tree"}
+            , { "type": "to_subdir"
+              , "subdir": "work"
+              , "$1":
+                { "type": "disjoint_map_union"
+                , "$1":
+                  [ {"type": "var", "name": "hdrs"}
+                  , {"type": "var", "name": "private-hdrs"}
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      , [ "hdr lint"
+        , { "type": "foreach"
+          , "range":
+            { "type": "++"
+            , "$1":
+              [ {"type": "keys", "$1": {"type": "var", "name": "private-hdrs"}}
+              , {"type": "keys", "$1": {"type": "var", "name": "hdrs"}}
+              ]
+            }
+          , "body":
+            { "type": "VALUE_NODE"
+            , "$1":
+              { "type": "RESULT"
+              , "artifacts": {"type": "var", "name": "all hdrs"}
+              , "provides":
+                { "type": "let*"
+                , "bindings":
+                  [ [ "src"
+                    , { "type": "join"
+                      , "$1": ["work/", {"type": "var", "name": "_"}]
+                      }
+                    ]
+                  , [ "cmd"
+                    , { "type": "++"
+                      , "$1":
+                        [ [{"type": "var", "name": "COMPILER"}]
+                        , {"type": "var", "name": "COMPILE_FLAGS"}
+                        , [ "-I"
+                          , "work"
+                          , "-isystem"
+                          , "include"
+                          , "-E"
+                          , {"type": "var", "name": "src"}
+                          ]
+                        ]
+                      }
+                    ]
+                  ]
+                , "body": {"type": "env", "vars": ["cmd", "src"]}
+                }
+              }
+            }
+          }
+        ]
+      , [ "src lint"
+        , { "type": "foreach_map"
+          , "var_key": "src_name"
+          , "var_val": "src_val"
+          , "range": {"type": "var", "name": "srcs"}
+          , "body":
+            { "type": "let*"
+            , "bindings":
+              [ [ "work src_name"
+                , { "type": "join"
+                  , "separator": "/"
+                  , "$1": ["work", {"type": "var", "name": "src_name"}]
+                  }
+                ]
+              , [ "inputs"
+                , { "type": "map_union"
+                  , "$1":
+                    [ {"type": "var", "name": "all hdrs"}
+                    , { "type": "singleton_map"
+                      , "key": {"type": "var", "name": "work src_name"}
+                      , "value": {"type": "var", "name": "src_val"}
+                      }
+                    , { "type": "var"
+                      , "name": "cflags-files"
+                      , "default": {"type": "empty_map"}
+                      }
+                    , { "type": "var"
+                      , "name": "TOOLCHAIN"
+                      , "default": {"type": "empty_map"}
+                      }
+                    ]
+                  }
+                ]
+              , [ "out"
+                , { "type": "change_ending"
+                  , "$1": {"type": "var", "name": "src_name"}
+                  , "ending": ".o"
+                  }
+                ]
+              , [ "work out"
+                , { "type": "join"
+                  , "separator": "/"
+                  , "$1": ["work", {"type": "var", "name": "out"}]
+                  }
+                ]
+              , [ "cmd"
+                , { "type": "++"
+                  , "$1":
+                    [ [{"type": "var", "name": "COMPILER"}]
+                    , {"type": "var", "name": "COMPILE_FLAGS"}
+                    , ["-I", "work", "-isystem", "include"]
+                    , ["-c", {"type": "var", "name": "work src_name"}]
+                    , ["-o", {"type": "var", "name": "work out"}]
+                    ]
+                  }
+                ]
+              ]
+            , "body":
+              { "type": "VALUE_NODE"
+              , "$1":
+                { "type": "RESULT"
+                , "artifacts": {"type": "var", "name": "inputs"}
+                , "provides":
+                  { "type": "let*"
+                  , "bindings":
+                    [["src", {"type": "var", "name": "work src_name"}]]
+                  , "body": {"type": "env", "vars": ["cmd", "src"]}
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "dep lint nodes"
+        , { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "var": "fieldname"
+            , "range": {"type": "var", "name": "lint-deps fieldnames"}
+            , "body":
+              { "type": "let*"
+              , "bindings":
+                [ ["provider", "lint"]
+                , ["transition", {"type": "var", "name": "deps-transition"}]
+                ]
+              , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+              }
+            }
+          }
+        ]
+      , [ "lint nodes"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "hdr lint"}
+            , {"type": "var", "name": "src lint"}
+            , {"type": "var", "name": "dep lint nodes"}
+            ]
+          }
+        ]
+      , [ "lint nodes"
+        , {"type": "nub_right", "$1": {"type": "var", "name": "lint nodes"}}
+        ]
+      ]
+    , "body": {"type": "var", "name": "lint nodes"}
+    }
+  }
 , "compiler-cc":
   { "vars": ["CC", "TOOLCHAIN_DIR", "NON_SYSTEM_TOOLS", "defaults-transition"]
   , "imports": {"default-CC": "default-CC"}
@@ -1141,6 +1349,7 @@
     , "AR"
     , "ENV"
     , "DEBUG"
+    , "LINT"
     , "name"
     , "pure C"
     , "srcs"
@@ -1164,6 +1373,7 @@
     , "ldflags-files-deps": "ldflags-files-deps"
     , "lib artifact": "lib artifact"
     , "debug-deps": "debug-deps"
+    , "lint": "lint information"
     }
   , "expression":
     { "type": "let*"
@@ -1187,6 +1397,13 @@
         ]
       , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
       , ["lib", {"type": "CALL_EXPRESSION", "name": "lib artifact"}]
+      , ["lint-deps fieldnames", ["deps", "private-deps"]]
+      , [ "lint"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LINT"}
+          , "then": {"type": "CALL_EXPRESSION", "name": "lint"}
+          }
+        ]
       , [ "link-args"
         , { "type": "nub_right"
           , "$1":
@@ -1276,6 +1493,7 @@
               , "package"
               , "debug-srcs"
               , "debug-hdrs"
+              , "lint"
               ]
             }
           , { "type": "var"
@@ -1516,6 +1734,7 @@
     , "ADD_CXXFLAGS"
     , "ENV"
     , "DEBUG"
+    , "LINT"
     , "name"
     , "pure C"
     , "srcs"
@@ -1534,6 +1753,7 @@
     , "ldflags-files-deps": "ldflags-files-deps"
     , "binary": "bin artifact"
     , "debug-deps": "debug-deps"
+    , "lint": "lint information"
     }
   , "expression":
     { "type": "let*"
@@ -1600,12 +1820,27 @@
           , "else": {"type": "empty_map"}
           }
         ]
+      , [ "lint"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LINT"}
+          , "then":
+            { "type": "let*"
+            , "bindings":
+              [ ["hdrs", {"type": "empty_map"}]
+              , ["lint-deps fieldnames", ["private-deps"]]
+              ]
+            , "body": {"type": "CALL_EXPRESSION", "name": "lint"}
+            }
+          }
+        ]
       ]
     , "body":
       { "type": "RESULT"
       , "artifacts": {"type": "CALL_EXPRESSION", "name": "binary"}
       , "provides":
-        {"type": "env", "vars": ["package", "debug-srcs", "debug-hdrs"]}
+        { "type": "env"
+        , "vars": ["package", "debug-srcs", "debug-hdrs", "lint"]
+        }
       }
     }
   }

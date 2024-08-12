@@ -407,6 +407,7 @@
     , "AR"
     , "ENV"
     , "DEBUG"
+    , "LINT"
     ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
@@ -501,6 +502,11 @@
       ]
     , "ENV": ["The environment for any action generated."]
     , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    , "LINT":
+      [ "Also provide nodes describing compile actions and header files;"
+      , "those can be used by lint rules (doing also the config transition)"
+      , "for additional checks."
+      ]
     }
   , "artifacts_doc":
     ["The actual library (libname.a) staged in the specified directory"]
@@ -637,6 +643,7 @@
     , "ADD_CXXFLAGS"
     , "ENV"
     , "DEBUG"
+    , "LINT"
     ]
   , "implicit": {"defaults": ["defaults"]}
   , "field_doc":
@@ -695,6 +702,11 @@
       ]
     , "ENV": ["The environment for any action generated."]
     , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    , "LINT":
+      [ "Also provide nodes describing compile actions and header files;"
+      , "those can be used by lint rules (doing also the config transition)"
+      , "for additional checks."
+      ]
     }
   , "artifacts_doc": ["The final binary, staged to the given directory"]
   , "runfiles_doc": ["None"]
