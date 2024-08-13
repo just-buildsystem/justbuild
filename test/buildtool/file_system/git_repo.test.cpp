@@ -182,7 +182,7 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
                         std::string(msg));
         });
 
-    SECTION("Stage and commit all") {
+    SECTION("Commit directory") {
         // make blank repo
         auto repo_commit_path = TestUtils::GetRepoPath();
         auto repo_commit =
@@ -196,9 +196,9 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
         REQUIRE(FileSystemManager::WriteFile(
             "test no 2", repo_commit_path / "test2.txt", true));
 
-        // stage and commit all
-        auto commit =
-            repo_commit->StageAndCommitAllAnonymous("test commit", logger);
+        // commit subdir
+        auto commit = repo_commit->CommitDirectory(
+            repo_commit_path, "test commit", logger);
         CHECK(commit);
     }
 

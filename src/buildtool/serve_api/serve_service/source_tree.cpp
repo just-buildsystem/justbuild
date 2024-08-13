@@ -470,7 +470,7 @@ auto SourceTreeService::CommonImportToGit(
         });
     // stage and commit all
     auto commit_hash =
-        git_repo->StageAndCommitAllAnonymous(commit_message, wrapped_logger);
+        git_repo->CommitDirectory(root_path, commit_message, wrapped_logger);
     if (not commit_hash) {
         return unexpected{err};
     }

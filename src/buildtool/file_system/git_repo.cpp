@@ -591,8 +591,9 @@ auto GitRepo::GetGitOdb() const noexcept
     return git_cas_->odb_;
 }
 
-auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
-                                         anon_logger_ptr const& logger) noexcept
+auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
+                              std::string const& message,
+                              anon_logger_ptr const& logger) noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
@@ -600,7 +601,7 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
     try {
         // only possible for real repository!
         if (IsRepoFake()) {
-            (*logger)("cannot stage and commit files using a fake repository!",
+            (*logger)("cannot commit directory using a fake repository!",
                       true /*fatal*/);
             return std::nullopt;
         }
@@ -610,8 +611,20 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
         // cannot perform this operation on a bare repository; this has to be
         // checked because git_index_add_bypath will not do it for us!
         if (not FileSystemManager::Exists(GetGitPath() / ".git")) {
-            (*logger)("cannot stage and commit files in a bare repository!",
+            (*logger)("cannot commit directory in a bare repository!",
                       true /*fatal*/);
+            return std::nullopt;
+        }
+
+        // the index approach to adding entries requires them to be reachable
+        // from root path
+        auto rel_path = dir.lexically_relative(GetGitPath());
+        if (rel_path.empty() or rel_path.string().starts_with("..")) {
+            (*logger)(
+                fmt::format("unsupported directory {}: not a subpath of {}",
+                            dir.string(),
+                            GetGitPath().string()),
+                true /*fatal*/);
             return std::nullopt;
         }
 
@@ -624,19 +637,23 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
         // due to mismanagement of .gitignore rules by libgit2 when doing a
         // forced add all, we resort to using git_index_add_bypath manually for
         // all entries, instead of git_index_add_all with GIT_INDEX_ADD_FORCE.
-        auto use_entry = [&index](std::filesystem::path const& name,
-                                  bool is_tree) {
+        auto use_entry = [&index, rel_path](std::filesystem::path const& name,
+                                            bool is_tree) {
             return is_tree or
-                   git_index_add_bypath(index.get(), name.c_str()) == 0;
+                   git_index_add_bypath(
+                       index.get(),
+                       (rel_path / name)
+                           .lexically_relative(".")  // remove "." prefix
+                           .c_str()) == 0;
         };
         if (not FileSystemManager::ReadDirectoryEntriesRecursive(
-                GetGitPath(),
+                dir,
                 use_entry,
                 /*ignored_subdirs=*/{".git"})) {
-            (*logger)(fmt::format(
-                          "staging files in git repository {} failed with:\n{}",
-                          GetGitPath().string(),
-                          GitLastError()),
+            (*logger)(fmt::format("staging entries in git repository {} failed "
+                                  "with:\n{}",
+                                  GetGitPath().string(),
+                                  GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
         }
@@ -711,9 +728,8 @@ auto GitRepo::StageAndCommitAllAnonymous(std::string const& message,
         git_buf_dispose(&buffer);
         return commit_hash;  // success!
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "stage and commit all failed with:\n{}",
-                    ex.what());
+        Logger::Log(
+            LogLevel::Error, "commit subdir failed with:\n{}", ex.what());
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL

@@ -151,13 +151,16 @@ class GitRepo {
     using anon_logger_t = std::function<void(std::string const&, bool)>;
     using anon_logger_ptr = std::shared_ptr<anon_logger_t>;
 
-    /// \brief Stage all in current path and commit with given message.
+    /// \brief Create tree from entries at given directory and commit it with
+    /// given message. Currently, the caller must guarantee that given path is
+    /// a subdirectory of the repository root path.
     /// Only possible with real repository and thus non-thread-safe.
-    /// Returns the commit hash, or nullopt if failure.
-    /// It guarantees the logger is called exactly once with fatal if failure.
-    [[nodiscard]] auto StageAndCommitAllAnonymous(
-        std::string const& message,
-        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+    /// \returns The commit hash, or nullopt if failure. It guarantees the
+    /// logger is called exactly once with fatal if failure.
+    [[nodiscard]] auto CommitDirectory(std::filesystem::path const& dir,
+                                       std::string const& message,
+                                       anon_logger_ptr const& logger) noexcept
+        -> std::optional<std::string>;
 
     /// \brief Create annotated tag for given commit.
     /// Only possible with real repository and thus non-thread-safe.

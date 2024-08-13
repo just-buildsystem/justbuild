@@ -42,8 +42,9 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
                 fatal);
         });
     // Stage and commit all at the target location
-    auto commit_hash = git_repo->StageAndCommitAllAnonymous(
-        crit_op_params.message.value(), wrapped_logger);
+    auto commit_hash = git_repo->CommitDirectory(crit_op_params.target_path,
+                                                 crit_op_params.message.value(),
+                                                 wrapped_logger);
     if (commit_hash == std::nullopt) {
         return {.git_cas = nullptr, .result = std::nullopt};
     }
