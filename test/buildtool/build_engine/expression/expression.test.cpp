@@ -946,6 +946,19 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
              )"_json));
     }
 
+    SECTION("nub_left expression") {
+        auto expr = Expression::FromJson(R"(
+             {"type": "nub_left"
+             , "$1": ["a", "b", "b", "a", "c", "b", "a"]
+             })"_json);
+        REQUIRE(expr);
+
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"(["a", "b", "c"])"_json));
+    }
+
     SECTION("change_ending") {
         auto expr = Expression::FromJson(R"(
             { "type": "change_ending"

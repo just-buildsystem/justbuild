@@ -279,6 +279,35 @@ auto NubRight(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{reverse_result};
 }
 
+auto NubLeft(ExpressionPtr const& expr) -> ExpressionPtr {
+    if (not expr->IsList()) {
+        throw Evaluator::EvaluationError{fmt::format(
+            "nub_left expects list but instead got: {}.", expr->ToString())};
+    }
+    if (not expr->IsCacheable()) {
+        throw Evaluator::EvaluationError{
+            fmt::format("Implicit comparison by passing name-containing value "
+                        "to nub_left: {}",
+                        expr->ToString())};
+    }
+    // short-cut evaluation for efficiency
+    if (expr->List().empty()) {
+        return expr;
+    }
+    auto const& list = expr->List();
+    auto result = Expression::list_t{};
+    result.reserve(list.size());
+    auto seen = std::unordered_set<ExpressionPtr>{};
+    seen.reserve(list.size());
+    std::for_each(list.begin(), list.end(), [&](auto const& l) {
+        if (not seen.contains(l)) {
+            result.push_back(l);
+            seen.insert(l);
+        }
+    });
+    return ExpressionPtr{result};
+}
+
 auto Range(ExpressionPtr const& expr) -> ExpressionPtr {
     std::size_t len = 0;
     if (expr->IsNumber() && expr->Number() > 0.0) {
@@ -1263,6 +1292,7 @@ auto const kBuiltInFunctions =
                           {"+", UnaryExpr(Addition)},
                           {"*", UnaryExpr(Multiplication)},
                           {"nub_right", UnaryExpr(NubRight)},
+                          {"nub_left", UnaryExpr(NubLeft)},
                           {"range", UnaryExpr(Range)},
                           {"change_ending", ChangeEndingExpr},
                           {"basename", UnaryExpr(BaseName)},

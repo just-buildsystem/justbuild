@@ -248,6 +248,11 @@ those) argument(s) to obtain the final result.
    result is the input list, except that for all duplicate
    values, all but the rightmost occurrence is removed.
 
+ - `"nub_list"` The argument has to be a list. It is an error
+   if that list contains (directly or indirectly) a name. The
+   result is the input list, except that for all duplicate
+   values, all but the leftmost occurrence is removed.
+
  - `"basename"` The argument has to be a string. This string is
    interpreted as a path, and the file name thereof is
    returned.
