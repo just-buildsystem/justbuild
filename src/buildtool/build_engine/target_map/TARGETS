@@ -100,7 +100,6 @@
   , "name": ["absent_target_map"]
   , "hdrs": ["absent_target_map.hpp"]
   , "srcs": ["absent_target_map.cpp"]
-  , "private-hdrs": ["built_in_rules.hpp", "export.hpp", "utils.hpp"]
   , "deps":
     [ "configured_target"
     , "result_map"
