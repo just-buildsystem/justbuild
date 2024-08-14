@@ -133,6 +133,9 @@
             }
           }
         ]
+      , [ "lint results"
+        , {"type": "nub_right", "$1": {"type": "var", "name": "lint results"}}
+        ]
       , [ "summary input"
         , {"type": "enumerate", "$1": {"type": "var", "name": "lint results"}}
         ]
