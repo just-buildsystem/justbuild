@@ -1,0 +1,45 @@
+{ "suite":
+  { "doc":
+    [ "Form a compound target out of many test targets."
+    , ""
+    , "More precisely, take the runfiles of the given \"deps\", take their"
+    , "disjoint union and stage the result. Also propagate relevant"
+    , "providers."
+    ]
+  , "tainted": ["test"]
+  , "target_fields": ["deps"]
+  , "string_fields": ["stage"]
+  , "imports":
+    { "runfiles": ["", "field_runfiles"]
+    , "list_provider": ["", "field_list_provider"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "deps"]
+      , ["runfiles", {"type": "CALL_EXPRESSION", "name": "runfiles"}]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "staged results"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1": {"type": "var", "name": "runfiles"}
+          }
+        ]
+      , ["provider", "lint"]
+      , ["lint", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , ["lint", {"type": "nub_right", "$1": {"type": "var", "name": "lint"}}]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "staged results"}
+      , "runfiles": {"type": "var", "name": "staged results"}
+      , "provides": {"type": "env", "vars": ["lint"]}
+      }
+    }
+  }
+}
