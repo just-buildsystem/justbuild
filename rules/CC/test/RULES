@@ -28,6 +28,7 @@
     , "RUNS_PER_TEST"
     , "ARCH_DISPATCH"
     , "TEST_SUMMARY_EXECUTION_PROPERTIES"
+    , "LINT"
     ]
   , "implicit":
     { "defaults": [["./", "..", "defaults"]]
@@ -136,6 +137,11 @@
       [ "Additional remote-execution properties for the test-summarizing action"
       , "in case RUNS_PER_TEST is set; defaults to the empty map."
       ]
+    , "LINT":
+      [ "Also provide nodes describing compile actions and header files;"
+      , "those can be used by lint rules (doing also the config transition)"
+      , "for additional checks."
+      ]
     }
   , "artifacts_doc":
     [ "result: the result of this test (\"PASS\" or \"FAIL\"); useful for"
@@ -163,6 +169,8 @@
   , "config_transitions":
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "private-deps": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "private-hdrs": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
+    , "srcs": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "data": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     , "runner": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
     }
@@ -182,12 +190,16 @@
           , "$1": {"type": "FIELD", "name": "stage"}
           }
         ]
+      , ["host-trans", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , [ "srcs"
         , { "type": "to_subdir"
           , "subdir": {"type": "var", "name": "stage"}
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "srcs"]]
+            , "bindings":
+              [ ["fieldname", "srcs"]
+              , ["transition", {"type": "var", "name": "host-trans"}]
+              ]
             , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
             }
           }
@@ -197,12 +209,14 @@
           , "subdir": {"type": "var", "name": "stage"}
           , "$1":
             { "type": "let*"
-            , "bindings": [["fieldname", "private-hdrs"]]
+            , "bindings":
+              [ ["fieldname", "private-hdrs"]
+              , ["transition", {"type": "var", "name": "host-trans"}]
+              ]
             , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
             }
           }
         ]
-      , ["host-trans", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , ["defaults-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-transition", {"type": "var", "name": "host-trans"}]
       , ["deps-fieldnames", ["private-deps", "defaults"]]

@@ -815,6 +815,7 @@
     , "lint-deps fieldnames"
     , "deps-transition"
     , "compile-args"
+    , "defaults-transition"
     ]
   , "imports":
     { "objects": "objects"
