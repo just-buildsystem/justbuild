@@ -201,7 +201,6 @@ void TagAndSetRoot(std::filesystem::path const& repo_root,
                            {
                                repo_root,                    // target_path
                                repo_info.hash,               // git_hash
-                               "",                           // branch
                                "Keep referenced tree alive"  // message
                            },
                        .op_type = GitOpType::KEEP_TAG};
@@ -281,7 +280,6 @@ void TakeCommitFromOlderGeneration(
                            {
                                source,                    // target_path
                                repo_info.hash,            // git_hash
-                               "",                        // branch
                                "Tag commit for fetching"  // message
                            },
                        .op_type = GitOpType::KEEP_TAG};
@@ -692,7 +690,6 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             {
                                 storage_config->GitRoot(),  // target_path
                                 "",                         // git_hash
-                                "",                         // branch
                                 std::nullopt,               // message
                                 true                        // init_bare
                             },
@@ -1104,7 +1101,6 @@ auto CreateCommitGitMap(
                 {
                     repo_root,     // target_path
                     "",            // git_hash
-                    "",            // branch
                     std::nullopt,  // message
                     not just_mr_paths->git_checkout_locations.contains(
                         fetch_repo)  // init_bare

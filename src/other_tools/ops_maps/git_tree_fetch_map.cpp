@@ -133,7 +133,6 @@ void TagAndSetRoot(std::string tree_id,
                            {
                                repo,                         // target_path
                                tree_id,                      // git_hash
-                               "",                           // branch
                                "Keep referenced tree alive"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
@@ -180,7 +179,6 @@ void TakeTreeFromOlderGeneration(
                            {
                                source,                    // target_path
                                tree_id,                   // git_hash
-                               "",                        // branch
                                "Tag commit for fetching"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
@@ -273,7 +271,6 @@ auto CreateGitTreeFetchMap(
                                {
                                    storage_config->GitRoot(),  // target_path
                                    "",                         // git_hash
-                                   "",                         // branch
                                    std::nullopt,               // message
                                    true                        // init_bare
                                },
@@ -458,7 +455,6 @@ auto CreateGitTreeFetchMap(
                                        {
                                            tmp_dir->GetPath(),  // target_path
                                            "",                  // git_hash
-                                           "",                  // branch
                                            fmt::format("Content of tree {}",
                                                        key.hash),  // message
                                        },
@@ -604,7 +600,6 @@ auto CreateGitTreeFetchMap(
                                 {
                                     storage_config->GitRoot(),    // target_path
                                     *op_result.result,            // git_hash
-                                    "",                           // branch
                                     "Keep referenced tree alive"  // message
                                 },
                             .op_type = GitOpType::KEEP_TAG};

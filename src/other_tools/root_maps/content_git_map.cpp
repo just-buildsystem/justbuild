@@ -260,7 +260,6 @@ void ResolveContentTree(
                             {
                                 storage_config->GitRoot(),    // target_path
                                 resolved_tree_id,             // git_hash
-                                "",                           // branch
                                 "Keep referenced tree alive"  // message
                             },
                         .op_type = GitOpType::KEEP_TREE};
@@ -546,7 +545,6 @@ void HandleLocallyKnownTree(
                            {
                                storage_config->GitRoot(),  // target_path
                                "",                         // git_hash
-                               "",                         // branch
                                std::nullopt,               // message
                                true                        // init_bare
                            },
@@ -694,7 +692,6 @@ void HandleKnownInOlderGenerationAfterTaggingAndInit(
                            {
                                storage_config->GitRoot(),    // target_path
                                tree_id,                      // git_hash
-                               "",                           // branch
                                "Keep referenced tree alive"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
@@ -760,7 +757,6 @@ void HandleKnownInOlderGenerationAfterTagging(
                            {
                                storage_config->GitRoot(),  // target_path
                                "",                         // git_hash
-                               "",                         // branch
                                std::nullopt,               // message
                                true                        // init_bare
                            },
@@ -843,7 +839,6 @@ void HandleKnownInOlderGeneration(
                            {
                                source,                    // target_path
                                *archive_tree_id,          // git_hash
-                               "",                        // branch
                                "Tag commit for fetching"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
@@ -1023,7 +1018,6 @@ auto CreateContentGitMap(
                         {
                             storage_config->GitRoot(),  // target_path
                             "",                         // git_hash
-                            "",                         // branch
                             std::nullopt,               // message
                             true                        // init_bare
                         },

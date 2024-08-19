@@ -34,7 +34,7 @@ using GitOpKeyMap = std::unordered_map<
                              AsyncMapConsumerLoggerPtr const&)>>;
 
 struct GitOpKey {
-    GitOpParams params{"", "", ""};           /* key (with exceptions) */
+    GitOpParams params{"", ""};               /* key (with exceptions) */
     GitOpType op_type{GitOpType::DEFAULT_OP}; /* key */
 
     [[nodiscard]] auto operation(GitOpParams const& params,
@@ -96,7 +96,6 @@ struct hash<GitOpParams> {
         size_t seed{};
         hash_combine<std::filesystem::path>(&seed, ct.target_path);
         hash_combine<std::string>(&seed, ct.git_hash);
-        hash_combine<std::string>(&seed, ct.branch);
         return seed;
     }
 };

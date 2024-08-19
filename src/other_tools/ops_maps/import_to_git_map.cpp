@@ -36,7 +36,6 @@ void KeepCommitAndSetTree(
                            {
                                storage_config.GitRoot(),     // target_path
                                commit,                       // git_hash
-                               "",                           // branch
                                "Keep referenced tree alive"  // message
                            },
                        .op_type = GitOpType::KEEP_TAG};
@@ -107,7 +106,6 @@ auto CreateImportToGitMap(
                                {
                                    key.target_path,  // target_path
                                    "",               // git_hash
-                                   "",               // branch
                                    fmt::format("Content of {} {}",
                                                key.repo_type,
                                                key.content),  // message
@@ -138,7 +136,6 @@ auto CreateImportToGitMap(
                         {
                             storage_config->GitRoot(),  // target_path
                             "",                         // git_hash
-                            "",                         // branch
                             std::nullopt,               // message
                             true                        // init_bare
                         },

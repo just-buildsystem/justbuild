@@ -177,7 +177,6 @@ void ResolveFilePathTree(
                             {
                                 storage_config->GitRoot(),    // target_path
                                 resolved_tree_id,             // git_hash
-                                "",                           // branch
                                 "Keep referenced tree alive"  // message
                             },
                         .op_type = GitOpType::KEEP_TREE};
@@ -294,7 +293,6 @@ auto CreateFilePathGitMap(
                                    {
                                        *repo_root,  // target_path
                                        "",          // git_hash
-                                       "",          // branch
                                    },
                                .op_type = GitOpType::GET_HEAD_ID};
             critical_git_op_map->ConsumeAfterKeysReady(
@@ -351,7 +349,6 @@ auto CreateFilePathGitMap(
                             {
                                 storage_config->GitRoot(),  // target_path
                                 "",                         // git_hash
-                                "",                         // branch
                                 std::nullopt,               // message
                                 true                        // init_bare
                             },

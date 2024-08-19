@@ -172,7 +172,6 @@ auto CreateDistdirGitMap(
                     {
                         storage_config->GitRoot(),  // target_path
                         "",                         // git_hash
-                        "",                         // branch
                         std::nullopt,               // message
                         true                        // init_bare
                     },
