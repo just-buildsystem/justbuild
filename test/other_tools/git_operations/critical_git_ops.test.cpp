@@ -173,7 +173,8 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
                                   {
                                       path_init_commit,  // target_path
                                       "",                // git_hash
-                                      "Init commit"      // message
+                                      "Init commit",     // message
+                                      path_init_commit   // source_path
                                   },
                               .op_type = GitOpType::INITIAL_COMMIT},
                      GitOpKey{.params =
@@ -181,6 +182,7 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
                                       path_init_bare,  // target_path
                                       "",              // git_hash
                                       std::nullopt,    // message
+                                      std::nullopt,    // source_path
                                       true             // init_bare
                                   },
                               .op_type = GitOpType::ENSURE_INIT},
@@ -189,6 +191,7 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
                                       path_init_non_bare,  // target_path
                                       "",                  // git_hash
                                       std::nullopt,        // message
+                                      std::nullopt,        // source_path
                                       false                // init_bare
                                   },
                               .op_type = GitOpType::ENSURE_INIT},

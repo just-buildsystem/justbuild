@@ -28,16 +28,21 @@ struct GitOpParams {
     std::filesystem::path target_path{}; /*key*/
     std::string git_hash{};              /*key*/
     std::optional<std::string> message{
-        std::nullopt};                            // useful for commits and tags
+        std::nullopt};  // mandatory for commits and tags
+    std::optional<std::filesystem::path> source_path{
+        std::nullopt};                            // mandatory for commits
     std::optional<bool> init_bare{std::nullopt};  // useful for git init
 
-    GitOpParams(std::filesystem::path const& target_path_,
-                std::string git_hash_,
-                std::optional<std::string> message_ = std::nullopt,
-                std::optional<bool> init_bare_ = std::nullopt)
+    GitOpParams(
+        std::filesystem::path const& target_path_,
+        std::string git_hash_,
+        std::optional<std::string> message_ = std::nullopt,
+        std::optional<std::filesystem::path> source_path_ = std::nullopt,
+        std::optional<bool> init_bare_ = std::nullopt)
         : target_path{std::filesystem::absolute(ToNormalPath(target_path_))},
           git_hash{std::move(git_hash_)},
           message{std::move(message_)},
+          source_path{std::move(source_path_)},
           init_bare{init_bare_} {};
 
     [[nodiscard]] auto operator==(GitOpParams const& other) const noexcept

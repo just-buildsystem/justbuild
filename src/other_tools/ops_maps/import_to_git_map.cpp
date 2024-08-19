@@ -109,6 +109,7 @@ auto CreateImportToGitMap(
                                    fmt::format("Content of {} {}",
                                                key.repo_type,
                                                key.content),  // message
+                                   key.target_path            // source_path
                                },
                            .op_type = GitOpType::INITIAL_COMMIT};
         critical_git_op_map->ConsumeAfterKeysReady(
@@ -137,6 +138,7 @@ auto CreateImportToGitMap(
                             storage_config->GitRoot(),  // target_path
                             "",                         // git_hash
                             std::nullopt,               // message
+                            std::nullopt,               // source_path
                             true                        // init_bare
                         },
                     .op_type = GitOpType::ENSURE_INIT};

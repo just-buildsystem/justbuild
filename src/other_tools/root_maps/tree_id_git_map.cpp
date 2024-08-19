@@ -235,6 +235,7 @@ auto CreateTreeIdGitMap(
                             storage_config->GitRoot(),  // target_path
                             "",                         // git_hash
                             std::nullopt,               // message
+                            std::nullopt,               // source_path
                             true                        // init_bare
                         },
                     .op_type = GitOpType::ENSURE_INIT};

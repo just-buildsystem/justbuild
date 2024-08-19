@@ -272,6 +272,7 @@ auto CreateGitTreeFetchMap(
                                    storage_config->GitRoot(),  // target_path
                                    "",                         // git_hash
                                    std::nullopt,               // message
+                                   std::nullopt,               // source_path
                                    true                        // init_bare
                                },
                            .op_type = GitOpType::ENSURE_INIT};
@@ -457,6 +458,7 @@ auto CreateGitTreeFetchMap(
                                            "",                  // git_hash
                                            fmt::format("Content of tree {}",
                                                        key.hash),  // message
+                                           tmp_dir->GetPath()  // source_path
                                        },
                                    .op_type = GitOpType::INITIAL_COMMIT};
                 critical_git_op_map->ConsumeAfterKeysReady(

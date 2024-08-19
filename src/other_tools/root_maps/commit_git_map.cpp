@@ -691,6 +691,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 storage_config->GitRoot(),  // target_path
                                 "",                         // git_hash
                                 std::nullopt,               // message
+                                std::nullopt,               // source_path
                                 true                        // init_bare
                             },
                         .op_type = GitOpType::ENSURE_INIT};
@@ -1102,6 +1103,7 @@ auto CreateCommitGitMap(
                     repo_root,     // target_path
                     "",            // git_hash
                     std::nullopt,  // message
+                    std::nullopt,  // source_path
                     not just_mr_paths->git_checkout_locations.contains(
                         fetch_repo)  // init_bare
                 },
