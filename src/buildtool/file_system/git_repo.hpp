@@ -358,6 +358,25 @@ class GitRepo {
     [[nodiscard]] auto GetGitOdb() const noexcept
         -> std::unique_ptr<git_odb, decltype(&odb_closer)> const&;
 
+    using StoreDirEntryFunc =
+        std::function<bool(std::filesystem::path const&, ObjectType type)>;
+
+    /// \brief Helper function to read the entries of a filesystem subdirectory
+    /// and store them to the ODB. It is a modified version of the same-named
+    /// function from FileSystemManager which accepts a subdir and a specific
+    /// logger instead of the default.
+    [[nodiscard]] static auto ReadDirectory(
+        std::filesystem::path const& dir,
+        StoreDirEntryFunc const& read_and_store_entry,
+        anon_logger_ptr const& logger) noexcept -> bool;
+
+    /// \brief Create a tree from the content of a directory by recursively
+    /// adding its entries to the object database.
+    /// \return The raw id of the tree.
+    [[nodiscard]] auto CreateTreeFromDirectory(
+        std::filesystem::path const& dir,
+        anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
+
     /// \brief Helper function to allocate and populate the char** pointer of a
     /// git_strarray from a vector of standard strings. User MUST use
     /// git_strarray_dispose to deallocate the inner pointer when the strarray

@@ -2058,6 +2058,85 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
     return std::nullopt;
 }
 
+[[nodiscard]] auto GitRepo::ReadDirectory(
+    std::filesystem::path const& dir,
+    StoreDirEntryFunc const& read_and_store_entry,
+    anon_logger_ptr const& logger) noexcept -> bool {
+    try {
+        for (auto const& entry : std::filesystem::directory_iterator{dir}) {
+            if (auto type = FileSystemManager::Type(entry.path(),
+                                                    /*allow_upwards=*/true)) {
+                if (not read_and_store_entry(entry.path().filename(), *type)) {
+                    (*logger)(fmt::format("could not read and store to ODB "
+                                          "subdir entry {}",
+                                          entry.path().string()),
+                              /*fatal=*/true);
+                    return false;
+                }
+            }
+            else {
+                (*logger)(fmt::format("unsupported type for subdir entry {}",
+                                      entry.path().string()),
+                          /*fatal=*/true);
+                return false;
+            }
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error, "reading subdirectory {} failed", dir.string());
+        return false;
+    }
+    return true;  // success!
+}
+
+auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
+                                      anon_logger_ptr const& logger) noexcept
+    -> std::optional<std::string> {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return std::nullopt;
+#else
+    tree_entries_t entries{};
+    auto dir_read_and_store = [this, &entries, dir, logger](auto name,
+                                                            auto type) {
+        const auto full_name = dir / name;
+        if (IsTreeObject(type)) {
+            // store subdirectory as a tree in the ODB
+            if (auto raw_id =
+                    this->CreateTreeFromDirectory(full_name, logger)) {
+                entries[std::move(*raw_id)].emplace_back(name.string(),
+                                                         ObjectType::Tree);
+                return true;
+            }
+            (*logger)(
+                fmt::format("failed creating tree {}", full_name.string()),
+                /*fatal=*/true);
+            return false;
+        }
+        // for non-tree entries, read content and write it as a blob to the ODB
+        if (auto content =
+                FileSystemManager::ReadContentAtPath(full_name, type)) {
+            if (auto hash = WriteBlob(*content, logger)) {
+                if (auto raw_id = FromHexString(*hash)) {
+                    entries[std::move(*raw_id)].emplace_back(name.string(),
+                                                             type);
+                    return true;
+                }
+            }
+        }
+        (*logger)(fmt::format("failed creating blob {}", full_name.string()),
+                  /*fatal=*/true);
+        return false;
+    };
+
+    if (ReadDirectory(dir, dir_read_and_store, logger)) {
+        if (auto raw_id = CreateTree(entries)) {
+            return *raw_id;
+        }
+    }
+    return std::nullopt;
+#endif  // BOOTSTRAP_BUILD_TOOL
+}
+
 void GitRepo::PopulateStrarray(
     git_strarray* array,
     std::vector<std::string> const& string_list) noexcept {
