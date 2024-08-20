@@ -448,29 +448,38 @@ auto SourceTreeService::ResolveContentTree(
 }
 
 auto SourceTreeService::CommonImportToGit(
-    std::filesystem::path const& root_path,
+    std::filesystem::path const& content_path,
     std::string const& commit_message) -> expected<std::string, std::string> {
+    // the repository path that imports the content must be separate from the
+    // content path, to avoid polluting the entries
+    auto tmp_dir = storage_config_.CreateTypedTmpDir("import-repo");
+    if (not tmp_dir) {
+        return unexpected{
+            std::string("Failed to create tmp path for import repository")};
+    }
+    auto const& repo_path = tmp_dir->GetPath();
     // do the initial commit; no need to guard, as the tmp location is unique
-    auto git_repo = GitRepo::InitAndOpen(root_path,
+    auto git_repo = GitRepo::InitAndOpen(repo_path,
                                          /*is_bare=*/false);
     if (not git_repo) {
         return unexpected{fmt::format("Could not initialize repository {}",
-                                      root_path.string())};
+                                      repo_path.string())};
     }
     // wrap logger for GitRepo call
     std::string err;
     auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [root_path, &err](auto const& msg, bool fatal) {
+        [content_path, repo_path, &err](auto const& msg, bool fatal) {
             if (fatal) {
                 err = fmt::format(
-                    "While staging and committing all in repository {}:\n{}",
-                    root_path.string(),
+                    "While committing directory {} in repository {}:\n{}",
+                    content_path.string(),
+                    repo_path.string(),
                     msg);
             }
         });
     // stage and commit all
     auto commit_hash =
-        git_repo->CommitDirectory(root_path, commit_message, wrapped_logger);
+        git_repo->CommitDirectory(content_path, commit_message, wrapped_logger);
     if (not commit_hash) {
         return unexpected{err};
     }
@@ -498,7 +507,7 @@ auto SourceTreeService::CommonImportToGit(
     // fetch the new commit into the Git CAS via tmp directory; the call is
     // thread-safe, so it needs no guarding
     if (not just_git_repo->LocalFetchViaTmpRepo(storage_config_,
-                                                root_path.string(),
+                                                repo_path.string(),
                                                 /*branch=*/std::nullopt,
                                                 wrapped_logger)) {
         return unexpected{err};

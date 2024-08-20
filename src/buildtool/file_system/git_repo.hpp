@@ -152,8 +152,9 @@ class GitRepo {
     using anon_logger_ptr = std::shared_ptr<anon_logger_t>;
 
     /// \brief Create tree from entries at given directory and commit it with
-    /// given message. Currently, the caller must guarantee that given path is
-    /// a subdirectory of the repository root path.
+    /// given message. The given path need not be a subdirectory of the
+    /// repository root path, but the caller must guarantee its entries are
+    /// readable.
     /// Only possible with real repository and thus non-thread-safe.
     /// \returns The commit hash, or nullopt if failure. It guarantees the
     /// logger is called exactly once with fatal if failure.

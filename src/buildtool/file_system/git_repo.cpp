@@ -608,60 +608,26 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
         // share the odb lock
         std::shared_lock lock{GetGitCAS()->mutex_};
 
-        // cannot perform this operation on a bare repository; this has to be
-        // checked because git_index_add_bypath will not do it for us!
-        if (not FileSystemManager::Exists(GetGitPath() / ".git")) {
-            (*logger)("cannot commit directory in a bare repository!",
-                      true /*fatal*/);
+        // Due to limitations of Git in general, and libgit2 in particular, by
+        // which updating the index with entries that have Git-specific magic
+        // names is cumbersome, if at all possible, we resort to creating
+        // manually the tree to be commited from the given subdirectory by
+        // recursively creating and writing to the object database all the blobs
+        // and subtrees.
+
+        // get tree containing the subdirectory entries
+        auto raw_id = CreateTreeFromDirectory(dir, logger);
+        if (not raw_id) {
             return std::nullopt;
         }
 
-        // the index approach to adding entries requires them to be reachable
-        // from root path
-        auto rel_path = dir.lexically_relative(GetGitPath());
-        if (rel_path.empty() or rel_path.string().starts_with("..")) {
-            (*logger)(
-                fmt::format("unsupported directory {}: not a subpath of {}",
-                            dir.string(),
-                            GetGitPath().string()),
-                true /*fatal*/);
-            return std::nullopt;
-        }
-
-        // add all files to be staged
-        git_index* index_ptr{nullptr};
-        git_repository_index(&index_ptr, repo_->Ptr());
-        auto index = std::unique_ptr<git_index, decltype(&index_closer)>(
-            index_ptr, index_closer);
-
-        // due to mismanagement of .gitignore rules by libgit2 when doing a
-        // forced add all, we resort to using git_index_add_bypath manually for
-        // all entries, instead of git_index_add_all with GIT_INDEX_ADD_FORCE.
-        auto use_entry = [&index, rel_path](std::filesystem::path const& name,
-                                            bool is_tree) {
-            return is_tree or
-                   git_index_add_bypath(
-                       index.get(),
-                       (rel_path / name)
-                           .lexically_relative(".")  // remove "." prefix
-                           .c_str()) == 0;
-        };
-        if (not FileSystemManager::ReadDirectoryEntriesRecursive(
-                dir,
-                use_entry,
-                /*ignored_subdirs=*/{".git"})) {
-            (*logger)(fmt::format("staging entries in git repository {} failed "
-                                  "with:\n{}",
-                                  GetGitPath().string(),
-                                  GitLastError()),
-                      true /*fatal*/);
-            return std::nullopt;
-        }
-        // build tree from staged files
+        // get tree oid
         git_oid tree_oid;
-        if (git_index_write_tree(&tree_oid, index.get()) != 0) {
-            (*logger)(fmt::format("building tree from index in git repository "
-                                  "{} failed with:\n{}",
+        if (git_oid_fromraw(&tree_oid,
+                            reinterpret_cast<unsigned char const*>(  // NOLINT
+                                raw_id->data())) != 0) {
+            (*logger)(fmt::format("subdir tree object id parsing in git "
+                                  "repository {} failed with:\n{}",
                                   GetGitPath().string(),
                                   GitLastError()),
                       true /*fatal*/);

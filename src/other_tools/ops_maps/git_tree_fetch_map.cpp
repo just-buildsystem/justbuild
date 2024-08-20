@@ -413,8 +413,9 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // create temporary location for command execution root
-                auto tmp_dir = storage_config->CreateTypedTmpDir("git-tree");
-                if (not tmp_dir) {
+                auto content_dir =
+                    storage_config->CreateTypedTmpDir("git-tree");
+                if (not content_dir) {
                     (*logger)(
                         "Failed to create execution root tmp directory for "
                         "tree id map!",
@@ -444,28 +445,39 @@ auto CreateGitTreeFetchMap(
                     }
                 }
                 auto const exit_code = system.Execute(
-                    cmdline, env, tmp_dir->GetPath(), out_dir->GetPath());
+                    cmdline, env, content_dir->GetPath(), out_dir->GetPath());
                 if (not exit_code) {
                     (*logger)(fmt::format("Failed to execute command:\n{}",
                                           nlohmann::json(cmdline).dump()),
                               /*fatal=*/true);
                     return;
                 }
+                // create temporary location for the import repository
+                auto repo_dir =
+                    storage_config->CreateTypedTmpDir("import-repo");
+                if (not repo_dir) {
+                    (*logger)(
+                        "Failed to create tmp directory for import repository",
+                        /*fatal=*/true);
+                    return;
+                }
                 // do an import to git with tree check
-                GitOpKey op_key = {.params =
-                                       {
-                                           tmp_dir->GetPath(),  // target_path
-                                           "",                  // git_hash
-                                           fmt::format("Content of tree {}",
-                                                       key.hash),  // message
-                                           tmp_dir->GetPath()  // source_path
-                                       },
-                                   .op_type = GitOpType::INITIAL_COMMIT};
+                GitOpKey op_key = {
+                    .params =
+                        {
+                            repo_dir->GetPath(),  // target_path
+                            "",                   // git_hash
+                            fmt::format("Content of tree {}",
+                                        key.hash),  // message
+                            content_dir->GetPath()  // source_path
+                        },
+                    .op_type = GitOpType::INITIAL_COMMIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
                     ts,
                     {std::move(op_key)},
-                    [tmp_dir,  // keep tmp_dir alive
-                     out_dir,  // keep stdout/stderr of command alive
+                    [repo_dir,     // keep repo_dir alive
+                     content_dir,  // keep content_dir alive
+                     out_dir,      // keep stdout/stderr of command alive
                      critical_git_op_map,
                      just_git_cas = op_result.git_cas,
                      cmdline,
@@ -492,7 +504,7 @@ auto CreateGitTreeFetchMap(
                         if (not git_repo) {
                             (*logger)(
                                 fmt::format("Could not open repository {}",
-                                            tmp_dir->GetPath().string()),
+                                            repo_dir->GetPath().string()),
                                 /*fatal=*/true);
                             return;
                         }
@@ -541,14 +553,14 @@ auto CreateGitTreeFetchMap(
                                 /*fatal=*/true);
                             return;
                         }
-                        auto target_path = tmp_dir->GetPath();
+                        auto target_path = repo_dir->GetPath();
                         // fetch all into Git cache
                         auto just_git_repo = GitRepoRemote::Open(just_git_cas);
                         if (not just_git_repo) {
-                            (*logger)(fmt::format("Could not open Git "
-                                                  "repository {}",
-                                                  target_path.string()),
-                                      /*fatal=*/true);
+                            (*logger)(
+                                fmt::format("Could not open Git repository {}",
+                                            storage_config->GitRoot().string()),
+                                /*fatal=*/true);
                             return;
                         }
                         // define temp repo path
@@ -634,21 +646,28 @@ auto CreateGitTreeFetchMap(
                                 // success
                                 (*setter)(false /*no cache hit*/);
                             },
-                            [logger, commit = *op_result.result](
+                            [logger,
+                             commit = *op_result.result,
+                             target_path = storage_config->GitRoot()](
                                 auto const& msg, bool fatal) {
                                 (*logger)(
                                     fmt::format("While running critical Git op "
-                                                "KEEP_TAG for commit {}:\n{}",
+                                                "KEEP_TAG for commit {} in "
+                                                "repository {}:\n{}",
                                                 commit,
+                                                target_path.string(),
                                                 msg),
                                     fatal);
                             });
                     },
-                    [logger](auto const& msg, bool fatal) {
-                        (*logger)(fmt::format("While running critical Git op "
-                                              "INITIAL_COMMIT:\n{}",
-                                              msg),
-                                  fatal);
+                    [logger, target_path = repo_dir->GetPath()](auto const& msg,
+                                                                bool fatal) {
+                        (*logger)(
+                            fmt::format("While running critical Git op "
+                                        "INITIAL_COMMIT for target {}:\n{}",
+                                        target_path.string(),
+                                        msg),
+                            fatal);
                     });
             },
             [logger, target_path = storage_config->GitRoot()](auto const& msg,
