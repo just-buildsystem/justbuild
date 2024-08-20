@@ -101,8 +101,8 @@
   , "deps": ["distro-bootstrap-deps", "staged-sources"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["bootstrap"]
   , "deps":
     [ "bundled-test"
     , "bundled-test-debug"

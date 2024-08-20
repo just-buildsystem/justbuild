@@ -30,5 +30,8 @@
   , "stage": ["test", "other_tools", "utils"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["curl_usage", "curl_url"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["utils"]
+  , "deps": ["curl_usage", "curl_url"]
+  }
 }

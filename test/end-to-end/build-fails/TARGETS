@@ -5,5 +5,8 @@
   , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["single_fail_dep"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["build-fails"]
+  , "deps": ["single_fail_dep"]
+  }
 }

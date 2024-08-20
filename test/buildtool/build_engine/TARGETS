@@ -1,10 +1,10 @@
 { "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [ [["./", "base_maps", "TESTS"], "base_maps"]
-    , [["./", "expression", "TESTS"], "expression"]
-    , [["./", "target_map", "TESTS"], "target_map"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["build_engine"]
+  , "deps":
+    [ ["./", "base_maps", "TESTS"]
+    , ["./", "expression", "TESTS"]
+    , ["./", "target_map", "TESTS"]
     ]
   }
 }

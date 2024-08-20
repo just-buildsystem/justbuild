@@ -49,9 +49,9 @@
   , "keep": ["repos.json", "deduplicated.json"]
   }
 , "TESTS":
-  { "type": "install"
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "tainted": ["test"]
+  , "stage": ["git-import"]
   , "deps":
     { "type": "++"
     , "$1":

@@ -11,31 +11,31 @@
     }
   }
 , "TESTS":
-  { "type": "install"
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "tainted": ["test"]
-  , "dirs":
+  , "stage": ["end-to-end"]
+  , "deps":
     { "type": "++"
     , "$1":
-      [ [ [["./", "actions", "TESTS"], "actions"]
-        , [["./", "cli", "TESTS"], "cli"]
-        , [["./", "generated-binary", "TESTS"], "generated-binary"]
-        , [["./", "target-tests", "TESTS"], "targets"]
-        , [["./", "user-errors", "TESTS"], "user-errors"]
-        , [["./", "built-in-rules", "TESTS"], "built-in-rules"]
-        , [["./", "build-fails", "TESTS"], "build-fails"]
-        , [["./", "remote-execution", "TESTS"], "remote-execution"]
-        , [["./", "target-cache", "TESTS"], "target-cache"]
-        , [["./", "just-mr", "TESTS"], "just-mr"]
-        , [["./", "git-import", "TESTS"], "git-import"]
-        , [["./", "gc", "TESTS"], "gc"]
-        , [["./", "execution-service", "TESTS"], "execution-service"]
-        , [["./", "symlinks", "TESTS"], "symlinks"]
+      [ [ ["./", "actions", "TESTS"]
+        , ["./", "cli", "TESTS"]
+        , ["./", "generated-binary", "TESTS"]
+        , ["./", "target-tests", "TESTS"]
+        , ["./", "user-errors", "TESTS"]
+        , ["./", "built-in-rules", "TESTS"]
+        , ["./", "build-fails", "TESTS"]
+        , ["./", "remote-execution", "TESTS"]
+        , ["./", "target-cache", "TESTS"]
+        , ["./", "just-mr", "TESTS"]
+        , ["./", "git-import", "TESTS"]
+        , ["./", "gc", "TESTS"]
+        , ["./", "execution-service", "TESTS"]
+        , ["./", "symlinks", "TESTS"]
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": [[["./", "serve-service", "TESTS"], "serve-service"]]
+        , "else": [["./", "serve-service", "TESTS"]]
         }
       ]
     }

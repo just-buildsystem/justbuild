@@ -73,8 +73,8 @@
   , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["remote-execution"]
   , "arguments_config":
     ["TEST_COMPATIBLE_REMOTE", "TEST_BOOTSTRAP_JUST_MR", "DROP_IO_HEAVY_TESTS"]
   , "deps":

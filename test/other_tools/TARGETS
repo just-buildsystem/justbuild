@@ -1,10 +1,10 @@
 { "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [ [["./", "git_operations", "TESTS"], "git_operations"]
-    , [["./", "utils", "TESTS"], "utils"]
-    , [["./", "just_mr", "TESTS"], "just_mr"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["other_tools"]
+  , "deps":
+    [ ["./", "git_operations", "TESTS"]
+    , ["./", "utils", "TESTS"]
+    , ["./", "just_mr", "TESTS"]
     ]
   }
 }

@@ -65,8 +65,8 @@
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["graph_traverser"]
   , "deps": ["graph_traverser_local", "graph_traverser_remote"]
   }
 }

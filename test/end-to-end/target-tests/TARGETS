@@ -41,8 +41,8 @@
   , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["target-tests"]
   , "deps":
     [ "upwards reference"
     , "repository naming"

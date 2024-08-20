@@ -13,5 +13,9 @@
     ]
   , "stage": ["test", "buildtool", "execution_engine", "traverser"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["traverser"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["traverser"]
+  , "deps": ["traverser"]
+  }
 }

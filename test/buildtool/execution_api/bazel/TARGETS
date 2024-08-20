@@ -118,8 +118,8 @@
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["bazel"]
   , "deps":
     [ "bytestream_client"
     , "cas_client"

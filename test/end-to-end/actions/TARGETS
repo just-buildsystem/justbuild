@@ -91,9 +91,9 @@
   , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["DROP_IO_HEAVY_TESTS"]
+  , "stage": ["actions"]
   , "deps":
     { "type": "++"
     , "$1":

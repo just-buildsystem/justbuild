@@ -23,8 +23,8 @@
     ]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-git-root"]
   , "deps": ["present", "absent", "absent-upload"]
   }
 }

@@ -46,8 +46,8 @@
   , "stage": ["test", "utils", "cpp"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["cpp"]
   , "deps": ["path", "path_rebase", "file_locking", "prefix"]
   }
 }

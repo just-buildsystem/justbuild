@@ -69,8 +69,8 @@
   , "stage": ["test", "buildtool", "storage"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["storage"]
   , "deps": ["local_cas", "local_ac", "large_object_cas"]
   }
 }

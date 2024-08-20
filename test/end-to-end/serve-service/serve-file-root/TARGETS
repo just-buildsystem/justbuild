@@ -8,5 +8,9 @@
     , ["end-to-end/serve-service", "serve-tree (archive)"]
     ]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["upload"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-file-root"]
+  , "deps": ["upload"]
+  }
 }

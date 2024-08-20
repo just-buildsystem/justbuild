@@ -63,8 +63,8 @@
   , "stage": ["test", "buildtool", "multithreading"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["multithreading"]
   , "deps":
     [ "async_map"
     , "async_map_consumer"

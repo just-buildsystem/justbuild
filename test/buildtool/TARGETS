@@ -1,20 +1,20 @@
 { "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [ [["./", "build_engine", "TESTS"], "build_engine"]
-    , [["./", "common", "TESTS"], "common"]
-    , [["./", "crypto", "TESTS"], "crypto"]
-    , [["./", "execution_api", "TESTS"], "execution_api"]
-    , [["./", "execution_engine", "TESTS"], "execution_engine"]
-    , [["./", "file_system", "TESTS"], "file_system"]
-    , [["./", "graph_traverser", "TESTS"], "graph_traverser"]
-    , [["./", "logging", "TESTS"], "logging"]
-    , [["./", "main", "TESTS"], "main"]
-    , [["./", "multithreading", "TESTS"], "multithreading"]
-    , [["./", "serve_api", "TESTS"], "serve_api"]
-    , [["./", "storage", "TESTS"], "storage"]
-    , [["./", "system", "TESTS"], "system"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["buildtool"]
+  , "deps":
+    [ ["./", "build_engine", "TESTS"]
+    , ["./", "common", "TESTS"]
+    , ["./", "crypto", "TESTS"]
+    , ["./", "execution_api", "TESTS"]
+    , ["./", "execution_engine", "TESTS"]
+    , ["./", "file_system", "TESTS"]
+    , ["./", "graph_traverser", "TESTS"]
+    , ["./", "logging", "TESTS"]
+    , ["./", "main", "TESTS"]
+    , ["./", "multithreading", "TESTS"]
+    , ["./", "serve_api", "TESTS"]
+    , ["./", "storage", "TESTS"]
+    , ["./", "system", "TESTS"]
     ]
   }
 }

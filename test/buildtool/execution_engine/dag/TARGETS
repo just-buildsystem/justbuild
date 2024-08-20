@@ -14,5 +14,6 @@
     ]
   , "stage": ["test", "buildtool", "execution_engine", "dag"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["dag"]}
+, "TESTS":
+  {"type": ["@", "rules", "test", "suite"], "stage": ["dag"], "deps": ["dag"]}
 }

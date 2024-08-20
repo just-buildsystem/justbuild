@@ -11,5 +11,9 @@
     ]
   , "stage": ["test", "utils", "archive"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["archive_usage"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["archive"]
+  , "deps": ["archive_usage"]
+  }
 }

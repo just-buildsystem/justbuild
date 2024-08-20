@@ -17,5 +17,8 @@
   , "stage": ["test", "buildtool", "serve_api"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["source_tree_client"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve_api"]
+  , "deps": ["source_tree_client"]
+  }
 }

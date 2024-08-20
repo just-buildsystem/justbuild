@@ -13,5 +13,8 @@
   , "repos": [["end-to-end/serve-service", "serve-tree (data)"]]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["present", "absent"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-git-tree-root"]
+  , "deps": ["present", "absent"]
+  }
 }

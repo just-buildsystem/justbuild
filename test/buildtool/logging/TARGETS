@@ -25,5 +25,8 @@
   , "private-ldflags": ["-pthread"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["log_sink_file", "logger"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["logging"]
+  , "deps": ["log_sink_file", "logger"]
+  }
 }

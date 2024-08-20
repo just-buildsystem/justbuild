@@ -46,21 +46,20 @@
   , "stage": ["test"]
   }
 , "TESTS":
-  { "type": "install"
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["DROP_LARGE_TESTS"]
-  , "tainted": ["test"]
-  , "dirs":
+  , "deps":
     { "type": "++"
     , "$1":
-      [ [ [["./", "buildtool", "TESTS"], "buildtool"]
-        , [["./", "utils", "TESTS"], "utils"]
-        , [["./", "end-to-end", "TESTS"], "end-to-end"]
-        , [["./", "other_tools", "TESTS"], "other_tools"]
+      [ [ ["./", "buildtool", "TESTS"]
+        , ["./", "utils", "TESTS"]
+        , ["./", "end-to-end", "TESTS"]
+        , ["./", "other_tools", "TESTS"]
         ]
       , { "type": "if"
         , "cond": {"type": "var", "name": "DROP_LARGE_TESTS"}
         , "then": []
-        , "else": [["bootstrap-test", "bootstrap"]]
+        , "else": ["bootstrap-test"]
         }
       ]
     }

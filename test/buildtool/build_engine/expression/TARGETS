@@ -36,8 +36,8 @@
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["expression"]
   , "deps": ["configuration", "expression", "linked_map"]
   }
 }

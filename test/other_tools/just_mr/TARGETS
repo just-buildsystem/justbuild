@@ -22,5 +22,8 @@
   , "stage": ["test", "other_tools", "just_mr"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["rc_merge", "mirrors"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["just_mr"]
+  , "deps": ["rc_merge", "mirrors"]
+  }
 }

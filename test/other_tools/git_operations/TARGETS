@@ -74,8 +74,8 @@
   , "deps": ["git_config_run"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["git_operations"]
   , "deps":
     [ "critical_git_ops_mp"
     , "git_repo_remote"

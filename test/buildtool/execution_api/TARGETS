@@ -9,12 +9,12 @@
   , "stage": ["test", "buildtool", "execution_api"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [ [["./", "bazel", "TESTS"], "bazel"]
-    , [["./", "local", "TESTS"], "local"]
-    , [["./", "execution_service", "TESTS"], "execution_service"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["execution_api"]
+  , "deps":
+    [ ["./", "bazel", "TESTS"]
+    , ["./", "local", "TESTS"]
+    , ["./", "execution_service", "TESTS"]
     ]
   }
 }

@@ -55,9 +55,8 @@
   , "repos": [["TREE", null, "foreign-file-data"]]
   }
 , "TESTS":
-  { "type": "install"
-  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-distdir-root"]
   , "deps": ["present", "absent", "upload", "foreign-file"]
   }
 }

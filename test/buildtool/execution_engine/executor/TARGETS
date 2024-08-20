@@ -108,8 +108,8 @@
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["executor"]
   , "deps": ["executor", "local", "remote_bazel"]
   }
 }

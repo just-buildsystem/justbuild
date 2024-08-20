@@ -106,8 +106,8 @@
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["target_map"]
   , "deps": ["result_map", "target_map", "target_map_internals"]
   }
 }

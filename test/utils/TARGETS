@@ -183,9 +183,8 @@
     ]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [[["./", "cpp", "TESTS"], "cpp"], [["./", "archive", "TESTS"], "archive"]]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["utils"]
+  , "deps": [["./", "cpp", "TESTS"], ["./", "archive", "TESTS"]]
   }
 }

@@ -155,8 +155,8 @@
   , "stage": ["test", "buildtool", "file_system"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["file_system"]
   , "deps":
     [ "file_root"
     , "file_system_manager"

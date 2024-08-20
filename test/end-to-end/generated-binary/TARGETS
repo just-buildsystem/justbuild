@@ -15,5 +15,8 @@
   , "deps": [["", "tool-under-test"], "compile rules"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["shell", "compiled"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["generated-binary"]
+  , "deps": ["shell", "compiled"]
+  }
 }

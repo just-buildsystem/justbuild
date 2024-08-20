@@ -10,5 +10,9 @@
     ]
   , "stage": ["test", "buildtool", "system"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["system_command"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["system"]
+  , "deps": ["system_command"]
+  }
 }

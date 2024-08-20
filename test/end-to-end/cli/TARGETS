@@ -67,9 +67,9 @@
   , "deps": [["", "tool-under-test"]]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "stage": ["cli"]
   , "deps":
     { "type": "++"
     , "$1":

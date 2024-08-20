@@ -22,5 +22,9 @@
     ]
   , "stage": ["test", "buildtool", "execution_api", "execution_service"]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["cas_server"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["execution_service"]
+  , "deps": ["cas_server"]
+  }
 }

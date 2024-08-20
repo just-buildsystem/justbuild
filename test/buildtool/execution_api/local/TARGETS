@@ -37,8 +37,8 @@
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["local"]
   , "deps": ["local_api", "local_execution"]
   }
 }

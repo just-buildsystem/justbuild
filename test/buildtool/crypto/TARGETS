@@ -21,5 +21,8 @@
   , "stage": ["test", "buildtool", "crypto"]
   }
 , "TESTS":
-  {"type": "install", "tainted": ["test"], "deps": ["hasher", "hash_function"]}
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["crypto"]
+  , "deps": ["hasher", "hash_function"]
+  }
 }

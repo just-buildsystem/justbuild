@@ -214,9 +214,9 @@
   , "keep": ["log/log-1", "log/log-2"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
+  , "stage": ["just-mr"]
   , "deps":
     { "type": "++"
     , "$1":

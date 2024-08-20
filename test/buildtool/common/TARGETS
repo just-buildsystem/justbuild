@@ -45,8 +45,8 @@
   , "stage": ["test", "buildtool", "common"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["common"]
   , "deps": ["action_description", "artifact_description", "repository_config"]
   }
 }

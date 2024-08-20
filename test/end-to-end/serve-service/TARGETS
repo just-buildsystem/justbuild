@@ -172,9 +172,15 @@
   , "repos": ["serve-many-targets (data)"]
   }
 , "TESTS (unconfigured)":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE", "TEST_STANDALONE_SERVE"]
+  , "stage":
+    [ { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
+      , "then": "standalone-serve"
+      , "else": "separate-remote"
+      }
+    ]
   , "deps":
     { "type": "++"
     , "$1":
@@ -196,15 +202,14 @@
         , "then": []
         , "else": ["serve-tree"]
         }
+      , [ ["./", "serve-archive-root", "TESTS"]
+        , ["./", "serve-git-root", "TESTS"]
+        , ["./", "serve-file-root", "TESTS"]
+        , ["./", "serve-git-tree-root", "TESTS"]
+        , ["./", "serve-distdir-root", "TESTS"]
+        ]
       ]
     }
-  , "dirs":
-    [ [["./", "serve-archive-root", "TESTS"], "serve-archive-root"]
-    , [["./", "serve-git-root", "TESTS"], "serve-git-root"]
-    , [["./", "serve-file-root", "TESTS"], "serve-file-root"]
-    , [["./", "serve-git-tree-root", "TESTS"], "serve-git-tree-root"]
-    , [["./", "serve-distdir-root", "TESTS"], "serve-distdir-root"]
-    ]
   }
 , "TESTS (separate remote)":
   { "type": "configure"
@@ -221,11 +226,8 @@
     {"type": "singleton_map", "key": "TEST_STANDALONE_SERVE", "value": true}
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs":
-    [ ["TESTS (separate remote)", "separate-remote"]
-    , ["TESTS (standalone serve)", "standalone-serve"]
-    ]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-service"]
+  , "deps": ["TESTS (separate remote)", "TESTS (standalone serve)"]
   }
 }

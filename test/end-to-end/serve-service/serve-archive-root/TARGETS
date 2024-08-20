@@ -99,8 +99,8 @@
     ]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["serve-archive-root"]
   , "deps":
     [ "unresolved-present"
     , "unresolved-absent"

@@ -4,5 +4,9 @@
   , "test": ["stage-links.sh"]
   , "deps": [["", "tool-under-test"]]
   }
-, "TESTS": {"type": "install", "tainted": ["test"], "deps": ["stage-links"]}
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["symlinks"]
+  , "deps": ["stage-links"]
+  }
 }

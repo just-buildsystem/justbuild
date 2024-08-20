@@ -142,8 +142,8 @@
   , "cmds": ["sh create_maps_test_git_bundle.sh"]
   }
 , "TESTS":
-  { "type": "install"
-  , "tainted": ["test"]
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["base_maps"]
   , "deps":
     [ "directory_map"
     , "entity_name"
