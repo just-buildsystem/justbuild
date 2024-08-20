@@ -38,6 +38,7 @@
     , "TARGET_ARCH"
     , "ARCH_DISPATCH"
     , "TEST_SUMMARY_EXECUTION_PROPERTIES"
+    , "LINT"
     ]
   , "field_doc":
     { "test":
@@ -186,6 +187,20 @@
       , [ "target properties"
         , {"type": "CALL_EXPRESSION", "name": "target properties"}
         ]
+      , [ "lint"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LINT"}
+          , "then":
+            { "type": "let*"
+            , "bindings":
+              [ ["fieldname", "deps"]
+              , ["provider", "lint"]
+              , ["transition", {"type": "var", "name": "deps-transition"}]
+              ]
+            , "body": {"type": "CALL_EXPRESSION", "name": "field_list"}
+            }
+          }
+        ]
       ]
     , "body":
       { "type": "if"
@@ -322,6 +337,7 @@
           { "type": "RESULT"
           , "artifacts": {"type": "var", "name": "artifacts"}
           , "runfiles": {"type": "var", "name": "runfiles"}
+          , "provides": {"type": "env", "vars": ["lint"]}
           }
         }
       }
