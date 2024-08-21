@@ -52,8 +52,9 @@ auto add_to_archive(archive* archive,
                     IExecutionApi const& api,
                     const Artifact::ObjectInfo& artifact,
                     const std::filesystem::path& location) -> bool {
-    auto constexpr kExecutable = 0555;
-    auto constexpr kFile = 0444;
+    auto constexpr kExecutablePerm = 0555;
+    auto constexpr kFilePerm = 0444;
+    auto constexpr kDefaultPerm = 07777;
 
     auto payload = api.RetrieveToMemory(artifact);
     if (not payload) {
@@ -70,9 +71,10 @@ auto add_to_archive(archive* archive,
             archive_entry_set_pathname(entry.get(), location.string().c_str());
             archive_entry_set_size(entry.get(), payload->size());
             archive_entry_set_filetype(entry.get(), AE_IFREG);
-            archive_entry_set_perm(
-                entry.get(),
-                artifact.type == ObjectType::Executable ? kExecutable : kFile);
+            archive_entry_set_perm(entry.get(),
+                                   artifact.type == ObjectType::Executable
+                                       ? kExecutablePerm
+                                       : kFilePerm);
             archive_write_header(archive, entry.get());
             auto data = *payload;
             archive_write_data(archive, data.c_str(), data.size());
@@ -81,11 +83,26 @@ auto add_to_archive(archive* archive,
             std::unique_ptr<archive_entry, decltype(&archive_entry_cleanup)>
                 entry{archive_entry_new(), archive_entry_cleanup};
             archive_entry_set_pathname(entry.get(), location.string().c_str());
+            archive_entry_set_size(entry.get(), payload->size());
             archive_entry_set_filetype(entry.get(), AE_IFLNK);
             archive_entry_set_symlink(entry.get(), payload->c_str());
+            archive_entry_set_perm(entry.get(), kDefaultPerm);
             archive_write_header(archive, entry.get());
+            auto data = *payload;
+            archive_write_data(archive, data.c_str(), data.size());
         } break;
         case ObjectType::Tree: {
+            // avoid creating empty unnamed folder for the initial call
+            if (not location.empty()) {
+                std::unique_ptr<archive_entry, decltype(&archive_entry_cleanup)>
+                    entry{archive_entry_new(), archive_entry_cleanup};
+                archive_entry_set_pathname(entry.get(),
+                                           location.string().c_str());
+                archive_entry_set_size(entry.get(), 0U);
+                archive_entry_set_filetype(entry.get(), AE_IFDIR);
+                archive_entry_set_perm(entry.get(), kDefaultPerm);
+                archive_write_header(archive, entry.get());
+            }
             auto git_tree = GitRepo::ReadTreeData(
                 *payload,
                 artifact.digest.hash(),

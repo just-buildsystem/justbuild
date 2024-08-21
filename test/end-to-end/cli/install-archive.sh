@@ -28,6 +28,7 @@ echo simple file > src/foo.txt
 (cd src && ln -s foo symlink)
 mkdir -p src/foo/bar
 echo another file > src/foo/bar/data.txt
+mkdir -p src/empty  # empty dir
 
 echo
 TREE=$("${JUST}" add-to-cas --local-build-root "${BUILD_ROOT_A}" src)
@@ -84,7 +85,7 @@ RECONSTRUCTED_TREE=$(jq -r '.repositories."".workspace_root[1]' "${CONF}")
 # Build to get the tree unconditionally known to the local build root
 "${JUST}" build --local-build-root "${BUILD_ROOT_B}" -C "${CONF}" 2>&1
 
-# - installing the the tree as archive should give the same fiel
+# - installing the tree as archive should give the same file
 "${JUST}" install-cas --local-build-root "${BUILD_ROOT_B}" \
           -o "${ROOT}/reconstructed.tar" --archive "${TREE}::t" 2>&1
 cmp "${ROOT}/src.tar" "${ROOT}/reconstructed.tar" 2>&1
