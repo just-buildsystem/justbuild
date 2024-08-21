@@ -9,6 +9,18 @@
   , "tainted": ["test"]
   , "target_fields": ["deps"]
   , "string_fields": ["stage"]
+  , "field_doc":
+    { "deps": ["The targets that suite is composed of."]
+    , "stage":
+      [ "The logical location this test suite is to be placed."
+      , "Individual entries will be joined with \"/\"."
+      ]
+    }
+  , "artifacts_doc":
+    [ "The disjoint union of the runfiles of the \"deps\" targets"
+    , "staged as the location given by \"stage\"."
+    ]
+  , "runfiles_doc": ["Same as artifacts."]
   , "imports":
     { "runfiles": ["", "field_runfiles"]
     , "list_provider": ["", "field_list_provider"]
