@@ -552,16 +552,29 @@ void withDependencies(
                   throw Evaluator::EvaluationError{
                       "either outs or out_dirs must be specified for ACTION"};
               }
+              ActionDescription::outputs_t outputs_norm{};
+              ActionDescription::outputs_t output_dirs_norm{};
+              outputs_norm.reserve(outputs.size());
+              output_dirs_norm.reserve(output_dirs.size());
+              std::for_each(
+                  outputs.begin(), outputs.end(), [&outputs_norm](auto p) {
+                      outputs_norm.emplace_back(ToNormalPath(p));
+                  });
+              std::for_each(output_dirs.begin(),
+                            output_dirs.end(),
+                            [&output_dirs_norm](auto p) {
+                                output_dirs_norm.emplace_back(ToNormalPath(p));
+                            });
 
-              sort_and_deduplicate(&outputs);
-              sort_and_deduplicate(&output_dirs);
+              sort_and_deduplicate(&outputs_norm);
+              sort_and_deduplicate(&output_dirs_norm);
 
               // find entries present on both fields
               std::vector<std::string> dups{};
-              std::set_intersection(outputs.begin(),
-                                    outputs.end(),
-                                    output_dirs.begin(),
-                                    output_dirs.end(),
+              std::set_intersection(outputs_norm.begin(),
+                                    outputs_norm.end(),
+                                    output_dirs_norm.begin(),
+                                    output_dirs_norm.end(),
                                     std::back_inserter(dups));
               if (not dups.empty()) {
                   throw Evaluator::EvaluationError{
@@ -691,8 +704,8 @@ void withDependencies(
                   }
               }
               auto action = BuildMaps::Target::Utils::createAction(
-                  outputs,
-                  output_dirs,
+                  outputs_norm,
+                  output_dirs_norm,
                   std::move(cmd),
                   env_exp,
                   may_fail,
@@ -706,12 +719,12 @@ void withDependencies(
               for (auto const& out : outputs) {
                   result.emplace(out,
                                  ExpressionPtr{ArtifactDescription{
-                                     action_id, std::filesystem::path{out}}});
+                                     action_id, ToNormalPath(out)}});
               }
               for (auto const& out : output_dirs) {
                   result.emplace(out,
                                  ExpressionPtr{ArtifactDescription{
-                                     action_id, std::filesystem::path{out}}});
+                                     action_id, ToNormalPath(out)}});
               }
 
               return ExpressionPtr{Expression::map_t{result}};
