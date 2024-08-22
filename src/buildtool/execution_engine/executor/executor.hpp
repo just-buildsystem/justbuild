@@ -559,7 +559,10 @@ class ExecutorImpl {
                     "action executed with missing outputs.\n"
                     " Action outputs should be the following artifacts:"};
                 for (auto const& output : output_files) {
-                    message += "\n  - " + output;
+                    message += "\n  - file: " + output;
+                }
+                for (auto const& output : output_dirs) {
+                    message += "\n  - dir: " + output;
                 }
                 return message;
             });
