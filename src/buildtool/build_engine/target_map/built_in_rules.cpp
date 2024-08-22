@@ -1106,7 +1106,7 @@ void GenericRuleWithDeps(
                               true);
                     return;
                 }
-                outs.emplace_back(x->String());
+                outs.emplace_back(ToNormalPath(x->String()).string());
             }
         }
     }
@@ -1137,7 +1137,7 @@ void GenericRuleWithDeps(
                         true);
                     return;
                 }
-                out_dirs.emplace_back(x->String());
+                out_dirs.emplace_back(ToNormalPath(x->String()).string());
             }
         }
     }
