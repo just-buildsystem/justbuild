@@ -97,4 +97,20 @@
   , "cmd": ["sh", "-c", "echo hello > ../hello.txt"]
   , "outs": ["../hello.txt"]
   }
+, "non-normal outs and out_dirs":
+  { "type": ["simple_rules", "action"]
+  , "cmd":
+    [ "sh"
+    , "-c"
+    , "mkdir -p install && echo Hello > install/data.txt && echo OK > log"
+    ]
+  , "outs": ["./log"]
+  , "out_dirs": ["install/."]
+  }
+, "generic non-normal outs and out_dirs":
+  { "type": "generic"
+  , "cmds": ["mkdir -P install", "echo Hello > install/data", "echo OK > log"]
+  , "outs": ["./log"]
+  , "out_dirs": ["install/."]
+  }
 }

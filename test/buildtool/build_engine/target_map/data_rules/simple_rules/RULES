@@ -195,13 +195,14 @@
     }
   }
 , "action":
-  { "string_fields": ["cmd", "outs"]
+  { "string_fields": ["cmd", "outs", "out_dirs"]
   , "expression":
     { "type": "RESULT"
     , "artifacts":
       { "type": "ACTION"
       , "cmd": {"type": "FIELD", "name": "cmd"}
       , "outs": {"type": "FIELD", "name": "outs"}
+      , "out_dirs": {"type": "FIELD", "name": "out_dirs"}
       }
     }
   }

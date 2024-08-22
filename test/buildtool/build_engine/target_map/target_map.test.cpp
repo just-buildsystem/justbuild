@@ -596,6 +596,68 @@ TEST_CASE("simple targets", "[target_map]") {
         CHECK(error);
         CHECK(error_msg != "NONE");
     }
+
+    SECTION("non-normal outs and out_dirs") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target = BuildMaps::Base::EntityName{"",
+                                                          "simple_targets",
+                                                          "non-normal outs and "
+                                                          "out_dirs"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        REQUIRE(result->Actions().size() == 1);
+        auto action = result->Actions()[0]->ToJson();
+        CHECK(action["output_dirs"] == R"(["install"])"_json);
+        CHECK(action["output"] == R"(["log"])"_json);
+    }
+
+    SECTION("generic non-normal outs and out_dirs") {
+        {
+            {
+                error_msg = "NONE";
+                error = false;
+                result = nullptr;
+
+                TaskSystem ts;
+                target_map.ConsumeAfterKeysReady(
+                    &ts,
+                    {BuildMaps::Target::ConfiguredTarget{
+                        .target =
+                            BuildMaps::Base::EntityName{"",
+                                                        "simple_targets",
+                                                        "generic non-normal "
+                                                        "outs and out_dirs"},
+                        .config = empty_config}},
+                    [&result](auto values) { result = *values[0]; },
+                    [&error, &error_msg](std::string const& msg,
+                                         bool /*unused*/) {
+                        error = true;
+                        error_msg = msg;
+                    });
+            }
+            CHECK(not error);
+            CHECK(error_msg == "NONE");
+            REQUIRE(result->Actions().size() == 1);
+            auto action = result->Actions()[0]->ToJson();
+            CHECK(action["output_dirs"] == R"(["install"])"_json);
+            CHECK(action["output"] == R"(["log"])"_json);
+        }
+    }
 }
 
 TEST_CASE("configuration deduplication", "[target_map]") {
