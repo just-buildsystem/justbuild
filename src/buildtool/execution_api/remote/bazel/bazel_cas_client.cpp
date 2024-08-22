@@ -489,6 +489,7 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
     return result;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& begin,
@@ -568,6 +569,29 @@ auto BazelCasClient::BatchUpdateBlobs(
             });
         return oss.str();
     });
+
+    auto missing = std::distance(begin, end) - result.size();
+    if (not result.empty() and missing > 0) {
+        // The remote execution protocol is a bit unclear about how to deal with
+        // blob updates for which we got no response. While some clients
+        // consider a blob update failed only if a failed response is received,
+        // we are going extra defensive here and also consider missing responses
+        // to be a failed blob update. Issue a retry for the missing blobs.
+        logger_.Emit(LogLevel::Trace, "Retrying with missing blobs");
+        auto received_digests =
+            std::unordered_set<bazel_re::Digest>{result.begin(), result.end()};
+        auto missing_blobs = std::vector<gsl::not_null<BazelBlob const*>>{};
+        missing_blobs.reserve(missing);
+        std::for_each(
+            begin, end, [&received_digests, &missing_blobs](auto const& blob) {
+                if (not received_digests.contains(blob->digest)) {
+                    missing_blobs.emplace_back(blob);
+                }
+            });
+        return result.size() + BatchUpdateBlobs(instance_name,
+                                                missing_blobs.begin(),
+                                                missing_blobs.end());
+    }
 
     return result.size();
 }
