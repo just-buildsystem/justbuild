@@ -87,7 +87,7 @@ auto RemoteExecutionConfig::Builder::Build() const noexcept
     for (auto const& property : platform_properties_raw_) {
         if (auto pair = ParseProperty(property)) {
             try {
-                platform_properties.insert(*std::move(pair));
+                platform_properties.insert_or_assign(pair->first, pair->second);
             } catch (std::exception const& e) {
                 return unexpected{fmt::format("Failed to insert property {}",
                                               nlohmann::json(property).dump())};
