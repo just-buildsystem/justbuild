@@ -1,4 +1,51 @@
-{ "targets":
+{ "defaults":
+  { "doc":
+    [ "A rule to provide default paths common to all lint targets."
+    , ""
+    , "While lint targets bring their own host directory via the"
+    , "field \"config\", it can still be necessary to bring some"
+    , "default paths, e.g., for finding the compiler, or the interpreter"
+    , "for the runner."
+    ]
+  , "string_fields": ["PATH"]
+  , "target_fields": ["base"]
+  , "field_doc":
+    { "base": ["Other targets to inherit values from."]
+    , "PATH":
+      [ "Paths for looking up system tools."
+      , "Specifying this field extends values from \"base\"."
+      ]
+    }
+  , "imports": {"base-provides-++": ["CC", "defaults-base-provides-++"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "PATH"
+        , { "type": "reverse"
+          , "$1":
+            { "type": "nub_right"
+            , "$1":
+              { "type": "reverse"
+              , "$1":
+                { "type": "++"
+                , "$1":
+                  [ {"type": "FIELD", "name": "PATH"}
+                  , { "type": "let*"
+                    , "bindings": [["provider", "PATH"]]
+                    , "body":
+                      {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      ]
+    , "body": {"type": "RESULT", "provides": {"type": "env", "vars": ["PATH"]}}
+    }
+  }
+, "targets":
   { "doc":
     [ "Run a given linter on the lint information provided by the given targets."
     ]
@@ -41,7 +88,11 @@
     , "call_lint": ["Launcher for the linter"]
     , "call_summary": ["Launcher for the summarizer"]
     }
-  , "implicit": {"call_lint": ["call_lint"], "call_summary": ["call_summary"]}
+  , "implicit":
+    { "defaults": ["defaults"]
+    , "call_lint": ["call_lint"]
+    , "call_summary": ["call_summary"]
+    }
   , "config_transitions":
     {"targets": [{"type": "singleton_map", "key": "LINT", "value": true}]}
   , "anonymous":
@@ -49,6 +100,7 @@
   , "imports":
     { "stage": ["", "stage_singleton_field"]
     , "artifacts": ["", "field_artifacts"]
+    , "default-PATH": ["CC", "default-PATH"]
     }
   , "expression":
     { "type": "let*"
@@ -69,6 +121,12 @@
         , { "type": "let*"
           , "bindings": [["fieldname", "config"]]
           , "body": {"type": "CALL_EXPRESSION", "name": "artifacts"}
+          }
+        ]
+      , [ "PATH"
+        , { "type": "join"
+          , "separator": ":"
+          , "$1": {"type": "CALL_EXPRESSION", "name": "default-PATH"}
           }
         ]
       , [ "lint results"
@@ -121,6 +179,7 @@
                     , {"type": "var", "name": "cmd"}
                     ]
                   }
+                , "env": {"type": "env", "vars": ["PATH"]}
                 , "outs": ["stdout", "stderr", "result"]
                 , "out_dirs": ["out"]
                 , "may_fail": ["lint"]
