@@ -21,10 +21,13 @@ import subprocess
 import sys
 import tempfile
 import time
+import zlib
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
 
 from argparse import ArgumentParser
 from pathlib import Path
+
+from enum import Enum
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -126,6 +129,13 @@ DEFAULT_CONFIG_LOCATIONS: List[Json] = [{
 }]
 
 
+class ObjectType(Enum):
+    FILE = 1
+    EXEC = 2
+    LINK = 3
+    DIR = 4
+
+
 def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
@@ -212,12 +222,13 @@ def git_keep(commit: str, *, upstream: Optional[str]) -> None:
         # for those, we assume the referenced commit is kept by
         # some branch anyway
         return
+    git_env = {**os.environ, **GIT_NOBODY_ENV}
     run_cmd([
         "git", "tag", "-f", "-m", "Keep referenced tree alive",
         "keep-%s" % (commit, ), commit
     ],
             cwd=git_root(upstream=upstream),
-            env=dict(os.environ, **GIT_NOBODY_ENV),
+            env=git_env,
             attempts=3)
 
 
@@ -327,18 +338,19 @@ def update_git(desc: Json) -> None:
     desc["commit"] = lsremote.decode('utf-8').split('\t')[0]
 
 
-def git_hash(content: bytes) -> str:
-    header = "blob {}\0".format(len(content)).encode('utf-8')
+def git_hash(content: bytes, type: str = "blob") -> Tuple[str, bytes]:
+    # Returns the git hash of the object, as well as the header to be stored
+    header = "{} {}\0".format(type, len(content)).encode('utf-8')
     h = hashlib.sha1()
     h.update(header)
     h.update(content)
-    return h.hexdigest()
+    return h.hexdigest(), header
 
 
 def add_to_cas(data: Union[str, bytes]) -> str:
     if isinstance(data, str):
         data = data.encode('utf-8')
-    h = git_hash(data)
+    h, _ = git_hash(data)
     cas_root = os.path.join(
         g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
     basename = h[2:]
@@ -393,8 +405,8 @@ def archive_tmp_checkout_dir(content: str, repo_type: str) -> str:
 
 
 def archive_tree_id_file(content: str, repo_type: str) -> str:
-    return os.path.join(g_ROOT, "repositories/generation-0/tree-map",
-                        repo_type, content)
+    return os.path.join(g_ROOT, "repositories/generation-0/tree-map", repo_type,
+                        content)
 
 
 def get_distfile(desc: Json) -> str:
@@ -484,33 +496,140 @@ def archive_checkout(desc: Json, repo_type: str = "archive") -> List[str]:
     ]
 
 
+def import_tmp_dir(content: str) -> str:
+    return os.path.join(g_ROOT, "tmp-workspaces", "import",
+                        "%d-%s" % (os.getpid(), content))
+
+
+def type_to_perm(obj_type: ObjectType) -> str:
+    if obj_type == ObjectType.DIR:
+        return "40000"
+    elif obj_type == ObjectType.LINK:
+        return "120000"
+    elif obj_type == ObjectType.EXEC:
+        return "100755"
+    else:  # obj_type == ObjectType.FILE
+        return "100644"
+
+
+def write_blob_to_repo(repo_root: str, data: bytes) -> bytes:
+    # Get blob hash and header to be stored
+    h, header = git_hash(data, type="blob")
+
+    # Write repository object
+    obj_dir = "{}/.git/objects/{}".format(repo_root, h[0:2])
+    obj_file = "{}/{}".format(obj_dir, h[2:])
+    os.makedirs(obj_dir, exist_ok=True)
+    with open(obj_file, "wb") as f:
+        f.write(zlib.compress(header + data))
+
+    return bytes.fromhex(h)  # raw id
+
+
+def write_tree_to_repo(repo_root: str,
+                       entries: Dict[str, Tuple[bytes, ObjectType]]) -> bytes:
+    # Tree entries have as key their filename and as value a tuple of raw id and
+    # object type. They must be sorted by filename.
+    tree_content: bytes = b""
+    for fname, entry in sorted(entries.items()):
+        if entry[1] == ObjectType.DIR:
+            fname = fname[:-1]  # remove trailing '/'
+        tree_content += "{} {}\0".format(type_to_perm(entry[1]),
+                                         fname).encode('utf-8') + entry[0]
+
+    # Get tree hash and header to be stored
+    h, header = git_hash(tree_content, type="tree")
+
+    # Write repository object
+    obj_dir = "{}/.git/objects/{}".format(repo_root, h[0:2])
+    obj_file = "{}/{}".format(obj_dir, h[2:])
+    os.makedirs(obj_dir, exist_ok=True)
+    with open(obj_file, "wb") as f:
+        f.write(zlib.compress(header + tree_content))
+
+    return bytes.fromhex(h)  # raw id
+
+
+def path_to_type(fpath: str) -> ObjectType:
+    if os.path.islink(fpath):
+        return ObjectType.LINK
+    elif os.path.isdir(fpath):
+        return ObjectType.DIR
+    else:
+        if os.access(fpath, os.X_OK):
+            return ObjectType.EXEC
+        else:
+            return ObjectType.FILE
+
+
+def get_tree_raw_id(source_dir: str, repo_root: str) -> bytes:
+    # Writes the content of the directory recursively to the repository and
+    # returns its sha1 hash and its raw bytes representation
+    entries: Dict[str, Tuple[bytes, ObjectType]] = {}
+    for fname in os.listdir(source_dir):
+        fpath = source_dir + "/" + fname
+        obj_type = path_to_type(fpath)
+        raw_h: bytes = b""
+        if obj_type == ObjectType.DIR:
+            raw_h = get_tree_raw_id(fpath, repo_root)
+            fname = fname + '/'  # trailing '/' added for correct sorting
+        elif obj_type == ObjectType.LINK:
+            data = os.readlink(fpath).encode('utf-8')
+            raw_h = write_blob_to_repo(repo_root, data)
+        else:
+            with open(fpath, "rb") as f:
+                data = f.read()
+                raw_h = write_blob_to_repo(repo_root, data)
+        # Add entry to map
+        entries[fname] = (raw_h, obj_type)
+
+    return write_tree_to_repo(repo_root, entries)
+
+
 def import_to_git(target: str, repo_type: str, content_id: str) -> str:
+    # In order to import content that might otherwise be ignored by Git, such
+    # as empty directories or magic-named files and folders (e.g., .git,
+    # .gitignore), add entries manually to the repository, which should be in
+    # its own separate location
+    repo_tmp_dir = import_tmp_dir(content_id)
+    if os.path.exists(repo_tmp_dir):
+        try_rmtree(repo_tmp_dir)
+    os.makedirs(repo_tmp_dir)
+
+    # Initialize repo to have access to its storage
+    git_env = {**os.environ, **GIT_NOBODY_ENV}
     run_cmd(
         ["git", "init"],
-        cwd=target,
-        env=dict(os.environ, **GIT_NOBODY_ENV),
-    )
-    run_cmd(
-        ["git", "add", "-f", "."],
-        cwd=target,
-        env=dict(os.environ, **GIT_NOBODY_ENV),
-    )
-    run_cmd(
-        ["git", "commit", "-m",
-         "Content of %s %r" % (repo_type, content_id)],
-        cwd=target,
-        env=dict(os.environ, **GIT_NOBODY_ENV),
+        cwd=repo_tmp_dir,
+        env=git_env,
     )
 
+    # Get tree id of added directory
+    tree_id: str = get_tree_raw_id(target, repo_tmp_dir).hex()
+
+    # Commit the tree
+    commit: str = subprocess.run(
+        [
+            "git", "commit-tree", tree_id, "-m",
+            "Content of %s %r" % (repo_type, content_id)
+        ],
+        stdout=subprocess.PIPE,
+        cwd=repo_tmp_dir,
+        env=git_env,
+    ).stdout.decode('utf-8').strip()
+
+    # Update the HEAD to make the tree fetchable
+    run_cmd(
+        ["git", "update-ref", "HEAD", commit],
+        cwd=repo_tmp_dir,
+        env=git_env,
+    )
+
+    # Fetch commit into Git cache repository and tag it
     ensure_git(upstream=None)
-    run_cmd(["git", "fetch", target], cwd=git_root(upstream=None))
-    commit = subprocess.run(["git", "log", "-n", "1", "--format=%H"],
-                            stdout=subprocess.PIPE,
-                            cwd=target).stdout.decode('utf-8').strip()
+    run_cmd(["git", "fetch", repo_tmp_dir], cwd=git_root(upstream=None))
     git_keep(commit, upstream=None)
-    return subprocess.run(["git", "log", "-n", "1", "--format=%T"],
-                          stdout=subprocess.PIPE,
-                          cwd=target).stdout.decode('utf-8').strip()
+    return tree_id
 
 
 def file_as_git(fpath: str) -> List[str]:
@@ -604,7 +723,7 @@ def distdir_checkout(desc: Json, repos: Json):
             content[get_distfile(repo_desc)] = content_id
 
     # Hash the map as unique id for the distdir repo entry
-    distdir_content_id = git_hash(
+    distdir_content_id, _ = git_hash(
         json.dumps(content, sort_keys=True,
                    separators=(',', ':')).encode('utf-8'))
     target_distdir_dir = distdir_repo_dir(distdir_content_id)
