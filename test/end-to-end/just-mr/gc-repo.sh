@@ -161,7 +161,7 @@ cat repos.json
 
 # Set up repos. This should get everything in the local build root.
 "${JUST_MR}" --local-build-root "${LBR}" --git "${BIN}/mock-git" \
-             --distdir "${DISTDIR}" \
+             --distdir "${DISTDIR}" -L '["env", "PATH='"${PATH}"'"]' \
    setup  > "${OUT}/conf-file-name" 2> "${LOG}/log-1"
 cat "${LOG}/log-1"
 echo
@@ -208,7 +208,7 @@ rm -f "${BIN}/mock-foreign-vcs"
 [ -e "${GIT_TREE_LOCATION}" ] && exit 1 || :
 
 # Setup repos again
-"${JUST_MR}" --local-build-root "${LBR}" \
+"${JUST_MR}" --local-build-root "${LBR}" -L '["env", "PATH='"${PATH}"'"]' \
     setup  > "${OUT}/conf-file-name" 2> "${LOG}/log-2"
 cat "${LOG}/log-2"
 echo
