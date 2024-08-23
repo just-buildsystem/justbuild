@@ -1387,13 +1387,21 @@ void GenericRuleWithDeps(
                     action_identifier, std::filesystem::path{path})});
         }
     }
+    auto artifacts_stage = ExpressionPtr{Expression::map_t{artifacts}};
+    auto artifacts_conflict =
+        BuildMaps::Target::Utils::tree_conflict(artifacts_stage);
+    if (artifacts_conflict) {
+        (*logger)(fmt::format("artifacts have staging conflicts on {}",
+                              nlohmann::json(*artifacts_conflict).dump()),
+                  /*fatal=*/true);
+        return;
+    }
 
     auto const& empty_map = Expression::kEmptyMap;
     auto result = std::make_shared<AnalysedTarget const>(
-        TargetResult{
-            .artifact_stage = ExpressionPtr{Expression::map_t{artifacts}},
-            .provides = empty_map,
-            .runfiles = empty_map},
+        TargetResult{.artifact_stage = std::move(artifacts_stage),
+                     .provides = empty_map,
+                     .runfiles = empty_map},
         std::vector<ActionDescription::Ptr>{action},
         std::vector<std::string>{},
         std::move(trees),

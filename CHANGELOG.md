@@ -26,6 +26,9 @@ A feature release on top of `1.3.0`, backwards compatible.
 
 ### Fixes
 
+- The built-in rule `"generic"` now properly enforces that the
+  obtained outputs form a well-formed artifact stage; a conflicting
+  arrangement of artifacts was possilbe beforehand.
 - A bug was fixed that cased `just serve` to fail with an internal
   error when building against ignore-special roots.
 - `just` now accurately reports internal errors that occurred on
