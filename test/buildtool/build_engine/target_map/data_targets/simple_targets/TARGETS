@@ -113,4 +113,16 @@
   , "outs": ["./log"]
   , "out_dirs": ["install/."]
   }
+, "stage conflict: rule":
+  { "type": ["simple_rules", "action"]
+  , "cmd": ["sh", "-c", "mkdir -p install && echo Hello > install/data.txt"]
+  , "outs": ["./install/data.txt"]
+  , "out_dirs": ["install/."]
+  }
+, "stage conflict: generic":
+  { "type": "generic"
+  , "cmds": ["mkdir -p install && echo Hello > install/data.txt"]
+  , "outs": ["./install/data.txt"]
+  , "out_dirs": ["install/."]
+  }
 }

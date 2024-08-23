@@ -658,6 +658,58 @@ TEST_CASE("simple targets", "[target_map]") {
             CHECK(action["output"] == R"(["log"])"_json);
         }
     }
+
+    SECTION("staging conflict: rule") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "stage conflict: rule"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(error);
+        CHECK(error_msg != "NONE");
+        CHECK(error_msg.find("artifacts") != std::string::npos);
+        CHECK(error_msg.find("install") != std::string::npos);
+    }
+
+    SECTION("staging conflict: generic") {
+        {
+            error_msg = "NONE";
+            error = false;
+            result = nullptr;
+
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "simple_targets", "stage conflict: generic"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(error);
+        CHECK(error_msg != "NONE");
+        CHECK(error_msg.find("artifacts") != std::string::npos);
+        CHECK(error_msg.find("install") != std::string::npos);
+    }
 }
 
 TEST_CASE("configuration deduplication", "[target_map]") {
