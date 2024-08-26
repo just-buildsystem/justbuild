@@ -19,9 +19,56 @@ on the open-source project [fmtlib](https://github.com/fmtlib/fmt).
 The debugging process
 ---------------------
 
-The `TARGETS` file currently contains only the release version of our
-*hello-world* program, so we firstly need to add a new target, configured in
-debug mode.
+The first step is to define a set of debugging defaults (toolchain and compile
+flags) for our example project. This can be done by extending the existing
+`tutorial-defaults/CC/TARGETS` file as
+
+``` {.jsonc srcname="tutorial-defaults/CC/TARGETS"}
+{ "defaults":
+  { "type": ["CC", "defaults"]
+  , "arguments_config": ["DEBUG"]
+  , "CC": ["cc"]
+  , "CXX": ["c++"]
+  , "CFLAGS":
+    { "type": "++"
+    , "$1":
+      [ ["-O2", "-Wall"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DEBUG"}
+        , "then": ["-g"]
+        }
+      ]
+    }
+  , "CXXFLAGS":
+    { "type": "++"
+    , "$1":
+      [ ["-O2", "-Wall"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "DEBUG"}
+        , "then": ["-g"]
+        }
+      ]
+    }
+  , "AR": ["ar"]
+  , "PATH": ["/bin", "/usr/bin"]
+  }
+}
+```
+
+This states that when the `DEBUG` configuration argument is set, the C/C++ flags
+should contain `-g` to generate debug information for `gdb(1)`. As this updated
+`TARGETS` file is under version control, we need to commit the changes:
+
+``` sh
+$ git add tutorial-defaults
+$ git commit -m "update compile flags for debugging"
+[master baabec7] update compile flags for debugging
+ 1 file changed, 21 insertions(+), 2 deletions(-)
+```
+
+Now we need to configure the actual target we want to debug. The `TARGETS` file
+of our *hello-world* program currently contains only the release version, so we
+need to add a new target, configured in debug mode.
 
 ``` {.jsonc srcname="TARGETS"}
 ...
@@ -38,9 +85,9 @@ debug mode.
 ```
 
 This describes the debug version of *hello-world*, configured by setting the
-`"DEBUG"` flag; this also instructs the toolchain, which honors the `"DEBUG"`
-flag, to compile all actions with the `"-g"` flag in order to generate debug
-information for `gdb(1)`.
+`"DEBUG"` flag, which in turn will instruct the updated toolchain defaults,
+which now honor the `"DEBUG"` argument, to compile all actions with the `"-g"`
+flag.
 
 To actually collect the artifacts needed to run the debugger, we use the
 `["CC", "install-with-deps"]` rule, contained in the `rules-cc` repository.
