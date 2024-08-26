@@ -19,6 +19,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
@@ -28,7 +29,9 @@ auto LocalAC<kDoGlobalUplink>::StoreResult(
     bazel_re::Digest const& action_id,
     bazel_re::ActionResult const& result) const noexcept -> bool {
     auto const cas_key = WriteAction(result);
-    return cas_key.has_value() and WriteActionKey(action_id, *cas_key);
+    return cas_key.has_value() and
+           WriteActionKey(static_cast<ArtifactDigest>(action_id),
+                          static_cast<ArtifactDigest>(*cas_key));
 }
 
 template <bool kDoGlobalUplink>
@@ -117,10 +120,10 @@ requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
 
 template <bool kDoGlobalUplink>
 auto LocalAC<kDoGlobalUplink>::WriteActionKey(
-    bazel_re::Digest const& action_id,
-    bazel_re::Digest const& cas_key) const noexcept -> bool {
-    return file_store_.AddFromBytes(NativeSupport::Unprefix(action_id.hash()),
-                                    cas_key.SerializeAsString());
+    ArtifactDigest const& action_id,
+    ArtifactDigest const& cas_key) const noexcept -> bool {
+    nlohmann::json const content = {cas_key.hash(), cas_key.size()};
+    return file_store_.AddFromBytes(action_id.hash(), content.dump());
 }
 
 template <bool kDoGlobalUplink>
@@ -141,13 +144,18 @@ auto LocalAC<kDoGlobalUplink>::ReadActionKey(bazel_re::Digest const& action_id)
             fmt::format("Cache miss, entry not found {}", key_path.string())};
     }
 
-    bazel_re::Digest action_key{};
-    if (not action_key.ParseFromString(*key_content)) {
+    std::optional<bazel_re::Digest> action_key;
+    try {
+        nlohmann::json j = nlohmann::json::parse(*key_content);
+        action_key = ArtifactDigest{j[0].template get<std::string>(),
+                                    j[1].template get<std::size_t>(),
+                                    /*is_tree=*/false};
+    } catch (...) {
         return unexpected{
             fmt::format("Parsing cache entry failed for action {}",
                         NativeSupport::Unprefix(action_id.hash()))};
     }
-    return std::move(action_key);
+    return *std::move(action_key);
 }
 
 template <bool kDoGlobalUplink>

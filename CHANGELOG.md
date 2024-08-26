@@ -57,6 +57,9 @@ A feature release on top of `1.3.0`, backwards compatible.
 - The size of large object entries has been reduced. The cache and
   CAS must be cleaned up since stable versions before `1.4.0` cannot use
   the new format.
+- The way of storing intermediate keys of the action cache has been changed. 
+  The cache must be cleaned up since stable versions before `1.4.0` cannot 
+  use the new format.
 - Various improvements to the tests: dispatching of the summary
   action is now possible, tests are independent of a .just-mrrc
   file the user might have in their home directory

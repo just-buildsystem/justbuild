@@ -20,6 +20,7 @@
 #include <string>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -104,8 +105,8 @@ class LocalAC {
     /// \param cas_key The key pointing at an ActionResult in the LocalCAS.
     /// \return True if an entry was successfully added to the storage.
     [[nodiscard]] auto WriteActionKey(
-        bazel_re::Digest const& action_id,
-        bazel_re::Digest const& cas_key) const noexcept -> bool;
+        ArtifactDigest const& action_id,
+        ArtifactDigest const& cas_key) const noexcept -> bool;
 
     /// \brief Get the key pointing at an ActionResult in the LocalCAS.
     /// \param action_id The id of the action that produced the result.
