@@ -592,6 +592,20 @@ auto BazelCasClient::BatchUpdateBlobs(
                                                 missing_blobs.begin(),
                                                 missing_blobs.end());
     }
+    if (result.empty() and missing > 0) {
+        // The batch upload did not make _any_ progress. So there is no value in
+        // trying that again; instead, we fall back to uploading each blob
+        // sequentially.
+        logger_.Emit(LogLevel::Debug, "Falling back to sequential blob upload");
+        std::size_t count = 0;
+        std::for_each(
+            begin, end, [this, &count, &instance_name](auto const& blob) {
+                if (UpdateSingleBlob(instance_name, *blob)) {
+                    count += 1;
+                }
+            });
+        return count;
+    }
 
     return result.size();
 }
