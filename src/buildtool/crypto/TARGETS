@@ -24,4 +24,18 @@
     ]
   , "stage": ["src", "buildtool", "crypto"]
   }
+, "hash_info":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["hash_info"]
+  , "hdrs": ["hash_info.hpp"]
+  , "srcs": ["hash_info.cpp"]
+  , "deps": ["hash_function", ["src/utils/cpp", "expected"]]
+  , "private-deps":
+    [ "hasher"
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "fmt", "", "fmt"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
+  , "stage": ["src", "buildtool", "crypto"]
+  }
 }
