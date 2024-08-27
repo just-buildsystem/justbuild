@@ -74,6 +74,24 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
     }
 
+    SECTION("Small blob with wrong digest") {
+        std::string instance_name{"remote-execution"};
+        std::string content("foobar");
+        std::string other_content("This is a differnt string");
+
+        // Valid digest, but for a different string
+        auto digest = static_cast<bazel_re::Digest>(
+            ArtifactDigest::Create<ObjectType::File>(hash_function,
+                                                     other_content));
+
+        CHECK(not stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
+                                           instance_name,
+                                           uuid,
+                                           digest.hash(),
+                                           digest.size_bytes()),
+                               content));
+    }
+
     SECTION("Upload large blob") {
         std::string instance_name{"remote-execution"};
 
