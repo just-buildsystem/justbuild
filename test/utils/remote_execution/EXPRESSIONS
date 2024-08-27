@@ -1,0 +1,226 @@
+{ "run_test":
+  { "doc":
+    [ "Build and run a CC test binary using the provided runner"
+    , "that is expected to also generate remotestdout and remotestderr."
+    ]
+  , "vars":
+    [ "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "ARCH_DISPATCH"
+    , "TEST_SUMMARY_EXECUTION_PROPERTIES"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "TEST_ENV"
+    , "TIMEOUT_SCALE"
+    , "CC_TEST_LAUNCHER"
+    , "RUNS_PER_TEST"
+    , "name"
+    , "pure C"
+    , "stage"
+    , "srcs"
+    , "private-hdrs"
+    , "private-defines"
+    , "private-cflags"
+    , "private-ldflags"
+    , "defaults-transition"
+    , "deps-transition"
+    , "deps-fieldnames"
+    , "runner"
+    , "runner-data"
+    , "test-args"
+    , "test-data"
+    , "summarizer"
+    , "summary artifacts"
+    , "LINT"
+    ]
+  , "imports":
+    { "artifacts": ["@", "rules", "", "field_artifacts"]
+    , "runfiles": ["@", "rules", "", "field_runfiles"]
+    , "compile-deps": ["@", "rules", "CC", "compile-deps"]
+    , "compile-args-deps": ["@", "rules", "CC", "compile-args-deps"]
+    , "link-deps": ["@", "rules", "CC", "link-deps"]
+    , "link-args-deps": ["@", "rules", "CC", "link-args-deps"]
+    , "cflags-files-deps": ["@", "rules", "CC", "cflags-files-deps"]
+    , "ldflags-files-deps": ["@", "rules", "CC", "ldflags-files-deps"]
+    , "binary": ["@", "rules", "CC", "bin artifact"]
+    , "host transition": ["@", "rules", "transitions", "for host"]
+    , "target properties": ["@", "rules", "transitions", "target properties"]
+    , "stage": ["@", "rules", "", "stage_singleton_field"]
+    , "lint": ["@", "rules", "CC", "lint information"]
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "cflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "cflags-files-deps"}
+        ]
+      , ["compile-deps", {"type": "CALL_EXPRESSION", "name": "compile-deps"}]
+      , [ "compile-args"
+        , { "type": "++"
+          , "$1":
+            [ { "type": "foreach"
+              , "var": "def"
+              , "range":
+                {"type": "var", "name": "private-defines", "default": []}
+              , "body":
+                {"type": "join", "$1": ["-D", {"type": "var", "name": "def"}]}
+              }
+            , {"type": "var", "name": "private-cflags", "default": []}
+            , {"type": "CALL_EXPRESSION", "name": "compile-args-deps"}
+            ]
+          }
+        ]
+      , [ "ldflags-files"
+        , {"type": "CALL_EXPRESSION", "name": "ldflags-files-deps"}
+        ]
+      , ["link-deps", {"type": "CALL_EXPRESSION", "name": "link-deps"}]
+      , [ "link-args"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "CALL_EXPRESSION", "name": "link-args-deps"}
+            , {"type": "var", "name": "private-ldflags", "default": []}
+            ]
+          }
+        ]
+      , ["binary", {"type": "CALL_EXPRESSION", "name": "binary"}]
+      , [ "lint"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "LINT"}
+          , "then":
+            { "type": "let*"
+            , "bindings":
+              [ ["hdrs", {"type": "empty_map"}]
+              , [ "lint-deps fieldnames"
+                , ["private-hdrs", "srcs", "private-deps"]
+                ]
+              ]
+            , "body": {"type": "CALL_EXPRESSION", "name": "lint"}
+            }
+          }
+        ]
+      , [ "staged test binary"
+        , { "type": "map_union"
+          , "$1":
+            { "type": "foreach_map"
+            , "range": {"type": "var", "name": "binary"}
+            , "var_val": "binary"
+            , "body":
+              { "type": "singleton_map"
+              , "key": "test"
+              , "value": {"type": "var", "name": "binary"}
+              }
+            }
+          }
+        ]
+      , [ "test-args"
+        , { "type": "singleton_map"
+          , "key": "test-args.json"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "json_encode"
+              , "$1": {"type": "var", "name": "test-args", "default": []}
+              }
+            }
+          }
+        ]
+      , [ "test-launcher"
+        , { "type": "singleton_map"
+          , "key": "test-launcher.json"
+          , "value":
+            { "type": "BLOB"
+            , "data":
+              { "type": "json_encode"
+              , "$1":
+                {"type": "var", "name": "CC_TEST_LAUNCHER", "default": []}
+              }
+            }
+          }
+        ]
+      , [ "test-name"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1":
+            [{"type": "var", "name": "stage"}, {"type": "var", "name": "name"}]
+          }
+        ]
+      , [ "test input"
+        , { "type": "map_union"
+          , "$1":
+            [ { "type": "to_subdir"
+              , "subdir": "work"
+              , "$1": {"type": "var", "name": "test-data"}
+              }
+            , {"type": "var", "name": "runner"}
+            , { "type": "var"
+              , "name": "runner-data"
+              , "default": {"type": "empty_map"}
+              }
+            , {"type": "var", "name": "test-args"}
+            , {"type": "var", "name": "test-launcher"}
+            , {"type": "var", "name": "staged test binary"}
+            ]
+          }
+        ]
+      , [ "target properties"
+        , {"type": "CALL_EXPRESSION", "name": "target properties"}
+        ]
+      ]
+    , "body":
+      { "type": "let*"
+      , "bindings":
+        [ [ "test-results"
+          , { "type": "ACTION"
+            , "outs":
+              [ "result"
+              , "stdout"
+              , "stderr"
+              , "remotestdout"
+              , "remotestderr"
+              , "time-start"
+              , "time-stop"
+              , "pwd"
+              ]
+            , "inputs": {"type": "var", "name": "test input"}
+            , "cmd": ["./runner"]
+            , "env":
+              { "type": "var"
+              , "name": "TEST_ENV"
+              , "default": {"type": "empty_map"}
+              }
+            , "may_fail": ["test"]
+            , "fail_message":
+              { "type": "join"
+              , "$1":
+                ["CC test ", {"type": "var", "name": "test-name"}, " failed"]
+              }
+            , "timeout scaling":
+              {"type": "var", "name": "TIMEOUT_SCALE", "default": 1.0}
+            , "execution properties":
+              {"type": "var", "name": "target properties"}
+            }
+          ]
+        , [ "runfiles"
+          , { "type": "singleton_map"
+            , "key": {"type": "var", "name": "name"}
+            , "value":
+              {"type": "TREE", "$1": {"type": "var", "name": "test-results"}}
+            }
+          ]
+        ]
+      , "body":
+        { "type": "RESULT"
+        , "artifacts": {"type": "var", "name": "test-results"}
+        , "runfiles": {"type": "var", "name": "runfiles"}
+        , "provides": {"type": "env", "vars": ["lint"]}
+        }
+      }
+    }
+  }
+}

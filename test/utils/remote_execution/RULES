@@ -116,7 +116,7 @@
     , "runfiles": ["@", "rules", "", "field_runfiles"]
     , "host transition": ["@", "rules", "transitions", "for host"]
     , "stage": ["@", "rules", "", "stage_singleton_field"]
-    , "run_test": ["@", "rules", "CC/test", "run_test"]
+    , "run_test": "run_test"
     }
   , "config_transitions":
     { "defaults": [{"type": "CALL_EXPRESSION", "name": "host transition"}]
