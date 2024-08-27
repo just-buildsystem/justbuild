@@ -157,21 +157,33 @@ auto BytestreamServiceImpl::Write(
         } while (not request.finish_write() and reader->Read(&request));
     }
 
+    // Store blob and verify hash
+    std::optional<bazel_re::Digest> stored;
     if (NativeSupport::IsTree(*hash)) {
-        if (not storage_.CAS().StoreTree</*kOwner=*/true>(tmp)) {
-            auto str = fmt::format("could not store tree {}", *hash);
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
-        }
+        stored = storage_.CAS().StoreTree</*kOwner=*/true>(tmp);
     }
     else {
-        if (not storage_.CAS().StoreBlob</*kOwner=*/true>(
-                tmp, /*is_executable=*/false)) {
-            auto str = fmt::format("could not store blob {}", *hash);
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
-        }
+        stored = storage_.CAS().StoreBlob</*kOwner=*/true>(
+            tmp, /*is_executable=*/false);
     }
+
+    if (not stored) {
+        // This is a serious problem: we have a sequence of bytes, but cannot
+        // write them to CAS.
+        auto str = fmt::format("Failed to store object {}", *hash);
+        logger_.Emit(LogLevel::Error, "{}", str);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, str};
+    }
+
+    if (stored->hash() != *hash) {
+        // User error: did not get a file with the announced hash
+        auto str = fmt::format("In upload for {} received object with hash {}",
+                               *hash,
+                               stored->hash());
+        logger_.Emit(LogLevel::Error, "{}", str);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
+
     response->set_committed_size(
         static_cast<google::protobuf::int64>(std::filesystem::file_size(tmp)));
     return ::grpc::Status::OK;
