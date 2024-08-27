@@ -112,10 +112,12 @@
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/common", "bytestream-common"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "verify_hash"]
+    , "cas_utils"
     ]
   }
 , "capabilities_server":

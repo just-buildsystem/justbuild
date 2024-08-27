@@ -22,6 +22,8 @@
 #include "fmt/core.h"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
+#include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -157,9 +159,31 @@ auto BytestreamServiceImpl::Write(
         } while (not request.finish_write() and reader->Read(&request));
     }
 
+    // Before storing a tree, we have to verify that its parts are present
+    bool const is_tree = NativeSupport::IsTree(*hash);
+    if (is_tree) {
+        // ... unfortunately, this requires us to read the whole tree object
+        // into memory
+        auto content = FileSystemManager::ReadFile(tmp);
+        if (not content) {
+            auto const msg = fmt::format(
+                "Failed to read temporary file {} for {}", tmp.string(), *hash);
+            logger_.Emit(LogLevel::Error, "{}", msg);
+            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+        }
+
+        ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
+        if (auto err = CASUtils::EnsureTreeInvariant(
+                static_cast<bazel_re::Digest>(dgst), *content, storage_)) {
+            auto const str = fmt::format("Write: {}", *std::move(err));
+            logger_.Emit(LogLevel::Error, "{}", str);
+            return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, str};
+        }
+    }
+
     // Store blob and verify hash
     std::optional<bazel_re::Digest> stored;
-    if (NativeSupport::IsTree(*hash)) {
+    if (is_tree) {
         stored = storage_.CAS().StoreTree</*kOwner=*/true>(tmp);
     }
     else {
