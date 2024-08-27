@@ -72,7 +72,9 @@ auto WithRetry(CallableReturningGrpcStatus const& f,
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
             status = f();
             if (status.ok() or
-                status.error_code() != grpc::StatusCode::UNAVAILABLE) {
+                ((status.error_code() != grpc::StatusCode::UNAVAILABLE) and
+                 (status.error_code() !=
+                  grpc::StatusCode::DEADLINE_EXCEEDED))) {
                 return {status.ok(), std::move(status)};
             }
             // don't wait if it was the last attempt
