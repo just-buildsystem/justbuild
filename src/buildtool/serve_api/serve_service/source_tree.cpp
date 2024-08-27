@@ -360,7 +360,7 @@ auto SourceTreeService::ResolveContentTree(
                 return ::grpc::Status::OK;
             }
         }
-        ResolvedGitObject resolved_tree{};
+        std::optional<ResolvedGitObject> resolved_tree = std::nullopt;
         bool failed{false};
         {
             TaskSystem ts{serve_config_.jobs};
@@ -388,16 +388,21 @@ auto SourceTreeService::ResolveContentTree(
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
-        // check for cycles
-        if (auto error = DetectAndReportCycle(
-                fmt::format("resolving Git tree {}", tree_id),
-                resolve_symlinks_map_,
-                kGitObjectToResolvePrinter)) {
+        // check if we have a value
+        if (not resolved_tree) {
+            // check for cycles
+            if (auto error = DetectAndReportCycle(
+                    fmt::format("resolving symlinks in tree {}", tree_id),
+                    resolve_symlinks_map_,
+                    kGitObjectToResolvePrinter)) {
+                logger_->Emit(LogLevel::Error, *error);
+                response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
+                return ::grpc::Status::OK;
+            }
             logger_->Emit(LogLevel::Error,
-                          "Failed to resolve symlinks in tree {}:\n{}",
-                          tree_id,
-                          *error);
-            response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
+                          "Unknown error while resolving tree id {}",
+                          tree_id);
+            response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
         // keep tree alive in the Git cache via a tagged commit
@@ -408,7 +413,7 @@ auto SourceTreeService::ResolveContentTree(
                 if (fatal) {
                     logger->Emit(LogLevel::Error,
                                  "While keeping tree {} in repository {}:\n{}",
-                                 resolved_tree.id,
+                                 resolved_tree->id,
                                  storage_config->GitRoot().string(),
                                  msg);
                 }
@@ -426,7 +431,7 @@ auto SourceTreeService::ResolveContentTree(
                 return ::grpc::Status::OK;
             }
             // Important: message must be consistent with just-mr!
-            if (not git_repo->KeepTree(resolved_tree.id,
+            if (not git_repo->KeepTree(resolved_tree->id,
                                        "Keep referenced tree alive",  // message
                                        wrapped_logger)) {
                 response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
@@ -434,14 +439,15 @@ auto SourceTreeService::ResolveContentTree(
             }
         }
         // cache the resolved tree association
-        if (not StorageUtils::WriteTreeIDFile(tree_id_file, resolved_tree.id)) {
+        if (not StorageUtils::WriteTreeIDFile(tree_id_file,
+                                              resolved_tree->id)) {
             logger_->Emit(LogLevel::Error,
                           "Failed to write resolved tree id to file {}",
                           tree_id_file.string());
             response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
             return ::grpc::Status::OK;
         }
-        return SyncArchive(resolved_tree.id, repo_path, sync_tree, response);
+        return SyncArchive(resolved_tree->id, repo_path, sync_tree, response);
     }
     // if no special handling of symlinks, use given tree as-is
     return SyncArchive(tree_id, repo_path, sync_tree, response);
