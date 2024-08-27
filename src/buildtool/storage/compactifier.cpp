@@ -59,9 +59,9 @@ template <ObjectType kType>
 /// \return               True if the entry directory doesn't contain spliced
 /// entries.
 template <ObjectType kLargeType, ObjectType... kType>
-requires(sizeof...(kType) != 0)
-    [[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
-                                     std::filesystem::path const& key) noexcept
+    requires(sizeof...(kType) != 0)
+[[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
+                                 std::filesystem::path const& key) noexcept
     -> bool;
 
 /// \brief Split and remove a key entry from the kType storage. Results of
@@ -211,9 +211,9 @@ template <ObjectType kType>
 }
 
 template <ObjectType kLargeType, ObjectType... kType>
-requires(sizeof...(kType) != 0)
-    [[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
-                                     std::filesystem::path const& key) noexcept
+    requires(sizeof...(kType) != 0)
+[[nodiscard]] auto RemoveSpliced(CompactificationTask const& task,
+                                 std::filesystem::path const& key) noexcept
     -> bool {
     static constexpr bool kLarge = true;
     auto const directory = task.cas.StorageRoot(kLargeType, kLarge) / key;

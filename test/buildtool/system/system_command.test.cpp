@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/system/system_command.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -20,7 +22,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/system/system_command.hpp"
 
 namespace {
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {

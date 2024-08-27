@@ -243,10 +243,11 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
 
 template <bool kDoGlobalUplink, ObjectType kType>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LargeObjectCAS<kDoGlobalUplink, kType>::
-    LocalUplink(LocalCAS<false> const& latest,
-                LargeObjectCAS<false, kType> const& latest_large,
-                bazel_re::Digest const& digest) const noexcept -> bool {
+    requires(kIsLocalGeneration)
+auto LargeObjectCAS<kDoGlobalUplink, kType>::LocalUplink(
+    LocalCAS<false> const& latest,
+    LargeObjectCAS<false, kType> const& latest_large,
+    bazel_re::Digest const& digest) const noexcept -> bool {
     // Check the large entry in the youngest generation:
     if (latest_large.GetEntryPath(digest)) {
         return true;

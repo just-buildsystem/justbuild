@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/expression/expression.hpp"
+
 #include <filesystem>
 #include <sstream>
 #include <string>
@@ -20,7 +22,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "test/utils/container_matchers.hpp"
@@ -291,8 +292,9 @@ concept ValidExpressionTypeOrPtr =
     Expression::IsValidType<T>() or std::is_same_v<T, ExpressionPtr>;
 
 template <ValidExpressionTypeOrPtr T>
-auto Add(ExpressionPtr const& expr, std::string const& key, T const& by)
-    -> ExpressionPtr {
+auto Add(ExpressionPtr const& expr,
+         std::string const& key,
+         T const& by) -> ExpressionPtr {
     try {
         auto new_map = Expression::map_t::underlying_map_t{};
         new_map.emplace(key, by);
@@ -303,8 +305,9 @@ auto Add(ExpressionPtr const& expr, std::string const& key, T const& by)
 }
 
 template <ValidExpressionTypeOrPtr T>
-auto Replace(ExpressionPtr const& expr, std::string const& key, T const& by)
-    -> ExpressionPtr {
+auto Replace(ExpressionPtr const& expr,
+             std::string const& key,
+             T const& by) -> ExpressionPtr {
     auto const& map = expr->Map();
     if (not map.contains(key)) {
         return ExpressionPtr{nullptr};

@@ -34,9 +34,9 @@ class TargetNode {
     };
 
     template <class NodeType>
-    requires(
-        std::is_same_v<NodeType, Value> or
-        std::is_same_v<NodeType, Abstract>) explicit TargetNode(NodeType node)
+        requires(std::is_same_v<NodeType, Value> or
+                 std::is_same_v<NodeType, Abstract>)
+    explicit TargetNode(NodeType node)
         : data_{std::move(node)},
           is_cacheable_{std::get<NodeType>(data_).IsCacheable()} {}
 

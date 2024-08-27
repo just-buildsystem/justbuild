@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/file_system/git_repo.hpp"
+
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
@@ -26,7 +28,6 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"

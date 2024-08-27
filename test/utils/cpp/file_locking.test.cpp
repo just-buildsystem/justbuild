@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/utils/cpp/file_locking.hpp"
+
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -23,7 +25,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/utils/cpp/atomic.hpp"
-#include "src/utils/cpp/file_locking.hpp"
 
 namespace {
 [[nodiscard]] auto GetTestDir() noexcept -> std::filesystem::path {

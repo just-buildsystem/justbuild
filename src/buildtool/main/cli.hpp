@@ -57,7 +57,7 @@ struct CommandLineArguments {
     ToAddArguments to_add;
 };
 
-auto ParseCommandLineArguments(int argc, char const* const* argv)
-    -> CommandLineArguments;
+auto ParseCommandLineArguments(int argc,
+                               char const* const* argv) -> CommandLineArguments;
 
 #endif

@@ -33,8 +33,8 @@ auto ExtractValueAs(
     nlohmann::json const& j,
     std::string const& key,
     std::function<void(std::string const& error)>&& logger =
-        [](std::string const& /*unused*/) -> void {}) noexcept
-    -> std::optional<ValueT> {
+        [](std::string const& /*unused*/) -> void {
+    }) noexcept -> std::optional<ValueT> {
     try {
         auto it = j.find(key);
         if (it == j.end()) {

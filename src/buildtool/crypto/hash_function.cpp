@@ -57,15 +57,13 @@ auto HashFunction::HashTaggedLine(std::string const& data,
     return std::move(hasher).Finalize();
 }
 
-auto HashFunction::HashBlobFile(
-    std::filesystem::path const& path) const noexcept
-    -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
+auto HashFunction::HashBlobFile(std::filesystem::path const& path) const
+    noexcept -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
     return HashTaggedFile(path, CreateGitBlobTag);
 }
 
-auto HashFunction::HashTreeFile(
-    std::filesystem::path const& path) const noexcept
-    -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
+auto HashFunction::HashTreeFile(std::filesystem::path const& path) const
+    noexcept -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>> {
     return HashTaggedFile(path, CreateGitTreeTag);
 }
 

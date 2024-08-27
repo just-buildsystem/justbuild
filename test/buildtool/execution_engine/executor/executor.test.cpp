@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_engine/executor/executor.hpp"
+
 #include <algorithm>
 #include <filesystem>
 #include <map>
@@ -33,7 +35,6 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
-#include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"

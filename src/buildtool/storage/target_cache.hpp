@@ -112,7 +112,8 @@ class TargetCache {
     /// \param key      The target-cache key for the entry to uplink.
     /// \returns True if entry was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkEntry(
         LocalGenerationTC const& latest,
         TargetCacheKey const& key) const noexcept -> bool;
 
@@ -140,7 +141,8 @@ class TargetCache {
           explicit_shard_{explicit_shard} {}
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkEntry(
         LocalGenerationTC const& latest,
         std::string const& key_digest) const noexcept -> bool;
 

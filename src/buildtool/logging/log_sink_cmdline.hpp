@@ -93,9 +93,8 @@ class LogSinkCmdLine final : public ILogSink {
     bool colored_{};
     std::optional<LogLevel> restrict_level_{};
 
-    [[nodiscard]] auto FormatPrefix(LogLevel level,
-                                    std::string const& prefix) const noexcept
-        -> std::string {
+    [[nodiscard]] auto FormatPrefix(LogLevel level, std::string const& prefix)
+        const noexcept -> std::string {
         fmt::text_style style{};
         if (colored_) {
             switch (level) {

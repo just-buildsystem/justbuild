@@ -109,8 +109,8 @@ std::vector<archive_test_info_t> const kTestScenarios = {
      .tools = {"7z"},  // 7z comes with its own lzma-type compression
      .cmd = "/usr/bin/7z x"}};
 
-[[nodiscard]] auto read_archive(archive* a, std::string const& path)
-    -> filetree_t {
+[[nodiscard]] auto read_archive(archive* a,
+                                std::string const& path) -> filetree_t {
     filetree_t result{};
 
     REQUIRE(archive_read_open_filename(a, path.c_str(), kBlockSize) ==

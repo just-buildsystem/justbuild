@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
+
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
@@ -27,7 +29,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/shell_quoting.hpp"

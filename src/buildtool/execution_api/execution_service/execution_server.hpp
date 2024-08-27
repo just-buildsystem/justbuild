@@ -124,11 +124,10 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     // operation. The server MAY choose to stream additional updates as
     // execution progresses, such as to provide an update as to the state of the
     // execution.
-    auto WaitExecution(
-        ::grpc::ServerContext* context,
-        const ::bazel_re::WaitExecutionRequest* request,
-        ::grpc::ServerWriter<::google::longrunning::Operation>* writer)
-        -> ::grpc::Status override;
+    auto WaitExecution(::grpc::ServerContext* context,
+                       const ::bazel_re::WaitExecutionRequest* request,
+                       ::grpc::ServerWriter<::google::longrunning::Operation>*
+                           writer) -> ::grpc::Status override;
 
   private:
     StorageConfig const& storage_config_;

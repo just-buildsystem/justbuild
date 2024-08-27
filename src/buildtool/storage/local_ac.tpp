@@ -54,7 +54,8 @@ auto LocalAC<kDoGlobalUplink>::CachedResult(bazel_re::Digest const& action_id)
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
+    requires(kIsLocalGeneration)
+auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
     LocalGenerationAC const& latest,
     bazel_re::Digest const& action_id) const noexcept -> bool {
     // Determine action cache key path in latest generation.

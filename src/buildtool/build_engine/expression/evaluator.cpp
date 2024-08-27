@@ -324,8 +324,8 @@ auto Range(ExpressionPtr const& expr) -> ExpressionPtr {
     return ExpressionPtr{result};
 }
 
-auto ChangeEndingTo(ExpressionPtr const& name, ExpressionPtr const& ending)
-    -> ExpressionPtr {
+auto ChangeEndingTo(ExpressionPtr const& name,
+                    ExpressionPtr const& ending) -> ExpressionPtr {
     std::filesystem::path path{name->String()};
     return ExpressionPtr{(path.parent_path() / path.stem()).string() +
                          ending->String()};
@@ -376,8 +376,9 @@ auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
 
 template <bool kDisjoint = false>
 // NOLINTNEXTLINE(misc-no-recursion)
-auto Union(Expression::list_t const& dicts, std::size_t from, std::size_t to)
-    -> ExpressionPtr {
+auto Union(Expression::list_t const& dicts,
+           std::size_t from,
+           std::size_t to) -> ExpressionPtr {
     if (to <= from) {
         return Expression::kEmptyMap;
     }
@@ -432,8 +433,8 @@ auto Union(ExpressionPtr const& expr) -> ExpressionPtr {
     return Union<kDisjoint>(list, 0, list.size());
 }
 
-auto ConcatTargetName(ExpressionPtr const& expr, ExpressionPtr const& append)
-    -> ExpressionPtr {
+auto ConcatTargetName(ExpressionPtr const& expr,
+                      ExpressionPtr const& append) -> ExpressionPtr {
     if (expr->IsString()) {
         return ExpressionPtr{expr->String() + append->String()};
     }

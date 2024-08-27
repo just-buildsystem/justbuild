@@ -37,9 +37,9 @@ class ExpressionPtr {
 
     // Initialize from Expression's variant type or Expression
     template <class T>
-    requires(not std::is_same_v<std::remove_cvref_t<T>, ExpressionPtr>)
-        // NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
-        explicit ExpressionPtr(T&& data) noexcept
+        requires(not std::is_same_v<std::remove_cvref_t<T>, ExpressionPtr>)
+    // NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
+    explicit ExpressionPtr(T&& data) noexcept
         : ptr_{std::make_shared<Expression>(std::forward<T>(data))} {}
 
     ExpressionPtr() noexcept;

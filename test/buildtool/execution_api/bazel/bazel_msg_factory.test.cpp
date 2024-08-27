@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+
 #include <filesystem>
 #include <unordered_map>
 
@@ -20,7 +22,6 @@
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/blob_creator.hpp"

@@ -71,9 +71,8 @@ class LocalCAS {
     /// \brief Obtain path to the storage root.
     /// \param type             Type of the storage to be obtained.
     /// \param large            True if a large storage is needed.
-    [[nodiscard]] auto StorageRoot(ObjectType type,
-                                   bool large = false) const noexcept
-        -> std::filesystem::path const& {
+    [[nodiscard]] auto StorageRoot(ObjectType type, bool large = false)
+        const noexcept -> std::filesystem::path const& {
         if (large) {
             return IsTreeObject(type) ? cas_tree_large_.StorageRoot()
                                       : cas_file_large_.StorageRoot();
@@ -226,7 +225,8 @@ class LocalCAS {
     /// generation.
     /// \returns True if blob was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkBlob(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkBlob(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
         bool is_executable,
@@ -248,7 +248,8 @@ class LocalCAS {
     /// generation.
     /// \returns True if tree was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkTree(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkTree(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
         bool splice_result = false) const noexcept -> bool;
@@ -263,7 +264,8 @@ class LocalCAS {
     /// \param digest       The digest of the large entry to uplink.
     /// \returns True if the large entry was successfully uplinked.
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkLargeObject(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkLargeObject(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest) const noexcept -> bool;
 
@@ -311,21 +313,23 @@ class LocalCAS {
     }
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkGitTree(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkGitTree(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
         bool splice_result = false) const noexcept -> bool;
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkBazelDirectory(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkBazelDirectory(
         LocalGenerationCAS const& latest,
         bazel_re::Digest const& digest,
         gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
         bool splice_result = false) const noexcept -> bool;
 
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto TrySplice(
-        bazel_re::Digest const& digest) const noexcept
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto TrySplice(bazel_re::Digest const& digest) const noexcept
         -> std::optional<LargeObject>;
 
     template <ObjectType kType>

@@ -23,15 +23,14 @@
 #include "src/buildtool/main/analyse_context.hpp"
 
 namespace BuildMaps::Target {
-auto HandleBuiltin(
-    const gsl::not_null<AnalyseContext*>& context,
-    const nlohmann::json& rule_type,
-    const nlohmann::json& desc,
-    const BuildMaps::Target::ConfiguredTarget& key,
-    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
-    const BuildMaps::Target::TargetMap::SetterPtr& setter,
-    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map)
-    -> bool;
+auto HandleBuiltin(const gsl::not_null<AnalyseContext*>& context,
+                   const nlohmann::json& rule_type,
+                   const nlohmann::json& desc,
+                   const BuildMaps::Target::ConfiguredTarget& key,
+                   const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+                   const BuildMaps::Target::TargetMap::SetterPtr& setter,
+                   const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+                   const gsl::not_null<BuildMaps::Target::ResultTargetMap*>&
+                       result_map) -> bool;
 }  // namespace BuildMaps::Target
 #endif

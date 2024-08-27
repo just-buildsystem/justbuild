@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/utils/cpp/prefix.hpp"
+
 #include <filesystem>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/utils/cpp/prefix.hpp"
 
 TEST_CASE("lines", "[prefix]") {
     CHECK(PrefixLines("").empty());

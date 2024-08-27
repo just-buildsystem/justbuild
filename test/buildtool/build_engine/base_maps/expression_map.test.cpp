@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/base_maps/expression_map.hpp"
+
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -20,7 +22,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
-#include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/repository_config.hpp"

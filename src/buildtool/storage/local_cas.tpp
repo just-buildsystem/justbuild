@@ -41,7 +41,8 @@ namespace detail {
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     LocalGenerationCAS const& latest,
     bazel_re::Digest const& digest,
     bool is_executable,
@@ -92,7 +93,8 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
     LocalGenerationCAS const& latest,
     bazel_re::Digest const& digest,
     bool splice_result) const noexcept -> bool {
@@ -105,7 +107,8 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     LocalGenerationCAS const& latest,
     bazel_re::Digest const& digest,
     bool splice_result) const noexcept -> bool {
@@ -199,12 +202,12 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
-    LocalUplinkBazelDirectory(
-        LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest,
-        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
-        bool splice_result) const noexcept -> bool {
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
+    LocalGenerationCAS const& latest,
+    bazel_re::Digest const& digest,
+    gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
+    bool splice_result) const noexcept -> bool {
     // Skip already uplinked directories
     if (seen->contains(digest)) {
         return true;
@@ -271,10 +274,10 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
 
 template <bool kDoGlobalUplink>
 template <ObjectType kType, bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
-    LocalUplinkLargeObject(LocalGenerationCAS const& latest,
-                           bazel_re::Digest const& digest) const noexcept
-    -> bool {
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::LocalUplinkLargeObject(
+    LocalGenerationCAS const& latest,
+    bazel_re::Digest const& digest) const noexcept -> bool {
     if constexpr (IsTreeObject(kType)) {
         return cas_tree_large_.LocalUplink(
             latest, latest.cas_tree_large_, digest);
@@ -287,9 +290,9 @@ requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::
 
 template <bool kDoGlobalUplink>
 template <ObjectType kType, bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto LocalCAS<kDoGlobalUplink>::TrySplice(
-    bazel_re::Digest const& digest) const noexcept
-    -> std::optional<LargeObject> {
+    requires(kIsLocalGeneration)
+auto LocalCAS<kDoGlobalUplink>::TrySplice(bazel_re::Digest const& digest)
+    const noexcept -> std::optional<LargeObject> {
     auto spliced = IsTreeObject(kType) ? cas_tree_large_.TrySplice(digest)
                                        : cas_file_large_.TrySplice(digest);
     return spliced and spliced->IsValid() ? std::optional{std::move(*spliced)}

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_engine/traverser/traverser.hpp"
+
 #include <algorithm>
 #include <mutex>
 #include <string>
@@ -23,7 +25,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
-#include "src/buildtool/execution_engine/traverser/traverser.hpp"
 #include "test/utils/container_matchers.hpp"
 
 namespace {

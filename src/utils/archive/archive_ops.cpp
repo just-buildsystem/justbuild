@@ -95,8 +95,8 @@ auto enable_read_filter(archive* ar, ArchiveType type) -> bool {
 }  // namespace
 #endif  // BOOTSTRAP_BUILD_TOOL
 
-auto ArchiveOps::WriteEntry(archive_entry* entry, archive* aw)
-    -> std::optional<std::string> {
+auto ArchiveOps::WriteEntry(archive_entry* entry,
+                            archive* aw) -> std::optional<std::string> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     std::filesystem::path entry_path{archive_entry_sourcepath(entry)};
     // only write to archive if entry is file
@@ -115,8 +115,8 @@ auto ArchiveOps::WriteEntry(archive_entry* entry, archive* aw)
     return std::nullopt;
 }
 
-auto ArchiveOps::CopyData(archive* ar, archive* aw)
-    -> std::optional<std::string> {
+auto ArchiveOps::CopyData(archive* ar,
+                          archive* aw) -> std::optional<std::string> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     int r{};
     const void* buff{nullptr};

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
+
 #include <cstddef>
 #include <optional>
 #include <string>
@@ -23,7 +25,6 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"

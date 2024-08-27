@@ -102,8 +102,8 @@ class atomic_shared_ptr {
     atomic_shared_ptr(atomic_shared_ptr&& other) = delete;
     ~atomic_shared_ptr() = default;
 
-    auto operator=(atomic_shared_ptr const& other)
-        -> atomic_shared_ptr& = delete;
+    auto operator=(atomic_shared_ptr const& other) -> atomic_shared_ptr& =
+                                                          delete;
     auto operator=(atomic_shared_ptr&& other) -> atomic_shared_ptr& = delete;
     auto operator=(ptr_t desired) -> ptr_t {  // NOLINT
         std::shared_lock lock(mutex_);

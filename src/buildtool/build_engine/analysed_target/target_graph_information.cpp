@@ -23,9 +23,8 @@ auto TargetGraphInformation::NodeString() const noexcept
 }
 
 namespace {
-auto NodesToString(
-    std::vector<BuildMaps::Target::ConfiguredTargetPtr> const& nodes)
-    -> std::vector<std::string> {
+auto NodesToString(std::vector<BuildMaps::Target::ConfiguredTargetPtr> const&
+                       nodes) -> std::vector<std::string> {
     std::vector<std::string> result{};
     result.reserve(nodes.size());
     for (auto const& n : nodes) {

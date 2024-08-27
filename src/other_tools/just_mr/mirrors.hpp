@@ -113,9 +113,8 @@ namespace MirrorsUtils {
         hostnames.begin(),
         hostnames.end(),
         std::inserter(mirrors_by_hostname, mirrors_by_hostname.end()),
-        [](auto const& hostname) -> typename map_t::value_type {
-            return {hostname, {/*empty*/}};
-        });
+        [](auto const& hostname) ->
+        typename map_t::value_type { return {hostname, {/*empty*/}}; });
 
     // fill mirrors list per hostname
     for (auto const& mirror : mirrors) {

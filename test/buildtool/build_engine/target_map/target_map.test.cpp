@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/target_map/target_map.hpp"
+
 #include <filesystem>
 #include <string>
 #include <utility>  // std::move
@@ -25,7 +27,6 @@
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"

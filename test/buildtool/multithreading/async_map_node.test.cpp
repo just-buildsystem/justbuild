@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/multithreading/async_map_node.hpp"
+
 #include <mutex>
 #include <string>
 #include <thread>
@@ -19,7 +21,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
-#include "src/buildtool/multithreading/async_map_node.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
 TEST_CASE("No task is queued if the node is never ready", "[async_map_node]") {

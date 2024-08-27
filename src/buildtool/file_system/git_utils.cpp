@@ -40,8 +40,8 @@ auto GitLastError() noexcept -> std::string {
     return "<unknown error>";
 }
 
-auto GitObjectID(std::string const& id, bool is_hex_id) noexcept
-    -> std::optional<git_oid> {
+auto GitObjectID(std::string const& id,
+                 bool is_hex_id) noexcept -> std::optional<git_oid> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
 #else

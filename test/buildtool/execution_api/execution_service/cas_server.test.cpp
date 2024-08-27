@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/execution_service/cas_server.hpp"
+
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"

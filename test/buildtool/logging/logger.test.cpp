@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/logging/logger.hpp"
+
 #include <atomic>
 #include <string>
 #include <unordered_map>
@@ -21,7 +23,6 @@
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
-#include "src/buildtool/logging/logger.hpp"
 
 // Stores prints from test sink instances
 class TestPrints {

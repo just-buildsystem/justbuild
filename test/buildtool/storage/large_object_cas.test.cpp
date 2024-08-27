@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/storage/large_object_cas.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
@@ -32,7 +34,6 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
-#include "src/buildtool/storage/large_object_cas.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"

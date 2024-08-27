@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/base_maps/source_map.hpp"
+
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -23,7 +25,6 @@
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
-#include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
@@ -56,12 +57,11 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
     return repo_config;
 }
 
-auto ReadSourceTarget(
-    EntityName const& id,
-    SourceTargetMap::Consumer consumer,
-    bool use_git = false,
-    std::optional<SourceTargetMap::FailureFunction> fail_func = std::nullopt)
-    -> bool {
+auto ReadSourceTarget(EntityName const& id,
+                      SourceTargetMap::Consumer consumer,
+                      bool use_git = false,
+                      std::optional<SourceTargetMap::FailureFunction>
+                          fail_func = std::nullopt) -> bool {
     auto repo_config = SetupConfig(use_git);
     auto directory_entries = CreateDirectoryEntriesMap(&repo_config);
     auto source_artifacts =

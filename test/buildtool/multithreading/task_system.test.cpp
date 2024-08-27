@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/multithreading/task_system.hpp"
+
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -27,7 +29,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
-#include "src/buildtool/multithreading/task_system.hpp"
 #include "test/utils/container_matchers.hpp"
 
 namespace {

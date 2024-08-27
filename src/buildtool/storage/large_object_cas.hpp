@@ -163,7 +163,8 @@ class LargeObjectCAS final {
     /// \param digest       The digest of the large entry to uplink.
     /// \returns True if the large entry was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplink(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplink(
         LocalCAS<false> const& latest,
         LargeObjectCAS<false, kType> const& latest_large,
         bazel_re::Digest const& digest) const noexcept -> bool;

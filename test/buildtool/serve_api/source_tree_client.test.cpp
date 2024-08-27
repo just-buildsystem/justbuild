@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/serve_api/remote/source_tree_client.hpp"
+
 #include <string>
 #include <variant>
 
@@ -21,7 +23,6 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
-#include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 
 auto const kRootCommit =

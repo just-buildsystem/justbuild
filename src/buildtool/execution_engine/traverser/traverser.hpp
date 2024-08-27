@@ -31,10 +31,8 @@ template <class T>
 concept Runnable = requires(T const r,
                             DependencyGraph::ActionNode const* action,
                             DependencyGraph::ArtifactNode const* artifact) {
-    { r.Process(action) }
-    ->same_as<bool>;
-    { r.Process(artifact) }
-    ->same_as<bool>;
+    { r.Process(action) } -> same_as<bool>;
+    { r.Process(artifact) } -> same_as<bool>;
 };
 
 /// \brief Class to traverse the dependency graph executing necessary actions
@@ -67,9 +65,8 @@ class Traverser {
     // Traverse starting by the artifacts with the given identifiers, avoiding
     // executing actions that are not strictly needed to build the given
     // artifacts
-    [[nodiscard]] auto Traverse(
-        std::unordered_set<ArtifactIdentifier> const& target_ids) noexcept
-        -> bool;
+    [[nodiscard]] auto Traverse(std::unordered_set<ArtifactIdentifier> const&
+                                    target_ids) noexcept -> bool;
 
   private:
     Executor const& runner_{};

@@ -113,18 +113,19 @@ auto TargetCache<kDoGlobalUplink>::Read(
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto TargetCache<
-    kDoGlobalUplink>::LocalUplinkEntry(LocalGenerationTC const& latest,
-                                       TargetCacheKey const& key) const noexcept
-    -> bool {
+    requires(kIsLocalGeneration)
+auto TargetCache<kDoGlobalUplink>::LocalUplinkEntry(
+    LocalGenerationTC const& latest,
+    TargetCacheKey const& key) const noexcept -> bool {
     return LocalUplinkEntry(latest, key.Id().digest.hash());
 }
 
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
-requires(kIsLocalGeneration) auto TargetCache<kDoGlobalUplink>::
-    LocalUplinkEntry(LocalGenerationTC const& latest,
-                     std::string const& key_digest) const noexcept -> bool {
+    requires(kIsLocalGeneration)
+auto TargetCache<kDoGlobalUplink>::LocalUplinkEntry(
+    LocalGenerationTC const& latest,
+    std::string const& key_digest) const noexcept -> bool {
     // Determine target cache key path of given generation.
     if (FileSystemManager::IsFile(latest.file_store_.GetPath(key_digest))) {
         return true;

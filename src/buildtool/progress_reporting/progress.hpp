@@ -33,10 +33,11 @@ class Progress {
 
     // Return a reference to the origin map. It is the responsibility of the
     // caller to ensure that access only happens in a single-threaded context.
-    [[nodiscard]] auto OriginMap() noexcept -> std::unordered_map<
-        std::string,
-        std::vector<
-            std::pair<BuildMaps::Target::ConfiguredTarget, std::size_t>>>& {
+    [[nodiscard]] auto OriginMap() noexcept
+        -> std::unordered_map<
+            std::string,
+            std::vector<
+                std::pair<BuildMaps::Target::ConfiguredTarget, std::size_t>>>& {
         return origin_map_;
     }
 

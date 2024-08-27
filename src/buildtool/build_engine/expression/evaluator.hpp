@@ -108,8 +108,8 @@ class Evaluator {
         std::function<void(std::string const&)> const& logger,
         std::function<std::string(ExpressionPtr)> const& annotate_object =
             [](auto const& /*unused*/) { return std::string{}; },
-        std::function<void(void)> const& note_user_context = []() {}) noexcept
-        -> ExpressionPtr;
+        std::function<void(void)> const& note_user_context =
+            []() {}) noexcept -> ExpressionPtr;
 
     constexpr static std::size_t kDefaultExpressionLogLimit = 320;
 

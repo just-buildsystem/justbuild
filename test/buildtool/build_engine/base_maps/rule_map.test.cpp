@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/base_maps/rule_map.hpp"
+
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -22,7 +24,6 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
-#include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/repository_config.hpp"

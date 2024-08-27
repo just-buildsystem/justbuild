@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
+
 #include <cstdlib>
 #include <string>
 
@@ -19,7 +21,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"

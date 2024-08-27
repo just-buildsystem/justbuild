@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_engine/dag/dag.hpp"
+
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -25,7 +27,6 @@
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/identifier.hpp"
-#include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
 
 namespace {

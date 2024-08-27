@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
+
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
@@ -27,7 +29,6 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
-#include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/utils/shell_quoting.hpp"
 

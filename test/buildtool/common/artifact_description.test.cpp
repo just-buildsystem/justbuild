@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/common/artifact_description.hpp"
+
 #include <filesystem>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
-[[nodiscard]] auto operator==(Artifact const& lhs, Artifact const& rhs)
-    -> bool {
+[[nodiscard]] auto operator==(Artifact const& lhs,
+                              Artifact const& rhs) -> bool {
     return lhs.Id() == rhs.Id() and lhs.FilePath() == rhs.FilePath() and
            lhs.Info() == rhs.Info();
 }

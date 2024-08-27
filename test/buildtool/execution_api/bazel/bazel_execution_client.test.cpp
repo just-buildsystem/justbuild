@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
+
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
@@ -19,7 +21,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/remote_execution/bazel_action_creator.hpp"

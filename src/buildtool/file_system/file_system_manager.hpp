@@ -246,11 +246,11 @@ class FileSystemManager {
     }
 
     template <ObjectType kType, bool kSetEpochTime = false>
-    requires(IsFileObject(kType))
-        [[nodiscard]] static auto CreateFileHardlinkAs(
-            std::filesystem::path const& file_path,
-            std::filesystem::path const& link_path,
-            LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
+        requires(IsFileObject(kType))
+    [[nodiscard]] static auto CreateFileHardlinkAs(
+        std::filesystem::path const& file_path,
+        std::filesystem::path const& link_path,
+        LogLevel log_failure_at = LogLevel::Error) noexcept -> bool {
         // Set permissions first (permissions are a property of the file) so
         // that the created link has the correct permissions as soon as the link
         // creation is finished.
@@ -354,7 +354,8 @@ class FileSystemManager {
     template <ObjectType kType,
               bool kSetEpochTime = false,
               bool kSetWritable = false>
-    requires(IsFileObject(kType)) [[nodiscard]] static auto CopyFileAs(
+        requires(IsFileObject(kType))
+    [[nodiscard]] static auto CopyFileAs(
         std::filesystem::path const& src,
         std::filesystem::path const& dst,
         bool fd_less = false,
@@ -929,10 +930,10 @@ class FileSystemManager {
     template <ObjectType kType,
               bool kSetEpochTime = false,
               bool kSetWritable = false>
-    requires(IsFileObject(kType))
-        [[nodiscard]] static auto WriteFileAs(std::string const& content,
-                                              std::filesystem::path const& file,
-                                              bool fd_less = false) noexcept
+        requires(IsFileObject(kType))
+    [[nodiscard]] static auto WriteFileAs(std::string const& content,
+                                          std::filesystem::path const& file,
+                                          bool fd_less = false) noexcept
         -> bool {
         return WriteFile(content, file, fd_less) and
                SetFilePermissions<kSetWritable>(file,
@@ -1336,6 +1337,6 @@ class FileSystemManager {
         }
 
     };  // class LowLevel
-};      // class FileSystemManager
+};  // class FileSystemManager
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP

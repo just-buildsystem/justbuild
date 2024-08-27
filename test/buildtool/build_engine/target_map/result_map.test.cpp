@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/target_map/result_map.hpp"
+
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -23,7 +25,6 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
-#include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

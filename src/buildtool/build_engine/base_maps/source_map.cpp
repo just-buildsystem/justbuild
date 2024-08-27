@@ -27,8 +27,8 @@ namespace BuildMaps::Base {
 
 namespace {
 
-auto as_target(const BuildMaps::Base::EntityName& key, ExpressionPtr artifact)
-    -> AnalysedTargetPtr {
+auto as_target(const BuildMaps::Base::EntityName& key,
+               ExpressionPtr artifact) -> AnalysedTargetPtr {
     auto stage = ExpressionPtr{
         Expression::map_t{key.GetNamedTarget().name, std::move(artifact)}};
     return std::make_shared<AnalysedTarget const>(

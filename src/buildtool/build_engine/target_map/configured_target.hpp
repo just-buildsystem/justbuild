@@ -32,9 +32,8 @@ struct ConfiguredTarget {
 
     static constexpr std::size_t kConfigLength = 320;
 
-    [[nodiscard]] auto operator==(
-        BuildMaps::Target::ConfiguredTarget const& other) const noexcept
-        -> bool {
+    [[nodiscard]] auto operator==(BuildMaps::Target::ConfiguredTarget const&
+                                      other) const noexcept -> bool {
         return target == other.target and config == other.config;
     }
 

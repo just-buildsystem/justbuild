@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/file_system/object_cas.hpp"
+
 #include <functional>  // std::equal_to
 #include <string>
 
@@ -19,7 +21,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/object_cas.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"

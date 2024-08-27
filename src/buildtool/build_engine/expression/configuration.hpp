@@ -126,9 +126,10 @@ class Configuration {
     }
 
     template <class T>
-    requires(Expression::IsValidType<T>() or std::is_same_v<T, ExpressionPtr>)
-        [[nodiscard]] auto Update(std::string const& name, T const& value) const
-        -> Configuration {
+        requires(Expression::IsValidType<T>() or
+                 std::is_same_v<T, ExpressionPtr>)
+    [[nodiscard]] auto Update(std::string const& name,
+                              T const& value) const -> Configuration {
         auto update = Expression::map_t::underlying_map_t{};
         update.emplace(name, value);
         return Configuration{Expression::map_t{expr_, update}};

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/common/repository_config.hpp"
+
 #include <atomic>
 #include <cstddef>
 #include <filesystem>
@@ -24,7 +26,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -86,8 +87,8 @@ template <class T>
 }
 
 // Read graph from CAS
-[[nodiscard]] auto ReadGraph(Storage const& storage, std::string const& hash)
-    -> nlohmann::json {
+[[nodiscard]] auto ReadGraph(Storage const& storage,
+                             std::string const& hash) -> nlohmann::json {
     auto const& cas = storage.CAS();
     auto blob = cas.BlobPath(
         ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false},

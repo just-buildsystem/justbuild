@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/file_system/file_system_manager.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
@@ -23,7 +25,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -352,8 +353,12 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFile", "[file_system]") {
         CHECK(content_from == content_to);
     };
 
-    SECTION("direct") { run_test(false); }
-    SECTION("fd_less") { run_test(true); }
+    SECTION("direct") {
+        run_test(false);
+    }
+    SECTION("fd_less") {
+        run_test(true);
+    }
 }
 
 TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
@@ -381,8 +386,12 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd_less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd_less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }
@@ -415,8 +424,12 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd_less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd_less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }
@@ -447,8 +460,12 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd_less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd_less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }
@@ -480,8 +497,12 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd_less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd_less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }
@@ -535,8 +556,12 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFile", "[file_system]") {
         CHECK(written_content == content);
     };
 
-    SECTION("direct") { run_test(false); }
-    SECTION("fd-less") { run_test(true); }
+    SECTION("direct") {
+        run_test(false);
+    }
+    SECTION("fd-less") {
+        run_test(true);
+    }
 }
 
 TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
@@ -562,8 +587,12 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd-less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd-less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }
@@ -592,8 +621,12 @@ TEST_CASE_METHOD(WriteFileFixture, "WriteFileAs", "[file_system]") {
             }
         };
 
-        SECTION("direct") { run_test(false); }
-        SECTION("fd-less") { run_test(true); }
+        SECTION("direct") {
+            run_test(false);
+        }
+        SECTION("fd-less") {
+            run_test(true);
+        }
         SECTION("direct with epoch") {
             run_test.template operator()<true>(false);
         }

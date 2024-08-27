@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
+
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -28,8 +29,8 @@ namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-auto SetupConfig(std::string target_file_name, bool use_git)
-    -> RepositoryConfig {
+auto SetupConfig(std::string target_file_name,
+                 bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath};
     if (use_git) {
         auto repo_path = CreateTestRepo();

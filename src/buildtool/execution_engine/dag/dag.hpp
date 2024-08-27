@@ -134,8 +134,8 @@ class DirectedAcyclicGraph {
         NodeTraversalState() noexcept = default;
         NodeTraversalState(NodeTraversalState const&) = delete;
         NodeTraversalState(NodeTraversalState&&) = delete;
-        auto operator=(NodeTraversalState const&)
-            -> NodeTraversalState& = delete;
+        auto operator=(NodeTraversalState const&) -> NodeTraversalState& =
+                                                         delete;
         auto operator=(NodeTraversalState&&) -> NodeTraversalState& = delete;
         ~NodeTraversalState() noexcept = default;
 

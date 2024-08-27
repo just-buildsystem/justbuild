@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/local/local_api.hpp"
+
 #include <cstdlib>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"

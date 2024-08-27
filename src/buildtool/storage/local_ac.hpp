@@ -82,7 +82,8 @@ class LocalAC {
     /// \param action_id    The id of the action used as entry key.
     /// \returns True if entry was successfully uplinked.
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
-    requires(kIsLocalGeneration) [[nodiscard]] auto LocalUplinkEntry(
+        requires(kIsLocalGeneration)
+    [[nodiscard]] auto LocalUplinkEntry(
         LocalGenerationAC const& latest,
         bazel_re::Digest const& action_id) const noexcept -> bool;
 

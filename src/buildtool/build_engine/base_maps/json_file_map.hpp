@@ -34,11 +34,11 @@ using JsonFileMap = AsyncMapConsumer<ModuleName, nlohmann::json>;
 
 // function pointer type for specifying which root to get from global config
 using RootGetter = auto (RepositoryConfig::*)(std::string const&) const
-                   -> FileRoot const*;
+    -> FileRoot const*;
 
 // function pointer type for specifying the file name from the global config
 using FileNameGetter = auto (RepositoryConfig::*)(std::string const&) const
-                       -> std::string const*;
+    -> std::string const*;
 
 template <RootGetter get_root, FileNameGetter get_name, bool kMandatory = true>
 auto CreateJsonFileMap(

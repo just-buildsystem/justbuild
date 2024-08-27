@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/logging/log_sink_file.hpp"
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -26,7 +28,6 @@
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
-#include "src/buildtool/logging/log_sink_file.hpp"
 
 [[nodiscard]] static auto NumberOfLines(std::filesystem::path const& file_path)
     -> int {

@@ -264,8 +264,8 @@ struct InMemoryODBBackend {
     return GIT_ERROR;
 }
 
-[[nodiscard]] auto backend_exists(git_odb_backend* _backend, const git_oid* oid)
-    -> int {
+[[nodiscard]] auto backend_exists(git_odb_backend* _backend,
+                                  const git_oid* oid) -> int {
     if (_backend != nullptr and oid != nullptr) {
         auto* b = reinterpret_cast<InMemoryODBBackend*>(_backend);  // NOLINT
         if (auto id = ToRawString(*oid)) {

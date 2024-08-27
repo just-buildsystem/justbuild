@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/crypto/hasher.hpp"
+
 #include <string>
 #include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/crypto/hasher.hpp"
 
 template <Hasher::HashType type>
 void test_increment_hash(std::string const& bytes, std::string const& result) {

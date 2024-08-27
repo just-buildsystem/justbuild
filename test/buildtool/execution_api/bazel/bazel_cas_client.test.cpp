@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
+
 #include <functional>  // std::equal_to
 #include <string>
 #include <vector>
@@ -22,7 +24,6 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

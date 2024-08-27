@@ -1660,16 +1660,15 @@ auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool {
     return kBuiltIns.contains(rule_name);
 }
 
-auto HandleBuiltin(
-    const gsl::not_null<AnalyseContext*>& context,
-    const nlohmann::json& rule_type,
-    const nlohmann::json& desc,
-    const BuildMaps::Target::ConfiguredTarget& key,
-    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
-    const BuildMaps::Target::TargetMap::SetterPtr& setter,
-    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map)
-    -> bool {
+auto HandleBuiltin(const gsl::not_null<AnalyseContext*>& context,
+                   const nlohmann::json& rule_type,
+                   const nlohmann::json& desc,
+                   const BuildMaps::Target::ConfiguredTarget& key,
+                   const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+                   const BuildMaps::Target::TargetMap::SetterPtr& setter,
+                   const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+                   const gsl::not_null<BuildMaps::Target::ResultTargetMap*>&
+                       result_map) -> bool {
     if (not rule_type.is_string()) {
         // Names for built-in rules are always strings
         return false;

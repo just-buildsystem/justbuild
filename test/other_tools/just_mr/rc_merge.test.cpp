@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/other_tools/just_mr/rc_merge.hpp"
+
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "src/other_tools/just_mr/rc_merge.hpp"
 
 TEST_CASE("Simple field") {
     auto conf = Configuration{Expression::FromJson(R"(

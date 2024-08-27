@@ -48,9 +48,8 @@ class GitCAS {
     /// \brief Read object from CAS.
     /// \param id         The object id.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
-    [[nodiscard]] auto ReadObject(std::string const& id,
-                                  bool is_hex_id = false) const noexcept
-        -> std::optional<std::string>;
+    [[nodiscard]] auto ReadObject(std::string const& id, bool is_hex_id = false)
+        const noexcept -> std::optional<std::string>;
 
     /// \brief Read object header from CAS.
     /// \param id         The object id.
@@ -59,9 +58,8 @@ class GitCAS {
     //    Note that most backends do not support reading only the header of an
     //    object, so the whole object will be read and then the header will be
     //    returned.
-    [[nodiscard]] auto ReadHeader(std::string const& id,
-                                  bool is_hex_id = false) const noexcept
-        -> std::optional<std::pair<std::size_t, ObjectType>>;
+    [[nodiscard]] auto ReadHeader(std::string const& id, bool is_hex_id = false)
+        const noexcept -> std::optional<std::pair<std::size_t, ObjectType>>;
 
   private:
     std::unique_ptr<git_odb, decltype(&odb_closer)> odb_{nullptr, odb_closer};

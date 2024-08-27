@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
+
 #include <algorithm>
 #include <cstddef>
 #include <memory>
@@ -19,7 +21,6 @@
 #include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/build_engine/expression/linked_map.hpp"
 #include "test/utils/container_matchers.hpp"
 
 TEST_CASE("Empty map", "[linked_map]") {
