@@ -418,11 +418,11 @@ class FileSystemManager {
                             dst.string());
                 return false;
             }
-            std::filesystem::copy(src,
-                                  dst,
-                                  recursively
-                                      ? std::filesystem::copy_options::recursive
-                                      : std::filesystem::copy_options::none);
+            auto const opts =
+                std::filesystem::copy_options::copy_symlinks |
+                (recursively ? std::filesystem::copy_options::recursive
+                             : std::filesystem::copy_options::none);
+            std::filesystem::copy(src, dst, opts);
             return true;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
