@@ -25,6 +25,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
@@ -240,16 +241,19 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
 
     // do the update
     bool failed{false};
+    bool has_value{false};
     {
         TaskSystem ts{common_args.jobs};
         git_update_map.ConsumeAfterKeysReady(
             &ts,
             repos_to_update,
             [&failed,
+             &has_value,
              &mr_config,
              repos_to_update_names = update_args.repos_to_update,
              multi_repo_tool_name](auto const& values) noexcept {
                 try {
+                    has_value = true;
                     for (auto const& repo_name : repos_to_update_names) {
                         auto i = static_cast<std::size_t>(
                             &repo_name -
@@ -285,6 +289,11 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
     observer.join();
 
     if (failed) {
+        return kExitUpdateError;
+    }
+    if (not has_value) {
+        DetectAndReportPending(
+            "update", git_update_map, kRepoDescriptionPrinter);
         return kExitUpdateError;
     }
     // report success

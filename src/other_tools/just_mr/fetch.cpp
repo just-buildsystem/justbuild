@@ -31,6 +31,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -542,12 +543,15 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
 
     // do the fetch
     bool failed_archives{false};
+    bool has_value_archives{false};
     {
         TaskSystem ts{common_args.jobs};
         archive_fetch_map.ConsumeAfterKeysReady(
             &ts,
             archives_to_fetch,
-            []([[maybe_unused]] auto const& values) {},
+            [&has_value_archives]([[maybe_unused]] auto const& values) {
+                has_value_archives = true;
+            },
             [&failed_archives, &multi_repository_tool_name](auto const& msg,
                                                             bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
@@ -558,12 +562,15 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
             });
     }
     bool failed_git_trees{false};
+    bool has_value_trees{false};
     {
         TaskSystem ts{common_args.jobs};
         git_tree_fetch_map.ConsumeAfterKeysReady(
             &ts,
             git_trees_to_fetch,
-            []([[maybe_unused]] auto const& values) {},
+            [&has_value_trees]([[maybe_unused]] auto const& values) {
+                has_value_trees = true;
+            },
             [&failed_git_trees, &multi_repository_tool_name](auto const& msg,
                                                              bool fatal) {
                 Logger::Log(fatal ? LogLevel::Error : LogLevel::Warning,
@@ -580,6 +587,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     observer.join();
 
     if (failed_archives or failed_git_trees) {
+        return kExitFetchError;
+    }
+    if (not has_value_archives or not has_value_trees) {
+        DetectAndReportPending(
+            "fetch archives", archive_fetch_map, kArchiveContentPrinter);
+        DetectAndReportPending(
+            "fetch trees", git_tree_fetch_map, kGitTreeInfoPrinter);
         return kExitFetchError;
     }
     // report success

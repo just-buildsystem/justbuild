@@ -34,6 +34,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -344,12 +345,15 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
 
     // Populate workspace_root and TAKE_OVER fields
     bool failed{false};
+    bool has_value{false};
+
     {
         TaskSystem ts{common_args.jobs};
         repos_to_setup_map.ConsumeAfterKeysReady(
             &ts,
             setup_repos->to_setup,
             [&failed,
+             &has_value,
              &mr_config,
              repos,
              setup_repos,
@@ -357,6 +361,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
              interactive,
              multi_repo_tool_name](auto const& values) noexcept {
                 try {
+                    has_value = true;
                     // set the initial setup repositories
                     nlohmann::json mr_repos{};
                     for (auto const& repo : setup_repos->to_setup) {
@@ -436,6 +441,18 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     observer.join();
 
     if (failed) {
+        return std::nullopt;
+    }
+    if (not has_value) {
+        // check for cycles in maps where cycles can occur and have meaning
+        if (auto error = DetectAndReportCycle("resolving symlinks",
+                                              resolve_symlinks_map,
+                                              kGitObjectToResolvePrinter)) {
+            Logger::Log(LogLevel::Error, *error);
+            return std::nullopt;
+        }
+        DetectAndReportPending(
+            "setup", repos_to_setup_map, kReposToSetupPrinter);
         return std::nullopt;
     }
     // if successful, return the output config
