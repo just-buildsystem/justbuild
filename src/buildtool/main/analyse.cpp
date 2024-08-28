@@ -198,9 +198,12 @@ namespace Target = BuildMaps::Target;
             Logger::Log(logger, LogLevel::Error, *error_msg);
             return std::nullopt;
         }
-        DetectAndReportPending("expressions", expr_map, logger);
-        DetectAndReportPending("rules", rule_map, logger);
-        DetectAndReportPending("targets", target_map, logger);
+        DetectAndReportPending(
+            "expressions", expr_map, Base::kEntityNamePrinter, logger);
+        DetectAndReportPending(
+            "rules", rule_map, Base::kEntityNamePrinter, logger);
+        DetectAndReportPending(
+            "targets", target_map, Target::kConfiguredTargetPrinter, logger);
         return std::nullopt;
     }
 

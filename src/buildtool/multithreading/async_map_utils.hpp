@@ -24,7 +24,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/utils/cpp/concepts.hpp"
 
 /// \brief Utility to detect and report cycles for an AsyncMap instance.
 /// \param name Human-readable string identifier related to the map or its use.
@@ -61,10 +60,13 @@ template <typename K, typename V>
 /// \brief Utility to detect and report pending tasks for an AsyncMap instance.
 /// \param name Human-readable string identifier related to the map or its use.
 /// \param map The AsyncMap instance.
+/// \param key_printer Callable returning key-specific identifier in string
+/// format.
 /// \param logger Named logger, or nullptr to use global logger.
-template <HasToString K, typename V>
+template <typename K, typename V>
 void DetectAndReportPending(std::string const& name,
                             AsyncMapConsumer<K, V> const& map,
+                            std::function<std::string(K const&)> key_printer,
                             Logger const* logger = nullptr) {
     using namespace std::string_literals;
     auto keys = map.GetPendingKeys();
@@ -74,7 +76,7 @@ void DetectAndReportPending(std::string const& name,
                            name)
             << std::endl;
         for (auto const& k : keys) {
-            oss << "  " << k.ToString() << std::endl;
+            oss << "  " << key_printer(k) << std::endl;
         }
         Logger::Log(logger, LogLevel::Error, "{}", oss.str());
     }

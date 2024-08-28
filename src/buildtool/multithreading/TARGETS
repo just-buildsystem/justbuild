@@ -65,7 +65,6 @@
     [ "async_map_consumer"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "concepts"]
     ]
   , "stage": ["src", "buildtool", "multithreading"]
   }

@@ -41,13 +41,6 @@ concept HasSize = requires(T const c) {
     } -> same_as<std::size_t>;  // TODO(modernize): replace by std::same_as
 };
 
-template <typename T>
-concept HasToString = requires(T const t) {
-    {
-        t.ToString()
-    } -> same_as<std::string>;  // TODO(modernize): replace by std::same_as
-};
-
 template <class T>
 concept InputIterableContainer = requires(T const c) {
     {
