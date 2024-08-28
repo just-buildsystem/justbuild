@@ -639,6 +639,7 @@ void HandleKnownInOlderGenerationAfterImport(
         (*logger)(fmt::format("Failed to write tree id to file {}",
                               archive_tree_id_file.string()),
                   /*fatal=*/true);
+        return;
     }
     // Now that we also have the the ID-file written, we're in the situation
     // as if we had a cache hit in the first place.

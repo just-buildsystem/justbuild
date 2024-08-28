@@ -847,10 +847,10 @@ auto CreateReposToSetupMap(
                 return;
             }
             if (not resolved_repo_desc.value()->IsMap()) {
-                Logger::Log(
-                    LogLevel::Error,
-                    "Config: Repository {} resolves to a non-map description",
-                    nlohmann::json(key).dump());
+                (*logger)(fmt::format("Config: Repository {} resolves to a "
+                                      "non-map description",
+                                      nlohmann::json(key).dump()),
+                          /*fatal=*/true);
                 return;
             }
             auto repo_type = (*resolved_repo_desc)->At("type");
