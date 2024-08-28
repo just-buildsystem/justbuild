@@ -76,6 +76,7 @@
   , "name": ["install-roots-symlinks"]
   , "test": ["install-roots-symlinks.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep": ["log/archive.txt", "log/file.txt"]
   }
 , "fetch-remote":
   { "type": ["end-to-end", "with remote"]

@@ -40,13 +40,23 @@ readonly UPWARDS_LINK_PATH="bar/upwards"
 readonly UPWARDS_LINK_TARGET="../bar/baz"
 readonly INDIRECT_LINK_PATH="bar/indirect"
 readonly INDIRECT_LINK_TARGET="upwards/data.txt"
+readonly CYCLE_LINK_1_PATH="bar/cycle_1"
+readonly CYCLE_LINK_1_TARGET="cycle_2"
+readonly CYCLE_LINK_2_PATH="bar/cycle_2"
+readonly CYCLE_LINK_2_TARGET="cycle_1"
 
 mkdir -p "${DISTDIR}"
+
+mkdir -p log
+LOGDIR="$(realpath log)"
+LOG_ARCHIVE_REPO="${LOGDIR}/archive.txt"
+LOG_FILE_REPO="${LOGDIR}/file.txt"
 
 ###
 # Set up sample archives
 ##
 
+ROOT=$(pwd)
 mkdir -p "foo/${TEST_DIRS}"
 echo {} > foo/TARGETS
 echo -n "${TEST_DATA}" > "foo/${DATA_PATH}"
@@ -80,7 +90,14 @@ tar cf "${DISTDIR}/foo-1.2.3_v2.tar" foo \
   --sort=name --owner=root:0 --group=root:0 --mtime='UTC 1970-01-01' 2>&1
 foocontent_v2=$(git hash-object "${DISTDIR}/foo-1.2.3_v2.tar")
 echo "Foo archive v2 has content ${foocontent_v2}"
-rm -rf foo
+
+# lastly, check that symlink cycles will fail to resolve
+ln -s "${CYCLE_LINK_1_TARGET}" "foo/${CYCLE_LINK_1_PATH}"
+ln -s "${CYCLE_LINK_2_TARGET}" "foo/${CYCLE_LINK_2_PATH}"
+tar cf "${DISTDIR}/foo-1.2.3_cycle.tar" foo \
+  --sort=name --owner=root:0 --group=root:0 --mtime='UTC 1970-01-01' 2>&1
+foocontent_cycle=$(git hash-object "${DISTDIR}/foo-1.2.3_cycle.tar")
+echo "Foo archive with cycle has content ${foocontent_cycle}"
 
 ###
 # Setup sample repository config
@@ -132,6 +149,22 @@ cat > repos.json <<EOF
       , "foo_v2_ignore_special": "foo_v2_ignore_special"
       , "foo_v2_resolve_partially": "foo_v2_resolve_partially"
       , "foo_v2_resolve_completely": "foo_v2_resolve_completely"
+      }
+    }
+  , "foo_cycle_archive":
+    { "repository":
+      { "type": "archive"
+      , "content": "${foocontent_cycle}"
+      , "fetch": "http://non-existent.example.org/foo-1.2.3_cycle.tar"
+      , "subdir": "foo"
+      , "pragma": {"special": "resolve-completely"}
+      }
+    }
+  , "foo_cycle_file":
+    { "repository":
+      { "type": "file"
+      , "path": "${ROOT}/foo"
+      , "pragma": {"special": "resolve-completely"}
       }
     }
   }
@@ -226,5 +259,24 @@ test "$(cat "${INSTALL_DIR_SPECIAL_COMPLETE}/${NON_UPWARDS_LINK_PATH}")" = "${TE
 [ -d "${INSTALL_DIR_SPECIAL_COMPLETE}/${UPWARDS_LINK_PATH}" ]
 test "$(cat "${INSTALL_DIR_SPECIAL_COMPLETE}/${UPWARDS_LINK_PATH}/data.txt")" = "${TEST_DATA}"
 test "$(cat "${INSTALL_DIR_SPECIAL_COMPLETE}/${INDIRECT_LINK_PATH}")" = "${TEST_DATA}"
+
+
+echo === symlink cycle detection ===
+
+"${JUST_MR}" --norc --local-build-root "${LBR}" --distdir "${DISTDIR}" \
+             -f "${LOG_ARCHIVE_REPO}" setup foo_cycle_archive \
+             && echo "this should fail" >&2 && exit 1
+echo "failed as expected"
+# check for cycle in log file
+grep "${CYCLE_LINK_2_PATH}" "${LOG_ARCHIVE_REPO}"
+grep "${CYCLE_LINK_1_PATH}" "${LOG_ARCHIVE_REPO}"
+
+"${JUST_MR}" --norc --local-build-root "${LBR}" --distdir "${DISTDIR}" \
+             -f "${LOG_FILE_REPO}" setup foo_cycle_file \
+             && echo "this should fail" >&2 && exit 1
+echo "failed as expected"
+# check for cycle in log file
+grep "${CYCLE_LINK_1_PATH}" "${LOG_FILE_REPO}"
+grep "${CYCLE_LINK_2_PATH}" "${LOG_FILE_REPO}"
 
 echo OK
