@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -63,5 +64,12 @@ struct hash<RepoDescriptionForUpdating> {
     gsl::not_null<JustMRStatistics*> const& stats,
     gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitUpdateMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(RepoDescriptionForUpdating const&)>
+    kRepoDescriptionPrinter =
+        [](RepoDescriptionForUpdating const& x) -> std::string {
+    return x.repo;
+};
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_UPDATE_MAP_HPP

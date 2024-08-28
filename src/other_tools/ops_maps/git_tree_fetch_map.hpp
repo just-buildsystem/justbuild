@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP
 
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
@@ -69,5 +70,10 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
     bool backup_to_remote,
     gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitTreeFetchMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(GitTreeInfo const&)>
+    kGitTreeInfoPrinter =
+        [](GitTreeInfo const& x) -> std::string { return x.hash; };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP

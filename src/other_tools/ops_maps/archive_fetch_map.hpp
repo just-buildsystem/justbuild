@@ -17,7 +17,9 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <functional>
 #include <optional>
+#include <string>
 
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -36,5 +38,10 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
     IExecutionApi const* remote_api,
     gsl::not_null<JustMRStatistics*> const& stats,
     std::size_t jobs) -> ArchiveFetchMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(ArchiveContent const&)>
+    kArchiveContentPrinter =
+        [](ArchiveContent const& x) -> std::string { return x.content; };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP

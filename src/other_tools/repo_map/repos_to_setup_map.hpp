@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -47,5 +48,10 @@ auto CreateReposToSetupMap(
     bool fetch_absent,
     gsl::not_null<JustMRStatistics*> const& stats,
     std::size_t jobs) -> ReposToSetupMap;
+
+// use explicit cast to std::function to allow template deduction when used
+static const std::function<std::string(std::string const&)>
+    kReposToSetupPrinter =
+        [](std::string const& x) -> std::string { return x; };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_REPO_MAP_REPOS_TO_SETUP_MAP_HPP
