@@ -39,7 +39,7 @@ auto LocalAC<kDoGlobalUplink>::CachedResult(bazel_re::Digest const& action_id)
     const noexcept -> std::optional<bazel_re::ActionResult> {
     auto const cas_key = ReadActionKey(action_id);
     if (not cas_key) {
-        logger_->Emit(LogLevel::Warning, cas_key.error());
+        logger_->Emit(LogLevel::Debug, cas_key.error());
         return std::nullopt;
     }
     auto result = ReadAction(*cas_key);
