@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
@@ -272,8 +273,8 @@ template <ObjectType kType>
     }
 
     // Calculate the digest for the entry:
-    auto const digest =
-        ArtifactDigest::CreateFromFile<kType>(task.cas.GetHashFunction(), path);
+    auto const digest = ArtifactDigestFactory::HashFileAs<kType>(
+        task.cas.GetHashFunction(), path);
     if (not digest) {
         task.Log(LogLevel::Error,
                  "Failed to calculate digest for {}",

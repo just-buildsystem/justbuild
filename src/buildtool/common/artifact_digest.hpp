@@ -96,21 +96,6 @@ class ArtifactDigest final {
         }
     }
 
-    template <ObjectType kType>
-    [[nodiscard]] static auto CreateFromFile(
-        HashFunction hash_function,
-        std::filesystem::path const& path) noexcept
-        -> std::optional<ArtifactDigest> {
-        static constexpr bool kIsTree = IsTreeObject(kType);
-        auto const hash = kIsTree ? hash_function.HashTreeFile(path)
-                                  : hash_function.HashBlobFile(path);
-        if (hash) {
-            return ArtifactDigest{
-                hash->first.HexString(), hash->second, kIsTree};
-        }
-        return std::nullopt;
-    }
-
   private:
     std::size_t size_{};
     std::string hash_{};

@@ -17,6 +17,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -82,7 +83,7 @@ TEST_CASE("LocalCAS: Add blob to storage from non-executable file",
     std::filesystem::path non_exec_file{
         "test/buildtool/storage/data/non_executable_file"};
 
-    auto test_blob = ArtifactDigest::CreateFromFile<ObjectType::File>(
+    auto test_blob = ArtifactDigestFactory::HashFileAs<ObjectType::File>(
         storage_config.Get().hash_function, non_exec_file);
     REQUIRE(test_blob);
 
@@ -133,7 +134,7 @@ TEST_CASE("LocalCAS: Add blob to storage from executable file", "[storage]") {
     std::filesystem::path exec_file{
         "test/buildtool/storage/data/executable_file"};
 
-    auto test_blob = ArtifactDigest::CreateFromFile<ObjectType::File>(
+    auto test_blob = ArtifactDigestFactory::HashFileAs<ObjectType::File>(
         storage_config.Get().hash_function, exec_file);
     REQUIRE(test_blob);
 

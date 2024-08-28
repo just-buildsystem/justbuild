@@ -23,6 +23,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -129,7 +130,8 @@ class ObjectCAS {
 
     [[nodiscard]] auto CreateDigest(std::filesystem::path const& file_path)
         const noexcept -> std::optional<ArtifactDigest> {
-        return ArtifactDigest::CreateFromFile<kType>(hash_function_, file_path);
+        return ArtifactDigestFactory::HashFileAs<kType>(hash_function_,
+                                                        file_path);
     }
 
     [[nodiscard]] auto IsAvailable(
