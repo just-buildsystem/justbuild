@@ -73,6 +73,13 @@
   , "test": ["describe.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "output":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["output"]
+  , "test": ["output.sh"]
+  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "keep": ["log"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -94,7 +101,7 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["just-mr reporting", "log limit"]
+        , "else": ["just-mr reporting", "log limit", "output"]
         }
       ]
     }
