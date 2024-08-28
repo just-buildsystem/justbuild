@@ -24,6 +24,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -35,6 +36,10 @@
 class ArtifactDigest final {
   public:
     ArtifactDigest() noexcept = default;
+
+    explicit ArtifactDigest(HashInfo const& hash_info,
+                            std::size_t size) noexcept
+        : size_{size}, hash_{hash_info.Hash()}, is_tree_{hash_info.IsTree()} {}
 
     explicit ArtifactDigest(bazel_re::Digest const& digest) noexcept
         : size_{gsl::narrow<std::size_t>(digest.size_bytes())},
