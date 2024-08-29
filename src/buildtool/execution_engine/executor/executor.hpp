@@ -351,8 +351,7 @@ class ExecutorImpl {
         Artifact::ObjectInfo const& info,
         std::string const& hash) noexcept -> bool {
         std::optional<std::string> content;
-        if (NativeSupport::IsTree(
-                static_cast<bazel_re::Digest>(info.digest).hash())) {
+        if (info.digest.IsTree()) {
             // if known tree is not available, recursively upload its content
             auto tree = ReadGitTree(repo, repo_config, hash);
             if (not tree) {

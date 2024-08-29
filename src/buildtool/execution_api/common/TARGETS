@@ -89,7 +89,6 @@
     [ "common"
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/compatibility", "compatibility"]
     ]
   , "private-deps":
     [ ["src/buildtool/file_system", "git_repo"]

@@ -33,7 +33,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
@@ -262,8 +261,7 @@ class LocalApi final : public IExecutionApi {
                               bool /*skip_find_missing*/) const noexcept
         -> bool final {
         for (auto const& blob : blobs.Blobs()) {
-            auto const is_tree = NativeSupport::IsTree(
-                static_cast<bazel_re::Digest>(blob.digest).hash());
+            auto const is_tree = blob.digest.IsTree();
             auto cas_digest =
                 is_tree ? local_context_.storage->CAS().StoreTree(*blob.data)
                         : local_context_.storage->CAS().StoreBlob(*blob.data,
@@ -308,7 +306,7 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final {
         return static_cast<bool>(
-            NativeSupport::IsTree(static_cast<bazel_re::Digest>(digest).hash())
+            digest.IsTree()
                 ? local_context_.storage->CAS().TreePath(digest)
                 : local_context_.storage->CAS().BlobPath(digest, false));
     }
@@ -317,9 +315,8 @@ class LocalApi final : public IExecutionApi {
         const noexcept -> std::vector<ArtifactDigest> final {
         std::vector<ArtifactDigest> result;
         for (auto const& digest : digests) {
-            auto const& path =
-                NativeSupport::IsTree(
-                    static_cast<bazel_re::Digest>(digest).hash())
+            auto const path =
+                digest.IsTree()
                     ? local_context_.storage->CAS().TreePath(digest)
                     : local_context_.storage->CAS().BlobPath(digest, false);
             if (not path) {

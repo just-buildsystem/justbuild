@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "gsl/gsl"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 
@@ -38,8 +37,7 @@ class BlobTree {
 
     [[nodiscard]] auto Blob() const noexcept -> ArtifactBlob { return blob_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool {
-        return NativeSupport::IsTree(
-            static_cast<bazel_re::Digest>(blob_.digest).hash());
+        return blob_.digest.IsTree();
     }
 
     /// \brief Create a `BlobTree` from a `DirectoryTree`.

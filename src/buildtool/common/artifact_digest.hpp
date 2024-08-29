@@ -32,9 +32,7 @@
 // unprefixed hex string as hash. For communication with the execution API it
 // can be cast to bazel_re::Digest which is the wire format that contains
 // prefixed hashes in native mode.
-class ArtifactDigest {
-    friend struct std::hash<ArtifactDigest>;
-
+class ArtifactDigest final {
   public:
     ArtifactDigest() noexcept = default;
 
@@ -63,6 +61,7 @@ class ArtifactDigest {
     }
 
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
+    [[nodiscard]] auto IsTree() const noexcept -> bool { return is_tree_; }
 
     // NOLINTNEXTLINE allow implicit casts
     [[nodiscard]] operator bazel_re::Digest() const {
@@ -134,8 +133,8 @@ struct hash<ArtifactDigest> {
     [[nodiscard]] auto operator()(ArtifactDigest const& digest) const noexcept
         -> std::size_t {
         std::size_t seed{};
-        hash_combine(&seed, digest.hash_);
-        hash_combine(&seed, digest.is_tree_);
+        hash_combine(&seed, digest.hash());
+        hash_combine(&seed, digest.IsTree());
         return seed;
     }
 };

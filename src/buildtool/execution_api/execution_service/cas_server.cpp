@@ -103,7 +103,7 @@ auto CASServiceImpl::FindMissingBlobs(
             logger_.Emit(LogLevel::Trace, "FindMissingBlobs: {}", hash);
             ArtifactDigest const digest(x);
             is_in_cas =
-                NativeSupport::IsTree(hash)
+                digest.IsTree()
                     ? storage_.CAS().TreePath(digest).has_value()
                     : storage_.CAS().BlobPath(digest, false).has_value();
         }
@@ -200,7 +200,7 @@ auto CASServiceImpl::BatchReadBlobs(
 
         ArtifactDigest const digest(x);
         auto const path =
-            NativeSupport::IsTree(x.hash())
+            digest.IsTree()
                 ? storage_.CAS().TreePath(digest)
                 : storage_.CAS().BlobPath(digest, /*is_executable=*/false);
 
