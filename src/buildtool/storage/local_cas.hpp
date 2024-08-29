@@ -228,7 +228,7 @@ class LocalCAS {
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkBlob(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest,
+        ArtifactDigest const& digest,
         bool is_executable,
         bool skip_sync = false,
         bool splice_result = false) const noexcept -> bool;
@@ -251,7 +251,7 @@ class LocalCAS {
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkTree(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest,
+        ArtifactDigest const& digest,
         bool splice_result = false) const noexcept -> bool;
 
     /// \brief Uplink large entry from this generation to latest LocalCAS
@@ -267,7 +267,7 @@ class LocalCAS {
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkLargeObject(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest) const noexcept -> bool;
+        ArtifactDigest const& digest) const noexcept -> bool;
 
   private:
     ObjectCAS<ObjectType::File> cas_file_;
@@ -316,15 +316,15 @@ class LocalCAS {
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkGitTree(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest,
+        ArtifactDigest const& digest,
         bool splice_result = false) const noexcept -> bool;
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkBazelDirectory(
         LocalGenerationCAS const& latest,
-        bazel_re::Digest const& digest,
-        gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
+        ArtifactDigest const& digest,
+        gsl::not_null<std::unordered_set<ArtifactDigest>*> const& seen,
         bool splice_result = false) const noexcept -> bool;
 
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>

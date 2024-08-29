@@ -19,6 +19,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
@@ -27,23 +28,22 @@ template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest,
+    ArtifactDigest const& digest,
     bool is_executable,
     bool skip_sync,
     bool splice_result) const noexcept -> bool {
-    auto const a_digest = static_cast<ArtifactDigest>(digest);
     // Determine blob path in latest generation.
-    auto blob_path_latest = latest.BlobPathNoSync(a_digest, is_executable);
+    auto blob_path_latest = latest.BlobPathNoSync(digest, is_executable);
     if (blob_path_latest) {
         return true;
     }
 
     // Determine blob path of given generation.
-    auto blob_path = skip_sync ? BlobPathNoSync(a_digest, is_executable)
-                               : BlobPath(a_digest, is_executable);
+    auto blob_path = skip_sync ? BlobPathNoSync(digest, is_executable)
+                               : BlobPath(digest, is_executable);
     std::optional<LargeObject> spliced;
     if (not blob_path) {
-        spliced = TrySplice<ObjectType::File>(a_digest);
+        spliced = TrySplice<ObjectType::File>(digest);
         blob_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not blob_path) {
@@ -80,10 +80,10 @@ template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest,
+    ArtifactDigest const& digest,
     bool splice_result) const noexcept -> bool {
     if (Compatibility::IsCompatible()) {
-        std::unordered_set<bazel_re::Digest> seen{};
+        std::unordered_set<ArtifactDigest> seen{};
         return LocalUplinkBazelDirectory(latest, digest, &seen, splice_result);
     }
     return LocalUplinkGitTree(latest, digest, splice_result);
@@ -94,20 +94,19 @@ template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest,
+    ArtifactDigest const& digest,
     bool splice_result) const noexcept -> bool {
     // Determine tree path in latest generation.
-    auto const a_digest = static_cast<ArtifactDigest>(digest);
-    auto tree_path_latest = latest.cas_tree_.BlobPath(a_digest);
+    auto tree_path_latest = latest.cas_tree_.BlobPath(digest);
     if (tree_path_latest) {
         return true;
     }
 
     // Determine tree path of given generation.
-    auto tree_path = cas_tree_.BlobPath(a_digest);
+    auto tree_path = cas_tree_.BlobPath(digest);
     std::optional<LargeObject> spliced;
     if (not tree_path) {
-        spliced = TrySplice<ObjectType::Tree>(a_digest);
+        spliced = TrySplice<ObjectType::Tree>(digest);
         tree_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not tree_path) {
@@ -116,7 +115,6 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
 
     // Determine tree entries.
     auto content = FileSystemManager::ReadFile(*tree_path);
-    auto id = NativeSupport::Unprefix(digest.hash());
     auto check_symlinks =
         [this](std::vector<ArtifactDigest> const& ids) -> bool {
         for (auto const& id : ids) {
@@ -139,7 +137,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         return true;
     };
     auto tree_entries = GitRepo::ReadTreeData(*content,
-                                              id,
+                                              digest.hash(),
                                               check_symlinks,
                                               /*is_hex_id=*/true);
     if (not tree_entries) {
@@ -151,17 +149,17 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         // Process only first entry from 'entry_vector' since all
         // entries represent the same blob, just with different
         // names.
-        auto entry = entry_vector.front();
-        auto hash = ToHexString(raw_id);
-        auto digest = ArtifactDigest{hash, 0, IsTreeObject(entry.type)};
-        if (entry.type == ObjectType::Tree) {
+        auto const entry_type = entry_vector.front().type;
+        auto const digest =
+            ArtifactDigest{ToHexString(raw_id), 0, IsTreeObject(entry_type)};
+        if (digest.IsTree()) {
             if (not LocalUplinkGitTree(latest, digest)) {
                 return false;
             }
         }
         else {
             if (not LocalUplinkBlob(
-                    latest, digest, IsExecutableObject(entry.type))) {
+                    latest, digest, IsExecutableObject(entry_type))) {
                 return false;
             }
         }
@@ -190,20 +188,19 @@ template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest,
-    gsl::not_null<std::unordered_set<bazel_re::Digest>*> const& seen,
+    ArtifactDigest const& digest,
+    gsl::not_null<std::unordered_set<ArtifactDigest>*> const& seen,
     bool splice_result) const noexcept -> bool {
     // Skip already uplinked directories
     if (seen->contains(digest)) {
         return true;
     }
 
-    auto const a_digest = static_cast<ArtifactDigest>(digest);
     // Determine bazel directory path of given generation.
-    auto dir_path = cas_tree_.BlobPath(a_digest);
+    auto dir_path = cas_tree_.BlobPath(digest);
     std::optional<LargeObject> spliced;
     if (not dir_path) {
-        spliced = TrySplice<ObjectType::Tree>(a_digest);
+        spliced = TrySplice<ObjectType::Tree>(digest);
         dir_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not dir_path) {
@@ -219,19 +216,20 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
 
     // Uplink bazel directory entries.
     for (auto const& file : dir.files()) {
-        if (not LocalUplinkBlob(latest, file.digest(), file.is_executable())) {
+        ArtifactDigest const a_digest{file.digest()};
+        if (not LocalUplinkBlob(latest, a_digest, file.is_executable())) {
             return false;
         }
     }
     for (auto const& directory : dir.directories()) {
-        if (not LocalUplinkBazelDirectory(latest, directory.digest(), seen)) {
+        ArtifactDigest const a_digest{directory.digest()};
+        if (not LocalUplinkBazelDirectory(latest, a_digest, seen)) {
             return false;
         }
     }
 
     // Determine bazel directory path in latest generation.
-    auto dir_path_latest = latest.cas_tree_.BlobPath(a_digest);
-
+    auto const dir_path_latest = latest.cas_tree_.BlobPath(digest);
     if (spliced) {
         // Uplink the large entry afterwards:
         // The result of uplinking of a large object must not affect the
@@ -263,15 +261,14 @@ template <ObjectType kType, bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::LocalUplinkLargeObject(
     LocalGenerationCAS const& latest,
-    bazel_re::Digest const& digest) const noexcept -> bool {
-    auto const a_digest = static_cast<ArtifactDigest>(digest);
+    ArtifactDigest const& digest) const noexcept -> bool {
     if constexpr (IsTreeObject(kType)) {
         return cas_tree_large_.LocalUplink(
-            latest, latest.cas_tree_large_, a_digest);
+            latest, latest.cas_tree_large_, digest);
     }
     else {
         return cas_file_large_.LocalUplink(
-            latest, latest.cas_file_large_, a_digest);
+            latest, latest.cas_file_large_, digest);
     }
 }
 

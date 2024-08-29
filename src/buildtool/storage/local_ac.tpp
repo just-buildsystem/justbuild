@@ -55,16 +55,15 @@ template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
     LocalGenerationAC const& latest,
-    bazel_re::Digest const& action_id) const noexcept -> bool {
+    ArtifactDigest const& action_id) const noexcept -> bool {
     // Determine action cache key path in latest generation.
-    ArtifactDigest const a_digest{action_id};
     if (FileSystemManager::IsFile(
-            latest.file_store_.GetPath(a_digest.hash()))) {
+            latest.file_store_.GetPath(action_id.hash()))) {
         return true;
     }
 
     // Read cache key
-    auto const cas_key = ReadActionKey(a_digest);
+    auto const cas_key = ReadActionKey(action_id);
     if (not cas_key) {
         return false;
     }
@@ -77,8 +76,9 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
 
     // Uplink result content
     for (auto const& file : result->output_files()) {
+        ArtifactDigest const a_digest{file.digest()};
         if (not cas_.LocalUplinkBlob(
-                latest.cas_, file.digest(), file.is_executable())) {
+                latest.cas_, a_digest, file.is_executable())) {
             return false;
         }
     }
@@ -99,7 +99,8 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         }
     }
     for (auto const& directory : result->output_directories()) {
-        if (not cas_.LocalUplinkTree(latest.cas_, directory.tree_digest())) {
+        ArtifactDigest const a_digest{directory.tree_digest()};
+        if (not cas_.LocalUplinkTree(latest.cas_, a_digest)) {
             return false;
         }
     }
@@ -111,9 +112,9 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         return false;
     }
 
-    auto const ac_entry_path = file_store_.GetPath(a_digest.hash());
+    auto const ac_entry_path = file_store_.GetPath(action_id.hash());
     // Uplink cache key
-    return latest.file_store_.AddFromFile(a_digest.hash(),
+    return latest.file_store_.AddFromFile(action_id.hash(),
                                           ac_entry_path,
                                           /*is_owner=*/true);
 }

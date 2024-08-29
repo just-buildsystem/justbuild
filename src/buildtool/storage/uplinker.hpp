@@ -21,16 +21,12 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 template <bool>
 class LocalStorage;
 class TargetCacheKey;
-
-namespace build::bazel::remote::execution::v2 {
-class Digest;
-}
-namespace bazel_re = build::bazel::remote::execution::v2;
 
 /// \brief Global uplinker implementation.
 /// Responsible for uplinking objects across all generations to latest
@@ -45,7 +41,7 @@ class GlobalUplinker final {
     /// \param digest         Digest of the blob to uplink.
     /// \param is_executable  Indicate that blob is an executable.
     /// \returns true if blob was found and successfully uplinked.
-    [[nodiscard]] auto UplinkBlob(bazel_re::Digest const& digest,
+    [[nodiscard]] auto UplinkBlob(ArtifactDigest const& digest,
                                   bool is_executable) const noexcept -> bool;
 
     /// \brief Uplink tree across LocalCASes from all generations to latest.
@@ -53,7 +49,7 @@ class GlobalUplinker final {
     /// by this tree will be uplinked before (including sub-trees).
     /// \param digest         Digest of the tree to uplink.
     /// \returns true if tree was found and successfully uplinked (deep).
-    [[nodiscard]] auto UplinkTree(bazel_re::Digest const& digest) const noexcept
+    [[nodiscard]] auto UplinkTree(ArtifactDigest const& digest) const noexcept
         -> bool;
 
     /// \brief Uplink large blob entry across LocalCASes from all generations to
@@ -61,14 +57,14 @@ class GlobalUplinker final {
     /// \param digest         Digest of the large blob entry to uplink.
     /// \returns true if large entry was found and successfully uplinked.
     [[nodiscard]] auto UplinkLargeBlob(
-        bazel_re::Digest const& digest) const noexcept -> bool;
+        ArtifactDigest const& digest) const noexcept -> bool;
 
     /// \brief Uplink entry from action cache across all generations to latest.
     /// Note that the entry will be uplinked including all referenced items.
     /// \param action_id    Id of the action to uplink entry for.
     /// \returns true if cache entry was found and successfully uplinked.
     [[nodiscard]] auto UplinkActionCacheEntry(
-        bazel_re::Digest const& action_id) const noexcept -> bool;
+        ArtifactDigest const& action_id) const noexcept -> bool;
 
     /// \brief Uplink entry from target cache across all generations to latest.
     /// Note that the entry will be uplinked including all referenced items.

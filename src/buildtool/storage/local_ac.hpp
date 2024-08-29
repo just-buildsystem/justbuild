@@ -84,7 +84,7 @@ class LocalAC {
         requires(kIsLocalGeneration)
     [[nodiscard]] auto LocalUplinkEntry(
         LocalGenerationAC const& latest,
-        bazel_re::Digest const& action_id) const noexcept -> bool;
+        ArtifactDigest const& action_id) const noexcept -> bool;
 
   private:
     // The action cache stores the results of failed actions. For those to be

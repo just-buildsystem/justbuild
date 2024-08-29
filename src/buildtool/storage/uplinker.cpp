@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <cstddef>
 
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
@@ -46,7 +45,7 @@ GlobalUplinker::GlobalUplinker(
     : storage_config_{*storage_config},
       generations_{CreateGenerations(&storage_config_)} {}
 
-auto GlobalUplinker::UplinkBlob(bazel_re::Digest const& digest,
+auto GlobalUplinker::UplinkBlob(ArtifactDigest const& digest,
                                 bool is_executable) const noexcept -> bool {
     // Try to find blob in all generations.
     auto const& latest = generations_[Generation::kYoungest].CAS();
@@ -62,7 +61,7 @@ auto GlobalUplinker::UplinkBlob(bazel_re::Digest const& digest,
         });
 }
 
-auto GlobalUplinker::UplinkTree(bazel_re::Digest const& digest) const noexcept
+auto GlobalUplinker::UplinkTree(ArtifactDigest const& digest) const noexcept
     -> bool {
     // Try to find blob in all generations.
     auto const& latest = generations_[Generation::kYoungest].CAS();
@@ -75,7 +74,7 @@ auto GlobalUplinker::UplinkTree(bazel_re::Digest const& digest) const noexcept
 }
 
 auto GlobalUplinker::UplinkLargeBlob(
-    bazel_re::Digest const& digest) const noexcept -> bool {
+    ArtifactDigest const& digest) const noexcept -> bool {
     // Try to find large entry in all generations.
     auto const& latest = generations_[Generation::kYoungest].CAS();
     return std::any_of(
@@ -88,7 +87,7 @@ auto GlobalUplinker::UplinkLargeBlob(
 }
 
 auto GlobalUplinker::UplinkActionCacheEntry(
-    bazel_re::Digest const& action_id) const noexcept -> bool {
+    ArtifactDigest const& action_id) const noexcept -> bool {
     // Try to find action-cache entry in all generations.
     auto const& latest = generations_[Generation::kYoungest].ActionCache();
     return std::any_of(generations_.begin(),
