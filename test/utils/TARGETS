@@ -157,19 +157,6 @@
   , "hdrs": ["shell_quoting.hpp"]
   , "stage": ["test", "utils"]
   }
-, "blob_creator":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["blob_creator"]
-  , "hdrs": ["blob_creator.hpp"]
-  , "stage": ["test", "utils"]
-  , "deps":
-    [ ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    ]
-  }
 , "test_api_bundle":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["test_api_bundle"]

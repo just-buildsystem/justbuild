@@ -94,9 +94,12 @@
       , "bazel_msg_factory"
       ]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["utils", "blob_creator"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }

@@ -15,16 +15,40 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 
 #include <filesystem>
+#include <optional>
+#include <string>
 #include <unordered_map>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
-#include "test/utils/blob_creator.hpp"
+
+namespace {
+/// \brief Create a blob from the content found in file or symlink pointed to by
+/// given path.
+[[nodiscard]] static inline auto CreateBlobFromPath(
+    std::filesystem::path const& fpath,
+    HashFunction hash_function) noexcept -> std::optional<ArtifactBlob> {
+    auto const type = FileSystemManager::Type(fpath, /*allow_upwards=*/true);
+    if (not type) {
+        return std::nullopt;
+    }
+    auto const content = FileSystemManager::ReadContentAtPath(fpath, *type);
+    if (not content.has_value()) {
+        return std::nullopt;
+    }
+    return ArtifactBlob{
+        ArtifactDigest::Create<ObjectType::File>(hash_function, *content),
+        *content,
+        IsExecutableObject(*type)};
+}
+}  // namespace
 
 TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     std::filesystem::path workspace{"test/buildtool/storage/data"};
@@ -54,24 +78,21 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     // both files are the same and should result in identical blobs
     CHECK(*file1_blob->data == *file2_blob->data);
     CHECK(file1_blob->digest.hash() == file2_blob->digest.hash());
-    CHECK(file1_blob->digest.size_bytes() == file2_blob->digest.size_bytes());
+    CHECK(file1_blob->digest.size() == file2_blob->digest.size());
 
     // create known artifacts
     auto artifact1_opt =
-        ArtifactDescription::CreateKnown(ArtifactDigest{file1_blob->digest},
-                                         ObjectType::File)
+        ArtifactDescription::CreateKnown(file1_blob->digest, ObjectType::File)
             .ToArtifact();
     auto artifact1 = DependencyGraph::ArtifactNode{std::move(artifact1_opt)};
 
     auto artifact2_opt =
-        ArtifactDescription::CreateKnown(ArtifactDigest{file2_blob->digest},
-                                         ObjectType::File)
+        ArtifactDescription::CreateKnown(file2_blob->digest, ObjectType::File)
             .ToArtifact();
     auto artifact2 = DependencyGraph::ArtifactNode{std::move(artifact2_opt)};
 
     auto artifact3_opt =
-        ArtifactDescription::CreateKnown(ArtifactDigest{link_blob->digest},
-                                         ObjectType::Symlink)
+        ArtifactDescription::CreateKnown(link_blob->digest, ObjectType::Symlink)
             .ToArtifact();
     auto artifact3 = DependencyGraph::ArtifactNode{std::move(artifact3_opt)};
 

@@ -21,7 +21,6 @@
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["utils", "blob_creator"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
     ]
