@@ -15,7 +15,6 @@
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 
 #include "fmt/core.h"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
 static auto ToGrpc(LargeObjectError&& error) noexcept -> grpc::Status {
@@ -48,13 +47,10 @@ auto CASUtils::EnsureTreeInvariant(bazel_re::Digest const& digest,
 auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
                                  Storage const& storage) noexcept
     -> expected<std::vector<bazel_re::Digest>, grpc::Status> {
-
     // Check blob existence.
-    auto path =
-        NativeSupport::IsTree(blob_digest.hash())
-            ? storage.CAS().TreePath(static_cast<ArtifactDigest>(blob_digest))
-            : storage.CAS().BlobPath(static_cast<ArtifactDigest>(blob_digest),
-                                     false);
+    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
+    auto path = a_digest.IsTree() ? storage.CAS().TreePath(a_digest)
+                                  : storage.CAS().BlobPath(a_digest, false);
     if (not path) {
         return unexpected{
             grpc::Status{grpc::StatusCode::NOT_FOUND,
@@ -66,7 +62,7 @@ auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
     // return the identity of a tree, we need to put the tree data in file CAS
     // and return the resulting digest.
     auto chunk_digests = std::vector<bazel_re::Digest>{};
-    if (NativeSupport::IsTree(blob_digest.hash())) {
+    if (a_digest.IsTree()) {
         auto tree_data = FileSystemManager::ReadFile(*path);
         if (not tree_data) {
             return unexpected{grpc::Status{
@@ -91,13 +87,21 @@ auto CASUtils::SplitBlobFastCDC(bazel_re::Digest const& blob_digest,
                                 Storage const& storage) noexcept
     -> expected<std::vector<bazel_re::Digest>, grpc::Status> {
     // Split blob into chunks:
-    auto split = NativeSupport::IsTree(blob_digest.hash())
-                     ? storage.CAS().SplitTree(blob_digest)
-                     : storage.CAS().SplitBlob(blob_digest);
+    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
+    auto split = a_digest.IsTree() ? storage.CAS().SplitTree(a_digest)
+                                   : storage.CAS().SplitBlob(a_digest);
 
     // Process result:
     if (split) {
-        return *std::move(split);
+        std::vector<bazel_re::Digest> result;
+        result.reserve(split->size());
+        std::transform(split->begin(),
+                       split->end(),
+                       std::back_inserter(result),
+                       [](ArtifactDigest const& digest) {
+                           return static_cast<bazel_re::Digest>(digest);
+                       });
+        return result;
     }
     // Process errors
     return unexpected{ToGrpc(std::move(split).error())};
@@ -107,15 +111,22 @@ auto CASUtils::SpliceBlob(bazel_re::Digest const& blob_digest,
                           std::vector<bazel_re::Digest> const& chunk_digests,
                           Storage const& storage) noexcept
     -> expected<bazel_re::Digest, grpc::Status> {
+    auto const a_digest = static_cast<ArtifactDigest>(blob_digest);
+    std::vector<ArtifactDigest> a_parts;
+    a_parts.reserve(chunk_digests.size());
+    std::transform(chunk_digests.begin(),
+                   chunk_digests.end(),
+                   std::back_inserter(a_parts),
+                   [](auto const& digest) { return ArtifactDigest{digest}; });
+
     // Splice blob from chunks:
-    auto splice =
-        NativeSupport::IsTree(blob_digest.hash())
-            ? storage.CAS().SpliceTree(blob_digest, chunk_digests)
-            : storage.CAS().SpliceBlob(blob_digest, chunk_digests, false);
+    auto splice = a_digest.IsTree()
+                      ? storage.CAS().SpliceTree(a_digest, a_parts)
+                      : storage.CAS().SpliceBlob(a_digest, a_parts, false);
 
     // Process result:
     if (splice) {
-        return *std::move(splice);
+        return static_cast<bazel_re::Digest>(*splice);
     }
     return unexpected{ToGrpc(std::move(splice).error())};
 }

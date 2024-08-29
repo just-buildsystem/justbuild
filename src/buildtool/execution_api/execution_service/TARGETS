@@ -175,7 +175,6 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }

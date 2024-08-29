@@ -28,7 +28,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -116,7 +116,7 @@ TEST_CASE("LargeObjectCAS: split a small tree", "[storage]") {
 
     // The result must contain one blob digest:
     CHECK(split_pack->size() == 1);
-    CHECK_FALSE(NativeSupport::IsTree(split_pack->front().hash()));
+    CHECK_FALSE(split_pack->front().IsTree());
 }
 
 // Test splitting of a large object. The split must be successful and the entry
@@ -233,7 +233,7 @@ static void TestSmall(Storage const& storage) noexcept {
         auto pack_1 = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
         CHECK(pack_1);
         CHECK(pack_1->size() == 1);
-        CHECK_FALSE(NativeSupport::IsTree(pack_1->front().hash()));
+        CHECK_FALSE(pack_1->front().IsTree());
 
         // Test that there is no large entry in the storage:
         // To ensure there is no split of the initial object, it is removed:
@@ -243,8 +243,7 @@ static void TestSmall(Storage const& storage) noexcept {
         // The part of a small executable is the same file but without the
         // execution permission. It must be deleted too.
         if constexpr (kIsExec) {
-            auto part_path = cas.BlobPath(
-                static_cast<ArtifactDigest>(pack_1->front()), false);
+            auto part_path = cas.BlobPath(pack_1->front(), false);
             CHECK(part_path);
             CHECK(FileSystemManager::RemoveFile(*part_path));
         }
@@ -353,8 +352,7 @@ static void TestExternal(StorageConfig const& storage_config,
         REQUIRE(GarbageCollector::TriggerGarbageCollection(storage_config));
         for (auto const& part : *pack_1) {
             static constexpr bool is_executable = false;
-            REQUIRE(
-                cas.BlobPath(static_cast<ArtifactDigest>(part), is_executable));
+            REQUIRE(cas.BlobPath(part, is_executable));
         }
 
         auto const youngest = ::Generation::Create(&storage_config);
