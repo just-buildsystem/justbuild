@@ -114,7 +114,7 @@ auto TargetService::HandleFailureLog(
         return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
     }
     // set response with log digest
-    response->mutable_log()->CopyFrom(*digest);
+    (*response->mutable_log()) = static_cast<bazel_re::Digest>(*digest);
     return ::grpc::Status::OK;
 }
 
@@ -232,7 +232,8 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
         // populate response with the target cache value
-        response->mutable_target_value()->CopyFrom(target_entry->second.digest);
+        (*response->mutable_target_value()) =
+            static_cast<bazel_re::Digest>(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
 
@@ -572,7 +573,8 @@ auto TargetService::ServeTarget(
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
         }
         // populate response with the target cache value
-        response->mutable_target_value()->CopyFrom(target_entry->second.digest);
+        (*response->mutable_target_value()) =
+            static_cast<bazel_re::Digest>(target_entry->second.digest);
         return ::grpc::Status::OK;
     }
 
@@ -928,7 +930,8 @@ auto TargetService::ServeTargetDescription(
         }
 
         // populate response
-        response->mutable_description_id()->CopyFrom(*dgst);
+        (*response->mutable_description_id()) =
+            static_cast<bazel_re::Digest>(*dgst);
         return ::grpc::Status::OK;
     }
     // failed to store blob

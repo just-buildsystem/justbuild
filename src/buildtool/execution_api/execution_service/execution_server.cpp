@@ -109,7 +109,8 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
                 fmt::format("Could not store stderr of action {}",
                             i_execution_response->ActionDigest())};
         }
-        action_result.mutable_stderr_digest()->CopyFrom(*cas_digest);
+        (*action_result.mutable_stderr_digest()) =
+            static_cast<bazel_re::Digest>(*cas_digest);
     }
 
     if (i_execution_response->HasStdOut()) {
@@ -121,7 +122,8 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
                 fmt::format("Could not store stdout of action {}",
                             i_execution_response->ActionDigest())};
         }
-        action_result.mutable_stdout_digest()->CopyFrom(*cas_digest);
+        (*action_result.mutable_stdout_digest()) =
+            static_cast<bazel_re::Digest>(*cas_digest);
     }
 
     ::bazel_re::ExecuteResponse bazel_response{};
@@ -282,11 +284,13 @@ namespace {
                 digest.hash());
             return unexpected{std::move(error)};
         }
-        *(out_dir.mutable_tree_digest()) = *std::move(cas_digest);
+        (*out_dir.mutable_tree_digest()) =
+            static_cast<bazel_re::Digest>(*cas_digest);
     }
     else {
         // In native mode: Set the directory digest directly.
-        *(out_dir.mutable_tree_digest()) = digest;
+        (*out_dir.mutable_tree_digest()) =
+            static_cast<bazel_re::Digest>(digest);
     }
     return std::move(out_dir);
 }
@@ -320,8 +324,8 @@ namespace {
                                      Artifact::ObjectInfo const& info) noexcept
     -> ::bazel_re::OutputFile {
     ::bazel_re::OutputFile out_file{};
-    *(out_file.mutable_path()) = std::move(path);
-    *(out_file.mutable_digest()) = info.digest;
+    (*out_file.mutable_path()) = std::move(path);
+    (*out_file.mutable_digest()) = static_cast<bazel_re::Digest>(info.digest);
     out_file.set_is_executable(IsExecutableObject(info.type));
     return out_file;
 }

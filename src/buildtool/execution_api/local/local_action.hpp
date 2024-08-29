@@ -95,12 +95,13 @@ class LocalAction final : public IExecutionAction {
         std::sort(output_dirs_.begin(), output_dirs_.end());
     }
 
-    [[nodiscard]] auto CreateActionDigest(bazel_re::Digest const& exec_dir,
+    [[nodiscard]] auto CreateActionDigest(ArtifactDigest const& exec_dir,
                                           bool do_not_cache)
         -> std::optional<bazel_re::Digest> {
         auto const env_vars = BazelMsgFactory::CreateMessageVectorFromMap<
             bazel_re::Command_EnvironmentVariable>(env_vars_);
 
+        auto const bazel_exec_dir = static_cast<bazel_re::Digest>(exec_dir);
         BazelMsgFactory::ActionDigestRequest request{
             .command_line = &cmdline_,
             .cwd = &cwd_,
@@ -108,7 +109,7 @@ class LocalAction final : public IExecutionAction {
             .output_dirs = &output_dirs_,
             .env_vars = &env_vars,
             .properties = &properties_,
-            .exec_dir = &exec_dir,
+            .exec_dir = &bazel_exec_dir,
             .hash_function = local_context_.storage_config->hash_function,
             .timeout = timeout_,
             .skip_action_cache = do_not_cache};

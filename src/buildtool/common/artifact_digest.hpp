@@ -63,13 +63,14 @@ class ArtifactDigest final {
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool { return is_tree_; }
 
-    // NOLINTNEXTLINE allow implicit casts
-    [[nodiscard]] operator bazel_re::Digest() const {
+    [[nodiscard]] explicit operator bazel_re::Digest() const {
         return CreateBazelDigest(hash_, size_, is_tree_);
     }
 
     [[nodiscard]] auto operator==(ArtifactDigest const& other) const -> bool {
-        return std::equal_to<bazel_re::Digest>{}(*this, other);
+        return std::equal_to<bazel_re::Digest>{}(
+            static_cast<bazel_re::Digest>(*this),
+            static_cast<bazel_re::Digest>(other));
     }
 
     template <ObjectType kType>

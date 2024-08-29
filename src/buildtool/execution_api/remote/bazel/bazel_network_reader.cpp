@@ -41,8 +41,10 @@ BazelNetworkReader::BazelNetworkReader(
     if (Compatibility::IsCompatible() and request_remote_tree) {
         // Query full tree from remote CAS. Note that this is currently not
         // supported by Buildbarn revision c3c06bbe2a.
-        auto full_tree = cas_.GetTree(
-            instance_name_, *request_remote_tree, kMaxBatchTransferSize);
+        auto full_tree =
+            cas_.GetTree(instance_name_,
+                         static_cast<bazel_re::Digest>(*request_remote_tree),
+                         kMaxBatchTransferSize);
         auxiliary_map_ = MakeAuxiliaryMap(std::move(full_tree));
     }
 }
@@ -122,7 +124,8 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
 auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
                                   DumpCallback const& dumper) const noexcept
     -> bool {
-    auto reader = cas_.IncrementalReadSingleBlob(instance_name_, info.digest);
+    auto reader = cas_.IncrementalReadSingleBlob(
+        instance_name_, static_cast<bazel_re::Digest>(info.digest));
     auto data = reader.Next();
     while (data and not data->empty()) {
         try {

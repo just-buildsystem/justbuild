@@ -181,15 +181,9 @@ auto BytestreamServiceImpl::Write(
     }
 
     // Store blob and verify hash
-    std::optional<bazel_re::Digest> stored;
-    if (is_tree) {
-        stored = storage_.CAS().StoreTree</*kOwner=*/true>(tmp);
-    }
-    else {
-        stored = storage_.CAS().StoreBlob</*kOwner=*/true>(
-            tmp, /*is_executable=*/false);
-    }
-
+    auto const stored = is_tree ? storage_.CAS().StoreTree</*kOwner=*/true>(tmp)
+                                : storage_.CAS().StoreBlob</*kOwner=*/true>(
+                                      tmp, /*is_executable=*/false);
     if (not stored) {
         // This is a serious problem: we have a sequence of bytes, but cannot
         // write them to CAS.
@@ -198,7 +192,7 @@ auto BytestreamServiceImpl::Write(
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, str};
     }
 
-    if (stored->hash() != *hash) {
+    if (static_cast<bazel_re::Digest>(*stored).hash() != *hash) {
         // User error: did not get a file with the announced hash
         auto str = fmt::format("In upload for {} received object with hash {}",
                                *hash,

@@ -60,14 +60,14 @@ inline constexpr std::size_t kSHA256Length = 64;
 }
 
 [[nodiscard]] auto CheckDigestConsistency(
-    bazel_re::Digest const& ref,
-    bazel_re::Digest const& computed) noexcept -> std::optional<std::string> {
+    ArtifactDigest const& ref,
+    ArtifactDigest const& computed) noexcept -> std::optional<std::string> {
     bool valid = ref.hash() == computed.hash();
     if (valid) {
         bool const check_sizes =
-            Compatibility::IsCompatible() or ref.size_bytes() != 0;
+            Compatibility::IsCompatible() or ref.size() != 0;
         if (check_sizes) {
-            valid = ref.size_bytes() == computed.size_bytes();
+            valid = ref.size() == computed.size();
         }
     }
     if (not valid) {
@@ -76,9 +76,9 @@ inline constexpr std::size_t kSHA256Length = 64;
             "from data {}:{} do not correspond.",
             ref.hash(),
             ref.hash(),
-            ref.size_bytes(),
+            ref.size(),
             computed.hash(),
-            computed.size_bytes());
+            computed.size());
     }
     return std::nullopt;
 }
@@ -373,6 +373,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    response->mutable_blob_digest()->CopyFrom(*splice_result);
+    (*response->mutable_blob_digest()) =
+        static_cast<bazel_re::Digest>(*splice_result);
     return ::grpc::Status::OK;
 }

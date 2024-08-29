@@ -58,7 +58,7 @@ class BuildCleanupAnchor {
 
 [[nodiscard]] auto CreateDigestFromLocalOwnedTree(
     Storage const& storage,
-    std::filesystem::path const& dir_path) -> std::optional<bazel_re::Digest> {
+    std::filesystem::path const& dir_path) -> std::optional<ArtifactDigest> {
     auto const& cas = storage.CAS();
     auto store_blob = [&cas](std::filesystem::path const& path,
                              auto is_exec) -> std::optional<ArtifactDigest> {
@@ -423,8 +423,8 @@ auto LocalAction::CollectOutputDirOrSymlink(
                 *local_context_.storage, dir_path)) {
             auto out_dir = bazel_re::OutputDirectory{};
             out_dir.set_path(local_path);
-            out_dir.set_allocated_tree_digest(
-                gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+            (*out_dir.mutable_tree_digest()) =
+                static_cast<bazel_re::Digest>(*digest);
             return out_dir;
         }
     }

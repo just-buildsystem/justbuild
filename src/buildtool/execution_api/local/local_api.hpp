@@ -266,8 +266,7 @@ class LocalApi final : public IExecutionApi {
                 is_tree ? local_context_.storage->CAS().StoreTree(*blob.data)
                         : local_context_.storage->CAS().StoreBlob(*blob.data,
                                                                   blob.is_exec);
-            if (not cas_digest or not std::equal_to<bazel_re::Digest>{}(
-                                      *cas_digest, blob.digest)) {
+            if (not cas_digest or *cas_digest != blob.digest) {
                 return false;
             }
         }

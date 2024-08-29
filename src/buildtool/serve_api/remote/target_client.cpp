@@ -101,7 +101,8 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
             fmt::format("Failed to upload blob {} to remote cas",
                         dispatch_info.ToString())};
     }
-    request.mutable_dispatch_info()->CopyFrom(*dispatch_dgst);
+    (*request.mutable_dispatch_info()) =
+        static_cast<bazel_re::Digest>(*dispatch_dgst);
 
     // call rpc
     grpc::ClientContext context;
