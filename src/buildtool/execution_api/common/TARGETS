@@ -9,11 +9,10 @@
     , "tree_reader.hpp"
     , "tree_reader_utils.hpp"
     , "stream_dumper.hpp"
-    , "artifact_blob_container.hpp"
     ]
   , "srcs": ["tree_reader_utils.cpp"]
   , "deps":
-    [ "content_blob_container"
+    [ "artifact_blob_container"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
@@ -87,6 +86,7 @@
   , "srcs": ["blob_tree.cpp"]
   , "deps":
     [ "common"
+    , "artifact_blob_container"
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["@", "gsl", "", "gsl"]
     ]
@@ -101,7 +101,14 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["content_blob_container"]
   , "hdrs": ["content_blob_container.hpp"]
-  , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps": [["src/utils/cpp", "transformed_range"], ["@", "gsl", "", "gsl"]]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  }
+, "artifact_blob_container":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["artifact_blob_container"]
+  , "hdrs": ["artifact_blob_container.hpp"]
+  , "deps": ["content_blob_container", ["src/buildtool/common", "common"]]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 }

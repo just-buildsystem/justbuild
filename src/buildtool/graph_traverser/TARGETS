@@ -11,6 +11,7 @@
     , ["src/buildtool/execution_engine/executor", "executor"]
     , ["src/buildtool/execution_engine/traverser", "traverser"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/utils", "subobject"]

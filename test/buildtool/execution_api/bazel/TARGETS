@@ -98,6 +98,11 @@
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/common"
+      , "artifact_blob_container"
+      ]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     ]

@@ -9,6 +9,7 @@
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/crypto", "hash_function"]

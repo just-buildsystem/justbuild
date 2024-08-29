@@ -13,6 +13,7 @@
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
