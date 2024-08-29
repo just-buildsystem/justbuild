@@ -21,7 +21,8 @@
 #include <optional>
 #include <string>
 
-#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -31,10 +32,7 @@
 auto AddArtifactsToCas(ToAddArguments const& clargs,
                        Storage const& storage,
                        ApiBundle const& apis) -> bool {
-    auto const& cas = storage.CAS();
-    std::optional<bazel_re::Digest> digest{};
     auto object_location = clargs.location;
-
     if (clargs.follow_symlinks) {
         if (not FileSystemManager::ResolveSymlinks(&object_location)) {
             Logger::Log(LogLevel::Error,
@@ -53,6 +51,8 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
         return false;
     }
 
+    auto const& cas = storage.CAS();
+    std::optional<ArtifactDigest> digest{};
     switch (*object_type) {
         case ObjectType::File:
             digest = cas.StoreBlob(object_location, /*is_executable=*/false);
@@ -101,10 +101,10 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
         return false;
     }
 
-    std::cout << NativeSupport::Unprefix(digest->hash()) << std::endl;
+    std::cout << digest->hash() << std::endl;
 
-    auto object = std::vector<Artifact::ObjectInfo>{
-        Artifact::ObjectInfo{ArtifactDigest(*digest), *object_type, false}};
+    auto const object = std::vector<Artifact::ObjectInfo>{
+        Artifact::ObjectInfo{*digest, *object_type, false}};
 
     if (not apis.local->RetrieveToCas(object, *apis.remote)) {
         Logger::Log(LogLevel::Error,
