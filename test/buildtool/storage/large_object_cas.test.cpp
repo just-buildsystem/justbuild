@@ -58,7 +58,7 @@ class Blob final {
         LocalCAS<kDefaultDoGlobalUplink> const& cas,
         std::string const& id,
         std::uintmax_t size) noexcept
-        -> std::optional<std::pair<bazel_re::Digest, std::filesystem::path>>;
+        -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>>;
 
     [[nodiscard]] static auto Generate(std::string const& id,
                                        std::uintmax_t size) noexcept
@@ -82,7 +82,7 @@ class Tree final {
         LocalCAS<kDefaultDoGlobalUplink> const& cas,
         std::string const& id,
         std::uintmax_t entries_count) noexcept
-        -> std::optional<std::pair<bazel_re::Digest, std::filesystem::path>>;
+        -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>>;
 
     [[nodiscard]] static auto Generate(std::string const& id,
                                        std::uintmax_t entries_count) noexcept
@@ -91,7 +91,7 @@ class Tree final {
     [[nodiscard]] static auto StoreRaw(
         LocalCAS<kDefaultDoGlobalUplink> const& cas,
         std::filesystem::path const& directory) noexcept
-        -> std::optional<bazel_re::Digest>;
+        -> std::optional<ArtifactDigest>;
 };
 
 }  // namespace LargeTestUtils
@@ -243,7 +243,8 @@ static void TestSmall(Storage const& storage) noexcept {
         // The part of a small executable is the same file but without the
         // execution permission. It must be deleted too.
         if constexpr (kIsExec) {
-            auto part_path = cas.BlobPath(pack_1->front(), false);
+            auto part_path = cas.BlobPath(
+                static_cast<ArtifactDigest>(pack_1->front()), false);
             CHECK(part_path);
             CHECK(FileSystemManager::RemoveFile(*part_path));
         }
@@ -352,7 +353,8 @@ static void TestExternal(StorageConfig const& storage_config,
         REQUIRE(GarbageCollector::TriggerGarbageCollection(storage_config));
         for (auto const& part : *pack_1) {
             static constexpr bool is_executable = false;
-            REQUIRE(cas.BlobPath(part, is_executable));
+            REQUIRE(
+                cas.BlobPath(static_cast<ArtifactDigest>(part), is_executable));
         }
 
         auto const youngest = ::Generation::Create(&storage_config);
@@ -467,7 +469,7 @@ static void TestCompactification(StorageConfig const& storage_config,
         REQUIRE(FileSystemManager::Rename(invalid_path, *unique_path));
 
         // Ensure all entries are in the storage:
-        auto get_path = [](auto const& cas, bazel_re::Digest const& digest) {
+        auto get_path = [](auto const& cas, ArtifactDigest const& digest) {
             return kIsTree ? cas.TreePath(digest)
                            : cas.BlobPath(digest, kIsExec);
         };
@@ -651,7 +653,7 @@ template <bool IsExecutable>
 auto Blob<IsExecutable>::Create(LocalCAS<kDefaultDoGlobalUplink> const& cas,
                                 std::string const& id,
                                 std::uintmax_t size) noexcept
-    -> std::optional<std::pair<bazel_re::Digest, std::filesystem::path>> {
+    -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>> {
     auto path = Generate(id, size);
     auto digest = path ? cas.StoreBlob(*path, IsExecutable) : std::nullopt;
     auto blob_path =
@@ -678,7 +680,7 @@ auto Blob<IsExecutable>::Generate(std::string const& id,
 auto Tree::Create(LocalCAS<kDefaultDoGlobalUplink> const& cas,
                   std::string const& id,
                   std::uintmax_t entries_count) noexcept
-    -> std::optional<std::pair<bazel_re::Digest, std::filesystem::path>> {
+    -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>> {
     auto path = Generate(id, entries_count);
     auto digest = path ? StoreRaw(cas, *path) : std::nullopt;
     auto cas_path = digest ? cas.TreePath(*digest) : std::nullopt;
@@ -702,7 +704,7 @@ auto Tree::Generate(std::string const& id,
 
 auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
                     std::filesystem::path const& directory) noexcept
-    -> std::optional<bazel_re::Digest> {
+    -> std::optional<ArtifactDigest> {
     if (not FileSystemManager::IsDirectory(directory)) {
         return std::nullopt;
     }
@@ -720,11 +722,16 @@ auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
         return cas.StoreBlob(content);
     };
 
-    return Compatibility::IsCompatible()
-               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
-                     directory, store_blob, store_tree, store_symlink)
-               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
-                     directory, store_blob, store_tree, store_symlink);
+    auto bazel_digest =
+        Compatibility::IsCompatible()
+            ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+                  directory, store_blob, store_tree, store_symlink)
+            : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+                  directory, store_blob, store_tree, store_symlink);
+    if (bazel_digest.has_value()) {
+        return static_cast<ArtifactDigest>(*bazel_digest);
+    }
+    return std::nullopt;
 }
 }  // namespace LargeTestUtils
 

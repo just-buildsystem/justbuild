@@ -293,7 +293,9 @@ class LocalApi final : public IExecutionApi {
                     std::vector<std::string>* targets) {
                     targets->reserve(digests.size());
                     for (auto const& digest : digests) {
-                        auto p = cas.BlobPath(digest, /*is_executable=*/false);
+                        auto p =
+                            cas.BlobPath(static_cast<ArtifactDigest>(digest),
+                                         /*is_executable=*/false);
                         auto content = FileSystemManager::ReadFile(*p);
                         targets->emplace_back(*content);
                     }

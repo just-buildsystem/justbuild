@@ -73,12 +73,11 @@ auto BytestreamServiceImpl::Read(
 
     if (NativeSupport::IsTree(*hash)) {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, true};
-        path = storage_.CAS().TreePath(static_cast<bazel_re::Digest>(dgst));
+        path = storage_.CAS().TreePath(dgst);
     }
     else {
         ArtifactDigest dgst{NativeSupport::Unprefix(*hash), 0, false};
-        path =
-            storage_.CAS().BlobPath(static_cast<bazel_re::Digest>(dgst), false);
+        path = storage_.CAS().BlobPath(dgst, false);
     }
     if (not path) {
         auto str = fmt::format("could not find {}", *hash);

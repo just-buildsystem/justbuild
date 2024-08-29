@@ -378,8 +378,8 @@ namespace {
     if (auto error_msg = IsAHash(request.action_digest().hash())) {
         return unexpected{std::move(*error_msg)};
     }
-    auto const action_path =
-        storage.CAS().BlobPath(request.action_digest(), false);
+    auto const action_path = storage.CAS().BlobPath(
+        static_cast<ArtifactDigest>(request.action_digest()), false);
     if (not action_path) {
         return unexpected{fmt::format("could not retrieve blob {} from cas",
                                       request.action_digest().hash())};
@@ -395,8 +395,11 @@ namespace {
     }
     auto const input_root_path =
         Compatibility::IsCompatible()
-            ? storage.CAS().BlobPath(action.input_root_digest(), false)
-            : storage.CAS().TreePath(action.input_root_digest());
+            ? storage.CAS().BlobPath(
+                  static_cast<ArtifactDigest>(action.input_root_digest()),
+                  false)
+            : storage.CAS().TreePath(
+                  static_cast<ArtifactDigest>(action.input_root_digest()));
 
     if (not input_root_path) {
         return unexpected{
@@ -412,7 +415,8 @@ namespace {
     if (auto error_msg = IsAHash(action.command_digest().hash())) {
         return unexpected{*std::move(error_msg)};
     }
-    auto path = storage.CAS().BlobPath(action.command_digest(), false);
+    auto path = storage.CAS().BlobPath(
+        static_cast<ArtifactDigest>(action.command_digest()), false);
     if (not path) {
         return unexpected{fmt::format("Could not retrieve blob {} from cas",
                                       action.command_digest().hash())};

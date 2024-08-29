@@ -169,7 +169,7 @@ auto LocalAC<kDoGlobalUplink>::WriteAction(bazel_re::ActionResult const& action)
 template <bool kDoGlobalUplink>
 auto LocalAC<kDoGlobalUplink>::ReadAction(bazel_re::Digest const& cas_key)
     const noexcept -> std::optional<bazel_re::ActionResult> {
-    auto const action_path = cas_.BlobPath(cas_key,
+    auto const action_path = cas_.BlobPath(static_cast<ArtifactDigest>(cas_key),
                                            /*is_executable=*/false);
     if (not action_path) {
         return std::nullopt;

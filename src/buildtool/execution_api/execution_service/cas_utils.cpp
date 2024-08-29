@@ -50,9 +50,11 @@ auto CASUtils::SplitBlobIdentity(bazel_re::Digest const& blob_digest,
     -> expected<std::vector<bazel_re::Digest>, grpc::Status> {
 
     // Check blob existence.
-    auto path = NativeSupport::IsTree(blob_digest.hash())
-                    ? storage.CAS().TreePath(blob_digest)
-                    : storage.CAS().BlobPath(blob_digest, false);
+    auto path =
+        NativeSupport::IsTree(blob_digest.hash())
+            ? storage.CAS().TreePath(static_cast<ArtifactDigest>(blob_digest))
+            : storage.CAS().BlobPath(static_cast<ArtifactDigest>(blob_digest),
+                                     false);
     if (not path) {
         return unexpected{
             grpc::Status{grpc::StatusCode::NOT_FOUND,

@@ -134,7 +134,7 @@ class LocalCAS {
     /// \param digest           Digest of the blob to lookup.
     /// \param is_executable    Lookup blob with executable permissions.
     /// \returns Path to the blob if found or nullopt otherwise.
-    [[nodiscard]] auto BlobPath(bazel_re::Digest const& digest,
+    [[nodiscard]] auto BlobPath(ArtifactDigest const& digest,
                                 bool is_executable) const noexcept
         -> std::optional<std::filesystem::path> {
         auto const path = BlobPathNoSync(digest, is_executable);
@@ -146,12 +146,11 @@ class LocalCAS {
     /// \param digest           Digest of the blob to lookup.
     /// \param is_executable    Lookup blob with executable permissions.
     /// \returns Path to the blob if found or nullopt otherwise.
-    [[nodiscard]] auto BlobPathNoSync(bazel_re::Digest const& digest,
+    [[nodiscard]] auto BlobPathNoSync(ArtifactDigest const& digest,
                                       bool is_executable) const noexcept
         -> std::optional<std::filesystem::path> {
-        auto const a_digest = static_cast<ArtifactDigest>(digest);
-        return is_executable ? cas_exec_.BlobPath(a_digest)
-                             : cas_file_.BlobPath(a_digest);
+        return is_executable ? cas_exec_.BlobPath(digest)
+                             : cas_file_.BlobPath(digest);
     }
 
     /// \brief Split a blob into chunks.
@@ -204,10 +203,9 @@ class LocalCAS {
     /// \brief Obtain tree path from digest.
     /// \param digest   Digest of the tree to lookup.
     /// \returns Path to the tree if found or nullopt otherwise.
-    [[nodiscard]] auto TreePath(bazel_re::Digest const& digest) const noexcept
+    [[nodiscard]] auto TreePath(ArtifactDigest const& digest) const noexcept
         -> std::optional<std::filesystem::path> {
-        auto const a_digest = static_cast<ArtifactDigest>(digest);
-        return cas_tree_.BlobPath(a_digest);
+        return cas_tree_.BlobPath(digest);
     }
 
     /// \brief Split a tree into chunks.
@@ -350,7 +348,7 @@ class LocalCAS {
     /// \param digest        Blob digest.
     /// \param to_executable Sync direction.
     /// \returns Path to blob in target CAS.
-    [[nodiscard]] auto TrySyncBlob(bazel_re::Digest const& digest,
+    [[nodiscard]] auto TrySyncBlob(ArtifactDigest const& digest,
                                    bool to_executable) const noexcept
         -> std::optional<std::filesystem::path> {
         auto const src_blob = BlobPathNoSync(digest, not to_executable);

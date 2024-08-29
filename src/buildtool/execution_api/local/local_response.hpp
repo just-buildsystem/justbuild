@@ -43,8 +43,9 @@ class LocalResponse final : public IExecutionResponse {
         return (output_.action.stdout_digest().size_bytes() != 0);
     }
     auto StdErr() noexcept -> std::string final {
-        if (auto path = storage_.CAS().BlobPath(output_.action.stderr_digest(),
-                                                /*is_executable=*/false)) {
+        if (auto path = storage_.CAS().BlobPath(
+                static_cast<ArtifactDigest>(output_.action.stderr_digest()),
+                /*is_executable=*/false)) {
             if (auto content = FileSystemManager::ReadFile(*path)) {
                 return std::move(*content);
             }
@@ -53,8 +54,9 @@ class LocalResponse final : public IExecutionResponse {
         return {};
     }
     auto StdOut() noexcept -> std::string final {
-        if (auto path = storage_.CAS().BlobPath(output_.action.stdout_digest(),
-                                                /*is_executable=*/false)) {
+        if (auto path = storage_.CAS().BlobPath(
+                static_cast<ArtifactDigest>(output_.action.stdout_digest()),
+                /*is_executable=*/false)) {
             if (auto content = FileSystemManager::ReadFile(*path)) {
                 return std::move(*content);
             }

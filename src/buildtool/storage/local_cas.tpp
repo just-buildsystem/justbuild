@@ -48,19 +48,19 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     bool is_executable,
     bool skip_sync,
     bool splice_result) const noexcept -> bool {
+    auto const a_digest = static_cast<ArtifactDigest>(digest);
     // Determine blob path in latest generation.
-    auto blob_path_latest = latest.BlobPathNoSync(digest, is_executable);
+    auto blob_path_latest = latest.BlobPathNoSync(a_digest, is_executable);
     if (blob_path_latest) {
         return true;
     }
 
     // Determine blob path of given generation.
-    auto blob_path = skip_sync ? BlobPathNoSync(digest, is_executable)
-                               : BlobPath(digest, is_executable);
+    auto blob_path = skip_sync ? BlobPathNoSync(a_digest, is_executable)
+                               : BlobPath(a_digest, is_executable);
     std::optional<LargeObject> spliced;
     if (not blob_path) {
-        spliced =
-            TrySplice<ObjectType::File>(static_cast<ArtifactDigest>(digest));
+        spliced = TrySplice<ObjectType::File>(a_digest);
         blob_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
     }
     if (not blob_path) {
