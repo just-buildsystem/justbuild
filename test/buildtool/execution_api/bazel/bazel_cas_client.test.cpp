@@ -20,7 +20,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
-#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -52,8 +52,8 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         HashFunction const hash_function{Compatibility::IsCompatible()
                                              ? HashFunction::Type::PlainSHA256
                                              : HashFunction::Type::GitSHA1};
-        auto digest =
-            ArtifactDigest::Create<ObjectType::File>(hash_function, content);
+        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, content);
 
         // Valid blob
         BazelBlob blob{digest, content, /*is_exec=*/false};

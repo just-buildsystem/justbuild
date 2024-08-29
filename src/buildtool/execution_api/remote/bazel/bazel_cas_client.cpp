@@ -22,6 +22,7 @@
 
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
@@ -31,6 +32,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 namespace {
@@ -56,10 +58,8 @@ namespace {
     HashFunction const hash_function{Compatibility::IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
-    std::string hash = hash_function.HashBlobData(empty_str).HexString();
-    bazel_re::Digest digest{};
-    digest.set_hash(NativeSupport::Prefix(hash, false));
-    digest.set_size_bytes(empty_str.size());
+    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, empty_str);
 
     // Upload empty blob.
     grpc::ClientContext update_context{};
@@ -124,10 +124,8 @@ namespace {
     HashFunction const hash_function{Compatibility::IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
-    std::string hash = hash_function.HashBlobData(empty_str).HexString();
-    bazel_re::Digest digest{};
-    digest.set_hash(NativeSupport::Prefix(hash, false));
-    digest.set_size_bytes(empty_str.size());
+    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, empty_str);
 
     // Upload empty blob.
     grpc::ClientContext update_context{};

@@ -20,7 +20,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -54,8 +54,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string content("foobar");
 
         // digest of "foobar"
-        auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(hash_function, content));
+        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, content);
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -80,9 +80,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string other_content("This is a differnt string");
 
         // Valid digest, but for a different string
-        auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(hash_function,
-                                                     other_content));
+        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, other_content);
 
         CHECK(not stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                            instance_name,
@@ -101,8 +100,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         // digest of "instance_nameinstance_nameinstance_..."
-        auto digest = static_cast<bazel_re::Digest>(
-            ArtifactDigest::Create<ObjectType::File>(hash_function, content));
+        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, content);
 
         CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
                                        instance_name,
@@ -160,18 +159,18 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
     SECTION("Upload small blobs") {
         std::string instance_name{"remote-execution"};
 
-        BazelBlob foo{
-            ArtifactDigest::Create<ObjectType::File>(hash_function, "foo"),
-            "foo",
-            /*is_exec=*/false};
-        BazelBlob bar{
-            ArtifactDigest::Create<ObjectType::File>(hash_function, "bar"),
-            "bar",
-            /*is_exec=*/false};
-        BazelBlob baz{
-            ArtifactDigest::Create<ObjectType::File>(hash_function, "baz"),
-            "baz",
-            /*is_exec=*/false};
+        BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, "foo"),
+                      "foo",
+                      /*is_exec=*/false};
+        BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, "bar"),
+                      "bar",
+                      /*is_exec=*/false};
+        BazelBlob baz{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, "baz"),
+                      "baz",
+                      /*is_exec=*/false};
 
         CHECK(stream.WriteMany<BazelBlob>(
             {foo, bar, baz},
@@ -216,16 +215,16 @@ TEST_CASE("ByteStream Client: Transfer multiple blobs", "[execution_api]") {
             content_baz[i] = instance_name[(i + 2) % instance_name.size()];
         }
 
-        BazelBlob foo{ArtifactDigest::Create<ObjectType::File>(hash_function,
-                                                               content_foo),
+        BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, content_foo),
                       content_foo,
                       /*is_exec=*/false};
-        BazelBlob bar{ArtifactDigest::Create<ObjectType::File>(hash_function,
-                                                               content_bar),
+        BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, content_bar),
                       content_bar,
                       /*is_exec=*/false};
-        BazelBlob baz{ArtifactDigest::Create<ObjectType::File>(hash_function,
-                                                               content_baz),
+        BazelBlob baz{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, content_baz),
                       content_baz,
                       /*is_exec=*/false};
 

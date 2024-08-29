@@ -21,7 +21,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -62,18 +62,18 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content_foo),
-        content_foo,
-        /*is_exec=*/false};
-    BazelBlob bar{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content_bar),
-        content_bar,
-        /*is_exec=*/false};
-    BazelBlob baz{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content_baz),
-        content_baz,
-        /*is_exec=*/false};
+    BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                      hash_function, content_foo),
+                  content_foo,
+                  /*is_exec=*/false};
+    BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                      hash_function, content_bar),
+                  content_bar,
+                  /*is_exec=*/false};
+    BazelBlob baz{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                      hash_function, content_baz),
+                  content_baz,
+                  /*is_exec=*/false};
 
     // Search blobs via digest
     REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar, baz}}));
@@ -128,14 +128,14 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content_foo),
-        content_foo,
-        /*is_exec=*/false};
-    BazelBlob bar{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content_bar),
-        content_bar,
-        /*is_exec=*/false};
+    BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                      hash_function, content_foo),
+                  content_foo,
+                  /*is_exec=*/false};
+    BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
+                      hash_function, content_bar),
+                  content_bar,
+                  /*is_exec=*/false};
 
     // Upload blobs
     REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar}}));

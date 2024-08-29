@@ -17,6 +17,7 @@
 #include <cstddef>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -32,8 +33,11 @@ auto ProcessDirectoryMessage(HashFunction hash_function,
                              bazel_re::Directory const& dir) noexcept
     -> std::optional<BazelBlob> {
     auto data = dir.SerializeAsString();
-    auto digest = ArtifactDigest::Create<ObjectType::File>(hash_function, data);
-    return BazelBlob{std::move(digest), std::move(data), /*is_exec=*/false};
+    auto digest =
+        BazelDigestFactory::HashDataAs<ObjectType::File>(hash_function, data);
+    return BazelBlob{std::move(digest),
+                     std::move(data),
+                     /*is_exec=*/false};
 }
 
 }  // namespace

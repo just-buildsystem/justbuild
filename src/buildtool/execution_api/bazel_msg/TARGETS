@@ -37,6 +37,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/common", "bazel_digest_factory"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }

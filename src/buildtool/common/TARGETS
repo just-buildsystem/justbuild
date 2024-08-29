@@ -39,6 +39,18 @@
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "common"]
   }
+, "bazel_digest_factory":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bazel_digest_factory"]
+  , "hdrs": ["bazel_digest_factory.hpp"]
+  , "deps":
+    [ "bazel_types"
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "gsl"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
 , "common":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["common"]

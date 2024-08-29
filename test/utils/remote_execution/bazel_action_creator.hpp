@@ -24,6 +24,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -64,14 +65,14 @@
                    });
 
     auto cmd_data = cmd.SerializeAsString();
-    auto cmd_id =
-        ArtifactDigest::Create<ObjectType::File>(hash_function, cmd_data);
+    auto cmd_id = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, cmd_data);
     blobs.emplace_back(cmd_id, cmd_data, /*is_exec=*/false);
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
-    auto dir_id =
-        ArtifactDigest::Create<ObjectType::Tree>(hash_function, dir_data);
+    auto dir_id = BazelDigestFactory::HashDataAs<ObjectType::Tree>(
+        hash_function, dir_data);
     blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
@@ -82,8 +83,8 @@
         gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{dir_id}});
 
     auto action_data = action.SerializeAsString();
-    auto action_id =
-        ArtifactDigest::Create<ObjectType::File>(hash_function, action_data);
+    auto action_id = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, action_data);
     blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();

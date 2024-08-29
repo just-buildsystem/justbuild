@@ -17,7 +17,7 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -35,8 +35,8 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
-    auto test_digest = static_cast<bazel_re::Digest>(
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content));
+    auto test_digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, content);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -119,8 +119,8 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
-    auto test_digest = static_cast<bazel_re::Digest>(
-        ArtifactDigest::Create<ObjectType::File>(hash_function, content));
+    auto test_digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, content);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);

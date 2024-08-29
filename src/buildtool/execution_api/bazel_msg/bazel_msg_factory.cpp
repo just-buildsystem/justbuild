@@ -25,6 +25,7 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -185,9 +186,11 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(
+    auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
         request.hash_function, *content);
-    return BazelBlob{digest, std::move(*content), /*is_exec=*/false};
+    return BazelBlob{std::move(digest),
+                     std::move(*content),
+                     /*is_exec=*/false};
 }
 
 /// \brief Create bundle for protobuf message Action from Command.
@@ -222,9 +225,11 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigest::Create<ObjectType::File>(
+    auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
         request.hash_function, *content);
-    return BazelBlob{digest, std::move(*content), /*is_exec=*/false};
+    return BazelBlob{std::move(digest),
+                     std::move(*content),
+                     /*is_exec=*/false};
 }
 
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
