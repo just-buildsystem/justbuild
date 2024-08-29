@@ -89,22 +89,22 @@ template <class T>
 /// \brief Create protobuf message 'FileNode'.
 [[nodiscard]] auto CreateFileNode(std::string const& file_name,
                                   ObjectType type,
-                                  bazel_re::Digest const& digest) noexcept
+                                  ArtifactDigest const& digest) noexcept
     -> bazel_re::FileNode {
     bazel_re::FileNode node;
     node.set_name(file_name);
     node.set_is_executable(IsExecutableObject(type));
-    (*node.mutable_digest()) = digest;
+    (*node.mutable_digest()) = static_cast<bazel_re::Digest>(digest);
     return node;
 }
 
 /// \brief Create protobuf message 'DirectoryNode'.
 [[nodiscard]] auto CreateDirectoryNode(std::string const& dir_name,
-                                       bazel_re::Digest const& digest) noexcept
+                                       ArtifactDigest const& digest) noexcept
     -> bazel_re::DirectoryNode {
     bazel_re::DirectoryNode node;
     node.set_name(dir_name);
-    (*node.mutable_digest()) = digest;
+    (*node.mutable_digest()) = static_cast<bazel_re::Digest>(digest);
     return node;
 }
 
@@ -315,7 +315,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
     FileStoreFunc const& store_file,
     TreeStoreFunc const& store_dir,
     SymlinkStoreFunc const& store_symlink) noexcept
-    -> std::optional<bazel_re::Digest> {
+    -> std::optional<ArtifactDigest> {
     std::vector<bazel_re::FileNode> files{};
     std::vector<bazel_re::DirectoryNode> dirs{};
     std::vector<bazel_re::SymlinkNode> symlinks{};
@@ -396,7 +396,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
     FileStoreFunc const& store_file,
     TreeStoreFunc const& store_tree,
     SymlinkStoreFunc const& store_symlink) noexcept
-    -> std::optional<bazel_re::Digest> {
+    -> std::optional<ArtifactDigest> {
     GitRepo::tree_entries_t entries{};
     auto dir_reader = [&entries,
                        &root,
@@ -408,8 +408,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
             // create and store sub directory
             if (auto digest = CreateGitTreeDigestFromLocalTree(
                     full_name, store_file, store_tree, store_symlink)) {
-                if (auto raw_id = FromHexString(
-                        NativeSupport::Unprefix(digest->hash()))) {
+                if (auto raw_id = FromHexString(digest->hash())) {
                     entries[std::move(*raw_id)].emplace_back(name.string(),
                                                              ObjectType::Tree);
                     return true;
@@ -425,8 +424,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
                 auto content = FileSystemManager::ReadSymlink(full_name);
                 if (content) {
                     if (auto digest = store_symlink(*content)) {
-                        if (auto raw_id = FromHexString(
-                                NativeSupport::Unprefix(digest->hash()))) {
+                        if (auto raw_id = FromHexString(digest->hash())) {
                             entries[std::move(*raw_id)].emplace_back(
                                 name.string(), type);
                             return true;
@@ -445,8 +443,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
             }
             // create and store file
             if (auto digest = store_file(full_name, IsExecutableObject(type))) {
-                if (auto raw_id = FromHexString(
-                        NativeSupport::Unprefix(digest->hash()))) {
+                if (auto raw_id = FromHexString(digest->hash())) {
                     entries[std::move(*raw_id)].emplace_back(name.string(),
                                                              type);
                     return true;

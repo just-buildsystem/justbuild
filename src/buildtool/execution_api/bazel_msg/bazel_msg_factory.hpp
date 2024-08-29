@@ -46,11 +46,11 @@ class BazelMsgFactory {
         std::function<void(std::vector<bazel_re::Digest> const&,
                            std::vector<std::string>*)>;
     using FileStoreFunc = std::function<
-        std::optional<bazel_re::Digest>(std::filesystem::path const&, bool)>;
+        std::optional<ArtifactDigest>(std::filesystem::path const&, bool)>;
     using SymlinkStoreFunc =
-        std::function<std::optional<bazel_re::Digest>(std::string const&)>;
+        std::function<std::optional<ArtifactDigest>(std::string const&)>;
     using TreeStoreFunc =
-        std::function<std::optional<bazel_re::Digest>(std::string const&)>;
+        std::function<std::optional<ArtifactDigest>(std::string const&)>;
 
     /// \brief Create Directory digest from artifact tree structure. Uses
     /// compatible HashFunction for hashing. Recursively traverse entire tree
@@ -77,7 +77,7 @@ class BazelMsgFactory {
         FileStoreFunc const& store_file,
         TreeStoreFunc const& store_dir,
         SymlinkStoreFunc const& store_symlink) noexcept
-        -> std::optional<bazel_re::Digest>;
+        -> std::optional<ArtifactDigest>;
 
     /// \brief Create Git tree digest from local file root.
     /// Recursively traverse entire root and store files and directories.
@@ -91,7 +91,7 @@ class BazelMsgFactory {
         FileStoreFunc const& store_file,
         TreeStoreFunc const& store_tree,
         SymlinkStoreFunc const& store_symlink) noexcept
-        -> std::optional<bazel_re::Digest>;
+        -> std::optional<ArtifactDigest>;
 
     struct ActionDigestRequest;
     /// \brief Creates Action digest from command line.

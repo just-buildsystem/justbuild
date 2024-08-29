@@ -708,28 +708,23 @@ auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
     }
 
     auto store_blob = [&cas](std::filesystem::path const& path,
-                             auto is_exec) -> std::optional<bazel_re::Digest> {
+                             auto is_exec) -> std::optional<ArtifactDigest> {
         return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
     };
     auto store_tree =
-        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        [&cas](std::string const& content) -> std::optional<ArtifactDigest> {
         return cas.StoreTree(content);
     };
     auto store_symlink =
-        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        [&cas](std::string const& content) -> std::optional<ArtifactDigest> {
         return cas.StoreBlob(content);
     };
 
-    auto bazel_digest =
-        Compatibility::IsCompatible()
-            ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
-                  directory, store_blob, store_tree, store_symlink)
-            : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
-                  directory, store_blob, store_tree, store_symlink);
-    if (bazel_digest.has_value()) {
-        return static_cast<ArtifactDigest>(*bazel_digest);
-    }
-    return std::nullopt;
+    return Compatibility::IsCompatible()
+               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+                     directory, store_blob, store_tree, store_symlink)
+               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+                     directory, store_blob, store_tree, store_symlink);
 }
 }  // namespace LargeTestUtils
 

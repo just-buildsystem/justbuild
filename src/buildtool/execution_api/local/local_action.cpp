@@ -61,15 +61,15 @@ class BuildCleanupAnchor {
     std::filesystem::path const& dir_path) -> std::optional<bazel_re::Digest> {
     auto const& cas = storage.CAS();
     auto store_blob = [&cas](std::filesystem::path const& path,
-                             auto is_exec) -> std::optional<bazel_re::Digest> {
+                             auto is_exec) -> std::optional<ArtifactDigest> {
         return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
     };
     auto store_tree =
-        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        [&cas](std::string const& content) -> std::optional<ArtifactDigest> {
         return cas.StoreTree(content);
     };
     auto store_symlink =
-        [&cas](std::string const& content) -> std::optional<bazel_re::Digest> {
+        [&cas](std::string const& content) -> std::optional<ArtifactDigest> {
         return cas.StoreBlob(content);
     };
     return Compatibility::IsCompatible()

@@ -78,15 +78,15 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
             }
             auto store_blob =
                 [&cas](std::filesystem::path const& path,
-                       auto is_exec) -> std::optional<bazel_re::Digest> {
+                       auto is_exec) -> std::optional<ArtifactDigest> {
                 return cas.StoreBlob</*kOwner=*/true>(path, is_exec);
             };
             auto store_tree = [&cas](std::string const& content)
-                -> std::optional<bazel_re::Digest> {
+                -> std::optional<ArtifactDigest> {
                 return cas.StoreTree(content);
             };
             auto store_symlink = [&cas](std::string const& content)
-                -> std::optional<bazel_re::Digest> {
+                -> std::optional<ArtifactDigest> {
                 return cas.StoreBlob(content);
             };
             digest = BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
