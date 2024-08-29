@@ -14,12 +14,14 @@
 
 #include "src/buildtool/file_system/git_tree.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
@@ -97,6 +99,25 @@ auto const kFooLinkId = std::string{"b24736f10d3c60015386047ebc98b4ab63056041"};
     }
     return std::nullopt;
 }
+
+class SymlinksChecker final {
+  public:
+    explicit SymlinksChecker(gsl::not_null<GitCASPtr> const& cas) noexcept
+        : cas_{*cas} {}
+
+    [[nodiscard]] auto operator()(
+        std::vector<bazel_re::Digest> const& ids) const noexcept -> bool {
+        return std::all_of(
+            ids.begin(), ids.end(), [&cas = cas_](bazel_re::Digest const& id) {
+                auto content = cas.ReadObject(ArtifactDigest(id).hash(),
+                                              /*is_hex_id=*/true);
+                return content.has_value() and PathIsNonUpwards(*content);
+            });
+    };
+
+  private:
+    GitCAS const& cas_;
+};
 
 }  // namespace
 
@@ -207,16 +228,7 @@ TEST_CASE("Read Git Trees", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("invalid trees") {
         CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/true));
@@ -265,16 +277,7 @@ TEST_CASE("Read Git Trees with symlinks -- ignore special", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("invalid trees") {
         CHECK_FALSE(repo->ReadTree(
@@ -349,16 +352,7 @@ TEST_CASE("Read Git Trees with symlinks -- allow non-upwards", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("invalid trees") {
         CHECK_FALSE(repo->ReadTree("", check_symlinks, /*is_hex_id=*/true));
@@ -407,16 +401,7 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("empty tree") {
         auto tree_id = repo->CreateTree({});
@@ -463,16 +448,7 @@ TEST_CASE("Create Git Trees with symlinks", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("existing tree with symlinks -- ignore special") {
         auto entries = repo->ReadTree(kTreeSymId,
@@ -510,16 +486,7 @@ TEST_CASE("Read Git Tree Data", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("empty tree") {
         auto entries =
@@ -555,16 +522,7 @@ TEST_CASE("Read Git Tree Data with non-upwards symlinks", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("empty tree") {
         auto entries =
@@ -600,16 +558,7 @@ TEST_CASE("Create Shallow Git Trees", "[git_cas]") {
     REQUIRE(repo);
 
     // create symlinks checker
-    auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-        for (auto const& id : ids) {
-            auto content =
-                cas->ReadObject(ArtifactDigest(id).hash(), /*is_hex_id=*/true);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto const check_symlinks = SymlinksChecker{cas};
 
     SECTION("empty tree") {
         auto tree = GitRepo::CreateShallowTree({});
@@ -1000,16 +949,7 @@ TEST_CASE("Thread-safety", "[git_tree]") {
         REQUIRE(cas);
 
         // create symlinks checker
-        auto check_symlinks = [&cas](std::vector<bazel_re::Digest> const& ids) {
-            for (auto const& id : ids) {
-                auto content = cas->ReadObject(ArtifactDigest(id).hash(),
-                                               /*is_hex_id=*/true);
-                if (not content or not PathIsNonUpwards(*content)) {
-                    return false;
-                }
-            }
-            return true;
-        };
+        auto const check_symlinks = SymlinksChecker{cas};
 
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back([&cas, &starting_signal, check_symlinks]() {
