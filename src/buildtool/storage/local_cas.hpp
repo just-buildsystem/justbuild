@@ -208,7 +208,7 @@ class LocalCAS {
     /// \param tree_digest      Digest of the tree to be checked.
     /// \param tree_data        Content of the tree.
     /// \return                 An error on fail.
-    [[nodiscard]] auto CheckTreeInvariant(bazel_re::Digest const& tree_digest,
+    [[nodiscard]] auto CheckTreeInvariant(ArtifactDigest const& tree_digest,
                                           std::string const& tree_data)
         const noexcept -> std::optional<LargeObjectError>;
 
@@ -343,7 +343,7 @@ class LocalCAS {
 #else
 template <bool kDoGlobalUplink>
 auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
-    bazel_re::Digest const& tree_digest,
+    ArtifactDigest const& tree_digest,
     std::string const& tree_data) const noexcept
     -> std::optional<LargeObjectError> {
     return std::nullopt;

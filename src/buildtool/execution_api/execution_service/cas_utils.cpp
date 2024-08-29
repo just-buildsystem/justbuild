@@ -37,7 +37,8 @@ auto CASUtils::EnsureTreeInvariant(bazel_re::Digest const& digest,
                                    std::string const& tree_data,
                                    Storage const& storage) noexcept
     -> std::optional<std::string> {
-    auto error = storage.CAS().CheckTreeInvariant(digest, tree_data);
+    auto const a_digest = static_cast<ArtifactDigest>(digest);
+    auto error = storage.CAS().CheckTreeInvariant(a_digest, tree_data);
     if (error) {
         return std::move(*error).Message();
     }

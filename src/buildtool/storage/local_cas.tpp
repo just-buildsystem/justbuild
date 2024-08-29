@@ -22,23 +22,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 
-namespace detail {
-
-[[nodiscard]] static inline auto CheckDigestConsistency(
-    bazel_re::Digest const& lhs,
-    bazel_re::Digest const& rhs) noexcept -> bool {
-    if (lhs.hash() != rhs.hash()) {
-        return false;
-    }
-    bool const both_known = lhs.size_bytes() != 0 and rhs.size_bytes() != 0;
-    if (Compatibility::IsCompatible() or both_known) {
-        return lhs.size_bytes() == rhs.size_bytes();
-    }
-    return true;
-}
-
-}  // namespace detail
-
 template <bool kDoGlobalUplink>
 template <bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
@@ -305,7 +288,7 @@ auto LocalCAS<kDoGlobalUplink>::TrySplice(
 
 template <bool kDoGlobalUplink>
 auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
-    bazel_re::Digest const& tree_digest,
+    ArtifactDigest const& tree_digest,
     std::string const& tree_data) const noexcept
     -> std::optional<LargeObjectError> {
     if (Compatibility::IsCompatible()) {
@@ -313,11 +296,10 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
     }
 
     auto skip_symlinks = [](auto const& /*unused*/) { return true; };
-    auto const entries =
-        GitRepo::ReadTreeData(tree_data,
-                              NativeSupport::Unprefix(tree_digest.hash()),
-                              skip_symlinks,
-                              /*is_hex_id=*/true);
+    auto const entries = GitRepo::ReadTreeData(tree_data,
+                                               tree_digest.hash(),
+                                               skip_symlinks,
+                                               /*is_hex_id=*/true);
     if (not entries) {
         return LargeObjectError{
             LargeObjectErrorCode::Internal,
@@ -386,7 +368,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
                                            "could not calculate digest"}};
     }
 
-    if (not detail::CheckDigestConsistency(*spliced_digest, digest)) {
+    if (*spliced_digest != digest) {
         return unexpected{LargeObjectError{
             LargeObjectErrorCode::InvalidResult,
             fmt::format("actual result {} differs from the expected one {}",
