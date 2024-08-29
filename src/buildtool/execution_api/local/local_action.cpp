@@ -21,6 +21,7 @@
 #include <system_error>
 #include <utility>
 
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
@@ -104,8 +105,9 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (do_cache) {
+        ArtifactDigest const a_digest{*action};
         if (auto result =
-                local_context_.storage->ActionCache().CachedResult(*action)) {
+                local_context_.storage->ActionCache().CachedResult(a_digest)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
@@ -190,8 +192,9 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
 
         if (CollectAndStoreOutputs(&result.action, build_root / cwd_)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
+                ArtifactDigest const a_digest{action_id};
                 if (not local_context_.storage->ActionCache().StoreResult(
-                        action_id, result.action)) {
+                        a_digest, result.action)) {
                     logger_.Emit(LogLevel::Warning,
                                  "failed to store action results");
                 }

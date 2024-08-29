@@ -23,6 +23,7 @@
     , "operation_cache"
     , ["src/utils/cpp", "verify_hash"]
     , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/common", "common"]
     ]
   , "private-ldflags":
     ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
@@ -43,7 +44,10 @@
     , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
-    [["src/buildtool/logging", "log_level"], ["src/utils/cpp", "verify_hash"]]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "verify_hash"]
+    , ["src/buildtool/common", "common"]
+    ]
   }
 , "cas_server":
   { "type": ["@", "rules", "CC", "library"]

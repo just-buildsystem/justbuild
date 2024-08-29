@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
@@ -36,11 +37,12 @@ auto ActionCacheServiceImpl::GetActionResult(
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    auto x = storage_.ActionCache().CachedResult(request->action_digest());
+
+    ArtifactDigest const a_digest{request->action_digest()};
+    auto x = storage_.ActionCache().CachedResult(a_digest);
     if (not x) {
-        return grpc::Status{
-            grpc::StatusCode::NOT_FOUND,
-            fmt::format("{} missing from AC", request->action_digest().hash())};
+        return grpc::Status{grpc::StatusCode::NOT_FOUND,
+                            fmt::format("{} missing from AC", a_digest.hash())};
     }
     *response = *x;
     return ::grpc::Status::OK;

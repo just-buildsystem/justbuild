@@ -27,7 +27,7 @@
 [[nodiscard]] static auto RunDummyExecution(
     gsl::not_null<LocalAC<true> const*> const& ac,
     gsl::not_null<LocalCAS<true> const*> const& cas_,
-    bazel_re::Digest const& action_id,
+    ArtifactDigest const& action_id,
     std::string const& seed) -> bool;
 
 TEST_CASE("LocalAC: Single action, single result", "[storage]") {
@@ -136,7 +136,7 @@ TEST_CASE("LocalAC: Same two actions, two different results", "[storage]") {
 
 auto RunDummyExecution(gsl::not_null<LocalAC<true> const*> const& ac,
                        gsl::not_null<LocalCAS<true> const*> const& cas_,
-                       bazel_re::Digest const& action_id,
+                       ArtifactDigest const& action_id,
                        std::string const& seed) -> bool {
     bazel_re::ActionResult result{};
     *result.add_output_files() = [&]() {

@@ -32,7 +32,6 @@
 
 // forward declarations
 namespace build::bazel::remote::execution::v2 {
-class Digest;
 class ActionResult;
 }  // namespace build::bazel::remote::execution::v2
 namespace bazel_re = build::bazel::remote::execution::v2;
@@ -65,13 +64,13 @@ class LocalAC {
     /// \param result       The action result to store.
     /// \returns true on success.
     [[nodiscard]] auto StoreResult(
-        bazel_re::Digest const& action_id,
+        ArtifactDigest const& action_id,
         bazel_re::ActionResult const& result) const noexcept -> bool;
 
     /// \brief Read cached action result.
     /// \param action_id    The id of the action the result was produced by.
     /// \returns The action result if found or nullopt otherwise.
-    [[nodiscard]] auto CachedResult(bazel_re::Digest const& action_id)
+    [[nodiscard]] auto CachedResult(ArtifactDigest const& action_id)
         const noexcept -> std::optional<bazel_re::ActionResult>;
 
     /// \brief Uplink entry from this generation to latest LocalAC generation.
@@ -113,23 +112,23 @@ class LocalAC {
     /// \param action_id The id of the action that produced the result.
     /// \return The key of an Action pointing at an ActionResult in the LocalCAS
     /// on success or an error message on failure.
-    [[nodiscard]] auto ReadActionKey(bazel_re::Digest const& action_id)
-        const noexcept -> expected<bazel_re::Digest, std::string>;
+    [[nodiscard]] auto ReadActionKey(ArtifactDigest const& action_id)
+        const noexcept -> expected<ArtifactDigest, std::string>;
 
     /// \brief Add an action to the LocalCAS.
     /// \param action The action result to store.
     /// \return The key pointing at an ActionResult present in the LocalCAS on
     /// success or std::nullopt on failure.
     [[nodiscard]] auto WriteAction(bazel_re::ActionResult const& action)
-        const noexcept -> std::optional<bazel_re::Digest>;
+        const noexcept -> std::optional<ArtifactDigest>;
 
     /// \brief Get the action specified by a key from the LocalCAS.
     /// \param cas_key The key pointing at an ActionResult present in the
     /// LocalCAS.
     /// \return The ActionResult corresponding to a cas_key on success
     /// or std::nullopt on failure.
-    [[nodiscard]] auto ReadAction(bazel_re::Digest const& cas_key)
-        const noexcept -> std::optional<bazel_re::ActionResult>;
+    [[nodiscard]] auto ReadAction(ArtifactDigest const& cas_key) const noexcept
+        -> std::optional<bazel_re::ActionResult>;
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL

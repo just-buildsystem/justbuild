@@ -26,16 +26,14 @@
 
 template <bool kDoGlobalUplink>
 auto LocalAC<kDoGlobalUplink>::StoreResult(
-    bazel_re::Digest const& action_id,
+    ArtifactDigest const& action_id,
     bazel_re::ActionResult const& result) const noexcept -> bool {
     auto const cas_key = WriteAction(result);
-    return cas_key.has_value() and
-           WriteActionKey(static_cast<ArtifactDigest>(action_id),
-                          static_cast<ArtifactDigest>(*cas_key));
+    return cas_key.has_value() and WriteActionKey(action_id, *cas_key);
 }
 
 template <bool kDoGlobalUplink>
-auto LocalAC<kDoGlobalUplink>::CachedResult(bazel_re::Digest const& action_id)
+auto LocalAC<kDoGlobalUplink>::CachedResult(ArtifactDigest const& action_id)
     const noexcept -> std::optional<bazel_re::ActionResult> {
     auto const cas_key = ReadActionKey(action_id);
     if (not cas_key) {
@@ -46,7 +44,7 @@ auto LocalAC<kDoGlobalUplink>::CachedResult(bazel_re::Digest const& action_id)
     if (not result) {
         logger_->Emit(LogLevel::Warning,
                       "Parsing action result failed for action {}",
-                      NativeSupport::Unprefix(action_id.hash()));
+                      action_id.hash());
         return std::nullopt;
     }
     return std::move(result);
@@ -59,13 +57,14 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
     LocalGenerationAC const& latest,
     bazel_re::Digest const& action_id) const noexcept -> bool {
     // Determine action cache key path in latest generation.
-    auto const key_digest = NativeSupport::Unprefix(action_id.hash());
-    if (FileSystemManager::IsFile(latest.file_store_.GetPath(key_digest))) {
+    ArtifactDigest const a_digest{action_id};
+    if (FileSystemManager::IsFile(
+            latest.file_store_.GetPath(a_digest.hash()))) {
         return true;
     }
 
     // Read cache key
-    auto const cas_key = ReadActionKey(action_id);
+    auto const cas_key = ReadActionKey(a_digest);
     if (not cas_key) {
         return false;
     }
@@ -112,9 +111,9 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         return false;
     }
 
-    auto const ac_entry_path = file_store_.GetPath(key_digest);
+    auto const ac_entry_path = file_store_.GetPath(a_digest.hash());
     // Uplink cache key
-    return latest.file_store_.AddFromFile(key_digest,
+    return latest.file_store_.AddFromFile(a_digest.hash(),
                                           ac_entry_path,
                                           /*is_owner=*/true);
 }
@@ -128,10 +127,9 @@ auto LocalAC<kDoGlobalUplink>::WriteActionKey(
 }
 
 template <bool kDoGlobalUplink>
-auto LocalAC<kDoGlobalUplink>::ReadActionKey(bazel_re::Digest const& action_id)
-    const noexcept -> expected<bazel_re::Digest, std::string> {
-    auto const key_path =
-        file_store_.GetPath(NativeSupport::Unprefix(action_id.hash()));
+auto LocalAC<kDoGlobalUplink>::ReadActionKey(ArtifactDigest const& action_id)
+    const noexcept -> expected<ArtifactDigest, std::string> {
+    auto const key_path = file_store_.GetPath(action_id.hash());
 
     if constexpr (kDoGlobalUplink) {
         // Uplink any existing action-cache entries in storage generations
@@ -145,31 +143,30 @@ auto LocalAC<kDoGlobalUplink>::ReadActionKey(bazel_re::Digest const& action_id)
             fmt::format("Cache miss, entry not found {}", key_path.string())};
     }
 
-    std::optional<bazel_re::Digest> action_key;
+    std::optional<ArtifactDigest> action_key;
     try {
         nlohmann::json j = nlohmann::json::parse(*key_content);
         action_key = ArtifactDigest{j[0].template get<std::string>(),
                                     j[1].template get<std::size_t>(),
                                     /*is_tree=*/false};
     } catch (...) {
-        return unexpected{
-            fmt::format("Parsing cache entry failed for action {}",
-                        NativeSupport::Unprefix(action_id.hash()))};
+        return unexpected{fmt::format(
+            "Parsing cache entry failed for action {}", action_id.hash())};
     }
     return *std::move(action_key);
 }
 
 template <bool kDoGlobalUplink>
 auto LocalAC<kDoGlobalUplink>::WriteAction(bazel_re::ActionResult const& action)
-    const noexcept -> std::optional<bazel_re::Digest> {
+    const noexcept -> std::optional<ArtifactDigest> {
     return cas_.StoreBlob(action.SerializeAsString(),
                           /*is_executable=*/false);
 }
 
 template <bool kDoGlobalUplink>
-auto LocalAC<kDoGlobalUplink>::ReadAction(bazel_re::Digest const& cas_key)
+auto LocalAC<kDoGlobalUplink>::ReadAction(ArtifactDigest const& cas_key)
     const noexcept -> std::optional<bazel_re::ActionResult> {
-    auto const action_path = cas_.BlobPath(static_cast<ArtifactDigest>(cas_key),
+    auto const action_path = cas_.BlobPath(cas_key,
                                            /*is_executable=*/false);
     if (not action_path) {
         return std::nullopt;

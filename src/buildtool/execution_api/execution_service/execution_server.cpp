@@ -19,8 +19,8 @@
 #include <string>
 #include <utility>
 
-#include "execution_server.hpp"
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -212,8 +212,9 @@ auto ExecutionServiceImpl::Execute(
 
     // Store the result in action cache
     if (i_execution_response->ExitCode() == 0 and not action->do_not_cache()) {
+        ArtifactDigest const a_digest{request->action_digest()};
         if (not storage_.ActionCache().StoreResult(
-                request->action_digest(), execute_response->result())) {
+                a_digest, execute_response->result())) {
             auto const str =
                 fmt::format("Could not store action result for action {}",
                             request->action_digest().hash());
