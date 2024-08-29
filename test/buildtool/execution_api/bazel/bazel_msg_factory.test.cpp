@@ -24,7 +24,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -105,16 +104,16 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
 
     // a mapping between digests and content is needed; usually via a concrete
     // API one gets this content either locally or from the network
-    std::unordered_map<bazel_re::Digest, std::filesystem::path> fake_cas{
+    std::unordered_map<ArtifactDigest, std::filesystem::path> fake_cas{
         {file1_blob->digest, file1},
         {file2_blob->digest, file2},
         {link_blob->digest, link}};
 
     // create blobs via tree
-    BazelBlobContainer blobs{};
+    ArtifactBlobContainer blobs{};
     REQUIRE(BazelMsgFactory::CreateDirectoryDigestFromTree(
         *tree,
-        [&fake_cas](std::vector<bazel_re::Digest> const& digests,
+        [&fake_cas](std::vector<ArtifactDigest> const& digests,
                     std::vector<std::string>* targets) {
             targets->reserve(digests.size());
             for (auto const& digest : digests) {
@@ -133,7 +132,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
                 }
             }
         },
-        [&blobs](BazelBlob&& blob) {
+        [&blobs](ArtifactBlob&& blob) {
             blobs.Emplace(std::move(blob));
             return true;
         }));

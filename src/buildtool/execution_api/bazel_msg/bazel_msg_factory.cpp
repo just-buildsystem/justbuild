@@ -32,11 +32,6 @@
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
-struct DirectoryNodeBundle final {
-    bazel_re::DirectoryNode const message;
-    BazelBlob const bazel_blob;
-};
-
 /// \brief Serialize protobuf message to string.
 template <class T>
 [[nodiscard]] auto SerializeMessage(T const& message) noexcept
@@ -122,7 +117,7 @@ template <class T>
 /// instances at once
 [[nodiscard]] auto CreateSymlinkNodesFromDigests(
     std::vector<std::string> const& symlink_names,
-    std::vector<bazel_re::Digest> const& symlink_digests,
+    std::vector<ArtifactDigest> const& symlink_digests,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links)
     -> std::vector<bazel_re::SymlinkNode> {
     std::vector<std::string> symlink_targets;
@@ -136,6 +131,11 @@ template <class T>
     }
     return symlink_nodes;
 }
+
+struct DirectoryNodeBundle final {
+    bazel_re::DirectoryNode message;
+    ArtifactBlob blob;
+};
 
 /// \brief Create bundle for protobuf message DirectoryNode from Directory.
 [[nodiscard]] auto CreateDirectoryNodeBundle(std::string const& dir_name,
@@ -153,7 +153,7 @@ template <class T>
 
     return DirectoryNodeBundle{
         .message = CreateDirectoryNode(dir_name, digest),
-        .bazel_blob = BazelBlob{
+        .blob = ArtifactBlob{
             std::move(digest), std::move(*content), /*is_exec=*/false}};
 }
 
@@ -239,18 +239,18 @@ template <class T>
     std::vector<bazel_re::FileNode> file_nodes{};
     std::vector<bazel_re::DirectoryNode> dir_nodes{};
     std::vector<std::string> symlink_names{};
-    std::vector<bazel_re::Digest> symlink_digests{};
+    std::vector<ArtifactDigest> symlink_digests{};
     try {
         for (auto const& [name, node] : *tree) {
             if (std::holds_alternative<DirectoryTreePtr>(node)) {
                 auto const& dir = std::get<DirectoryTreePtr>(node);
-                auto const dir_bundle = DirectoryTreeToBundle(
+                auto dir_bundle = DirectoryTreeToBundle(
                     name, dir, resolve_links, process_blob, parent / name);
                 if (not dir_bundle) {
                     return std::nullopt;
                 }
-                dir_nodes.emplace_back(dir_bundle->message);
-                if (not process_blob(BazelBlob{dir_bundle->bazel_blob})) {
+                dir_nodes.emplace_back(std::move(dir_bundle->message));
+                if (not process_blob(std::move(dir_bundle->blob))) {
                     return std::nullopt;
                 }
             }
@@ -295,19 +295,21 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
     DirectoryTreePtr const& tree,
     LinkDigestResolveFunc const& resolve_links,
     BlobProcessFunc const& process_blob) noexcept
-    -> std::optional<bazel_re::Digest> {
-    if (auto bundle =
-            DirectoryTreeToBundle("", tree, resolve_links, process_blob)) {
-        try {
-            if (not process_blob(BazelBlob{bundle->bazel_blob})) {
-                return std::nullopt;
-            }
-        } catch (...) {
+    -> std::optional<ArtifactDigest> {
+    auto bundle = DirectoryTreeToBundle("", tree, resolve_links, process_blob);
+    if (not bundle) {
+        return std::nullopt;
+    }
+
+    auto const digest = bundle->blob.digest;
+    try {
+        if (not process_blob(std::move(bundle->blob))) {
             return std::nullopt;
         }
-        return bundle->bazel_blob.digest;
+    } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
+    return digest;
 }
 
 auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(

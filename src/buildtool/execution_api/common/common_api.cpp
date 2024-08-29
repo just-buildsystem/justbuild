@@ -87,7 +87,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
     // Create digest list from blobs for batch availability check.
     auto missing_blobs_info = GetMissingArtifactsInfo<BlobTreePtr>(
         api, blob_tree->begin(), blob_tree->end(), [](BlobTreePtr const& node) {
-            return ArtifactDigest{node->Blob().digest};
+            return node->Blob().digest;
         });
     if (not missing_blobs_info) {
         Logger::Log(LogLevel::Error,
@@ -133,11 +133,10 @@ auto CommonUploadTreeCompatible(
     ArtifactBlobContainer blobs{};
     // Store and upload blobs, taking into account the maximum transfer size.
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
-        build_root, resolve_links, [&blobs, &api](BazelBlob&& blob) {
+        build_root, resolve_links, [&blobs, &api](ArtifactBlob&& blob) {
             return UpdateContainerAndUpload<ArtifactDigest>(
                 &blobs,
-                std::move(ArtifactBlob{
-                    ArtifactDigest{blob.digest}, blob.data, blob.is_exec}),
+                std::move(blob),
                 /*exception_is_fatal=*/false,
                 [&api](ArtifactBlobContainer&& container) -> bool {
                     return api.Upload(std::move(container),
@@ -159,7 +158,7 @@ auto CommonUploadTreeCompatible(
         Logger::Log(LogLevel::Debug, "failed to upload blobs for build root.");
         return std::nullopt;
     }
-    return ArtifactDigest{*digest};
+    return digest;
 }
 
 auto CommonUploadTreeNative(IExecutionApi const& api,

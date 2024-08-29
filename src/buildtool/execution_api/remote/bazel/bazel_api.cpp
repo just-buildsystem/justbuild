@@ -531,8 +531,9 @@ auto BazelApi::CreateAction(
         return CommonUploadTreeCompatible(
             *this,
             *build_root,
-            [&network = network_](std::vector<bazel_re::Digest> const& digests,
-                                  std::vector<std::string>* targets) {
+            [&network = network_](
+                std::vector<ArtifactDigest> const& digests,
+                gsl::not_null<std::vector<std::string>*> const& targets) {
                 auto reader = network->CreateReader();
                 targets->reserve(digests.size());
                 for (auto blobs : reader.ReadIncrementally(digests)) {

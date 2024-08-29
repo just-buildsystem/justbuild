@@ -289,13 +289,12 @@ class LocalApi final : public IExecutionApi {
                 *this,
                 *build_root,
                 [&cas = local_context_.storage->CAS()](
-                    std::vector<bazel_re::Digest> const& digests,
-                    std::vector<std::string>* targets) {
+                    std::vector<ArtifactDigest> const& digests,
+                    gsl::not_null<std::vector<std::string>*> const& targets) {
                     targets->reserve(digests.size());
                     for (auto const& digest : digests) {
-                        auto p =
-                            cas.BlobPath(static_cast<ArtifactDigest>(digest),
-                                         /*is_executable=*/false);
+                        auto p = cas.BlobPath(digest,
+                                              /*is_executable=*/false);
                         auto content = FileSystemManager::ReadFile(*p);
                         targets->emplace_back(*content);
                     }

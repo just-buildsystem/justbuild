@@ -25,6 +25,7 @@
     , "directory_tree"
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
