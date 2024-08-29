@@ -133,7 +133,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
     auto content = FileSystemManager::ReadFile(*tree_path);
     auto id = NativeSupport::Unprefix(digest.hash());
     auto check_symlinks =
-        [this](std::vector<bazel_re::Digest> const& ids) -> bool {
+        [this](std::vector<ArtifactDigest> const& ids) -> bool {
         for (auto const& id : ids) {
             auto link_path = cas_file_.BlobPath(id);
             std::optional<LargeObject> spliced;

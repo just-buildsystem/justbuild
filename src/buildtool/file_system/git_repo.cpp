@@ -22,7 +22,6 @@
 #include <thread>
 #include <unordered_set>
 
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -1843,20 +1842,21 @@ auto GitRepo::ReadTree(std::string const& id,
         // ignore_special==false.
         if (not ignore_special) {
             // we first gather all symlink candidates
-            std::vector<bazel_re::Digest> symlinks{};
+            // to check symlinks in bulk, optimized for network-backed repos
+            std::vector<ArtifactDigest> symlinks{};
             symlinks.reserve(entries.size());  // at most one symlink per entry
             for (auto const& entry : entries) {
-                for (auto const& item : entry.second) {
-                    if (IsSymlinkObject(item.type)) {
-                        symlinks.emplace_back(bazel_re::Digest(
-                            ArtifactDigest(ToHexString(entry.first),
-                                           /*size=*/0,
-                                           /*is_tree=*/false)));
-                        break;  // no need to check other items with same hash
-                    }
+                if (std::any_of(entry.second.begin(),
+                                entry.second.end(),
+                                [](tree_entry_t const& item) {
+                                    return IsSymlinkObject(item.type);
+                                })) {
+                    symlinks.emplace_back(ToHexString(entry.first),
+                                          /*size=*/0,
+                                          /*is_tree=*/false);
                 }
             }
-            // we check symlinks in bulk, optimized for network-backed repos
+
             if (not symlinks.empty() and
                 not std::invoke(check_symlinks.get(), symlinks)) {
                 Logger::Log(LogLevel::Error,

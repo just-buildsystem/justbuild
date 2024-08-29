@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "gsl/gsl"
-#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -71,7 +71,7 @@ class GitRepo {
     // Checks whether a list of symlinks given by their hashes are
     // non-upwards, based on content read from an actual backend.
     using SymlinksCheckFunc =
-        std::function<bool(std::vector<bazel_re::Digest> const&)>;
+        std::function<bool(std::vector<ArtifactDigest> const&)>;
 
     GitRepo() = delete;  // no default ctor
     ~GitRepo() noexcept = default;

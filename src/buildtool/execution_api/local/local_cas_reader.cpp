@@ -87,10 +87,10 @@ auto LocalCasReader::ReadGitTree(ArtifactDigest const& digest) const noexcept
     if (auto const path = cas_.TreePath(digest)) {
         if (auto const content = FileSystemManager::ReadFile(*path)) {
             auto check_symlinks =
-                [this](std::vector<bazel_re::Digest> const& ids) {
+                [&cas = cas_](std::vector<ArtifactDigest> const& ids) {
                     for (auto const& id : ids) {
-                        auto link_path = cas_.BlobPath(id,
-                                                       /*is_executable=*/false);
+                        auto link_path = cas.BlobPath(id,
+                                                      /*is_executable=*/false);
                         if (not link_path) {
                             return false;
                         }

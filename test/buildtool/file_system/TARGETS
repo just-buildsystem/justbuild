@@ -44,7 +44,6 @@
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/file_system", "git_tree"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/utils/cpp", "hex_string"]
     , ["utils", "shell_quoting"]

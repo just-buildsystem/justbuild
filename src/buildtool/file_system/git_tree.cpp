@@ -63,11 +63,10 @@ class SymlinksChecker final {
         : cas_{*cas} {}
 
     [[nodiscard]] auto operator()(
-        std::vector<bazel_re::Digest> const& ids) const noexcept -> bool {
+        std::vector<ArtifactDigest> const& ids) const noexcept -> bool {
         return std::all_of(
-            ids.begin(), ids.end(), [&cas = cas_](bazel_re::Digest const& id) {
-                auto content = cas.ReadObject(ArtifactDigest(id).hash(),
-                                              /*is_hex_id=*/true);
+            ids.begin(), ids.end(), [&cas = cas_](ArtifactDigest const& id) {
+                auto content = cas.ReadObject(id.hash(), /*is_hex_id=*/true);
                 return content.has_value() and PathIsNonUpwards(*content);
             });
     };

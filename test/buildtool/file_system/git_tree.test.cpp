@@ -27,7 +27,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -106,11 +105,10 @@ class SymlinksChecker final {
         : cas_{*cas} {}
 
     [[nodiscard]] auto operator()(
-        std::vector<bazel_re::Digest> const& ids) const noexcept -> bool {
+        std::vector<ArtifactDigest> const& ids) const noexcept -> bool {
         return std::all_of(
-            ids.begin(), ids.end(), [&cas = cas_](bazel_re::Digest const& id) {
-                auto content = cas.ReadObject(ArtifactDigest(id).hash(),
-                                              /*is_hex_id=*/true);
+            ids.begin(), ids.end(), [&cas = cas_](ArtifactDigest const& id) {
+                auto content = cas.ReadObject(id.hash(), /*is_hex_id=*/true);
                 return content.has_value() and PathIsNonUpwards(*content);
             });
     };

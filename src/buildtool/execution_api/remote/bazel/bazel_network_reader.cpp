@@ -74,7 +74,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
         Logger::Log(LogLevel::Debug, "Tree {} not found in CAS", digest.hash());
         return std::nullopt;
     }
-    auto check_symlinks = [this](std::vector<bazel_re::Digest> const& ids) {
+    auto check_symlinks = [this](std::vector<ArtifactDigest> const& ids) {
         size_t const size = ids.size();
         size_t count = 0;
         for (auto blobs : ReadIncrementally(ids)) {
