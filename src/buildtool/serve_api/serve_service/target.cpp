@@ -104,8 +104,7 @@ auto TargetService::HandleFailureLog(
     }
     // upload log blob to remote
     if (not apis_.local->RetrieveToCas(
-            {Artifact::ObjectInfo{.digest = ArtifactDigest{*digest},
-                                  .type = ObjectType::File}},
+            {Artifact::ObjectInfo{.digest = *digest, .type = ObjectType::File}},
             *apis_.remote)) {
         auto msg =
             fmt::format("Failed to upload to remote CAS the failed {} log {}",
@@ -203,10 +202,9 @@ auto TargetService::ServeTarget(
     }
 
     // get a target cache instance with the correct computed shard
-    auto shard =
-        remote_config->remote_address
-            ? std::make_optional(ArtifactDigest(*execution_backend_dgst).hash())
-            : std::nullopt;
+    auto shard = remote_config->remote_address
+                     ? std::make_optional(execution_backend_dgst->hash())
+                     : std::nullopt;
     auto const& tc = local_context_.storage->TargetCache().WithShard(shard);
     auto const& tc_key =
         TargetCacheKey{{target_cache_key_digest, ObjectType::File}};
@@ -918,14 +916,13 @@ auto TargetService::ServeTargetDescription(
     if (auto dgst =
             local_context_.storage->CAS().StoreBlob(description_str,
                                                     /*is_executable=*/false)) {
-        auto const& artifact_dgst = ArtifactDigest{*dgst};
         if (not apis_.local->RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = artifact_dgst,
+                {Artifact::ObjectInfo{.digest = *dgst,
                                       .type = ObjectType::File}},
                 *apis_.remote)) {
             auto error_msg = fmt::format(
                 "Failed to upload to remote cas the description blob {}",
-                artifact_dgst.hash());
+                dgst->hash());
             logger_->Emit(LogLevel::Error, "{}", error_msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, error_msg};
         }

@@ -127,8 +127,7 @@ auto AddToCAS(Storage const& storage, std::string const& data) noexcept
     // get file CAS instance
     auto const& cas = storage.CAS();
     // write to cas
-    auto digest = cas.StoreBlob(data);
-    if (digest) {
+    if (auto digest = cas.StoreBlob(data)) {
         return cas.BlobPath(*digest, /*is_executable=*/false);
     }
     return std::nullopt;

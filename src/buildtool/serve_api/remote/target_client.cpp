@@ -93,8 +93,8 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
             fmt::format("Failed to store blob {} to local cas",
                         dispatch_list.dump(2))};
     }
-    auto const& dispatch_info = Artifact::ObjectInfo{
-        .digest = ArtifactDigest{*dispatch_dgst}, .type = ObjectType::File};
+    auto const dispatch_info = Artifact::ObjectInfo{.digest = *dispatch_dgst,
+                                                    .type = ObjectType::File};
     if (not apis_.local->RetrieveToCas({dispatch_info}, *apis_.remote)) {
         return serve_target_result_t{
             std::in_place_index<1>,

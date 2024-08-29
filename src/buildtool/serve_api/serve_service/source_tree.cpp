@@ -24,7 +24,6 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -986,7 +985,7 @@ auto SourceTreeService::ServeDistdirTree(
                     return ::grpc::Status::OK;
                 }
                 blob_found = true;
-                blob_digest = NativeSupport::Unprefix(stored_blob->hash());
+                blob_digest = stored_blob->hash();
             }
             else {
                 if (res.error() == GitLookupError::Fatal) {
@@ -1016,8 +1015,7 @@ auto SourceTreeService::ServeDistdirTree(
                             return ::grpc::Status::OK;
                         }
                         blob_found = true;
-                        blob_digest =
-                            NativeSupport::Unprefix(stored_blob->hash());
+                        blob_digest = stored_blob->hash();
                         break;
                     }
                     if (res.error() == GitLookupError::Fatal) {
@@ -1103,8 +1101,7 @@ auto SourceTreeService::ServeDistdirTree(
     // get hash from raw_id
     auto tree_id = ToHexString(tree->first);
     // add tree to local CAS
-    auto tree_digest = cas.StoreTree(tree->second);
-    if (not tree_digest) {
+    if (not cas.StoreTree(tree->second)) {
         logger_->Emit(LogLevel::Error,
                       "Failed to store distdir tree {} to local CAS",
                       tree_id);

@@ -413,12 +413,12 @@ auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
     static constexpr bool kOwner = true;
     auto const stored_digest = kIsTree ? StoreTree<kOwner>(file_path)
                                        : StoreBlob<kOwner>(file_path, kIsExec);
-    if (stored_digest) {
-        return ArtifactDigest{std::move(*stored_digest)};
+    if (not stored_digest) {
+        return unexpected{LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not splice {}", digest.hash())}};
     }
-    return unexpected{
-        LargeObjectError{LargeObjectErrorCode::Internal,
-                         fmt::format("could not splice {}", digest.hash())}};
+    return *std::move(stored_digest);
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP

@@ -95,7 +95,7 @@ class LocalCAS {
     template <bool kOwner = false>
     [[nodiscard]] auto StoreBlob(std::filesystem::path const& file_path,
                                  bool is_executable) const noexcept
-        -> std::optional<bazel_re::Digest> {
+        -> std::optional<ArtifactDigest> {
         return is_executable ? cas_exec_.StoreBlobFromFile(file_path, kOwner)
                              : cas_file_.StoreBlobFromFile(file_path, kOwner);
     }
@@ -106,7 +106,7 @@ class LocalCAS {
     /// \returns Digest of the stored blob or nullopt otherwise.
     [[nodiscard]] auto StoreBlob(std::string const& bytes,
                                  bool is_executable = false) const noexcept
-        -> std::optional<bazel_re::Digest> {
+        -> std::optional<ArtifactDigest> {
         return is_executable ? cas_exec_.StoreBlobFromBytes(bytes)
                              : cas_file_.StoreBlobFromBytes(bytes);
     }
@@ -117,7 +117,7 @@ class LocalCAS {
     /// \returns Digest of the stored tree or nullopt otherwise.
     template <bool kOwner = false>
     [[nodiscard]] auto StoreTree(std::filesystem::path const& file_path)
-        const noexcept -> std::optional<bazel_re::Digest> {
+        const noexcept -> std::optional<ArtifactDigest> {
         return cas_tree_.StoreBlobFromFile(file_path, kOwner);
     }
 
@@ -125,7 +125,7 @@ class LocalCAS {
     /// \param bytes    The bytes to create the tree from.
     /// \returns Digest of the stored tree or nullopt otherwise.
     [[nodiscard]] auto StoreTree(std::string const& bytes) const noexcept
-        -> std::optional<bazel_re::Digest> {
+        -> std::optional<ArtifactDigest> {
         return cas_tree_.StoreBlobFromBytes(bytes);
     }
 

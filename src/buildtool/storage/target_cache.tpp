@@ -31,9 +31,7 @@ auto TargetCache<kDoGlobalUplink>::Store(
         return false;
     }
     if (auto digest = cas_.StoreBlob(value.ToJson().dump(2))) {
-        auto data =
-            Artifact::ObjectInfo{ArtifactDigest{*digest}, ObjectType::File}
-                .ToString();
+        auto data = Artifact::ObjectInfo{*digest, ObjectType::File}.ToString();
         logger_->Emit(LogLevel::Debug,
                       "Adding entry for key {} as {}",
                       key.Id().ToString(),
@@ -58,8 +56,7 @@ auto TargetCache<kDoGlobalUplink>::ComputeKey(
             {"effective_config", effective_config.ToString()}};
         if (auto target_key =
                 cas_.StoreBlob(target_desc.dump(2), /*is_executable=*/false)) {
-            return TargetCacheKey{
-                {ArtifactDigest{*target_key}, ObjectType::File}};
+            return TargetCacheKey{{*target_key, ObjectType::File}};
         }
     } catch (std::exception const& ex) {
         logger_->Emit(LogLevel::Error,

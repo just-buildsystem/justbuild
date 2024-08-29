@@ -46,7 +46,7 @@ auto RepositoryConfig::RepositoryKey(Storage const& storage,
                         unique, storage.GetHashFunction())) {
                     auto const& cas = storage.CAS();
                     if (auto digest = cas.StoreBlob(graph->dump(2))) {
-                        return ArtifactDigest{*digest}.hash();
+                        return digest->hash();
                     }
                 }
                 return std::nullopt;

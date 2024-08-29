@@ -248,8 +248,7 @@ void StoreTargetCacheShard(
         std::exit(kExitFailure);
     }
     [[maybe_unused]] auto id = storage.CAS().StoreBlob(*backend_description);
-    EnsuresAudit(id and ArtifactDigest{*id}.hash() ==
-                            storage_config.backend_description_id);
+    EnsuresAudit(id and id->hash() == storage_config.backend_description_id);
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
