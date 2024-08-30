@@ -149,9 +149,7 @@
     , "size_cxxtype"
     ]
   , "imports":
-    { "first": "first_list_entry"
-    , "last": "last_list_entry"
-    , "artifacts": ["./", "../..", "field_artifacts"]
+    { "artifacts": ["./", "../..", "field_artifacts"]
     , "compile-deps": ["./", "..", "compile-deps"]
     , "compiler-cc": ["./", "..", "compiler-cc"]
     , "compiler-cxx": ["./", "..", "compiler-cxx"]
@@ -490,14 +488,22 @@
               , "body":
                 { "type": "let*"
                 , "bindings":
-                  [ ["list", {"type": "var", "name": "pair"}]
-                  , [ "def"
+                  [ [ "def"
                     , { "type": "assert_non_empty"
                       , "msg": "Define name in 'defines' may not be empty"
-                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                      , "$1":
+                        { "type": "[]"
+                        , "index": 0
+                        , "list": {"type": "var", "name": "pair"}
+                        }
                       }
                     ]
-                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  , [ "val"
+                    , { "type": "[]"
+                      , "index": -1
+                      , "list": {"type": "var", "name": "pair"}
+                      }
+                    ]
                   ]
                 , "body":
                   { "type": "join"
@@ -538,14 +544,22 @@
               , "body":
                 { "type": "let*"
                 , "bindings":
-                  [ ["list", {"type": "var", "name": "pair"}]
-                  , [ "def"
+                  [ [ "def"
                     , { "type": "assert_non_empty"
                       , "msg": "Define name in 'defines1' may not be empty"
-                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                      , "$1":
+                        { "type": "[]"
+                        , "index": 0
+                        , "list": {"type": "var", "name": "pair"}
+                        }
                       }
                     ]
-                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  , [ "val"
+                    , { "type": "[]"
+                      , "index": -1
+                      , "list": {"type": "var", "name": "pair"}
+                      }
+                    ]
                   ]
                 , "body":
                   { "type": "join"
@@ -575,14 +589,22 @@
               , "body":
                 { "type": "let*"
                 , "bindings":
-                  [ ["list", {"type": "var", "name": "pair"}]
-                  , [ "def"
+                  [ [ "def"
                     , { "type": "assert_non_empty"
                       , "msg": "Define name in 'defines01' may not be empty"
-                      , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                      , "$1":
+                        { "type": "[]"
+                        , "index": 0
+                        , "list": {"type": "var", "name": "pair"}
+                        }
                       }
                     ]
-                  , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                  , [ "val"
+                    , { "type": "[]"
+                      , "index": -1
+                      , "list": {"type": "var", "name": "pair"}
+                      }
+                    ]
                   ]
                 , "body":
                   { "type": "join"
@@ -609,14 +631,22 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
                   , "msg": "Define name in 'have_cfile' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "val"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -653,14 +683,22 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
                   , "msg": "Define name in 'have_cxxfile' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "val"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -697,14 +735,22 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
                   , "msg": "Define name in 'have_ctype' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "type"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -741,14 +787,22 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
                   , "msg": "Define name in 'have_cxxtype' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["type", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "type"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -785,16 +839,34 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
                   , "msg": "Define name in 'have_csymbol' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
-              , ["sym", {"type": "CALL_EXPRESSION", "name": "first"}]
-              , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "sym, hdrs"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
+              , [ "sym"
+                , { "type": "[]"
+                  , "index": 0
+                  , "list": {"type": "var", "name": "sym, hdrs"}
+                  }
+                ]
+              , [ "hdrs"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "sym, hdrs"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -836,16 +908,34 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
-                  , "msg": "Define name in 'have_cxxsymbol' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "msg": "Define name in 'have_csymbol' may not be empty"
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
-              , ["sym", {"type": "CALL_EXPRESSION", "name": "first"}]
-              , ["hdrs", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "sym, hdrs"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
+              , [ "sym"
+                , { "type": "[]"
+                  , "index": 0
+                  , "list": {"type": "var", "name": "sym, hdrs"}
+                  }
+                ]
+              , [ "hdrs"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "sym, hdrs"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -887,16 +977,34 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
-                  , "msg": "Define name in 'size_ctype' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "msg": "Define name in 'have_csymbol' may not be empty"
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
-              , ["type", {"type": "CALL_EXPRESSION", "name": "first"}]
-              , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "type, sizes"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
+              , [ "type"
+                , { "type": "[]"
+                  , "index": 0
+                  , "list": {"type": "var", "name": "type, sizes"}
+                  }
+                ]
+              , [ "sizes"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "type, sizes"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -945,16 +1053,34 @@
           , "body":
             { "type": "let*"
             , "bindings":
-              [ ["list", {"type": "var", "name": "pair"}]
-              , [ "def"
+              [ [ "def"
                 , { "type": "assert_non_empty"
-                  , "msg": "Define name in 'size_cxxtype' may not be empty"
-                  , "$1": {"type": "CALL_EXPRESSION", "name": "first"}
+                  , "msg": "Define name in 'have_csymbol' may not be empty"
+                  , "$1":
+                    { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
                   }
                 ]
-              , ["list", {"type": "CALL_EXPRESSION", "name": "last"}]
-              , ["type", {"type": "CALL_EXPRESSION", "name": "first"}]
-              , ["sizes", {"type": "CALL_EXPRESSION", "name": "last"}]
+              , [ "type, sizes"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "pair"}
+                  }
+                ]
+              , [ "type"
+                , { "type": "[]"
+                  , "index": 0
+                  , "list": {"type": "var", "name": "type, sizes"}
+                  }
+                ]
+              , [ "sizes"
+                , { "type": "[]"
+                  , "index": -1
+                  , "list": {"type": "var", "name": "type, sizes"}
+                  }
+                ]
               ]
             , "body":
               { "type": "lookup"
@@ -1112,11 +1238,7 @@
   , "string_fields": ["magic_string", "@only", "output"]
   , "target_fields": ["input"]
   , "config_vars": ["defines"]
-  , "imports":
-    { "first": "first_list_entry"
-    , "last": "last_list_entry"
-    , "stage_singleton_field": ["", "stage_singleton_field"]
-    }
+  , "imports": {"stage_singleton_field": ["", "stage_singleton_field"]}
   , "implicit": {"runner": ["runner"]}
   , "expression":
     { "type": "let*"
@@ -1137,9 +1259,18 @@
             , "body":
               { "type": "let*"
               , "bindings":
-                [ ["list", {"type": "var", "name": "pair"}]
-                , ["key", {"type": "CALL_EXPRESSION", "name": "first"}]
-                , ["val", {"type": "CALL_EXPRESSION", "name": "last"}]
+                [ [ "key"
+                  , { "type": "[]"
+                    , "index": 0
+                    , "list": {"type": "var", "name": "pair"}
+                    }
+                  ]
+                , [ "val"
+                  , { "type": "[]"
+                    , "index": -1
+                    , "list": {"type": "var", "name": "pair"}
+                    }
+                  ]
                 ]
               , "body":
                 { "type": "singleton_map"
