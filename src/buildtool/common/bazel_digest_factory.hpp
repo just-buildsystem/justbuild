@@ -22,13 +22,33 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class BazelDigestFactory final {
     static constexpr auto kBlobTag = "62";
     static constexpr auto kTreeTag = "74";
+    static constexpr std::size_t kTagLength = 2;
 
   public:
+    /// \brief Create bazel_re::Digest from preliminarily validated data.
+    /// \param hash_data    Validated hash
+    /// \param size         Size of the content
+    [[nodiscard]] static auto Create(HashInfo const& hash_info,
+                                     std::int64_t size) noexcept
+        -> bazel_re::Digest;
+
+    /// \brief Validate bazel_re::Digest
+    /// \param hash_type    Type of the hash function that was used for creation
+    /// of the hash
+    /// \param digest       Digest to be validated
+    /// \return Validated hash on success or an error message on failure.
+    [[nodiscard]] static auto ToHashInfo(
+        HashFunction::Type hash_type,
+        bazel_re::Digest const& digest) noexcept
+        -> expected<HashInfo, std::string>;
+
     /// \brief Hash content using hash function and return a valid
     /// bazel_re::Digest
     /// \tparam kType       Type of the hashing algorithm to be used
@@ -39,18 +59,9 @@ class BazelDigestFactory final {
     [[nodiscard]] static auto HashDataAs(HashFunction hash_function,
                                          std::string const& content)
         -> bazel_re::Digest {
-        static constexpr bool kIsTree = IsTreeObject(kType);
-        auto const hash_digest = kIsTree ? hash_function.HashTreeData(content)
-                                         : hash_function.HashBlobData(content);
-
-        auto hash = hash_function.GetType() == HashFunction::Type::GitSHA1
-                        ? Prefix(hash_digest.HexString(), kIsTree)
-                        : hash_digest.HexString();
-
-        bazel_re::Digest digest{};
-        digest.set_hash(std::move(hash));
-        digest.set_size_bytes(gsl::narrow<std::int64_t>(content.size()));
-        return digest;
+        auto const hash_info =
+            HashInfo::HashData(hash_function, content, IsTreeObject(kType));
+        return Create(hash_info, gsl::narrow<std::int64_t>(content.size()));
     }
 
   private:
@@ -58,6 +69,15 @@ class BazelDigestFactory final {
                                      bool is_tree) noexcept -> std::string {
         return (is_tree ? kTreeTag : kBlobTag) + hash;
     }
+
+    [[nodiscard]] static auto Unprefix(std::string const& hash) noexcept
+        -> std::string {
+        return hash.substr(kTagLength);
+    }
+
+    [[nodiscard]] static auto IsPrefixed(HashFunction::Type hash_type,
+                                         std::string const& hash) noexcept
+        -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_BAZEL_DIGEST_FACTORY_HPP

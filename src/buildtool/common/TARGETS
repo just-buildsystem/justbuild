@@ -43,12 +43,16 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bazel_digest_factory"]
   , "hdrs": ["bazel_digest_factory.hpp"]
+  , "srcs": ["bazel_digest_factory.cpp"]
   , "deps":
     [ "bazel_types"
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "expected"]
     ]
+  , "private-deps": [["src/buildtool/crypto", "hasher"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "common":
