@@ -163,7 +163,8 @@ auto BazelExecutionClient::ReadExecution(
     if (not reader->Read(&operation)) {
         grpc::Status status = reader->Finish();
         auto exit_retry_loop =
-            status.error_code() != grpc::StatusCode::UNAVAILABLE;
+            (status.error_code() != grpc::StatusCode::UNAVAILABLE) &&
+            (status.error_code() != grpc::StatusCode::DEADLINE_EXCEEDED);
         LogStatus(&logger_,
                   (exit_retry_loop ? LogLevel::Error : LogLevel::Debug),
                   status);
@@ -177,7 +178,8 @@ auto BazelExecutionClient::ReadExecution(
         grpc::Status status = reader->Finish();
         if (not status.ok()) {
             auto exit_retry_loop =
-                status.error_code() != grpc::StatusCode::UNAVAILABLE;
+                (status.error_code() != grpc::StatusCode::UNAVAILABLE) &&
+                (status.error_code() != grpc::StatusCode::DEADLINE_EXCEEDED);
             LogStatus(&logger_,
                       (exit_retry_loop ? LogLevel::Error : LogLevel::Debug),
                       status);
