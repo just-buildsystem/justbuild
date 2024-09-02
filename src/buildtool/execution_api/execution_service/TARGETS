@@ -21,9 +21,10 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , "operation_cache"
-    , ["src/utils/cpp", "verify_hash"]
+    , ["src/utils/cpp", "hex_string"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     ]
   , "private-ldflags":
     ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
