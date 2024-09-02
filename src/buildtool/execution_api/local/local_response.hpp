@@ -44,23 +44,15 @@ class LocalResponse final : public IExecutionResponse {
         return (output_.action.stdout_digest().size_bytes() != 0);
     }
     auto StdErr() noexcept -> std::string final {
-        if (auto path = storage_.CAS().BlobPath(
-                static_cast<ArtifactDigest>(output_.action.stderr_digest()),
-                /*is_executable=*/false)) {
-            if (auto content = FileSystemManager::ReadFile(*path)) {
-                return std::move(*content);
-            }
+        if (auto content = ReadContent(output_.action.stderr_digest())) {
+            return *std::move(content);
         }
         Logger::Log(LogLevel::Debug, "reading stderr failed");
         return {};
     }
     auto StdOut() noexcept -> std::string final {
-        if (auto path = storage_.CAS().BlobPath(
-                static_cast<ArtifactDigest>(output_.action.stdout_digest()),
-                /*is_executable=*/false)) {
-            if (auto content = FileSystemManager::ReadFile(*path)) {
-                return std::move(*content);
-            }
+        if (auto content = ReadContent(output_.action.stdout_digest())) {
+            return *std::move(content);
         }
         Logger::Log(LogLevel::Debug, "reading stdout failed");
         return {};
@@ -121,14 +113,20 @@ class LocalResponse final : public IExecutionResponse {
         dir_symlinks.reserve(static_cast<std::size_t>(
             action_result.output_directory_symlinks_size()));
 
+        auto const hash_type = storage_.GetHashFunction().GetType();
         // collect files and store them
         for (auto const& file : action_result.output_files()) {
+            auto digest =
+                ArtifactDigestFactory::FromBazel(hash_type, file.digest());
+            if (not digest) {
+                return;
+            }
             try {
                 artifacts.emplace(
                     file.path(),
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{file.digest()},
-                        .type = file.is_executable() ? ObjectType::Executable
+                    Artifact::ObjectInfo{.digest = *std::move(digest),
+                                         .type = file.is_executable()
+                                                     ? ObjectType::Executable
                                                      : ObjectType::File});
             } catch (...) {
                 return;
@@ -166,18 +164,37 @@ class LocalResponse final : public IExecutionResponse {
 
         // collect directories and store them
         for (auto const& dir : action_result.output_directories()) {
+            auto digest =
+                ArtifactDigestFactory::FromBazel(hash_type, dir.tree_digest());
+            if (not digest) {
+                return;
+            }
             try {
                 artifacts.emplace(
                     dir.path(),
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{dir.tree_digest()},
-                        .type = ObjectType::Tree});
+                    Artifact::ObjectInfo{.digest = *std::move(digest),
+                                         .type = ObjectType::Tree});
             } catch (...) {
                 return;
             }
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
+    }
+
+    [[nodiscard]] auto ReadContent(bazel_re::Digest const& digest)
+        const noexcept -> std::optional<std::string> {
+        auto const a_digest = ArtifactDigestFactory::FromBazel(
+            storage_.GetHashFunction().GetType(), digest);
+        if (not a_digest) {
+            return std::nullopt;
+        }
+        auto const path =
+            storage_.CAS().BlobPath(*a_digest, /*is_executable=*/false);
+        if (not path) {
+            return std::nullopt;
+        }
+        return FileSystemManager::ReadFile(*path);
     }
 };
 

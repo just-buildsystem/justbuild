@@ -117,7 +117,7 @@ class LocalAction final : public IExecutionAction {
         return BazelMsgFactory::CreateActionDigestFromCommandLine(request);
     }
 
-    [[nodiscard]] auto Run(bazel_re::Digest const& action_id) const noexcept
+    [[nodiscard]] auto Run(ArtifactDigest const& action_id) const noexcept
         -> std::optional<Output>;
 
     [[nodiscard]] auto StageInput(
@@ -154,7 +154,7 @@ class LocalAction final : public IExecutionAction {
     /// \brief Store file from path in file CAS and return pointer to digest.
     [[nodiscard]] auto DigestFromOwnedFile(
         std::filesystem::path const& file_path) const noexcept
-        -> gsl::owner<bazel_re::Digest*>;
+        -> std::optional<ArtifactDigest>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_ACTION_HPP

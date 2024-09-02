@@ -21,7 +21,7 @@
 #include <system_error>
 #include <utility>
 
-#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
@@ -117,7 +117,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (ExecutionEnabled(cache_flag_)) {
-        if (auto output = Run(static_cast<bazel_re::Digest>(*action))) {
+        if (auto output = Run(*action)) {
             if (cache_flag_ == CacheFlag::PretendCached) {
                 // ensure the same id is created as if caching were enabled
                 auto const action_cached =
@@ -146,11 +146,10 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     return nullptr;
 }
 
-auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
+auto LocalAction::Run(ArtifactDigest const& action_id) const noexcept
     -> std::optional<Output> {
-    auto exec_path =
-        CreateUniquePath(local_context_.storage_config->ExecutionRoot() /
-                         NativeSupport::Unprefix(action_id.hash()));
+    auto const exec_path = CreateUniquePath(
+        local_context_.storage_config->ExecutionRoot() / action_id.hash());
 
     if (not exec_path) {
         return std::nullopt;
@@ -179,20 +178,19 @@ auto LocalAction::Run(bazel_re::Digest const& action_id) const noexcept
     if (exit_code.has_value()) {
         Output result{};
         result.action.set_exit_code(*exit_code);
-        if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromOwnedFile(*exec_path / "stdout")) {
-            result.action.set_allocated_stdout_digest(digest_ptr);
+        if (auto const digest = DigestFromOwnedFile(*exec_path / "stdout")) {
+            *result.action.mutable_stdout_digest() =
+                ArtifactDigestFactory::ToBazel(*digest);
         }
-        if (gsl::owner<bazel_re::Digest*> digest_ptr =
-                DigestFromOwnedFile(*exec_path / "stderr")) {
-            result.action.set_allocated_stderr_digest(digest_ptr);
+        if (auto const digest = DigestFromOwnedFile(*exec_path / "stderr")) {
+            *result.action.mutable_stderr_digest() =
+                ArtifactDigestFactory::ToBazel(*digest);
         }
 
         if (CollectAndStoreOutputs(&result.action, build_root / cwd_)) {
             if (cache_flag_ == CacheFlag::CacheOutput) {
-                ArtifactDigest const a_digest{action_id};
                 if (not local_context_.storage->ActionCache().StoreResult(
-                        a_digest, result.action)) {
+                        action_id, result.action)) {
                     logger_.Emit(LogLevel::Warning,
                                  "failed to store action results");
                 }
@@ -384,8 +382,8 @@ auto LocalAction::CollectOutputFileOrSymlink(
         if (digest) {
             auto out_file = bazel_re::OutputFile{};
             out_file.set_path(local_path);
-            out_file.set_allocated_digest(
-                gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+            *out_file.mutable_digest() =
+                ArtifactDigestFactory::ToBazel(*digest);
             out_file.set_is_executable(is_executable);
             return out_file;
         }
@@ -422,7 +420,7 @@ auto LocalAction::CollectOutputDirOrSymlink(
             auto out_dir = bazel_re::OutputDirectory{};
             out_dir.set_path(local_path);
             (*out_dir.mutable_tree_digest()) =
-                static_cast<bazel_re::Digest>(*digest);
+                ArtifactDigestFactory::ToBazel(*digest);
             return out_dir;
         }
     }
@@ -496,10 +494,7 @@ auto LocalAction::CollectAndStoreOutputs(
 }
 
 auto LocalAction::DigestFromOwnedFile(std::filesystem::path const& file_path)
-    const noexcept -> gsl::owner<bazel_re::Digest*> {
-    if (auto digest = local_context_.storage->CAS().StoreBlob</*kOwner=*/true>(
-            file_path, /*is_executable=*/false)) {
-        return new bazel_re::Digest{std::move(*digest)};
-    }
-    return nullptr;
+    const noexcept -> std::optional<ArtifactDigest> {
+    return local_context_.storage->CAS().StoreBlob</*kOwner=*/true>(
+        file_path, /*is_executable=*/false);
 }
