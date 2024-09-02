@@ -134,7 +134,7 @@ auto ServeServerImpl::Run(
     [[maybe_unused]] CASServiceImpl cas{local_context};
     [[maybe_unused]] BytestreamServiceImpl b{local_context};
     [[maybe_unused]] CapabilitiesServiceImpl cap{};
-    [[maybe_unused]] OperarationsServiceImpl op{&es.GetOpCache()};
+    [[maybe_unused]] OperationsServiceImpl op{&es.GetOpCache()};
     if (with_execute) {
         builder.RegisterService(&es)
             .RegisterService(&ac)

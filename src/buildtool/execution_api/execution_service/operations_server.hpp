@@ -20,10 +20,10 @@
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-class OperarationsServiceImpl final
+class OperationsServiceImpl final
     : public ::google::longrunning::Operations::Service {
   public:
-    explicit OperarationsServiceImpl(
+    explicit OperationsServiceImpl(
         gsl::not_null<OperationCache const*> const& op_cache)
         : op_cache_{*op_cache} {};
 

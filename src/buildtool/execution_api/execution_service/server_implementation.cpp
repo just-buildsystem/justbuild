@@ -89,7 +89,7 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
     CASServiceImpl cas{local_context};
     BytestreamServiceImpl b{local_context};
     CapabilitiesServiceImpl cap{};
-    OperarationsServiceImpl op{&es.GetOpCache()};
+    OperationsServiceImpl op{&es.GetOpCache()};
 
     grpc::ServerBuilder builder;
 

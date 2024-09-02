@@ -18,7 +18,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/utils/cpp/verify_hash.hpp"
 
-auto OperarationsServiceImpl::GetOperation(
+auto OperationsServiceImpl::GetOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::GetOperationRequest* request,
     ::google::longrunning::Operation* response) -> ::grpc::Status {
@@ -40,7 +40,7 @@ auto OperarationsServiceImpl::GetOperation(
     return ::grpc::Status::OK;
 }
 
-auto OperarationsServiceImpl::ListOperations(
+auto OperationsServiceImpl::ListOperations(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::ListOperationsRequest* /*request*/,
     ::google::longrunning::ListOperationsResponse* /*response*/)
@@ -50,7 +50,7 @@ auto OperarationsServiceImpl::ListOperations(
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }
 
-auto OperarationsServiceImpl::DeleteOperation(
+auto OperationsServiceImpl::DeleteOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::DeleteOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
@@ -59,7 +59,7 @@ auto OperarationsServiceImpl::DeleteOperation(
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }
 
-auto OperarationsServiceImpl::CancelOperation(
+auto OperationsServiceImpl::CancelOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::CancelOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
