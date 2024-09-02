@@ -16,35 +16,36 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
-#include "src/utils/cpp/verify_hash.hpp"
 
 auto ActionCacheServiceImpl::GetActionResult(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::GetActionResultRequest* request,
     ::bazel_re::ActionResult* response) -> ::grpc::Status {
-    if (auto error_msg = IsAHash(request->action_digest().hash()); error_msg) {
-        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    auto action_digest = ArtifactDigestFactory::FromBazel(
+        storage_config_.hash_function.GetType(), request->action_digest());
+    if (not action_digest) {
+        logger_.Emit(LogLevel::Debug, "{}", action_digest.error());
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
+                              std::move(action_digest).error()};
     }
-    logger_.Emit(LogLevel::Trace,
-                 "GetActionResult: {}",
-                 request->action_digest().hash());
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    logger_.Emit(LogLevel::Trace, "GetActionResult: {}", action_digest->hash());
+    auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        auto str = fmt::format("Could not acquire SharedLock");
+        static constexpr auto str = "Could not acquire SharedLock";
         logger_.Emit(LogLevel::Error, str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
-    ArtifactDigest const a_digest{request->action_digest()};
-    auto x = storage_.ActionCache().CachedResult(a_digest);
-    if (not x) {
-        return grpc::Status{grpc::StatusCode::NOT_FOUND,
-                            fmt::format("{} missing from AC", a_digest.hash())};
+    auto action_result = storage_.ActionCache().CachedResult(*action_digest);
+    if (not action_result) {
+        return grpc::Status{
+            grpc::StatusCode::NOT_FOUND,
+            fmt::format("{} missing from AC", action_digest->hash())};
     }
-    *response = *x;
+    *response = *std::move(action_result);
     return ::grpc::Status::OK;
 }
 
@@ -53,7 +54,7 @@ auto ActionCacheServiceImpl::UpdateActionResult(
     const ::bazel_re::UpdateActionResultRequest*
     /*request*/,
     ::bazel_re::ActionResult* /*response*/) -> ::grpc::Status {
-    auto const* str = "UpdateActionResult not implemented";
+    static auto constexpr str = "UpdateActionResult not implemented";
     logger_.Emit(LogLevel::Error, str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }

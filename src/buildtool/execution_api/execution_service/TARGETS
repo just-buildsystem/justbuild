@@ -45,8 +45,8 @@
     ]
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
-    , ["src/utils/cpp", "verify_hash"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     ]
   }
 , "cas_server":
