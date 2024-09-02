@@ -26,9 +26,6 @@
 #include <vector>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -91,7 +88,7 @@ template <class T>
     bazel_re::FileNode node;
     node.set_name(file_name);
     node.set_is_executable(IsExecutableObject(type));
-    (*node.mutable_digest()) = static_cast<bazel_re::Digest>(digest);
+    (*node.mutable_digest()) = ArtifactDigestFactory::ToBazel(digest);
     return node;
 }
 
@@ -101,7 +98,7 @@ template <class T>
     -> bazel_re::DirectoryNode {
     bazel_re::DirectoryNode node;
     node.set_name(dir_name);
-    (*node.mutable_digest()) = static_cast<bazel_re::Digest>(digest);
+    (*node.mutable_digest()) = ArtifactDigestFactory::ToBazel(digest);
     return node;
 }
 
@@ -162,7 +159,7 @@ struct DirectoryNodeBundle final {
 /// \brief Create bundle for protobuf message Command from args strings.
 [[nodiscard]] auto CreateCommandBundle(
     BazelMsgFactory::ActionDigestRequest const& request)
-    -> std::optional<BazelBlob> {
+    -> std::optional<ArtifactBlob> {
     bazel_re::Command msg;
     // DEPRECATED as of v2.2: platform properties are now specified
     // directly in the action. See documentation note in the
@@ -187,18 +184,18 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         request.hash_function, *content);
-    return BazelBlob{std::move(digest),
-                     std::move(*content),
-                     /*is_exec=*/false};
+    return ArtifactBlob{std::move(digest),
+                        std::move(*content),
+                        /*is_exec=*/false};
 }
 
 /// \brief Create bundle for protobuf message Action from Command.
 [[nodiscard]] auto CreateActionBundle(
-    bazel_re::Digest const& command,
+    ArtifactDigest const& command,
     BazelMsgFactory::ActionDigestRequest const& request)
-    -> std::optional<BazelBlob> {
+    -> std::optional<ArtifactBlob> {
     using seconds = std::chrono::seconds;
     using nanoseconds = std::chrono::nanoseconds;
     auto sec = std::chrono::duration_cast<seconds>(request.timeout);
@@ -211,10 +208,10 @@ struct DirectoryNodeBundle final {
     bazel_re::Action msg;
     msg.set_do_not_cache(request.skip_action_cache);
     msg.set_allocated_timeout(duration.release());
-    msg.set_allocated_command_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{command}});
-    msg.set_allocated_input_root_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*request.exec_dir}});
+    *msg.mutable_command_digest() = ArtifactDigestFactory::ToBazel(command);
+    *msg.mutable_input_root_digest() =
+        ArtifactDigestFactory::ToBazel(*request.exec_dir);
+
     // New in version 2.2: clients SHOULD set these platform properties
     // as well as those in the
     // [Command][build.bazel.remote.execution.v2.Command]. Servers
@@ -226,11 +223,11 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         request.hash_function, *content);
-    return BazelBlob{std::move(digest),
-                     std::move(*content),
-                     /*is_exec=*/false};
+    return ArtifactBlob{std::move(digest),
+                        std::move(*content),
+                        /*is_exec=*/false};
 }
 
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
@@ -485,7 +482,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
 }
 
 auto BazelMsgFactory::CreateActionDigestFromCommandLine(
-    ActionDigestRequest const& request) -> std::optional<bazel_re::Digest> {
+    ActionDigestRequest const& request) -> std::optional<ArtifactDigest> {
     auto cmd = CreateCommandBundle(request);
     if (not cmd) {
         return std::nullopt;
@@ -496,12 +493,15 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
         return std::nullopt;
     }
 
-    if (not request.store_blob) {
-        return action->digest;
+    if (request.store_blob) {
+        std::invoke(*request.store_blob,
+                    BazelBlob{ArtifactDigestFactory::ToBazel(cmd->digest),
+                              cmd->data,
+                              cmd->is_exec});
+        std::invoke(*request.store_blob,
+                    BazelBlob{ArtifactDigestFactory::ToBazel(action->digest),
+                              action->data,
+                              action->is_exec});
     }
-
-    auto digest = action->digest;
-    std::invoke(*request.store_blob, std::move(*cmd));
-    std::invoke(*request.store_blob, std::move(*action));
-    return digest;
+    return action->digest;
 }

@@ -213,15 +213,14 @@ auto BazelApi::CreateAction(
     std::map<std::string, std::string> const& env_vars,
     std::map<std::string, std::string> const& properties) const noexcept
     -> IExecutionAction::Ptr {
-    return std::unique_ptr<BazelAction>{
-        new BazelAction{network_,
-                        static_cast<bazel_re::Digest>(root_digest),
-                        command,
-                        cwd,
-                        output_files,
-                        output_dirs,
-                        env_vars,
-                        properties}};
+    return std::unique_ptr<BazelAction>{new BazelAction{network_,
+                                                        root_digest,
+                                                        command,
+                                                        cwd,
+                                                        output_files,
+                                                        output_dirs,
+                                                        env_vars,
+                                                        properties}};
 }
 
 // NOLINTNEXTLINE(misc-no-recursion, google-default-arguments)

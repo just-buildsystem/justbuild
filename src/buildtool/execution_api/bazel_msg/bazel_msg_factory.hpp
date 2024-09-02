@@ -29,7 +29,6 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -100,7 +99,7 @@ class BazelMsgFactory {
     /// CommandBundle that can be captured via BlobStoreFunc.
     /// \returns Digest representing the action.
     [[nodiscard]] static auto CreateActionDigestFromCommandLine(
-        ActionDigestRequest const& request) -> std::optional<bazel_re::Digest>;
+        ActionDigestRequest const& request) -> std::optional<ArtifactDigest>;
 
     /// \brief Create message vector from std::map.
     /// \param[in]  input   map
@@ -161,7 +160,7 @@ struct BazelMsgFactory::ActionDigestRequest final {
     VectorPtr<bazel_re::Platform_Property> const properties;
 
     /// \brief The Digest of the execution directory.
-    gsl::not_null<bazel_re::Digest const*> const exec_dir;
+    gsl::not_null<ArtifactDigest const*> const exec_dir;
 
     /// \brief Hash function to be used.
     HashFunction const hash_function;

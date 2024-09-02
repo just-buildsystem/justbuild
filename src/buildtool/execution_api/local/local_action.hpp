@@ -25,6 +25,8 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
@@ -97,11 +99,10 @@ class LocalAction final : public IExecutionAction {
 
     [[nodiscard]] auto CreateActionDigest(ArtifactDigest const& exec_dir,
                                           bool do_not_cache)
-        -> std::optional<bazel_re::Digest> {
+        -> std::optional<ArtifactDigest> {
         auto const env_vars = BazelMsgFactory::CreateMessageVectorFromMap<
             bazel_re::Command_EnvironmentVariable>(env_vars_);
 
-        auto const bazel_exec_dir = static_cast<bazel_re::Digest>(exec_dir);
         BazelMsgFactory::ActionDigestRequest request{
             .command_line = &cmdline_,
             .cwd = &cwd_,
@@ -109,7 +110,7 @@ class LocalAction final : public IExecutionAction {
             .output_dirs = &output_dirs_,
             .env_vars = &env_vars,
             .properties = &properties_,
-            .exec_dir = &bazel_exec_dir,
+            .exec_dir = &exec_dir,
             .hash_function = local_context_.storage_config->hash_function,
             .timeout = timeout_,
             .skip_action_cache = do_not_cache};

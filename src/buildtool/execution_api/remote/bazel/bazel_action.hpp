@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
@@ -42,7 +43,7 @@ class BazelAction final : public IExecutionAction {
 
   private:
     std::shared_ptr<BazelNetwork> const network_;
-    bazel_re::Digest const root_digest_;
+    ArtifactDigest const root_digest_;
     std::vector<std::string> const cmdline_;
     std::string const cwd_;
     std::vector<std::string> output_files_;
@@ -54,7 +55,7 @@ class BazelAction final : public IExecutionAction {
 
     explicit BazelAction(
         std::shared_ptr<BazelNetwork> network,
-        bazel_re::Digest root_digest,
+        ArtifactDigest root_digest,
         std::vector<std::string> command,
         std::string cwd,
         std::vector<std::string> output_files,
@@ -63,7 +64,7 @@ class BazelAction final : public IExecutionAction {
         std::map<std::string, std::string> const& properties) noexcept;
 
     [[nodiscard]] auto CreateBundlesForAction(BazelBlobContainer* blobs,
-                                              bazel_re::Digest const& exec_dir,
+                                              ArtifactDigest const& exec_dir,
                                               bool do_not_cache) const noexcept
         -> std::optional<bazel_re::Digest>;
 };

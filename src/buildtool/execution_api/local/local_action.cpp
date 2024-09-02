@@ -21,8 +21,6 @@
 #include <system_error>
 #include <utility>
 
-#include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
@@ -85,7 +83,7 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
 
     auto do_cache = CacheEnabled(cache_flag_);
-    auto action = CreateActionDigest(root_digest_, not do_cache);
+    auto const action = CreateActionDigest(root_digest_, not do_cache);
     if (not action) {
         if (logger != nullptr) {
             logger->Emit(LogLevel::Error,
@@ -101,13 +99,12 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      " - exec_dir digest: {}\n"
                      " - action digest: {}",
                      root_digest_.hash(),
-                     NativeSupport::Unprefix(action->hash()));
+                     action->hash());
     }
 
     if (do_cache) {
-        ArtifactDigest const a_digest{*action};
         if (auto result =
-                local_context_.storage->ActionCache().CachedResult(a_digest)) {
+                local_context_.storage->ActionCache().CachedResult(*action)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
@@ -120,10 +117,11 @@ auto LocalAction::Execute(Logger const* logger) noexcept
     }
 
     if (ExecutionEnabled(cache_flag_)) {
-        if (auto output = Run(*action)) {
+        if (auto output = Run(static_cast<bazel_re::Digest>(*action))) {
             if (cache_flag_ == CacheFlag::PretendCached) {
                 // ensure the same id is created as if caching were enabled
-                auto action_cached = CreateActionDigest(root_digest_, false);
+                auto const action_cached =
+                    CreateActionDigest(root_digest_, false);
                 if (not action_cached) {
                     if (logger != nullptr) {
                         logger->Emit(

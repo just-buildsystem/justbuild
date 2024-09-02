@@ -28,6 +28,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
@@ -46,8 +47,7 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
-    [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
+    [ ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_digest_factory"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
