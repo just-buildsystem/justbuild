@@ -66,9 +66,10 @@
     ]
   , "private-deps":
     [ ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/logging", "log_level"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/utils/cpp", "verify_hash"]
     , "cas_utils"
     ]
   }
