@@ -14,29 +14,30 @@
 
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 
+#include "fmt/core.h"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/utils/cpp/verify_hash.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 auto OperationsServiceImpl::GetOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::GetOperationRequest* request,
     ::google::longrunning::Operation* response) -> ::grpc::Status {
     auto const& hash = request->name();
-    if (auto error_msg = IsAHash(hash); error_msg) {
-        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    if (not IsHexString(hash)) {
+        auto const str = fmt::format("Invalid hash {}", hash);
+        logger_.Emit(LogLevel::Debug, "{}", str);
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
     logger_.Emit(LogLevel::Trace, "GetOperation: {}", hash);
-    std::optional<::google::longrunning::Operation> op;
-    op = op_cache_.Query(hash);
+    auto op = op_cache_.Query(hash);
     if (not op) {
-        auto const& str = fmt::format(
+        auto const str = fmt::format(
             "Executing action {} not found in internal cache.", hash);
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
-    response->CopyFrom(*op);
+    *response = *std::move(op);
     return ::grpc::Status::OK;
 }
 
@@ -45,7 +46,7 @@ auto OperationsServiceImpl::ListOperations(
     const ::google::longrunning::ListOperationsRequest* /*request*/,
     ::google::longrunning::ListOperationsResponse* /*response*/)
     -> ::grpc::Status {
-    auto const* str = "ListOperations not implemented";
+    static constexpr auto str = "ListOperations not implemented";
     logger_.Emit(LogLevel::Error, str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }
@@ -54,7 +55,7 @@ auto OperationsServiceImpl::DeleteOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::DeleteOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
-    auto const* str = "DeleteOperation not implemented";
+    static constexpr auto str = "DeleteOperation not implemented";
     logger_.Emit(LogLevel::Error, str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }
@@ -63,7 +64,7 @@ auto OperationsServiceImpl::CancelOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::CancelOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
-    auto const* str = "CancelOperation not implemented";
+    static constexpr auto str = "CancelOperation not implemented";
     logger_.Emit(LogLevel::Error, str);
     return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
 }

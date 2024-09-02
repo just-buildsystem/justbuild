@@ -165,7 +165,8 @@
   , "private-deps":
     [ "operation_cache"
     , ["src/buildtool/logging", "log_level"]
-    , ["src/utils/cpp", "verify_hash"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["@", "fmt", "", "fmt"]
     ]
   }
 , "cas_utils":
