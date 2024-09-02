@@ -117,6 +117,7 @@
     [ ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/common", "bytestream-common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
