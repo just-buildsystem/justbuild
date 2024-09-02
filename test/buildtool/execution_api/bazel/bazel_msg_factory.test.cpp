@@ -22,6 +22,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
@@ -42,10 +43,10 @@ namespace {
     if (not content.has_value()) {
         return std::nullopt;
     }
-    return ArtifactBlob{
-        ArtifactDigest::Create<ObjectType::File>(hash_function, *content),
-        *content,
-        IsExecutableObject(*type)};
+    return ArtifactBlob{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                            hash_function, *content),
+                        *content,
+                        IsExecutableObject(*type)};
 }
 }  // namespace
 

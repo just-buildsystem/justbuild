@@ -23,9 +23,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -76,24 +74,6 @@ class ArtifactDigest final {
         return std::equal_to<bazel_re::Digest>{}(
             static_cast<bazel_re::Digest>(*this),
             static_cast<bazel_re::Digest>(other));
-    }
-
-    template <ObjectType kType>
-    [[nodiscard]] static auto Create(HashFunction hash_function,
-                                     std::string const& content) noexcept
-        -> ArtifactDigest {
-        if constexpr (kType == ObjectType::Tree) {
-            return ArtifactDigest{
-                hash_function.HashTreeData(content).HexString(),
-                content.size(),
-                /*is_tree=*/true};
-        }
-        else {
-            return ArtifactDigest{
-                hash_function.HashBlobData(content).HexString(),
-                content.size(),
-                /*is_tree=*/false};
-        }
     }
 
   private:

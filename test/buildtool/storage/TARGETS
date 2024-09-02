@@ -36,6 +36,7 @@
     , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "storage"]

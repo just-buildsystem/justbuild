@@ -17,6 +17,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -36,7 +37,7 @@ TEST_CASE("LocalAC: Single action, single result", "[storage]") {
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
-    auto action_id = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "action");
     CHECK(not ac.CachedResult(action_id));
     CHECK(RunDummyExecution(&ac, &cas, action_id, "result"));
@@ -51,9 +52,9 @@ TEST_CASE("LocalAC: Two different actions, two different results",
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
-    auto action_id1 = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id1 = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "action1");
-    auto action_id2 = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id2 = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "action2");
     CHECK(not ac.CachedResult(action_id1));
     CHECK(not ac.CachedResult(action_id2));
@@ -82,9 +83,9 @@ TEST_CASE("LocalAC: Two different actions, same two results", "[storage]") {
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
-    auto action_id1 = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id1 = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "action1");
-    auto action_id2 = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id2 = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "action2");
     CHECK(not ac.CachedResult(action_id1));
     CHECK(not ac.CachedResult(action_id2));
@@ -113,7 +114,7 @@ TEST_CASE("LocalAC: Same two actions, two different results", "[storage]") {
     auto const& ac = storage.ActionCache();
     auto const& cas = storage.CAS();
 
-    auto action_id = ArtifactDigest::Create<ObjectType::File>(
+    auto action_id = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, "same action");
     CHECK(not ac.CachedResult(action_id));
 

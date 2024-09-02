@@ -19,6 +19,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -29,7 +30,7 @@ TEST_CASE("ObjectCAS", "[file_system]") {
     auto gen_config = storage_config.Get().CreateGenerationConfig(0);
 
     std::string test_content{"test"};
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+    auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, test_content);
 
     SECTION("CAS for files") {

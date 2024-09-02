@@ -6,6 +6,7 @@
     [ ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]

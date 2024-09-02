@@ -6,6 +6,7 @@
     [ "backend_description"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -149,7 +150,7 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
     result.reserve(full_tree.size());
     for (auto& dir : full_tree) {
         try {
-            result.emplace(ArtifactDigest::Create<ObjectType::File>(
+            result.emplace(ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                                hash_function_, dir.SerializeAsString()),
                            std::move(dir));
         } catch (...) {
@@ -222,10 +223,10 @@ auto BazelNetworkReader::Validate(BazelBlob const& blob) const noexcept
     -> bool {
     ArtifactDigest const rehashed_digest =
         NativeSupport::IsTree(blob.digest.hash())
-            ? ArtifactDigest::Create<ObjectType::Tree>(hash_function_,
-                                                       *blob.data)
-            : ArtifactDigest::Create<ObjectType::File>(hash_function_,
-                                                       *blob.data);
+            ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
+                  hash_function_, *blob.data)
+            : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                  hash_function_, *blob.data);
     if (rehashed_digest == ArtifactDigest{blob.digest}) {
         return true;
     }

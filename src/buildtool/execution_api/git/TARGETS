@@ -5,6 +5,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common"]

@@ -20,6 +20,7 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
@@ -83,18 +84,20 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         }
     }
     for (auto const& link : result->output_file_symlinks()) {
-        if (not cas_.LocalUplinkBlob(latest.cas_,
-                                     ArtifactDigest::Create<ObjectType::File>(
-                                         cas_.GetHashFunction(), link.target()),
-                                     /*is_executable=*/false)) {
+        if (not cas_.LocalUplinkBlob(
+                latest.cas_,
+                ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                    cas_.GetHashFunction(), link.target()),
+                /*is_executable=*/false)) {
             return false;
         }
     }
     for (auto const& link : result->output_directory_symlinks()) {
-        if (not cas_.LocalUplinkBlob(latest.cas_,
-                                     ArtifactDigest::Create<ObjectType::File>(
-                                         cas_.GetHashFunction(), link.target()),
-                                     /*is_executable=*/false)) {
+        if (not cas_.LocalUplinkBlob(
+                latest.cas_,
+                ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                    cas_.GetHashFunction(), link.target()),
+                /*is_executable=*/false)) {
             return false;
         }
     }

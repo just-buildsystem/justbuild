@@ -33,6 +33,7 @@
 #include "src/buildtool/build_engine/target_map/export.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
@@ -271,7 +272,7 @@ void BlobGenRuleWithDeps(
     auto stage = ExpressionPtr{Expression::map_t{
         name_val->String(),
         ExpressionPtr{ArtifactDescription::CreateKnown(
-            ArtifactDigest::Create<ObjectType::File>(
+            ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                 context->storage->GetHashFunction(), data_val->String()),
             blob_type)}}};
 

@@ -31,6 +31,7 @@
 #include "grpcpp/support/status.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -209,10 +210,10 @@ class LocalApi final : public IExecutionApi {
             // storage_.ReadTreeInfos() will contain 0 as size.
             ArtifactDigest digest =
                 IsTreeObject(info.type)
-                    ? ArtifactDigest::Create<ObjectType::Tree>(
+                    ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
                           local_context_.storage_config->hash_function,
                           *content)
-                    : ArtifactDigest::Create<ObjectType::File>(
+                    : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                           local_context_.storage_config->hash_function,
                           *content);
 

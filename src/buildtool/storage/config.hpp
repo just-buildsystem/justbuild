@@ -25,6 +25,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -158,7 +159,7 @@ struct StorageConfig final {
 
     [[nodiscard]] auto DefaultBackendDescriptionId() noexcept -> std::string {
         try {
-            return ArtifactDigest::Create<ObjectType::File>(
+            return ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                        hash_function,
                        DescribeBackend(std::nullopt, {}, {}).value())
                 .hash();
@@ -232,7 +233,8 @@ class StorageConfig::Builder final {
             remote_address_, remote_platform_properties_, remote_dispatch_);
         if (desc) {
             backend_description_id =
-                ArtifactDigest::Create<ObjectType::File>(hash_function, *desc)
+                ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                    hash_function, *desc)
                     .hash();
         }
         else {

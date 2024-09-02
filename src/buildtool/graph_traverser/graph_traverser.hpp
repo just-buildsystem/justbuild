@@ -32,6 +32,7 @@
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
@@ -274,7 +275,7 @@ class GraphTraverser {
         std::vector<std::string> const& blobs) const noexcept -> bool {
         ArtifactBlobContainer container;
         for (auto const& blob : blobs) {
-            auto digest = ArtifactDigest::Create<ObjectType::File>(
+            auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                 context_.apis->hash_function, blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(

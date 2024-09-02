@@ -72,6 +72,7 @@
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/crypto", "hasher"]

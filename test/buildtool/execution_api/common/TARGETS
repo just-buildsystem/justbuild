@@ -12,6 +12,7 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/compatibility", "compatibility"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
   }

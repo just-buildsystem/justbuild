@@ -38,6 +38,7 @@
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -760,7 +761,7 @@ void withDependencies(
               }
               blobs.emplace_back(data->String());
               return ExpressionPtr{ArtifactDescription::CreateKnown(
-                  ArtifactDigest::Create<ObjectType::File>(
+                  ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                       context->storage->GetHashFunction(), data->String()),
                   ObjectType::File)};
           }},
@@ -781,7 +782,7 @@ void withDependencies(
               blobs.emplace_back(data->String());
 
               return ExpressionPtr{ArtifactDescription::CreateKnown(
-                  ArtifactDigest::Create<ObjectType::Symlink>(
+                  ArtifactDigestFactory::HashDataAs<ObjectType::Symlink>(
                       context->storage->GetHashFunction(), data->String()),
                   ObjectType::Symlink)};
           }},

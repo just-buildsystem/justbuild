@@ -32,7 +32,7 @@ TEST_CASE("LocalCAS: Add blob to storage from bytes", "[storage]") {
 
     std::string test_bytes("test");
 
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+    auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, test_bytes);
 
     // check blob not in storage

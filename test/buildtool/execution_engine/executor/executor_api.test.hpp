@@ -26,6 +26,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -60,12 +61,11 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
                                          : HashFunction::Type::GitSHA1};
 
     std::string const blob = "test";
-    CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-        ArtifactDigest{hash_function.HashBlobData(blob).HexString(),
-                       blob.size(),
-                       /*is_tree=*/false},
-        blob,
-        /*is_exec=*/false}}}));
+    CHECK(api->Upload(ArtifactBlobContainer{
+        {ArtifactBlob{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                          hash_function, blob),
+                      blob,
+                      /*is_exec=*/false}}}));
 }
 
 [[nodiscard]] static inline auto GetTestDir() -> std::filesystem::path {
@@ -426,14 +426,10 @@ static inline void TestUploadAndDownloadTrees(
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
-    auto foo_digest =
-        ArtifactDigest{hash_function.HashBlobData(foo).HexString(),
-                       foo.size(),
-                       /*is_tree=*/false};
-    auto bar_digest =
-        ArtifactDigest{hash_function.HashBlobData(bar).HexString(),
-                       bar.size(),
-                       /*is_tree=*/false};
+    auto const foo_digest =
+        ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function, foo);
+    auto const bar_digest =
+        ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function, bar);
 
     // upload blobs
     auto api = factory();

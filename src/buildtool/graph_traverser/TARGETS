@@ -5,6 +5,7 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "tree"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_engine/executor", "context"]

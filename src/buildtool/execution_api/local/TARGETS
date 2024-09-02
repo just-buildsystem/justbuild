@@ -27,6 +27,7 @@
     , ["@", "grpc", "", "grpc++"]
     , "context"
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/execution_api/common", "common"]

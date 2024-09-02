@@ -17,6 +17,7 @@
 #include <cstddef>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -104,8 +105,9 @@ void BazelResponse::Populate() noexcept {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest = ArtifactDigest::Create<ObjectType::File>(
-                        network_->GetHashFunction(), link.target()),
+                    .digest =
+                        ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                            network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
         } catch (...) {
             return;
@@ -116,8 +118,9 @@ void BazelResponse::Populate() noexcept {
             artifacts.emplace(
                 link.path(),
                 Artifact::ObjectInfo{
-                    .digest = ArtifactDigest::Create<ObjectType::File>(
-                        network_->GetHashFunction(), link.target()),
+                    .digest =
+                        ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                            network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
             dir_symlinks.emplace(link.path());  // add it to set
         } catch (...) {

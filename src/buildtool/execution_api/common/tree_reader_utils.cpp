@@ -19,6 +19,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -45,8 +46,8 @@ namespace {
     -> Artifact::ObjectInfo {
 
     return Artifact::ObjectInfo{
-        .digest = ArtifactDigest::Create<ObjectType::File>(hash_function,
-                                                           node.target()),
+        .digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, node.target()),
         .type = ObjectType::Symlink};
 }
 

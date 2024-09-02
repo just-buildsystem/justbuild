@@ -29,6 +29,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -465,8 +466,8 @@ class ExecutorImpl {
         if (not content.has_value()) {
             return std::nullopt;
         }
-        auto digest =
-            ArtifactDigest::Create<ObjectType::File>(hash_function, *content);
+        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, *content);
         if (not api.Upload(ArtifactBlobContainer{
                 {ArtifactBlob{digest,
                               std::move(*content),

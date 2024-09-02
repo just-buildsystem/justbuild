@@ -25,6 +25,7 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     ]
+  , "private-deps": [["src/buildtool/common", "artifact_digest_factory"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "bytestream-common":

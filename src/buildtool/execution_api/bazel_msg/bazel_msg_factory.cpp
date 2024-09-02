@@ -25,6 +25,7 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/native_support.hpp"
@@ -149,8 +150,8 @@ struct DirectoryNodeBundle final {
 
     // SHA256 is used since bazel types are processed here.
     HashFunction const hash_function{HashFunction::Type::PlainSHA256};
-    auto digest =
-        ArtifactDigest::Create<ObjectType::File>(hash_function, *content);
+    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, *content);
 
     return DirectoryNodeBundle{
         .message = CreateDirectoryNode(dir_name, digest),

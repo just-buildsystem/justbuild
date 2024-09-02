@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
@@ -140,8 +141,9 @@ class LocalResponse final : public IExecutionResponse {
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
-                        .digest = ArtifactDigest::Create<ObjectType::File>(
-                            storage_.GetHashFunction(), link.target()),
+                        .digest =
+                            ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                                storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
             } catch (...) {
                 return;
@@ -152,8 +154,9 @@ class LocalResponse final : public IExecutionResponse {
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
-                        .digest = ArtifactDigest::Create<ObjectType::File>(
-                            storage_.GetHashFunction(), link.target()),
+                        .digest =
+                            ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                                storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
             } catch (...) {

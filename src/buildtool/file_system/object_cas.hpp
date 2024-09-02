@@ -125,7 +125,7 @@ class ObjectCAS {
 
     [[nodiscard]] auto CreateDigest(std::string const& bytes) const noexcept
         -> std::optional<ArtifactDigest> {
-        return ArtifactDigest::Create<kType>(hash_function_, bytes);
+        return ArtifactDigestFactory::HashDataAs<kType>(hash_function_, bytes);
     }
 
     [[nodiscard]] auto CreateDigest(std::filesystem::path const& file_path)

@@ -20,6 +20,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
@@ -189,7 +190,7 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
     auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+    auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, test_content);
 
     std::string output_path{"output_file"};
@@ -254,7 +255,7 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigest::Create<ObjectType::File>(
+    auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, test_content);
     REQUIRE(api.Upload(ArtifactBlobContainer{{ArtifactBlob{
                            test_digest, test_content, /*is_exec=*/false}}},
