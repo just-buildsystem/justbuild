@@ -21,9 +21,27 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+
+namespace {
+[[nodiscard]] auto GetTargetValue(
+    HashFunction::Type hash_type,
+    justbuild::just_serve::ServeTargetResponse const& response) noexcept
+    -> std::optional<ArtifactDigest> {
+    if (not response.has_target_value()) {
+        return std::nullopt;
+    }
+    auto result =
+        ArtifactDigestFactory::FromBazel(hash_type, response.target_value());
+    if (not result) {
+        return std::nullopt;
+    }
+    return *std::move(result);
+}
+}  // namespace
 
 TargetClient::TargetClient(
     ServerAddress const& address,
@@ -58,9 +76,9 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     }
 
     // add target cache key to request
-    bazel_re::Digest key_dgst{key.Id().digest};
     justbuild::just_serve::ServeTargetRequest request{};
-    request.mutable_target_cache_key_id()->CopyFrom(key_dgst);
+    *request.mutable_target_cache_key_id() =
+        ArtifactDigestFactory::ToBazel(key.Id().digest);
 
     // add execution properties to request
     for (auto const& [k, v] : exec_config_.platform_properties) {
@@ -102,7 +120,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                         dispatch_info.ToString())};
     }
     (*request.mutable_dispatch_info()) =
-        static_cast<bazel_re::Digest>(*dispatch_dgst);
+        ArtifactDigestFactory::ToBazel(*dispatch_dgst);
 
     // call rpc
     grpc::ClientContext context;
@@ -114,21 +132,29 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
         case grpc::StatusCode::OK: {
             // if log has been set, pass it along as index 0
             if (response.has_log()) {
-                return serve_target_result_t{
-                    std::in_place_index<0>,
-                    ArtifactDigest(response.log()).hash()};
+                auto log_digest = ArtifactDigestFactory::FromBazel(
+                    storage_.GetHashFunction().GetType(), response.log());
+                if (not log_digest) {
+                    return serve_target_result_t{
+                        std::in_place_index<1>,
+                        fmt::format("Failed to convert log digest: {}",
+                                    std::move(log_digest).error())};
+                }
+                return serve_target_result_t{std::in_place_index<0>,
+                                             log_digest->hash()};
             }
             // if no log has been set, it must have the target cache value
-            if (not response.has_target_value()) {
+            auto const target_value_dgst =
+                GetTargetValue(storage_.GetHashFunction().GetType(), response);
+            if (not target_value_dgst) {
                 return serve_target_result_t{
                     std::in_place_index<1>,
                     "Serve endpoint failed to set expected response field"};
             }
-            auto const& target_value_dgst =
-                ArtifactDigest{response.target_value()};
-            auto const& obj_info = Artifact::ObjectInfo{
-                .digest = target_value_dgst, .type = ObjectType::File};
-            if (not apis_.local->IsAvailable(target_value_dgst)) {
+
+            auto const obj_info = Artifact::ObjectInfo{
+                .digest = *target_value_dgst, .type = ObjectType::File};
+            if (not apis_.local->IsAvailable(*target_value_dgst)) {
                 if (not apis_.remote->RetrieveToCas({obj_info}, *apis_.local)) {
                     return serve_target_result_t{
                         std::in_place_index<1>,
@@ -223,7 +249,14 @@ auto TargetClient::ServeTargetDescription(
         LogStatus(&logger_, LogLevel::Error, status);
         return std::nullopt;
     }
-    return ArtifactDigest{response.description_id()};
+
+    auto result = ArtifactDigestFactory::FromBazel(
+        storage_.GetHashFunction().GetType(), response.description_id());
+    if (not result) {
+        logger_.Emit(LogLevel::Error, "{}", std::move(result).error());
+        return std::nullopt;
+    }
+    return *std::move(result);
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
