@@ -114,14 +114,14 @@
     , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/execution_api/common", "bytestream-common"]
+    [ ["src/buildtool/execution_api/common", "bytestream-common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/utils/cpp", "verify_hash"]
     , "cas_utils"
     ]
   }

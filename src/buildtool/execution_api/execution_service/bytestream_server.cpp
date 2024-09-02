@@ -20,7 +20,8 @@
 #include <utility>
 
 #include "fmt/core.h"
-#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/bytestream_common.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
@@ -28,7 +29,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
-#include "src/utils/cpp/verify_hash.hpp"
 
 namespace {
 auto ParseResourceName(std::string const& x) noexcept
@@ -73,9 +73,12 @@ auto BytestreamServiceImpl::Read(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    if (auto error_msg = IsAHash(digest->hash())) {
-        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+    auto const read_digest = ArtifactDigestFactory::FromBazel(
+        storage_config_.hash_function.GetType(), *digest);
+    if (not read_digest) {
+        logger_.Emit(LogLevel::Debug, "{}", read_digest.error());
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
+                              read_digest.error()};
     }
 
     auto const lock = GarbageCollector::SharedLock(storage_config_);
@@ -85,18 +88,13 @@ auto BytestreamServiceImpl::Read(
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
-    std::optional<std::filesystem::path> path{};
+    auto const path =
+        read_digest->IsTree()
+            ? storage_.CAS().TreePath(*read_digest)
+            : storage_.CAS().BlobPath(*read_digest, /*is_executable=*/false);
 
-    if (NativeSupport::IsTree(digest->hash())) {
-        ArtifactDigest dgst{NativeSupport::Unprefix(digest->hash()), 0, true};
-        path = storage_.CAS().TreePath(dgst);
-    }
-    else {
-        ArtifactDigest dgst{NativeSupport::Unprefix(digest->hash()), 0, false};
-        path = storage_.CAS().BlobPath(dgst, false);
-    }
     if (not path) {
-        auto const str = fmt::format("could not find {}", digest->hash());
+        auto const str = fmt::format("could not find {}", read_digest->hash());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, str};
     }
@@ -112,8 +110,8 @@ auto BytestreamServiceImpl::Read(
         stream.read(buffer.data(), kChunkSize);
         if (stream.bad()) {
             auto const str =
-                fmt::format("Failed to read data for {}", digest->hash());
-            logger_.Emit(LogLevel::Error, "{}", str);
+                fmt::format("Failed to read data for {}", read_digest->hash());
+            logger_.Emit(LogLevel::Error, str);
             return grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
 
@@ -140,13 +138,17 @@ auto BytestreamServiceImpl::Write(
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
-    if (auto error_msg = IsAHash(digest->hash())) {
-        logger_.Emit(LogLevel::Debug, "{}", *error_msg);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, *error_msg};
+
+    auto const write_digest = ArtifactDigestFactory::FromBazel(
+        storage_config_.hash_function.GetType(), *digest);
+    if (not write_digest) {
+        logger_.Emit(LogLevel::Debug, "{}", write_digest.error());
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
+                              write_digest.error()};
     }
     logger_.Emit(LogLevel::Trace,
                  "Write: {}, offset {}, finish write {}",
-                 digest->hash(),
+                 write_digest->hash(),
                  request.write_offset(),
                  request.finish_write());
     auto const lock = GarbageCollector::SharedLock(storage_config_);
@@ -161,13 +163,13 @@ auto BytestreamServiceImpl::Write(
                               "could not create TmpDir"};
     }
 
-    auto tmp = tmp_dir->GetPath() / digest->hash();
+    auto tmp = tmp_dir->GetPath() / write_digest->hash();
     {
         std::ofstream stream{tmp, std::ios::binary};
         do {
             if (not stream.good()) {
-                auto const str =
-                    fmt::format("Failed to write data for {}", digest->hash());
+                auto const str = fmt::format("Failed to write data for {}",
+                                             write_digest->hash());
                 logger_.Emit(LogLevel::Error, "{}", str);
                 return ::grpc::Status{::grpc::StatusCode::INTERNAL, str};
             }
@@ -177,8 +179,7 @@ auto BytestreamServiceImpl::Write(
     }
 
     // Before storing a tree, we have to verify that its parts are present
-    bool const is_tree = NativeSupport::IsTree(digest->hash());
-    if (is_tree) {
+    if (write_digest->IsTree()) {
         // ... unfortunately, this requires us to read the whole tree object
         // into memory
         auto const content = FileSystemManager::ReadFile(tmp);
@@ -186,14 +187,13 @@ auto BytestreamServiceImpl::Write(
             auto const msg =
                 fmt::format("Failed to read temporary file {} for {}",
                             tmp.string(),
-                            digest->hash());
+                            write_digest->hash());
             logger_.Emit(LogLevel::Error, "{}", msg);
             return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
         }
 
-        ArtifactDigest dgst{NativeSupport::Unprefix(digest->hash()), 0, true};
-        if (auto err =
-                CASUtils::EnsureTreeInvariant(dgst, *content, storage_)) {
+        if (auto err = CASUtils::EnsureTreeInvariant(
+                *write_digest, *content, storage_)) {
             auto const str = fmt::format("Write: {}", *std::move(err));
             logger_.Emit(LogLevel::Error, "{}", str);
             return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, str};
@@ -201,23 +201,25 @@ auto BytestreamServiceImpl::Write(
     }
 
     // Store blob and verify hash
-    auto const stored = is_tree ? storage_.CAS().StoreTree</*kOwner=*/true>(tmp)
-                                : storage_.CAS().StoreBlob</*kOwner=*/true>(
-                                      tmp, /*is_executable=*/false);
+    static constexpr bool kOwner = true;
+    auto const stored =
+        write_digest->IsTree()
+            ? storage_.CAS().StoreTree<kOwner>(tmp)
+            : storage_.CAS().StoreBlob<kOwner>(tmp, /*is_executable=*/false);
     if (not stored) {
         // This is a serious problem: we have a sequence of bytes, but cannot
         // write them to CAS.
         auto const str =
-            fmt::format("Failed to store object {}", digest->hash());
+            fmt::format("Failed to store object {}", write_digest->hash());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, str};
     }
 
-    if (static_cast<bazel_re::Digest>(*stored).hash() != digest->hash()) {
+    if (*stored != *write_digest) {
         // User error: did not get a file with the announced hash
         auto const str =
             fmt::format("In upload for {} received object with hash {}",
-                        digest->hash(),
+                        write_digest->hash(),
                         stored->hash());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
