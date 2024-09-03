@@ -21,16 +21,13 @@
 #include <utility>  // std::move
 
 #include "gsl/gsl"
-#include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
+#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
-// Provides getter for size with convenient non-protobuf type. Contains a
-// unprefixed hex string as hash. For communication with the execution API it
-// can be cast to bazel_re::Digest which is the wire format that contains
-// prefixed hashes in native mode.
+// Provides getter for size with convenient non-protobuf type. Contains an
+// unprefixed hex string as hash.
 class ArtifactDigest final {
   public:
     ArtifactDigest() noexcept = default;
@@ -39,21 +36,12 @@ class ArtifactDigest final {
                             std::size_t size) noexcept
         : size_{size}, hash_{hash_info.Hash()}, is_tree_{hash_info.IsTree()} {}
 
-    explicit ArtifactDigest(bazel_re::Digest const& digest) noexcept
-        : size_{gsl::narrow<std::size_t>(digest.size_bytes())},
-          hash_{NativeSupport::Unprefix(digest.hash())},
-          // Tree information is only stored in a digest in native mode and
-          // false in compatible mode.
-          is_tree_{NativeSupport::IsTree(digest.hash())} {}
-
     ArtifactDigest(std::string hash, std::size_t size, bool is_tree) noexcept
         : size_{size},
           hash_{std::move(hash)},
           // Tree information is only stored in a digest in native mode and
           // false in compatible mode.
-          is_tree_{not Compatibility::IsCompatible() and is_tree} {
-        ExpectsAudit(not NativeSupport::IsPrefixed(hash_));
-    }
+          is_tree_{not Compatibility::IsCompatible() and is_tree} {}
 
     [[nodiscard]] auto hash() const& noexcept -> std::string const& {
         return hash_;
@@ -66,30 +54,14 @@ class ArtifactDigest final {
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool { return is_tree_; }
 
-    [[nodiscard]] explicit operator bazel_re::Digest() const {
-        return CreateBazelDigest(hash_, size_, is_tree_);
-    }
-
     [[nodiscard]] auto operator==(ArtifactDigest const& other) const -> bool {
-        return std::equal_to<bazel_re::Digest>{}(
-            static_cast<bazel_re::Digest>(*this),
-            static_cast<bazel_re::Digest>(other));
+        return hash_ == other.hash_ and is_tree_ == other.is_tree_;
     }
 
   private:
     std::size_t size_{};
     std::string hash_{};
     bool is_tree_{};
-
-    [[nodiscard]] static auto CreateBazelDigest(std::string const& hash,
-                                                std::size_t size,
-                                                bool is_tree)
-        -> bazel_re::Digest {
-        bazel_re::Digest d;
-        d.set_hash(NativeSupport::Prefix(hash, is_tree));
-        d.set_size_bytes(gsl::narrow<google::protobuf::int64>(size));
-        return d;
-    }
 };
 
 namespace std {
