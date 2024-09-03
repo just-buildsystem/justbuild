@@ -1,13 +1,11 @@
 { "compatibility":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["compatibility"]
-  , "hdrs": ["compatibility.hpp", "native_support.hpp"]
+  , "hdrs": ["compatibility.hpp"]
   , "deps":
     [ ["src/buildtool/crypto", "hash_function"]
-    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "compatibility"]
   }
