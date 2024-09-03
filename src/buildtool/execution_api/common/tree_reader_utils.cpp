@@ -27,24 +27,35 @@
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
-[[nodiscard]] auto CreateObjectInfo(bazel_re::DirectoryNode const& node)
-    -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
+[[nodiscard]] auto CreateObjectInfo(HashFunction hash_function,
+                                    bazel_re::DirectoryNode const& node)
+    -> std::optional<Artifact::ObjectInfo> {
+    auto digest = ArtifactDigestFactory::FromBazel(hash_function.GetType(),
+                                                   node.digest());
+    if (not digest) {
+        return std::nullopt;
+    }
+    return Artifact::ObjectInfo{.digest = *std::move(digest),
                                 .type = ObjectType::Tree};
 }
 
-[[nodiscard]] auto CreateObjectInfo(bazel_re::FileNode const& node)
-    -> Artifact::ObjectInfo {
-    return Artifact::ObjectInfo{.digest = ArtifactDigest{node.digest()},
+[[nodiscard]] auto CreateObjectInfo(HashFunction hash_function,
+                                    bazel_re::FileNode const& node)
+    -> std::optional<Artifact::ObjectInfo> {
+    auto digest = ArtifactDigestFactory::FromBazel(hash_function.GetType(),
+                                                   node.digest());
+    if (not digest) {
+        return std::nullopt;
+    }
+    return Artifact::ObjectInfo{.digest = *std::move(digest),
                                 .type = node.is_executable()
                                             ? ObjectType::Executable
                                             : ObjectType::File};
 }
 
-[[nodiscard]] auto CreateObjectInfo(bazel_re::SymlinkNode const& node,
-                                    HashFunction hash_function)
+[[nodiscard]] auto CreateObjectInfo(HashFunction hash_function,
+                                    bazel_re::SymlinkNode const& node)
     -> Artifact::ObjectInfo {
-
     return Artifact::ObjectInfo{
         .digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, node.target()),
@@ -84,22 +95,24 @@ template <typename TTree>
 auto TreeReaderUtils::ReadObjectInfos(bazel_re::Directory const& dir,
                                       InfoStoreFunc const& store_info) noexcept
     -> bool {
+    // SHA256 is used since bazel types are processed here.
+    HashFunction const hash_function{HashFunction::Type::PlainSHA256};
     try {
         for (auto const& f : dir.files()) {
-            if (not store_info(f.name(), CreateObjectInfo(f))) {
+            auto const info = CreateObjectInfo(hash_function, f);
+            if (not info or not store_info(f.name(), *info)) {
                 return false;
             }
         }
 
-        // SHA256 is used since bazel types are processed here.
-        HashFunction const hash_function{HashFunction::Type::PlainSHA256};
         for (auto const& l : dir.symlinks()) {
-            if (not store_info(l.name(), CreateObjectInfo(l, hash_function))) {
+            if (not store_info(l.name(), CreateObjectInfo(hash_function, l))) {
                 return false;
             }
         }
         for (auto const& d : dir.directories()) {
-            if (not store_info(d.name(), CreateObjectInfo(d))) {
+            auto const info = CreateObjectInfo(hash_function, d);
+            if (not store_info(d.name(), *info)) {
                 return false;
             }
         }

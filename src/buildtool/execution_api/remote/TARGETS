@@ -40,6 +40,7 @@
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]

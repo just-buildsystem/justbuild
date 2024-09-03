@@ -29,6 +29,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
@@ -92,7 +93,8 @@ class BazelNetworkReader final {
         std::vector<bazel_re::Digest> const& blobs) const noexcept
         -> std::vector<ArtifactBlob>;
 
-    [[nodiscard]] auto Validate(BazelBlob const& blob) const noexcept -> bool;
+    [[nodiscard]] auto Validate(BazelBlob const& blob) const noexcept
+        -> std::optional<HashInfo>;
 };
 
 class BazelNetworkReader::IncrementalReader final {

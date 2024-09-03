@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -52,6 +53,7 @@ auto LocalCasReader::ReadDirectory(ArtifactDigest const& digest) const noexcept
 
 auto LocalCasReader::MakeTree(ArtifactDigest const& root) const noexcept
     -> std::optional<bazel_re::Tree> {
+    auto const hash_type = cas_.GetHashFunction().GetType();
     try {
         std::unordered_map<ArtifactDigest, bazel_re::Directory> directories;
 
@@ -70,7 +72,12 @@ auto LocalCasReader::MakeTree(ArtifactDigest const& root) const noexcept
                 return std::nullopt;
             }
             for (auto const& node : read_dir->directories()) {
-                to_check.push(ArtifactDigest{node.digest()});
+                auto digest =
+                    ArtifactDigestFactory::FromBazel(hash_type, node.digest());
+                if (not digest) {
+                    return std::nullopt;
+                }
+                to_check.push(*std::move(digest));
             }
             directories.insert_or_assign(std::move(current),
                                          *std::move(read_dir));
