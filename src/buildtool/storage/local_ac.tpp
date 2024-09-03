@@ -77,9 +77,13 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
 
     // Uplink result content
     for (auto const& file : result->output_files()) {
-        ArtifactDigest const a_digest{file.digest()};
+        auto const digest = ArtifactDigestFactory::FromBazel(
+            cas_.GetHashFunction().GetType(), file.digest());
+        if (not digest) {
+            return false;
+        }
         if (not cas_.LocalUplinkBlob(
-                latest.cas_, a_digest, file.is_executable())) {
+                latest.cas_, *digest, file.is_executable())) {
             return false;
         }
     }
@@ -102,8 +106,12 @@ auto LocalAC<kDoGlobalUplink>::LocalUplinkEntry(
         }
     }
     for (auto const& directory : result->output_directories()) {
-        ArtifactDigest const a_digest{directory.tree_digest()};
-        if (not cas_.LocalUplinkTree(latest.cas_, a_digest)) {
+        auto const digest = ArtifactDigestFactory::FromBazel(
+            cas_.GetHashFunction().GetType(), directory.tree_digest());
+        if (not digest) {
+            return false;
+        }
+        if (not cas_.LocalUplinkTree(latest.cas_, *digest)) {
             return false;
         }
     }

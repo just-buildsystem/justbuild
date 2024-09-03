@@ -217,14 +217,22 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
 
     // Uplink bazel directory entries.
     for (auto const& file : dir.files()) {
-        ArtifactDigest const a_digest{file.digest()};
-        if (not LocalUplinkBlob(latest, a_digest, file.is_executable())) {
+        auto const digest = ArtifactDigestFactory::FromBazel(
+            hash_function_.GetType(), file.digest());
+        if (not digest) {
+            return false;
+        }
+        if (not LocalUplinkBlob(latest, *digest, file.is_executable())) {
             return false;
         }
     }
     for (auto const& directory : dir.directories()) {
-        ArtifactDigest const a_digest{directory.digest()};
-        if (not LocalUplinkBazelDirectory(latest, a_digest, seen)) {
+        auto const digest = ArtifactDigestFactory::FromBazel(
+            hash_function_.GetType(), directory.digest());
+        if (not digest) {
+            return false;
+        }
+        if (not LocalUplinkBazelDirectory(latest, *digest, seen)) {
             return false;
         }
     }

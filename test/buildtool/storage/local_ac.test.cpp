@@ -144,8 +144,7 @@ auto RunDummyExecution(gsl::not_null<LocalAC<true> const*> const& ac,
         bazel_re::OutputFile out{};
         out.set_path(seed);
         auto digest = cas_->StoreBlob("");
-        out.set_allocated_digest(
-            gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{*digest}});
+        *out.mutable_digest() = ArtifactDigestFactory::ToBazel(*digest);
         out.set_is_executable(false);
         return out;
     }();
