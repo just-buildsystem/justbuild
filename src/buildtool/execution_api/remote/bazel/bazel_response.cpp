@@ -15,11 +15,12 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
 #include <cstddef>
+#include <functional>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
-#include "src/buildtool/compatibility/native_support.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -32,7 +33,7 @@ namespace {
 
 auto ProcessDirectoryMessage(HashFunction hash_function,
                              bazel_re::Directory const& dir) noexcept
-    -> std::optional<BazelBlob> {
+    -> BazelBlob {
     auto data = dir.SerializeAsString();
     auto digest =
         BazelDigestFactory::HashDataAs<ObjectType::File>(hash_function, data);
@@ -85,12 +86,18 @@ void BazelResponse::Populate() noexcept {
     dir_symlinks.reserve(static_cast<std::size_t>(
         action_result.output_directory_symlinks_size()));
 
+    auto const hash_type = network_->GetHashFunction().GetType();
     // collect files and store them
     for (auto const& file : action_result.output_files()) {
+        auto digest =
+            ArtifactDigestFactory::FromBazel(hash_type, file.digest());
+        if (not digest) {
+            return;
+        }
         try {
             artifacts.emplace(
                 file.path(),
-                Artifact::ObjectInfo{.digest = ArtifactDigest{file.digest()},
+                Artifact::ObjectInfo{.digest = *std::move(digest),
                                      .type = file.is_executable()
                                                  ? ObjectType::Executable
                                                  : ObjectType::File});
@@ -131,13 +138,17 @@ void BazelResponse::Populate() noexcept {
     if (not Compatibility::IsCompatible()) {
         // in native mode: just collect and store tree digests
         for (auto const& tree : action_result.output_directories()) {
-            ExpectsAudit(NativeSupport::IsTree(tree.tree_digest().hash()));
+            auto digest =
+                ArtifactDigestFactory::FromBazel(hash_type, tree.tree_digest());
+            if (not digest) {
+                return;
+            }
+            ExpectsAudit(digest->IsTree());
             try {
                 artifacts.emplace(
                     tree.path(),
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{tree.tree_digest()},
-                        .type = ObjectType::Tree});
+                    Artifact::ObjectInfo{.digest = *std::move(digest),
+                                         .type = ObjectType::Tree});
             } catch (...) {
                 return;
             }
@@ -174,6 +185,8 @@ void BazelResponse::Populate() noexcept {
                 // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
+                    Logger::Log(LogLevel::Error,
+                                "uploading Tree's Directory messages failed");
                     return;
                 }
                 artifacts.emplace(
@@ -192,52 +205,40 @@ void BazelResponse::Populate() noexcept {
 
 auto BazelResponse::UploadTreeMessageDirectories(
     bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest> {
+    auto const upload_callback =
+        [&network = *network_](BazelBlobContainer&& blobs) -> bool {
+        return network.UploadBlobs(std::move(blobs));
+    };
+    auto const hash_function = network_->GetHashFunction();
     BazelBlobContainer dir_blobs{};
 
-    auto rootdir_blob =
-        ProcessDirectoryMessage(network_->GetHashFunction(), tree.root());
-    if (not rootdir_blob) {
-        return std::nullopt;
-    }
-    auto root_digest = rootdir_blob->digest;
+    auto rootdir_blob = ProcessDirectoryMessage(hash_function, tree.root());
+    auto const root_digest = rootdir_blob.digest;
     // store or upload rootdir blob, taking maximum transfer size into account
     if (not UpdateContainerAndUpload<bazel_re::Digest>(
             &dir_blobs,
-            std::move(*rootdir_blob),
+            std::move(rootdir_blob),
             /*exception_is_fatal=*/false,
-            [&network = network_](BazelBlobContainer&& blobs) {
-                return network->UploadBlobs(std::move(blobs));
-            })) {
-        Logger::Log(LogLevel::Error,
-                    "uploading Tree's Directory messages failed");
+            upload_callback)) {
         return std::nullopt;
     }
 
     for (auto const& subdir : tree.children()) {
-        auto subdir_blob =
-            ProcessDirectoryMessage(network_->GetHashFunction(), subdir);
-        if (not subdir_blob) {
-            return std::nullopt;
-        }
         // store or upload blob, taking maximum transfer size into account
         if (not UpdateContainerAndUpload<bazel_re::Digest>(
                 &dir_blobs,
-                std::move(*subdir_blob),
+                ProcessDirectoryMessage(hash_function, subdir),
                 /*exception_is_fatal=*/false,
-                [&network = network_](BazelBlobContainer&& blobs) {
-                    return network->UploadBlobs(std::move(blobs));
-                })) {
-            Logger::Log(LogLevel::Error,
-                        "uploading Tree's Directory messages failed");
+                upload_callback)) {
             return std::nullopt;
         }
     }
 
     // upload any remaining blob
-    if (not network_->UploadBlobs(std::move(dir_blobs))) {
-        Logger::Log(LogLevel::Error,
-                    "uploading Tree's Directory messages failed");
+    if (not std::invoke(upload_callback, std::move(dir_blobs))) {
         return std::nullopt;
     }
-    return ArtifactDigest{root_digest};
+    return ArtifactDigestFactory::FromBazel(hash_function.GetType(),
+                                            root_digest)
+        .value();  // must succeed all the time
 }

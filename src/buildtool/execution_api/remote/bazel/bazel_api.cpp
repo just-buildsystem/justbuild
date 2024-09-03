@@ -26,6 +26,8 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
@@ -170,7 +172,7 @@ namespace {
     try {
         blobs.reserve(container.Size());
         for (const auto& blob : container.Blobs()) {
-            blobs.emplace_back(static_cast<bazel_re::Digest>(blob.digest),
+            blobs.emplace_back(ArtifactDigestFactory::ToBazel(blob.digest),
                                blob.data,
                                blob.is_exec);
         }
@@ -547,7 +549,7 @@ auto BazelApi::CreateAction(
 
 [[nodiscard]] auto BazelApi::IsAvailable(
     ArtifactDigest const& digest) const noexcept -> bool {
-    return network_->IsAvailable(static_cast<bazel_re::Digest>(digest));
+    return network_->IsAvailable(ArtifactDigestFactory::ToBazel(digest));
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(
@@ -557,8 +559,8 @@ auto BazelApi::CreateAction(
     bazel_digests.reserve(digests.size());
     std::unordered_map<bazel_re::Digest, ArtifactDigest> digest_map;
     for (auto const& digest : digests) {
-        auto const& bazel_digest = static_cast<bazel_re::Digest>(digest);
-        bazel_digests.push_back(bazel_digest);
+        auto const& bazel_digest =
+            bazel_digests.emplace_back(ArtifactDigestFactory::ToBazel(digest));
         digest_map[bazel_digest] = digest;
     }
     auto bazel_result = network_->IsAvailable(bazel_digests);
@@ -572,17 +574,21 @@ auto BazelApi::CreateAction(
 
 [[nodiscard]] auto BazelApi::SplitBlob(ArtifactDigest const& blob_digest)
     const noexcept -> std::optional<std::vector<ArtifactDigest>> {
-    auto chunk_digests =
-        network_->SplitBlob(static_cast<bazel_re::Digest>(blob_digest));
+    auto const chunk_digests =
+        network_->SplitBlob(ArtifactDigestFactory::ToBazel(blob_digest));
     if (not chunk_digests) {
         return std::nullopt;
     }
     auto artifact_digests = std::vector<ArtifactDigest>{};
     artifact_digests.reserve(chunk_digests->size());
-    std::transform(chunk_digests->cbegin(),
-                   chunk_digests->cend(),
-                   std::back_inserter(artifact_digests),
-                   [](auto const& digest) { return ArtifactDigest{digest}; });
+    for (auto const& chunk : *chunk_digests) {
+        auto part = ArtifactDigestFactory::FromBazel(
+            network_->GetHashFunction().GetType(), chunk);
+        if (not part) {
+            return std::nullopt;
+        }
+        artifact_digests.emplace_back(*std::move(part));
+    }
     return artifact_digests;
 }
 
@@ -600,14 +606,19 @@ auto BazelApi::CreateAction(
                    chunk_digests.cend(),
                    std::back_inserter(digests),
                    [](auto const& artifact_digest) {
-                       return static_cast<bazel_re::Digest>(artifact_digest);
+                       return ArtifactDigestFactory::ToBazel(artifact_digest);
                    });
-    auto digest = network_->SpliceBlob(
-        static_cast<bazel_re::Digest>(blob_digest), digests);
+    auto const digest = network_->SpliceBlob(
+        ArtifactDigestFactory::ToBazel(blob_digest), digests);
     if (not digest) {
         return std::nullopt;
     }
-    return ArtifactDigest{*digest};
+    auto result = ArtifactDigestFactory::FromBazel(
+        network_->GetHashFunction().GetType(), *digest);
+    if (not result) {
+        return std::nullopt;
+    }
+    return *std::move(result);
 }
 
 [[nodiscard]] auto BazelApi::BlobSpliceSupport() const noexcept -> bool {

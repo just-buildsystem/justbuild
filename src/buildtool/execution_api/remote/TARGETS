@@ -92,6 +92,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     ]
   }
 , "config":
