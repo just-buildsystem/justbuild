@@ -19,6 +19,20 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 
+auto ArtifactDigestFactory::Create(HashFunction::Type hash_type,
+                                   std::string hash,
+                                   std::size_t size,
+                                   bool is_tree) noexcept
+    -> expected<ArtifactDigest, std::string> {
+    const bool kTreesAllowed = hash_type == HashFunction::Type::GitSHA1;
+    auto hash_info =
+        HashInfo::Create(hash_type, std::move(hash), kTreesAllowed and is_tree);
+    if (not hash_info) {
+        return unexpected{std::move(hash_info).error()};
+    }
+    return ArtifactDigest{*hash_info, size};
+}
+
 auto ArtifactDigestFactory::FromBazel(HashFunction::Type hash_type,
                                       bazel_re::Digest const& digest) noexcept
     -> expected<ArtifactDigest, std::string> {

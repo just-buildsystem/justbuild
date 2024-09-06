@@ -34,6 +34,19 @@ namespace bazel_re = build::bazel::remote::execution::v2;
 
 class ArtifactDigestFactory final {
   public:
+    /// \brief Create ArtifactDigest from plain hash.
+    /// \param hash_type Type of the hash function that was used for creation
+    /// of the hash
+    /// \param hash Hexadecimal plain hash
+    /// \param size Size of the content
+    /// \return A valid ArtifactDigest on success or an error message if
+    /// validation fails.
+    [[nodiscard]] static auto Create(HashFunction::Type hash_type,
+                                     std::string hash,
+                                     std::size_t size,
+                                     bool is_tree) noexcept
+        -> expected<ArtifactDigest, std::string>;
+
     /// \brief Create ArtifactDigest from bazel_re::Digest
     /// \param hash_type Type of the hash function that was used for creation of
     /// the hash
