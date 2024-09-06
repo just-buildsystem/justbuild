@@ -27,6 +27,8 @@
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -60,6 +62,14 @@ struct TestApiConfig {
     TestExecutionConfig execution;
     TestResponseConfig response;
 };
+
+static auto NamedDigest(std::string const& str) -> ArtifactDigest {
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
+    return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
+                                                               str);
+}
 
 // forward declarations
 class TestApi;
@@ -123,9 +133,8 @@ class TestResponse : public IExecutionResponse {
             try {
                 artifacts.emplace(
                     path,
-                    Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{path, 0, /*is_tree=*/false},
-                        .type = ObjectType::File});
+                    Artifact::ObjectInfo{.digest = NamedDigest(path),
+                                         .type = ObjectType::File});
             } catch (...) {
                 return;
             }
@@ -261,24 +270,25 @@ class TestApi : public IExecutionApi {
 
     auto const local_cpp_desc =
         ArtifactDescription::CreateLocal(path{"local.cpp"}, "");
-    auto const known_cpp_desc = ArtifactDescription::CreateKnown(
-        ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File);
+    auto const known_digest = NamedDigest("known.cpp");
+    auto const known_cpp_desc =
+        ArtifactDescription::CreateKnown(known_digest, ObjectType::File);
 
     auto const test_action_desc = ActionDescription{
         {"output1.exe", "output2.exe"},
         {},
         Action{"test_action", {"cmd", "line"}, {}},
-        {{"local.cpp", local_cpp_desc}, {"known.cpp", known_cpp_desc}}};
+        {{"local.cpp", local_cpp_desc}, {known_digest.hash(), known_cpp_desc}}};
 
     CHECK(g->AddAction(test_action_desc));
     CHECK(FileSystemManager::WriteFile("local.cpp", ws / "local.cpp"));
 
     TestApiConfig config{};
 
-    config.artifacts["local.cpp"].uploads = true;
-    config.artifacts["known.cpp"].available = true;
-    config.artifacts["output1.exe"].available = true;
-    config.artifacts["output2.exe"].available = true;
+    config.artifacts[NamedDigest("local.cpp").hash()].uploads = true;
+    config.artifacts[NamedDigest("known.cpp").hash()].available = true;
+    config.artifacts[NamedDigest("output1.exe").hash()].available = true;
+    config.artifacts[NamedDigest("output2.exe").hash()].available = true;
 
     config.execution.failed = false;
     config.execution.outputs = {"output1.exe", "output2.exe"};
@@ -302,10 +312,9 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
 
-    auto const known_cpp_id =
-        ArtifactDescription::CreateKnown(
-            ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File)
-            .Id();
+    auto const known_cpp_id = ArtifactDescription::CreateKnown(
+                                  NamedDigest("known.cpp"), ObjectType::File)
+                                  .Id();
 
     Auth auth{};
     RetryConfig retry_config{};             // default retry config
@@ -331,7 +340,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     }
 
     SECTION("Processing fails if uploading local artifact failed") {
-        config.artifacts["local.cpp"].uploads = false;
+        config.artifacts[NamedDigest("local.cpp").hash()].uploads = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
@@ -349,7 +358,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     }
 
     SECTION("Processing fails if known artifact is not available") {
-        config.artifacts["known.cpp"].available = false;
+        config.artifacts[NamedDigest("known.cpp").hash()].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};
@@ -381,10 +390,9 @@ TEST_CASE("Executor: Process action", "[executor]") {
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
 
-    auto const known_cpp_id =
-        ArtifactDescription::CreateKnown(
-            ArtifactDigest{"known.cpp", 0, /*is_tree=*/false}, ObjectType::File)
-            .Id();
+    auto const known_cpp_id = ArtifactDescription::CreateKnown(
+                                  NamedDigest("known.cpp"), ObjectType::File)
+                                  .Id();
 
     ActionIdentifier const action_id{"test_action"};
     auto const output1_id =
@@ -441,7 +449,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     }
 
     SECTION("Processing succeeds even if output is not available in CAS") {
-        config.artifacts["output2.exe"].available = false;
+        config.artifacts[NamedDigest("output2.exe").hash()].available = false;
 
         auto api = TestApi::Ptr{new TestApi{config}};
         Statistics stats{};

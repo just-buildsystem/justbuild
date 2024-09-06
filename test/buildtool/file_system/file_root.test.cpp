@@ -24,6 +24,8 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/shell_quoting.hpp"
@@ -411,37 +413,47 @@ static void CheckGitRoot(bool ignore_special) noexcept {
     auto const foo = root->ToArtifactDescription("baz/foo", "repo");
     REQUIRE(foo);
     if (Compatibility::IsCompatible()) {
+        auto const digest =
+            ArtifactDigestFactory::Create(HashFunction::Type::PlainSHA256,
+                                          kFooIdSha256,
+                                          kFooContentLength,
+                                          /*is_tree=*/false);
+        REQUIRE(digest);
         CHECK(*foo ==
-              ArtifactDescription::CreateKnown(
-                  ArtifactDigest{
-                      kFooIdSha256, kFooContentLength, /*is_tree=*/false},
-                  ObjectType::File));
+              ArtifactDescription::CreateKnown(*digest, ObjectType::File));
     }
     else {
-        CHECK(*foo ==
-              ArtifactDescription::CreateKnown(
-                  ArtifactDigest{
-                      kFooIdGitSha1, kFooContentLength, /*is_tree=*/false},
-                  ObjectType::File,
-                  "repo"));
+        auto const digest =
+            ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                          kFooIdGitSha1,
+                                          kFooContentLength,
+                                          /*is_tree=*/false);
+        REQUIRE(digest);
+        CHECK(*foo == ArtifactDescription::CreateKnown(
+                          *digest, ObjectType::File, "repo"));
     }
 
     auto const bar = root->ToArtifactDescription("baz/bar", "repo");
     REQUIRE(bar);
     if (Compatibility::IsCompatible()) {
-        CHECK(*bar ==
-              ArtifactDescription::CreateKnown(
-                  ArtifactDigest{
-                      kBarIdSha256, kBarContentLength, /*is_tree=*/false},
-                  ObjectType::Executable));
+        auto const digest =
+            ArtifactDigestFactory::Create(HashFunction::Type::PlainSHA256,
+                                          kBarIdSha256,
+                                          kBarContentLength,
+                                          /*is_tree=*/false);
+        REQUIRE(digest);
+        CHECK(*bar == ArtifactDescription::CreateKnown(*digest,
+                                                       ObjectType::Executable));
     }
     else {
-        CHECK(*bar ==
-              ArtifactDescription::CreateKnown(
-                  ArtifactDigest{
-                      kBarIdGitSha1, kBarContentLength, /*is_tree=*/false},
-                  ObjectType::Executable,
-                  "repo"));
+        auto const digest =
+            ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                          kBarIdGitSha1,
+                                          kBarContentLength,
+                                          /*is_tree=*/false);
+        REQUIRE(digest);
+        CHECK(*bar == ArtifactDescription::CreateKnown(
+                          *digest, ObjectType::Executable, "repo"));
     }
 
     CHECK_FALSE(root->ToArtifactDescription("baz", "repo"));

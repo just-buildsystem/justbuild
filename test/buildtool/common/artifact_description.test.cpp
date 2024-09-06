@@ -20,7 +20,18 @@
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+
+static auto NamedDigest(std::string const& str) -> ArtifactDigest {
+    HashFunction const hash_function{Compatibility::IsCompatible()
+                                         ? HashFunction::Type::PlainSHA256
+                                         : HashFunction::Type::GitSHA1};
+    return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
+                                                               str);
+}
 
 [[nodiscard]] auto operator==(Artifact const& lhs,
                               Artifact const& rhs) -> bool {
@@ -38,22 +49,19 @@ TEST_CASE("Local artifact", "[artifact_description]") {
 TEST_CASE("Known artifact", "[artifact_description]") {
     SECTION("File object") {
         auto known_desc = ArtifactDescription::CreateKnown(
-            ArtifactDigest{std::string{"f_fake_hash"}, 0, /*is_tree=*/false},
-            ObjectType::File);
+            NamedDigest("f_fake_hash"), ObjectType::File);
         auto from_json = ArtifactDescription::FromJson(known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
     SECTION("Executable object") {
         auto known_desc = ArtifactDescription::CreateKnown(
-            ArtifactDigest{std::string{"x_fake_hash"}, 1, /*is_tree=*/false},
-            ObjectType::Executable);
+            NamedDigest("x_fake_hash"), ObjectType::Executable);
         auto from_json = ArtifactDescription::FromJson(known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
     SECTION("Symlink object") {
         auto known_desc = ArtifactDescription::CreateKnown(
-            ArtifactDigest{std::string{"l_fake_hash"}, 2, /*is_tree=*/false},
-            ObjectType::Symlink);
+            NamedDigest("l_fake_hash"), ObjectType::Symlink);
         auto from_json = ArtifactDescription::FromJson(known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
@@ -69,8 +77,7 @@ TEST_CASE("Action artifact", "[artifact_description]") {
 TEST_CASE("From JSON", "[artifact_description]") {
     auto local = ArtifactDescription::CreateLocal("local", "repo").ToJson();
     auto known =
-        ArtifactDescription::CreateKnown(
-            ArtifactDigest{"hash", 0, /*is_tree=*/false}, ObjectType::File)
+        ArtifactDescription::CreateKnown(NamedDigest("hash"), ObjectType::File)
             .ToJson();
     auto action = ArtifactDescription::CreateAction("id", "output").ToJson();
 
