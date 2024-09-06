@@ -20,9 +20,21 @@
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
+, "hash_info":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["hash_info"]
+  , "srcs": ["hash_info.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/crypto", "hash_info"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    ]
+  , "stage": ["test", "buildtool", "crypto"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["crypto"]
-  , "deps": ["hasher", "hash_function"]
+  , "deps": ["hasher", "hash_function", "hash_info"]
   }
 }
