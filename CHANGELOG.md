@@ -2,6 +2,26 @@
 
 Bug fixes on top of `1.3.1`.
 
+### Fixes
+
+- Portability improvements of the code by not relying on implementation
+  details of the compiler.
+- Target-level cache entries are only written if all export targets
+  depended upon are also written to or found in cache; previously,
+  it was assumed that all export targets not analysed locally
+  were local cache hits, an assumption that no longer holds in
+  the presence of serve endpoints. This fixes a cache consistency
+  problem if the same remote-execution endpoint is used both, with
+  and without a serve endpoint.
+- A race condition in reconstructing executables from large CAS
+  has been removed that could lead to an open file descriptor being
+  kept alive for too long, resulting EBUSY failures of actions
+  using this binary.
+- Inside action descriptions, paths are always normalized; this improves
+  compatibility with existing remote-execution implementations.
+- `just-mr --help` now returns exit code 0
+- Missing output directories of actions are now reported properly.
+
 ## Release `1.3.1` (2024-05-22)
 
 Bug fixes on top of `1.3.0`.
