@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MAIN_INSTALL_CAS_HPP
 #define INCLUDED_SRC_BUILDTOOL_MAIN_INSTALL_CAS_HPP
 
+#include <optional>
 #include <string>
 
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
@@ -25,9 +27,10 @@
 #endif
 
 /// \note Method is public for use also in tests.
-[[nodiscard]] auto ObjectInfoFromLiberalString(std::string const& s,
+[[nodiscard]] auto ObjectInfoFromLiberalString(HashFunction::Type hash_type,
+                                               std::string const& s,
                                                bool has_remote) noexcept
-    -> Artifact::ObjectInfo;
+    -> std::optional<Artifact::ObjectInfo>;
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 [[nodiscard]] auto FetchAndInstallArtifacts(ApiBundle const& apis,

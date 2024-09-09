@@ -131,16 +131,16 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/remote", "context"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/utils", "subobject"]
     , ["src/buildtool/execution_api/common", "common"]
     , "archive"
+    , ["src/buildtool/common", "artifact_digest_factory"]
     ]
   }
 , "add_to_cas":
