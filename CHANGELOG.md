@@ -1,6 +1,10 @@
 ## Release `1.4.0` (UNRELEASED)
 
-A feature release on top of `1.3.0`, backwards compatible.
+A feature release on top of `1.3.0`, backwards compatible with
+respect to rule language, build description, repository description,
+and wire protocols. However, the internal representation in local
+build root has changed; it is therefore recommended to remove the
+local build root on upgrade.
 
 ### New features
 
@@ -20,8 +24,8 @@ A feature release on top of `1.3.0`, backwards compatible.
   will not lead to an inconsistent state; however, the directories
   at the old location will not be used anymore while still using
   disk space.
-- The expression language has been extended to contain quote and
-  quasi-quote expressions, as well as new built-in functions
+- The expression language has been extended to contain quote
+  and quasi-quote expressions, as well as new built-in functions
   `"from_subdir"`, `"nub_left"`.
 
 ### Fixes
@@ -37,13 +41,13 @@ A feature release on top of `1.3.0`, backwards compatible.
   depended upon are also written to or found in cache; previously,
   it was assumed that all export targets not analysed locally
   were local cache hits, an assumption that no longer holds in
-  the presence of serve end points. This fixes a cache consistency
+  the presence of serve endpoints. This fixes a cache consistency
   problem if the same remote-execution endpoint is used both, with
   and without a serve endpoint.
-- A race condition in reconstructing executables from large CAS has
-  been removed that could lead to an open file descriptor being kept
-  alive for too long, resulting EBUSY failures of actions using this
-  binary.
+- A race condition in reconstructing executables from large CAS
+  has been removed that could lead to an open file descriptor being
+  kept alive for too long, resulting EBUSY failures of actions
+  using this binary.
 - Internal code clean up, reducing memory footprint, in particular
   for simultaneous upload of a large number of blobs.
 - Avoidence of duplicate requests and performance improvements when
@@ -51,15 +55,17 @@ A feature release on top of `1.3.0`, backwards compatible.
 - Dependencies have been updated to also build with gcc 14.
 - Portability improvements of the code by not relying on implementation
   details of the compiler.
-- Local execution no longer has the requirement that there exist no
-  more files with identical content than the hardlink limit of the
-  underlying file system.
-- The size of large object entries has been reduced. The cache and
-  CAS must be cleaned up since stable versions before `1.4.0` cannot use
-  the new format.
-- The way of storing intermediate keys of the action cache has been changed. 
-  The cache must be cleaned up since stable versions before `1.4.0` cannot 
-  use the new format.
+- Local execution no longer has the requirement that there exist
+  no more files with identical content than the hardlink limit of
+  the underlying file system.
+- Inside action descriptions, paths are always normalized; this improves
+  compatibility with existing remote-execution implementations.
+- The size of large object entries has been reduced. The cache
+  and CAS must be cleaned up since stable versions before `1.4.0`
+  cannot use the new format.
+- The way of storing intermediate keys of the action cache has
+  been changed. The cache must be cleaned up since stable versions
+  before `1.4.0` cannot use the new format.
 - Various improvements to the tests: dispatching of the summary
   action is now possible, tests are independent of a .just-mrrc
   file the user might have in their home directory
