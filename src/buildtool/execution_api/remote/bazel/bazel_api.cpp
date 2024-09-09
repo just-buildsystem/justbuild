@@ -384,20 +384,16 @@ auto BazelApi::CreateAction(
     bool use_blob_splitting,
     gsl::not_null<std::unordered_set<Artifact::ObjectInfo>*> done)
     const noexcept -> bool {
-
-    std::vector<Artifact::ObjectInfo> artifacts_info{};
+    std::unordered_set<Artifact::ObjectInfo> artifacts_info;
     artifacts_info.reserve(all_artifacts_info.size());
     for (auto const& info : all_artifacts_info) {
         if (not done->contains(info)) {
-            artifacts_info.emplace_back(info);
+            artifacts_info.insert(info);
         }
     }
     if (artifacts_info.empty()) {
         return true;  // Nothing to do
     }
-    std::sort(artifacts_info.begin(), artifacts_info.end());
-    auto last_info = std::unique(artifacts_info.begin(), artifacts_info.end());
-    artifacts_info.erase(last_info, artifacts_info.end());
 
     // Determine missing artifacts in other CAS.
     auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
