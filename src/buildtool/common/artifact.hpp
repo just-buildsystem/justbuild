@@ -25,6 +25,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/identifier.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -68,7 +70,8 @@ class Artifact {
                     {"file_type", std::string{ToChar(type)}}};
         }
 
-        [[nodiscard]] static auto FromString(std::string const& s) noexcept
+        [[nodiscard]] static auto FromString(HashFunction::Type hash_type,
+                                             std::string const& s) noexcept
             -> std::optional<ObjectInfo> {
             std::istringstream iss(s);
             std::string id{};
@@ -81,21 +84,31 @@ class Artifact {
                             "failed parsing object info from string.");
                 return std::nullopt;
             }
+
+            std::size_t size = 0;
             try {
-                std::size_t size = std::stoul(size_str);
-                auto const& object_type = FromChar(*type.c_str());
-                return ObjectInfo{
-                    .digest =
-                        ArtifactDigest{id, size, IsTreeObject(object_type)},
-                    .type = object_type};
+                size = std::stoul(size_str);
             } catch (std::out_of_range const& e) {
                 Logger::Log(LogLevel::Debug,
                             "size raised out_of_range exception.");
+                return std::nullopt;
             } catch (std::invalid_argument const& e) {
                 Logger::Log(LogLevel::Debug,
                             "size raised invalid_argument exception.");
+                return std::nullopt;
             }
-            return std::nullopt;
+
+            auto const object_type = FromChar(*type.c_str());
+            auto hash_info =
+                HashInfo::Create(hash_type, id, IsTreeObject(object_type));
+            if (not hash_info) {
+                Logger::Log(
+                    LogLevel::Debug, "{}", std::move(hash_info).error());
+                return std::nullopt;
+            }
+            return ObjectInfo{
+                .digest = ArtifactDigest{*std::move(hash_info), size},
+                .type = object_type};
         }
     };
 

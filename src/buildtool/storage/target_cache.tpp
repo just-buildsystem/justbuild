@@ -86,7 +86,8 @@ auto TargetCache<kDoGlobalUplink>::Read(
                       entry_path.string());
         return std::nullopt;
     }
-    if (auto info = Artifact::ObjectInfo::FromString(*entry)) {
+    auto const hash_type = cas_.GetHashFunction().GetType();
+    if (auto info = Artifact::ObjectInfo::FromString(hash_type, *entry)) {
         if (auto path = cas_.BlobPath(info->digest, /*is_executable=*/false)) {
             if (auto value = FileSystemManager::ReadFile(*path)) {
                 try {
@@ -136,7 +137,8 @@ auto TargetCache<kDoGlobalUplink>::LocalUplinkEntry(
     }
 
     // Determine target cache entry location.
-    auto entry_info = Artifact::ObjectInfo::FromString(*raw_key);
+    auto entry_info = Artifact::ObjectInfo::FromString(
+        cas_.GetHashFunction().GetType(), *raw_key);
     if (not entry_info) {
         return false;
     }

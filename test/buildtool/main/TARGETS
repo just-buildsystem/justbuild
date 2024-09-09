@@ -8,7 +8,6 @@
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/main", "install_cas"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "main"]
   }

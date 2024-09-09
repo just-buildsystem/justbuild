@@ -16,12 +16,15 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 
 TEST_CASE("ObjectInfoFromLiberalString", "[artifact]") {
     auto expected = *Artifact::ObjectInfo::FromString(
+        HashFunction::Type::GitSHA1,
         "[5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689:11:f]");
+    auto expected_as_tree = *Artifact::ObjectInfo::FromString(
+        HashFunction::Type::GitSHA1,
+        "[5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689:0:t]");
 
     // Check (default) file hashes
     CHECK(ObjectInfoFromLiberalString(
@@ -66,20 +69,16 @@ TEST_CASE("ObjectInfoFromLiberalString", "[artifact]") {
               /*has_remote=*/false) == expected);
 
     // Check tree hashes
-    if (not Compatibility::IsCompatible()) {
-        auto expected_as_tree = *Artifact::ObjectInfo::FromString(
-            "[5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689:0:t]");
-        CHECK(ObjectInfoFromLiberalString(
-                  HashFunction::Type::GitSHA1,
-                  "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689::t",
-                  /*has_remote=*/false) == expected_as_tree);
-        CHECK(ObjectInfoFromLiberalString(
-                  HashFunction::Type::GitSHA1,
-                  "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689::tree",
-                  /*has_remote=*/false) == expected_as_tree);
-        CHECK(ObjectInfoFromLiberalString(
-                  HashFunction::Type::GitSHA1,
-                  "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689:xyz:t",
-                  /*has_remote=*/false) == expected_as_tree);
-    }
+    CHECK(ObjectInfoFromLiberalString(
+              HashFunction::Type::GitSHA1,
+              "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689::t",
+              /*has_remote=*/false) == expected_as_tree);
+    CHECK(ObjectInfoFromLiberalString(
+              HashFunction::Type::GitSHA1,
+              "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689::tree",
+              /*has_remote=*/false) == expected_as_tree);
+    CHECK(ObjectInfoFromLiberalString(
+              HashFunction::Type::GitSHA1,
+              "5e1c309dae7f45e0f39b1bf3ac3cd9db12e7d689:xyz:t",
+              /*has_remote=*/false) == expected_as_tree);
 }
