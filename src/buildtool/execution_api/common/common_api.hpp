@@ -18,7 +18,9 @@
 #include <cstdio>
 #include <exception>
 #include <functional>
+#include <iterator>
 #include <optional>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -59,21 +61,26 @@ struct MissingArtifactsInfo {
 /// be uploaded.
 /// \returns A struct storing the missing artifacts and a back-mapping to the
 /// original given type, or nullopt in case of exceptions.
-template <typename T>
+template <typename TValue, typename TIterator>
+    requires(std::is_same_v<
+                TValue,
+                typename std::iterator_traits<TIterator>::value_type>)
 [[nodiscard]] auto GetMissingArtifactsInfo(
     IExecutionApi const& api,
-    typename std::vector<T>::const_iterator const& begin,
-    typename std::vector<T>::const_iterator const& end,
-    typename std::function<ArtifactDigest(T const&)> const& converter) noexcept
-    -> std::optional<MissingArtifactsInfo<T>> {
+    TIterator const& begin,
+    TIterator const& end,
+    typename std::function<ArtifactDigest(TValue const&)> const&
+        converter) noexcept -> std::optional<MissingArtifactsInfo<TValue>> {
     std::vector<ArtifactDigest> digests;
-    digests.reserve(end - begin);
-    MissingArtifactsInfo<T> res{};
+    digests.reserve(std::distance(begin, end));
+    MissingArtifactsInfo<TValue> res{};
     for (auto it = begin; it != end; ++it) {
         try {
-            auto dgst = converter(*it);  // can't enforce it to be noexcept
-            digests.emplace_back(dgst);
-            res.back_map.emplace(std::move(dgst), *it);
+            auto const inserted =
+                res.back_map.insert({std::invoke(converter, *it), *it});
+            if (inserted.second) {
+                digests.emplace_back(inserted.first->first);
+            }
         } catch (...) {
             return std::nullopt;
         }
