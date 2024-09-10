@@ -20,8 +20,11 @@
 #include <string>
 #include <vector>
 
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 
 auto TargetCacheEntry::FromTarget(
@@ -80,9 +83,16 @@ auto TargetCacheEntry::ToImpliedIds(std::string const& entry_key_hash)
         try {
             for (auto const& x : desc_["implied export targets"]) {
                 if (x != entry_key_hash) {
-                    result.emplace_back(Artifact::ObjectInfo{
-                        .digest = ArtifactDigest{x, 0, /*is_tree=*/false},
-                        .type = ObjectType::File});
+                    auto digest = ArtifactDigestFactory::Create(
+                        hash_type_, x, 0, /*is_tree=*/false);
+                    if (not digest) {
+                        Logger::Log(
+                            LogLevel::Debug, "{}", std::move(digest).error());
+                        return std::nullopt;
+                    }
+                    result.emplace_back(
+                        Artifact::ObjectInfo{.digest = *std::move(digest),
+                                             .type = ObjectType::File});
                 }
             }
         } catch (std::exception const& ex) {
