@@ -73,13 +73,12 @@ class GitApi final : public IExecutionApi {
                     return false;
                 }
                 for (auto const& [path, entry] : *tree) {
-                    if (not RetrieveToPaths(
-                            {Artifact::ObjectInfo{
-                                .digest = ArtifactDigest{entry->Hash(),
-                                                         /*size*/ 0,
-                                                         entry->IsTree()},
-                                .type = entry->Type(),
-                                .failed = false}},
+                    auto digest = ToArtifactDigest(*entry);
+                    if (not digest or
+                        not RetrieveToPaths(
+                            {Artifact::ObjectInfo{.digest = *std::move(digest),
+                                                  .type = entry->Type(),
+                                                  .failed = false}},
                             {output_paths[i] / path})) {
                         return false;
                     }
@@ -129,13 +128,14 @@ class GitApi final : public IExecutionApi {
                 }
                 auto json = nlohmann::json::object();
                 for (auto const& [path, entry] : *tree) {
+                    auto digest = ToArtifactDigest(*entry);
+                    if (not digest) {
+                        return false;
+                    }
                     json[path] =
-                        Artifact::ObjectInfo{
-                            .digest = ArtifactDigest{entry->Hash(),
-                                                     /*size*/ 0,
-                                                     entry->IsTree()},
-                            .type = entry->Type(),
-                            .failed = false}
+                        Artifact::ObjectInfo{.digest = *std::move(digest),
+                                             .type = entry->Type(),
+                                             .failed = false}
                             .ToString(/*size_unknown*/ true);
                 }
                 auto msg = json.dump(2) + "\n";
@@ -216,14 +216,13 @@ class GitApi final : public IExecutionApi {
                 ArtifactBlobContainer tree_deps_only_blobs{};
                 for (auto const& [path, entry] : *tree) {
                     if (entry->IsTree()) {
-                        if (not RetrieveToCas(
-                                {Artifact::ObjectInfo{
-                                    .digest = ArtifactDigest{entry->Hash(),
-                                                             /*size*/ 0,
-                                                             entry->IsTree()},
-                                    .type = entry->Type(),
-                                    .failed = false}},
-                                api)) {
+                        auto digest = ToArtifactDigest(*entry);
+                        if (not digest or
+                            not RetrieveToCas({Artifact::ObjectInfo{
+                                                  .digest = *std::move(digest),
+                                                  .type = entry->Type(),
+                                                  .failed = false}},
+                                              api)) {
                             return false;
                         }
                     }
@@ -329,6 +328,18 @@ class GitApi final : public IExecutionApi {
 
   private:
     gsl::not_null<const RepositoryConfig*> repo_config_;
+
+    [[nodiscard]] static auto ToArtifactDigest(
+        GitTreeEntry const& entry) noexcept -> std::optional<ArtifactDigest> {
+        auto digest = ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                    entry.Hash(),
+                                                    /*size=*/0,
+                                                    entry.IsTree());
+        if (not digest) {
+            return std::nullopt;
+        }
+        return *std::move(digest);
+    }
 };
 
 #endif
