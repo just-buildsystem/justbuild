@@ -273,11 +273,19 @@ class ExecutorImpl {
         std::unordered_map<ArtifactDigest, gsl::not_null<GitTreeEntryPtr>>
             entry_map;
         for (auto const& [path, entry] : tree) {
+            // Since GitTrees are processed here, HashFunction::Type::GitSHA1 is
+            // used
             auto digest =
-                ArtifactDigest{entry->Hash(), *entry->Size(), entry->IsTree()};
-            digests.emplace_back(digest);
+                ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                              entry->Hash(),
+                                              *entry->Size(),
+                                              entry->IsTree());
+            if (not digest) {
+                return false;
+            }
+            digests.emplace_back(*digest);
             try {
-                entry_map.emplace(std::move(digest), entry);
+                entry_map.emplace(*std::move(digest), entry);
             } catch (...) {
                 return false;
             }
