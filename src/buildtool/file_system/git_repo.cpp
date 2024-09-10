@@ -22,6 +22,8 @@
 #include <thread>
 #include <unordered_set>
 
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -1851,9 +1853,18 @@ auto GitRepo::ReadTree(std::string const& id,
                                 [](tree_entry_t const& item) {
                                     return IsSymlinkObject(item.type);
                                 })) {
-                    symlinks.emplace_back(ToHexString(entry.first),
-                                          /*size=*/0,
-                                          /*is_tree=*/false);
+                    auto digest = ArtifactDigestFactory::Create(
+                        HashFunction::Type::GitSHA1,
+                        ToHexString(entry.first),
+                        /*size=*/0,
+                        /*is_tree=*/false);
+                    if (not digest) {
+                        Logger::Log(LogLevel::Debug,
+                                    "Conversion error in GitRepo:\n {}",
+                                    std::move(digest).error());
+                        return std::nullopt;
+                    }
+                    symlinks.emplace_back(*std::move(digest));
                 }
             }
 

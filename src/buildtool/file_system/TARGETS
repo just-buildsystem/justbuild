@@ -135,6 +135,8 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "cflags": ["-pthread"]
   }
