@@ -30,7 +30,7 @@ Second, we also need to create the multi-repository configuration
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
+      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -46,7 +46,7 @@ Second, we also need to create the multi-repository configuration
 In that configuration, two repositories are defined:
 
 1. The `"rules-cc"` repository located in the subdirectory `rules` of
-   [just-buildsystem/rules-cc:0e9d13a761c878a647fde5a543946a02bf2c693d](https://github.com/just-buildsystem/rules-cc/tree/0e9d13a761c878a647fde5a543946a02bf2c693d),
+   [just-buildsystem/rules-cc:22777343f1cfdda9880c61516be22fdfa595a569](https://github.com/just-buildsystem/rules-cc/tree/22777343f1cfdda9880c61516be22fdfa595a569),
    which contains the high-level concepts for building C/C++ binaries
    and libraries.
 
@@ -228,7 +228,7 @@ the following content:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
+      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }

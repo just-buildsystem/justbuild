@@ -108,7 +108,7 @@ the current working directory
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "0e9d13a761c878a647fde5a543946a02bf2c693d"
+      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
