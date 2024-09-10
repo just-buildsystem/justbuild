@@ -136,7 +136,8 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
                         object_info->ToString());
             return false;
         }
-        return GenerateArchive(*apis.remote, *object_info, out);
+        return GenerateArchive(
+            apis.hash_function.GetType(), *apis.remote, *object_info, out);
     }
 
     if (out) {
