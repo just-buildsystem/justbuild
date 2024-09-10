@@ -33,6 +33,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
@@ -41,6 +42,7 @@
     , ["src/utils/archive", "archive_ops"]
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 , "serve_server_implementation":
