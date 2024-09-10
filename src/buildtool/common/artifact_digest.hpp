@@ -21,7 +21,6 @@
 #include <utility>  // std::move
 
 #include "gsl/gsl"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -35,13 +34,6 @@ class ArtifactDigest final {
     explicit ArtifactDigest(HashInfo const& hash_info,
                             std::size_t size) noexcept
         : size_{size}, hash_{hash_info.Hash()}, is_tree_{hash_info.IsTree()} {}
-
-    ArtifactDigest(std::string hash, std::size_t size, bool is_tree) noexcept
-        : size_{size},
-          hash_{std::move(hash)},
-          // Tree information is only stored in a digest in native mode and
-          // false in compatible mode.
-          is_tree_{not Compatibility::IsCompatible() and is_tree} {}
 
     [[nodiscard]] auto hash() const& noexcept -> std::string const& {
         return hash_;

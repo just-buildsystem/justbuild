@@ -90,7 +90,6 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hash_combine"]
