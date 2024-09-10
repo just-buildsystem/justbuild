@@ -22,7 +22,9 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
@@ -71,11 +73,18 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::ReadEntry(
         nlohmann::json j = nlohmann::json::parse(stream);
         parts.reserve(j.size());
 
+        auto const hash_type = local_cas_.GetHashFunction().GetType();
         for (auto const& j_part : j) {
-            auto hash = j_part.at(kHashIndex).template get<std::string>();
-            auto size = j_part.at(kSizeIndex).template get<std::size_t>();
+            auto digest = ArtifactDigestFactory::Create(
+                hash_type,
+                j_part.at(kHashIndex).template get<std::string>(),
+                j_part.at(kSizeIndex).template get<std::size_t>(),
+                /*is_tree=*/false);
+            if (not digest) {
+                return std::nullopt;
+            }
 
-            parts.emplace_back(std::move(hash), size, /*is_tree=*/false);
+            parts.emplace_back(*std::move(digest));
         }
     } catch (...) {
         return std::nullopt;

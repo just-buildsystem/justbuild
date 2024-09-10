@@ -152,15 +152,21 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         // names.
         auto const entry_type = entry_vector.front().type;
         auto const digest =
-            ArtifactDigest{ToHexString(raw_id), 0, IsTreeObject(entry_type)};
-        if (digest.IsTree()) {
-            if (not LocalUplinkGitTree(latest, digest)) {
+            ArtifactDigestFactory::Create(hash_function_.GetType(),
+                                          ToHexString(raw_id),
+                                          0,
+                                          IsTreeObject(entry_type));
+        if (not digest) {
+            return false;
+        }
+        if (digest->IsTree()) {
+            if (not LocalUplinkGitTree(latest, *digest)) {
                 return false;
             }
         }
         else {
             if (not LocalUplinkBlob(
-                    latest, digest, IsExecutableObject(entry_type))) {
+                    latest, *digest, IsExecutableObject(entry_type))) {
                 return false;
             }
         }
@@ -316,23 +322,32 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
     // Ensure all entries are in the storage:
     for (const auto& entry : *entries) {
         for (auto const& item : entry.second) {
-            auto const digest = ArtifactDigest(ToHexString(entry.first),
-                                               /*size_unknown=*/0ULL,
-                                               IsTreeObject(item.type));
+            auto const digest =
+                ArtifactDigestFactory::Create(hash_function_.GetType(),
+                                              ToHexString(entry.first),
+                                              /*size_unknown=*/0,
+                                              IsTreeObject(item.type));
+            if (not digest) {
+                return LargeObjectError{
+                    LargeObjectErrorCode::InvalidTree,
+                    fmt::format("tree invariant violated {}:\n {}",
+                                tree_digest.hash(),
+                                digest.error())};
+            }
 
             // To avoid splicing during search, large CASes are inspected first.
             bool const entry_exists =
                 IsTreeObject(item.type)
-                    ? cas_tree_large_.GetEntryPath(digest) or TreePath(digest)
-                    : cas_file_large_.GetEntryPath(digest) or
-                          BlobPath(digest, IsExecutableObject(item.type));
+                    ? cas_tree_large_.GetEntryPath(*digest) or TreePath(*digest)
+                    : cas_file_large_.GetEntryPath(*digest) or
+                          BlobPath(*digest, IsExecutableObject(item.type));
 
             if (not entry_exists) {
                 return LargeObjectError{
                     LargeObjectErrorCode::InvalidTree,
                     fmt::format("tree invariant violated {} : missing part {}",
                                 tree_digest.hash(),
-                                digest.hash())};
+                                digest->hash())};
             }
         }
     }

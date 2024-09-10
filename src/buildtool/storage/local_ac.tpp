@@ -155,17 +155,16 @@ auto LocalAC<kDoGlobalUplink>::ReadActionKey(ArtifactDigest const& action_id)
             fmt::format("Cache miss, entry not found {}", key_path.string())};
     }
 
-    std::optional<ArtifactDigest> action_key;
     try {
-        nlohmann::json j = nlohmann::json::parse(*key_content);
-        action_key = ArtifactDigest{j[0].template get<std::string>(),
-                                    j[1].template get<std::size_t>(),
-                                    /*is_tree=*/false};
+        nlohmann::json const j = nlohmann::json::parse(*key_content);
+        return ArtifactDigestFactory::Create(cas_.GetHashFunction().GetType(),
+                                             j[0].template get<std::string>(),
+                                             j[1].template get<std::size_t>(),
+                                             /*is_tree=*/false);
     } catch (...) {
         return unexpected{fmt::format(
             "Parsing cache entry failed for action {}", action_id.hash())};
     }
-    return *std::move(action_key);
 }
 
 template <bool kDoGlobalUplink>
