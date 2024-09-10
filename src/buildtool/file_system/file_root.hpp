@@ -28,6 +28,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/git_hashes_converter.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -584,8 +585,9 @@ class FileRoot {
                         file_path)) {
                 if (entry->IsBlob()) {
                     if (Compatibility::IsCompatible()) {
-                        auto compatible_hash = Compatibility::RegisterGitEntry(
-                            entry->Hash(), *entry->Blob(), repository);
+                        auto compatible_hash =
+                            GitHashesConverter::Instance().RegisterGitEntry(
+                                entry->Hash(), *entry->Blob(), repository);
                         auto digest = ArtifactDigestFactory::Create(
                             HashFunction::Type::PlainSHA256,
                             compatible_hash,

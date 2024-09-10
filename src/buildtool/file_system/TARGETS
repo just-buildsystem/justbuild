@@ -179,6 +179,7 @@
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "json"]
+    , ["src/buildtool/common", "git_hashes_converter"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }

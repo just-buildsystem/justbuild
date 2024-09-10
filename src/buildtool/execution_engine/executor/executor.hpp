@@ -30,6 +30,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/git_hashes_converter.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
@@ -437,7 +438,8 @@ class ExecutorImpl {
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
         if (Compatibility::IsCompatible()) {
-            auto opt = Compatibility::GetGitEntry(info.digest.hash());
+            auto opt =
+                GitHashesConverter::Instance().GetGitEntry(info.digest.hash());
             if (opt) {
                 auto const& [git_sha1_hash, comp_repo] = *opt;
                 return VerifyOrUploadGitArtifact(

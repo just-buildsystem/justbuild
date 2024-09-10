@@ -2,11 +2,6 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["compatibility"]
   , "hdrs": ["compatibility.hpp"]
-  , "deps":
-    [ ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
-    ]
   , "stage": ["src", "buildtool", "compatibility"]
   }
 }

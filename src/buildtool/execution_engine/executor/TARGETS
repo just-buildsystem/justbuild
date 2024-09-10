@@ -26,6 +26,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/common", "git_hashes_converter"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
   }

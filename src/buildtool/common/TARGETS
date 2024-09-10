@@ -181,4 +181,15 @@
     , ["src/buildtool/logging", "logging"]
     ]
   }
+, "git_hashes_converter":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_hashes_converter"]
+  , "hdrs": ["git_hashes_converter.hpp"]
+  , "deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/crypto", "hash_function"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
 }
