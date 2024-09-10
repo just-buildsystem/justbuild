@@ -34,7 +34,7 @@
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "async_map_utils"]
@@ -69,7 +69,7 @@
     , ["@", "grpc", "", "grpc++"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common/remote", "port"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/execution_api/execution_service", "execution_server"]
     , ["src/buildtool/execution_api/execution_service", "ac_server"]
@@ -139,7 +139,7 @@
   , "deps":
     [["@", "gsl", "", "gsl"], ["src/buildtool/execution_api/remote", "config"]]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
-  , "private-deps": [["src/buildtool/compatibility", "compatibility"]]
+  , "private-deps": [["src/buildtool/common", "protocol_traits"]]
   }
 , "target_utils":
   { "type": ["@", "rules", "CC", "library"]

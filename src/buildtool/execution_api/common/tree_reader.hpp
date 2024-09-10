@@ -23,6 +23,7 @@
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -58,7 +59,7 @@ class TreeReader final {
                 return true;
             };
 
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             auto tree = impl_.ReadDirectory(digest);
             if (tree and
                 not TreeReaderUtils::ReadObjectInfos(*tree, store_info)) {
@@ -131,7 +132,7 @@ class TreeReader final {
                        : store(parent / path, info);
         };
 
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             if (auto tree = impl_.ReadDirectory(digest)) {
                 if (include_trees and IsDirectoryEmpty(*tree)) {
                     if (not store(parent, {digest, ObjectType::Tree})) {

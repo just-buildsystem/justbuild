@@ -16,7 +16,7 @@
 
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 
 auto ConfigurationService::RemoteExecutionEndpoint(
     ::grpc::ServerContext* /*context*/,
@@ -33,7 +33,7 @@ auto ConfigurationService::Compatibility(
     const ::justbuild::just_serve::CompatibilityRequest* /*request*/,
     ::justbuild::just_serve::CompatibilityResponse* response)
     -> ::grpc::Status {
-    response->set_compatible(Compatibility::IsCompatible());
+    response->set_compatible(ProtocolTraits::Instance().IsCompatible());
     return ::grpc::Status::OK;
 }
 

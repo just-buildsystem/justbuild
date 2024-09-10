@@ -63,6 +63,7 @@
     , ["", "catch-main"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]

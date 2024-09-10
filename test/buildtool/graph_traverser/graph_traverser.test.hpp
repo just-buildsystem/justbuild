@@ -29,6 +29,7 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
@@ -127,7 +128,7 @@ class TestProject {
         CommandLineArguments clargs{gtargs};
         clargs.artifacts = entry_points;
         auto const comp_graph = root_dir_ / "graph_description_compatible";
-        if (Compatibility::IsCompatible() and
+        if (ProtocolTraits::Instance().IsCompatible() and
             FileSystemManager::Exists(comp_graph)) {
             clargs.graph_description = comp_graph;
         }

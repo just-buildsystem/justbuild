@@ -32,8 +32,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -686,7 +686,7 @@ static inline auto SetupCompatibilityArguments(
     gsl::not_null<CLI::App*> const& app) {
     app->add_flag_function(
         "--compatible",
-        [](auto /*unused*/) { Compatibility::SetCompatible(); },
+        [](auto /*unused*/) { ProtocolTraits::Instance().SetCompatible(); },
         "At increased computational effort, be compatible with the original "
         "remote build execution protocol. As the change affects identifiers, "
         "the flag must be used consistently for all related invocations.");

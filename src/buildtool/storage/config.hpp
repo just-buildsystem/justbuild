@@ -26,8 +26,8 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -132,7 +132,7 @@ struct StorageConfig final {
 
     [[nodiscard]] auto CreateGenerationConfig(
         std::size_t generation) const noexcept -> GenerationConfig {
-        bool const compatible = Compatibility::IsCompatible();
+        bool const compatible = ProtocolTraits::Instance().IsCompatible();
         auto const cache_root = GenerationCacheRoot(generation);
         auto const cache_dir =
             UpdatePathForCompatibility(cache_root, compatible);

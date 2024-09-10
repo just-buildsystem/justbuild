@@ -24,7 +24,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -287,7 +287,7 @@ auto SourceTreeService::SyncGitEntryToCas(
     std::string const& object_hash,
     std::filesystem::path const& repo_path) const noexcept
     -> std::remove_cvref_t<decltype(TResponse::OK)> {
-    if (IsTreeObject(kType) and Compatibility::IsCompatible()) {
+    if (IsTreeObject(kType) and ProtocolTraits::Instance().IsCompatible()) {
         logger_->Emit(LogLevel::Error,
                       "Cannot sync tree {} from repository {} with "
                       "the remote in compatible mode",
@@ -984,7 +984,7 @@ auto SourceTreeService::ServeDistdirTree(
             0,
             /*is_tree=*/false);
 
-        if (not Compatibility::IsCompatible()) {
+        if (not ProtocolTraits::Instance().IsCompatible()) {
             blob_found = digest and cas.BlobPath(*digest, kv.executable());
         }
         if (blob_found) {
@@ -1054,8 +1054,8 @@ auto SourceTreeService::ServeDistdirTree(
                 }
                 if (not blob_found) {
                     // check remote CAS
-                    if (not Compatibility::IsCompatible() and digest and
-                        apis_.remote->IsAvailable(*digest)) {
+                    if (not ProtocolTraits::Instance().IsCompatible() and
+                        digest and apis_.remote->IsAvailable(*digest)) {
                         // retrieve content to local CAS
                         if (not apis_.remote->RetrieveToCas(
                                 {Artifact::ObjectInfo{
@@ -1320,7 +1320,7 @@ auto SourceTreeService::ServeTree(
         storage_config_.hash_function.GetType(), tree_id, 0, /*is_tree=*/true);
     if (digest and apis_.local->IsAvailable(*digest)) {
         // upload tree to remote CAS; only possible in native mode
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             logger_->Emit(LogLevel::Error,
                           "Cannot sync tree {} from local CAS with the remote "
                           "in compatible mode",

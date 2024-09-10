@@ -25,6 +25,7 @@
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
@@ -102,7 +103,8 @@ TEST_CASE("from file") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["file"]["type"] == "KNOWN");
         CHECK(artifacts["file"]["data"]["id"] ==
-              (Compatibility::IsCompatible() ? kEmptySha256 : kEmptySha1));
+              (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
+                                                         : kEmptySha1));
         CHECK(artifacts["file"]["data"]["size"] == 0);
     }
 }
@@ -168,7 +170,8 @@ TEST_CASE("subdir file") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["bar/file"]["type"] == "KNOWN");
         CHECK(artifacts["bar/file"]["data"]["id"] ==
-              (Compatibility::IsCompatible() ? kEmptySha256 : kEmptySha1));
+              (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
+                                                         : kEmptySha1));
         CHECK(artifacts["bar/file"]["data"]["size"] == 0);
     }
 }
@@ -189,9 +192,9 @@ TEST_CASE("subdir symlink") {
     SECTION("via git tree") {
         CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
         CHECK(artifacts["link"]["type"] == "KNOWN");
-        CHECK(artifacts["link"]["data"]["id"] == (Compatibility::IsCompatible()
-                                                      ? kSrcLinkIdSha256
-                                                      : kSrcLinkIdSha1));
+        CHECK(artifacts["link"]["data"]["id"] ==
+              (ProtocolTraits::Instance().IsCompatible() ? kSrcLinkIdSha256
+                                                         : kSrcLinkIdSha1));
         CHECK(artifacts["link"]["data"]["size"] == 5);  // content: dummy
     }
 }

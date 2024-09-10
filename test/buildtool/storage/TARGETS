@@ -58,6 +58,7 @@
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["utils", "test_storage_config"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["utils", "large_object_utils"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
     , [ "@"
@@ -65,7 +66,6 @@
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
-    , ["@", "src", "src/buildtool/compatibility", "compatibility"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }

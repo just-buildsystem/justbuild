@@ -15,10 +15,10 @@
 #include <optional>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -41,7 +41,7 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -72,7 +72,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -110,7 +110,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -148,7 +148,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -186,7 +186,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 

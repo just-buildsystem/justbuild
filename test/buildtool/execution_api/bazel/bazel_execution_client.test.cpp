@@ -18,8 +18,8 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -31,7 +31,7 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("test");
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -115,7 +115,7 @@ TEST_CASE("Bazel internals: Execution Client using env variables",
     std::string instance_name{"remote-execution"};
     std::string content("contents of env variable");
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 

@@ -23,7 +23,7 @@
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
@@ -47,10 +47,10 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     if constexpr (kDoGlobalUplink) {
         // To promote parts of the tree properly, regular uplinking logic for
         // trees is used:
-        bool uplinked =
-            IsTreeObject(kType) and not Compatibility::IsCompatible()
-                ? uplinker_.UplinkTree(digest)
-                : uplinker_.UplinkLargeBlob(digest);
+        bool uplinked = IsTreeObject(kType) and
+                                not ProtocolTraits::Instance().IsCompatible()
+                            ? uplinker_.UplinkTree(digest)
+                            : uplinker_.UplinkLargeBlob(digest);
         if (uplinked and FileSystemManager::IsFile(file_path)) {
             return file_path;
         }

@@ -9,7 +9,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "retry_cli"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "git_context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/logging", "log_level"]

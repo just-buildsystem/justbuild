@@ -31,6 +31,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/location.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -390,7 +391,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             // compatibility is set immediately if flag is true
             if (compatible->Bool()) {
-                Compatibility::SetCompatible();
+                ProtocolTraits::Instance().SetCompatible();
             }
         }
         // read the address

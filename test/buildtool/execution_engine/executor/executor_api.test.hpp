@@ -27,10 +27,10 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -56,7 +56,7 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
                                  ApiFactory const& factory) {
     SetupConfig(repo_config);
     auto api = factory();
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -144,7 +144,7 @@ static inline void RunHelloWorldCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -279,7 +279,7 @@ static inline void RunGreeterCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -420,7 +420,7 @@ static inline void TestUploadAndDownloadTrees(
         env.emplace("PATH", "/bin:/usr/bin");
     }
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -576,7 +576,7 @@ static inline void TestRetrieveOutputDirectories(
     int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 

@@ -26,8 +26,8 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_config.hpp"
@@ -319,7 +319,7 @@ auto main(int argc, char* argv[]) -> int {
         // Setup LocalStorageConfig to store the local_build_root properly
         // and make the cas and git cache roots available
         auto storage_config = CreateStorageConfig(
-            arguments.common, Compatibility::IsCompatible());
+            arguments.common, ProtocolTraits::Instance().IsCompatible());
         if (not storage_config) {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");

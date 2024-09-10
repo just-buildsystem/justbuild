@@ -22,8 +22,8 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -46,7 +46,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -97,7 +97,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 }
 
 TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         // only supported in native mode
         return;
     }
@@ -113,7 +113,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 

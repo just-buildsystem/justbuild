@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -34,7 +35,7 @@
 
     StorageConfig::Builder builder;
     auto config = builder.SetBuildRoot(cache_dir)
-                      .SetHashType(Compatibility::IsCompatible()
+                      .SetHashType(ProtocolTraits::Instance().IsCompatible()
                                        ? HashFunction::Type::PlainSHA256
                                        : HashFunction::Type::GitSHA1)
                       .SetRemoteExecutionArgs(remote_config.remote_address,

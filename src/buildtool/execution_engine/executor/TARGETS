@@ -9,7 +9,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "tree"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_api/common", "api_bundle"]

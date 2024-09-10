@@ -25,7 +25,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
@@ -54,7 +54,7 @@ namespace {
     bool valid = ref.hash() == computed.hash();
     if (valid) {
         bool const check_sizes =
-            Compatibility::IsCompatible() or ref.size() != 0;
+            ProtocolTraits::Instance().IsCompatible() or ref.size() != 0;
         if (check_sizes) {
             valid = ref.size() == computed.size();
         }

@@ -25,6 +25,7 @@
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "protocol_traits"]
     ]
   , "private-ldflags":
     ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
@@ -66,7 +67,7 @@
     , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
-    [ ["src/buildtool/compatibility", "compatibility"]
+    [ ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/logging", "log_level"]
@@ -97,7 +98,7 @@
     , ["@", "json", "", "json"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "port"]
     ]
   }
@@ -138,7 +139,7 @@
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     ]
   }
 , "operation_cache":

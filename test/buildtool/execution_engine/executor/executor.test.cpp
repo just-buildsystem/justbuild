@@ -29,9 +29,9 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -64,7 +64,7 @@ struct TestApiConfig {
 };
 
 static auto NamedDigest(std::string const& str) -> ArtifactDigest {
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
     return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
@@ -305,7 +305,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 
@@ -383,7 +383,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
 

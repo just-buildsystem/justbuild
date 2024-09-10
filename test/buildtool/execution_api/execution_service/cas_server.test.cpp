@@ -20,6 +20,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -47,7 +48,7 @@ namespace {
 
 TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
     // For compatible mode tree invariants aren't checked.
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         return;
     }
 

@@ -34,10 +34,10 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/logging/log_config.hpp"
@@ -765,7 +765,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kGc) {
             // Set up storage for GC, as we have all the config args we need.
             auto const storage_config = CreateStorageConfig(
-                arguments.endpoint, Compatibility::IsCompatible());
+                arguments.endpoint, ProtocolTraits::Instance().IsCompatible());
             if (not storage_config) {
                 return kExitFailure;
             }
@@ -803,7 +803,8 @@ auto main(int argc, char* argv[]) -> int {
 
                 // Set up storage for local execution.
                 auto const storage_config = CreateStorageConfig(
-                    arguments.endpoint, Compatibility::IsCompatible());
+                    arguments.endpoint,
+                    ProtocolTraits::Instance().IsCompatible());
                 if (not storage_config) {
                     return kExitFailure;
                 }
@@ -865,12 +866,12 @@ auto main(int argc, char* argv[]) -> int {
                 }
 
                 // Set up storage for serve operation.
-                auto const storage_config =
-                    CreateStorageConfig(arguments.endpoint,
-                                        Compatibility::IsCompatible(),
-                                        remote_exec_config->remote_address,
-                                        remote_exec_config->platform_properties,
-                                        remote_exec_config->dispatch);
+                auto const storage_config = CreateStorageConfig(
+                    arguments.endpoint,
+                    ProtocolTraits::Instance().IsCompatible(),
+                    remote_exec_config->remote_address,
+                    remote_exec_config->platform_properties,
+                    remote_exec_config->dispatch);
                 if (not storage_config) {
                     return kExitFailure;
                 }
@@ -942,7 +943,7 @@ auto main(int argc, char* argv[]) -> int {
         // correctly-sharded target cache.
         auto const storage_config =
             CreateStorageConfig(arguments.endpoint,
-                                Compatibility::IsCompatible(),
+                                ProtocolTraits::Instance().IsCompatible(),
                                 remote_exec_config->remote_address,
                                 remote_exec_config->platform_properties,
                                 remote_exec_config->dispatch);
@@ -950,7 +951,7 @@ auto main(int argc, char* argv[]) -> int {
         // For bootstrapping the TargetCache sharding is not needed, so we can
         // default all execution arguments.
         auto const storage_config = CreateStorageConfig(
-            arguments.endpoint, Compatibility::IsCompatible());
+            arguments.endpoint, ProtocolTraits::Instance().IsCompatible());
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
             return kExitFailure;
@@ -1041,7 +1042,7 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kTraverse) {
             if (arguments.graph.git_cas) {
-                if (Compatibility::IsCompatible()) {
+                if (ProtocolTraits::Instance().IsCompatible()) {
                     Logger::Log(LogLevel::Error,
                                 "Command line options {} and {} cannot be used "
                                 "together.",

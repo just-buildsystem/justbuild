@@ -32,8 +32,8 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
@@ -284,7 +284,7 @@ class LocalApi final : public IExecutionApi {
             return std::nullopt;
         }
 
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             return CommonUploadTreeCompatible(
                 *this,
                 *build_root,
@@ -383,7 +383,8 @@ class LocalApi final : public IExecutionApi {
 
     [[nodiscard]] static auto CreateFallbackApi(
         RepositoryConfig const* repo_config) noexcept -> std::optional<GitApi> {
-        if (repo_config == nullptr or Compatibility::IsCompatible()) {
+        if (repo_config == nullptr or
+            ProtocolTraits::Instance().IsCompatible()) {
             return std::nullopt;
         }
         return GitApi{repo_config};

@@ -124,7 +124,7 @@
     [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/system", "system_command"]

@@ -23,6 +23,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
@@ -286,7 +287,7 @@ class LocalCAS {
                 if constexpr (IsTreeObject(kType)) {
                     // in non-compatible mode, do explicit deep tree uplink
                     // in compatible mode, treat all trees as blobs
-                    if (not Compatibility::IsCompatible()) {
+                    if (not ProtocolTraits::Instance().IsCompatible()) {
                         return uplinker->UplinkTree(digest);
                     }
                 }

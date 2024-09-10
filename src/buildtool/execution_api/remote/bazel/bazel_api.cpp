@@ -29,7 +29,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -527,7 +527,7 @@ auto BazelApi::CreateAction(
         return std::nullopt;
     }
 
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         return CommonUploadTreeCompatible(
             *this,
             *build_root,

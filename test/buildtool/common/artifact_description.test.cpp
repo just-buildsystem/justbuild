@@ -22,12 +22,12 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 static auto NamedDigest(std::string const& str) -> ArtifactDigest {
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
     return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
@@ -50,7 +50,8 @@ TEST_CASE("Local artifact", "[artifact_description]") {
     auto local_desc = ArtifactDescription::CreateLocal(
         std::filesystem::path{"local_path"}, "repo");
     auto from_json = ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), local_desc.ToJson());
+        GetHashType(ProtocolTraits::Instance().IsCompatible()),
+        local_desc.ToJson());
     CHECK(local_desc == *from_json);
 }
 
@@ -59,21 +60,24 @@ TEST_CASE("Known artifact", "[artifact_description]") {
         auto known_desc = ArtifactDescription::CreateKnown(
             NamedDigest("f_fake_hash"), ObjectType::File);
         auto from_json = ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()), known_desc.ToJson());
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
+            known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
     SECTION("Executable object") {
         auto known_desc = ArtifactDescription::CreateKnown(
             NamedDigest("x_fake_hash"), ObjectType::Executable);
         auto from_json = ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()), known_desc.ToJson());
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
+            known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
     SECTION("Symlink object") {
         auto known_desc = ArtifactDescription::CreateKnown(
             NamedDigest("l_fake_hash"), ObjectType::Symlink);
         auto from_json = ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()), known_desc.ToJson());
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
+            known_desc.ToJson());
         CHECK(known_desc == *from_json);
     }
 }
@@ -82,7 +86,8 @@ TEST_CASE("Action artifact", "[artifact_description]") {
     auto action_desc = ArtifactDescription::CreateAction(
         "action_id", std::filesystem::path{"out_path"});
     auto from_json = ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), action_desc.ToJson());
+        GetHashType(ProtocolTraits::Instance().IsCompatible()),
+        action_desc.ToJson());
     CHECK(action_desc == *from_json);
 }
 
@@ -93,7 +98,8 @@ TEST_CASE("From JSON", "[artifact_description]") {
             .ToJson();
     auto action = ArtifactDescription::CreateAction("id", "output").ToJson();
 
-    auto const hash_type = GetHashType(Compatibility::IsCompatible());
+    auto const hash_type =
+        GetHashType(ProtocolTraits::Instance().IsCompatible());
     SECTION("Parse artifacts") {
         CHECK(ArtifactDescription::FromJson(hash_type, local));
         CHECK(ArtifactDescription::FromJson(hash_type, known));
@@ -172,10 +178,10 @@ TEST_CASE("Description missing mandatory key/value pair",
           "[artifact_description]") {
     nlohmann::json const missing_type = {{"data", {{"path", "some/path"}}}};
     CHECK(not ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), missing_type));
+        GetHashType(ProtocolTraits::Instance().IsCompatible()), missing_type));
     nlohmann::json const missing_data = {{"type", "LOCAL"}};
     CHECK(not ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), missing_data));
+        GetHashType(ProtocolTraits::Instance().IsCompatible()), missing_data));
 }
 
 TEST_CASE("Local artifact description contains incorrect value for \"data\"",
@@ -183,7 +189,8 @@ TEST_CASE("Local artifact description contains incorrect value for \"data\"",
     nlohmann::json const local_art_missing_path = {
         {"type", "LOCAL"}, {"data", nlohmann::json::object()}};
     CHECK(not ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), local_art_missing_path));
+        GetHashType(ProtocolTraits::Instance().IsCompatible()),
+        local_art_missing_path));
 }
 
 TEST_CASE("Known artifact description contains incorrect value for \"data\"",
@@ -195,14 +202,15 @@ TEST_CASE("Known artifact description contains incorrect value for \"data\"",
             {"type", "KNOWN"},
             {"data", {{"size", 15}, {"file_type", file_type}}}};
         CHECK(not ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()), known_art_missing_id));
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
+            known_art_missing_id));
     }
     SECTION("missing \"size\"") {
         nlohmann::json const known_art_missing_size = {
             {"type", "KNOWN"},
             {"data", {{"id", "known_input"}, {"file_type", file_type}}}};
         CHECK(not ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()),
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
             known_art_missing_size));
     }
     SECTION("missing \"file_type\"") {
@@ -210,7 +218,7 @@ TEST_CASE("Known artifact description contains incorrect value for \"data\"",
             {"type", "KNOWN"}, {"data", {{"id", "known_input"}, {"size", 15}}}};
 
         CHECK(not ArtifactDescription::FromJson(
-            GetHashType(Compatibility::IsCompatible()),
+            GetHashType(ProtocolTraits::Instance().IsCompatible()),
             known_art_missing_file_type));
     }
 }
@@ -220,10 +228,12 @@ TEST_CASE("Action artifact description contains incorrect value for \"data\"",
     nlohmann::json const action_art_missing_id = {
         {"type", "ACTION"}, {"data", {{"path", "output/path"}}}};
     CHECK(not ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), action_art_missing_id));
+        GetHashType(ProtocolTraits::Instance().IsCompatible()),
+        action_art_missing_id));
 
     nlohmann::json const action_art_missing_path = {
         {"type", "ACTION"}, {"data", {{"id", "action_id"}}}};
     CHECK(not ArtifactDescription::FromJson(
-        GetHashType(Compatibility::IsCompatible()), action_art_missing_path));
+        GetHashType(ProtocolTraits::Instance().IsCompatible()),
+        action_art_missing_path));
 }

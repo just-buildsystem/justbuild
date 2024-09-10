@@ -15,7 +15,7 @@
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
@@ -43,7 +43,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                         sofar.string());
             return std::nullopt;
         }
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             auto directory =
                 BazelMsgFactory::MessageFromString<bazel_re::Directory>(*data);
             if (not directory) {

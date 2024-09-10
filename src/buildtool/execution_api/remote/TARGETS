@@ -50,13 +50,12 @@
   , "private-deps":
     [ ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_digest_factory"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["@", "grpc", "", "grpc++"]
     , ["src/buildtool/common/remote", "retry"]
     , ["src/buildtool/execution_api/common", "message_limits"]
@@ -84,7 +83,6 @@
     [ "bazel_network"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
@@ -94,6 +92,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "protocol_traits"]
     ]
   }
 , "config":

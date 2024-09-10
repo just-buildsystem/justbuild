@@ -31,9 +31,9 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/git_hashes_converter.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -437,7 +437,7 @@ class ExecutorImpl {
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
-        if (Compatibility::IsCompatible()) {
+        if (ProtocolTraits::Instance().IsCompatible()) {
             auto opt =
                 GitHashesConverter::Instance().GetGitEntry(info.digest.hash());
             if (opt) {

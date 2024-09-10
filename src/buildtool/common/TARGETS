@@ -20,7 +20,7 @@
     [ "clidefaults"
     , "retry_cli"
     , ["src/buildtool/build_engine/expression", "expression"]
-    , ["src/buildtool/compatibility", "compatibility"]
+    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "build_utils"]
@@ -190,6 +190,12 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "protocol_traits":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["protocol_traits"]
+  , "hdrs": ["protocol_traits.hpp"]
   , "stage": ["src", "buildtool", "common"]
   }
 }

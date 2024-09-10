@@ -40,7 +40,7 @@ BazelNetworkReader::BazelNetworkReader(
     : instance_name_{other.instance_name_},
       cas_{other.cas_},
       hash_function_{other.hash_function_} {
-    if (Compatibility::IsCompatible() and request_remote_tree) {
+    if (ProtocolTraits::Instance().IsCompatible() and request_remote_tree) {
         // Query full tree from remote CAS. Note that this is currently not
         // supported by Buildbarn revision c3c06bbe2a.
         auto full_tree =

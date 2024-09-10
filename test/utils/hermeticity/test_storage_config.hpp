@@ -21,6 +21,7 @@
 #include <utility>  //std::move
 
 #include "gsl/gsl"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -53,7 +54,7 @@ class TestStorageConfig final {
 
         StorageConfig::Builder builder;
         auto config = builder.SetBuildRoot(temp_dir->GetPath())
-                          .SetHashType(Compatibility::IsCompatible()
+                          .SetHashType(ProtocolTraits::Instance().IsCompatible()
                                            ? HashFunction::Type::PlainSHA256
                                            : HashFunction::Type::GitSHA1)
                           .Build();

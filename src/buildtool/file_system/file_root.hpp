@@ -29,7 +29,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/git_hashes_converter.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
@@ -224,7 +224,7 @@ class FileRoot {
         /// Only succeeds if no entries have to be ignored.
         [[nodiscard]] auto AsKnownTree(std::string const& repository)
             const noexcept -> std::optional<ArtifactDescription> {
-            if (Compatibility::IsCompatible()) {
+            if (ProtocolTraits::Instance().IsCompatible()) {
                 return std::nullopt;
             }
             if (std::holds_alternative<tree_t>(data_)) {
@@ -584,7 +584,7 @@ class FileRoot {
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
                 if (entry->IsBlob()) {
-                    if (Compatibility::IsCompatible()) {
+                    if (ProtocolTraits::Instance().IsCompatible()) {
                         auto compatible_hash =
                             GitHashesConverter::Instance().RegisterGitEntry(
                                 entry->Hash(), *entry->Blob(), repository);

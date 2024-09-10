@@ -135,7 +135,7 @@ void BazelResponse::Populate() noexcept {
         }
     }
 
-    if (not Compatibility::IsCompatible()) {
+    if (not ProtocolTraits::Instance().IsCompatible()) {
         // in native mode: just collect and store tree digests
         for (auto const& tree : action_result.output_directories()) {
             auto digest =

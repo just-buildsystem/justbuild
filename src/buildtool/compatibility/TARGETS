@@ -1,7 +1,0 @@
-{ "compatibility":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["compatibility"]
-  , "hdrs": ["compatibility.hpp"]
-  , "stage": ["src", "buildtool", "compatibility"]
-  }
-}

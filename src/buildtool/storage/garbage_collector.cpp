@@ -22,7 +22,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -215,13 +215,14 @@ auto GarbageCollector::TriggerGarbageCollection(
 auto GarbageCollector::Compactify(StorageConfig const& storage_config,
                                   size_t threshold) noexcept -> bool {
     // Return to the initial compatibility mode once done:
-    auto const guard = gsl::finally([mode = Compatibility::IsCompatible()] {
-        Compatibility::SetCompatible(mode);
-    });
+    auto const guard =
+        gsl::finally([mode = ProtocolTraits::Instance().IsCompatible()] {
+            ProtocolTraits::Instance().SetCompatible(mode);
+        });
 
     auto compactify = [threshold](StorageConfig const& config) -> bool {
-        Compatibility::SetCompatible(config.hash_function.GetType() ==
-                                     HashFunction::Type::PlainSHA256);
+        ProtocolTraits::Instance().SetCompatible(
+            config.hash_function.GetType() == HashFunction::Type::PlainSHA256);
         auto const storage = ::Generation::Create(&config);
 
         return Compactifier::RemoveInvalid(storage.CAS()) and

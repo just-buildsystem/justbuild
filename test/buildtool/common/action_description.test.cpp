@@ -20,7 +20,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 
 [[nodiscard]] static inline auto GetHashType(bool compatible) noexcept
@@ -45,7 +45,8 @@ TEST_CASE("From JSON", "[action_description]") {
                           desc.Inputs()}
             .ToJson();
 
-    auto const hash_type = GetHashType(Compatibility::IsCompatible());
+    auto const hash_type =
+        GetHashType(ProtocolTraits::Instance().IsCompatible());
     SECTION("Parse full action") {
         auto description = ActionDescription::FromJson(hash_type, "id", json);
         REQUIRE(description);

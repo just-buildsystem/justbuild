@@ -20,8 +20,8 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

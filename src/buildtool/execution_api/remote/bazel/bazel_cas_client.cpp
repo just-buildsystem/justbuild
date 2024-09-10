@@ -24,10 +24,10 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
@@ -54,7 +54,7 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
     auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
@@ -120,7 +120,7 @@ namespace {
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    HashFunction const hash_function{Compatibility::IsCompatible()
+    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
                                          : HashFunction::Type::GitSHA1};
     auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(

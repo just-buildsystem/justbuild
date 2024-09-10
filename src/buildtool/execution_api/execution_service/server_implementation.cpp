@@ -26,8 +26,8 @@
 #include "fmt/core.h"
 #include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/port.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 #include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
@@ -141,10 +141,12 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
     }
 
     auto const& info_str = nlohmann::to_string(info);
-    Logger::Log(LogLevel::Info,
-                fmt::format("{}execution service started: {}",
-                            Compatibility::IsCompatible() ? "compatible " : "",
-                            info_str));
+    Logger::Log(
+        LogLevel::Info,
+        fmt::format(
+            "{}execution service started: {}",
+            ProtocolTraits::Instance().IsCompatible() ? "compatible " : "",
+            info_str));
 
     if (not info_file_.empty()) {
         if (not TryWrite(info_file_, info_str)) {

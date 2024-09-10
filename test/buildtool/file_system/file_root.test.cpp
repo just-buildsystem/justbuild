@@ -25,6 +25,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/container_matchers.hpp"
@@ -412,7 +413,7 @@ static void CheckGitRoot(bool ignore_special) noexcept {
 
     auto const foo = root->ToArtifactDescription("baz/foo", "repo");
     REQUIRE(foo);
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         auto const digest =
             ArtifactDigestFactory::Create(HashFunction::Type::PlainSHA256,
                                           kFooIdSha256,
@@ -435,7 +436,7 @@ static void CheckGitRoot(bool ignore_special) noexcept {
 
     auto const bar = root->ToArtifactDescription("baz/bar", "repo");
     REQUIRE(bar);
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         auto const digest =
             ArtifactDigestFactory::Create(HashFunction::Type::PlainSHA256,
                                           kBarIdSha256,

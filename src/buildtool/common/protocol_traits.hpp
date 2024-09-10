@@ -12,23 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_COMPATIBILITY_COMPATIBILITY_HPP
-#define INCLUDED_SRC_BUILDTOOL_COMPATIBILITY_COMPATIBILITY_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP
 
-class Compatibility final {
+class ProtocolTraits final {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> Compatibility& {
-        static Compatibility instance{};
+    [[nodiscard]] static auto Instance() noexcept -> ProtocolTraits& {
+        static ProtocolTraits instance{};
         return instance;
     }
-    [[nodiscard]] static auto IsCompatible() noexcept -> bool {
-        return Instance().compatible_;
+    [[nodiscard]] auto IsCompatible() const noexcept -> bool {
+        return compatible_;
     }
-    static void SetCompatible(bool value = true) noexcept {
-        Instance().compatible_ = value;
-    }
+    void SetCompatible(bool value = true) noexcept { compatible_ = value; }
 
   private:
     bool compatible_ = false;
 };
-#endif  // INCLUDED_SRC_BUILDTOOL_COMPATIBILITY_COMPATIBILITY_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP

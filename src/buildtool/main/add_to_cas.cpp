@@ -22,7 +22,7 @@
 #include <string>
 
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -71,7 +71,7 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
             digest = cas.StoreBlob(*content, /*is_executable=*/false);
         } break;
         case ObjectType::Tree: {
-            if (Compatibility::IsCompatible()) {
+            if (ProtocolTraits::Instance().IsCompatible()) {
                 Logger::Log(LogLevel::Error,
                             "Storing of trees only supported in native mode");
                 return false;

@@ -276,7 +276,7 @@ namespace {
     ::bazel_re::OutputDirectory out_dir{};
     *(out_dir.mutable_path()) = std::move(path);
 
-    if (Compatibility::IsCompatible()) {
+    if (ProtocolTraits::Instance().IsCompatible()) {
         // In compatible mode: Create a tree digest from directory
         // digest on the fly and set tree digest.
         LocalCasReader reader(&storage.CAS());
@@ -410,7 +410,7 @@ namespace {
         return unexpected{input_root_digest.error()};
     }
     auto const input_root_path =
-        Compatibility::IsCompatible()
+        ProtocolTraits::Instance().IsCompatible()
             ? storage.CAS().BlobPath(*input_root_digest,
                                      /*is_executable=*/false)
             : storage.CAS().TreePath(*input_root_digest);

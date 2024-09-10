@@ -16,7 +16,7 @@
 
 #include <cstddef>
 
-#include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -25,7 +25,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     const ::bazel_re::GetCapabilitiesRequest*
     /*request*/,
     ::bazel_re::ServerCapabilities* response) -> ::grpc::Status {
-    if (not Compatibility::IsCompatible()) {
+    if (not ProtocolTraits::Instance().IsCompatible()) {
         auto const* str = "GetCapabilities not implemented";
         Logger::Log(LogLevel::Error, str);
         return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
