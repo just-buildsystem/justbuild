@@ -163,8 +163,7 @@ auto ArtifactDescription::ToArtifact() const noexcept -> Artifact {
         }
         if (std::holds_alternative<Known>(data_)) {
             auto const& [digest, file_type, repo] = std::get<Known>(data_);
-            return Artifact::CreateKnownArtifact(
-                id_, digest.hash(), digest.size(), file_type, repo);
+            return Artifact::CreateKnownArtifact(id_, digest, file_type, repo);
         }
         if (std::holds_alternative<Action>(data_) or
             std::holds_alternative<Tree>(data_)) {

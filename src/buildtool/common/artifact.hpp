@@ -187,12 +187,10 @@ class Artifact {
 
     [[nodiscard]] static auto CreateKnownArtifact(
         std::string const& id,
-        std::string const& hash,
-        std::size_t size,
+        ArtifactDigest const& digest,
         ObjectType type,
         std::optional<std::string> const& repo) noexcept -> Artifact {
-        return Artifact{
-            id, {hash, size, IsTreeObject(type)}, type, false, repo};
+        return Artifact{id, digest, type, false, repo};
     }
 
     [[nodiscard]] static auto CreateActionArtifact(
