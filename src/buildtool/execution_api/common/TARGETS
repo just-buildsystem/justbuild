@@ -95,6 +95,9 @@
     [ ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }

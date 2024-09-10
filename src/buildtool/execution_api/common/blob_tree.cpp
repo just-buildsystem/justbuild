@@ -18,6 +18,9 @@
 #include <variant>
 
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -61,13 +64,18 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
             }
         }
         if (auto git_tree = GitRepo::CreateShallowTree(entries)) {
-            ArtifactDigest digest{ToHexString(git_tree->first),
-                                  git_tree->second.size(),
-                                  /*is_tree=*/true};
-            return std::make_shared<BlobTree>(ArtifactBlob{std::move(digest),
-                                                           git_tree->second,
-                                                           /*is_exec=*/false},
-                                              nodes);
+            auto digest =
+                ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                              ToHexString(git_tree->first),
+                                              git_tree->second.size(),
+                                              /*is_tree=*/true);
+            if (digest) {
+                return std::make_shared<BlobTree>(
+                    ArtifactBlob{*std::move(digest),
+                                 git_tree->second,
+                                 /*is_exec=*/false},
+                    nodes);
+            }
         }
     } catch (...) {
         return std::nullopt;
