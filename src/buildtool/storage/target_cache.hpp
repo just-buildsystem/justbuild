@@ -27,6 +27,7 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -92,7 +93,7 @@ class TargetCache {
     /// Doesn't create a TargetCacheEntry in the TargetCache.
     /// \return TargetCacheKey on success.
     [[nodiscard]] auto ComputeKey(
-        std::string const& repo_key,
+        ArtifactDigest const& repo_key,
         BuildMaps::Base::NamedTarget const& target_name,
         Configuration const& effective_config) const noexcept
         -> std::optional<TargetCacheKey>;

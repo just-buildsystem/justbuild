@@ -88,11 +88,10 @@ template <class T>
 
 // Read graph from CAS
 [[nodiscard]] auto ReadGraph(Storage const& storage,
-                             std::string const& hash) -> nlohmann::json {
+                             ArtifactDigest const& repo_key) -> nlohmann::json {
     auto const& cas = storage.CAS();
-    auto blob = cas.BlobPath(
-        ArtifactDigest{hash, /*does not matter*/ 0, /*is_tree=*/false},
-        /*is_executable=*/false);
+    auto blob = cas.BlobPath(repo_key,
+                             /*is_executable=*/false);
     REQUIRE(blob);
     auto content = FileSystemManager::ReadFile(*blob);
     REQUIRE(content);

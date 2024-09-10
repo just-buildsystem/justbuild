@@ -43,14 +43,14 @@ auto TargetCache<kDoGlobalUplink>::Store(
 
 template <bool kDoGlobalUplink>
 auto TargetCache<kDoGlobalUplink>::ComputeKey(
-    std::string const& repo_key,
+    ArtifactDigest const& repo_key,
     BuildMaps::Base::NamedTarget const& target_name,
     Configuration const& effective_config) const noexcept
     -> std::optional<TargetCacheKey> {
     try {
         // target's repository is content-fixed, we can compute a cache key
         auto target_desc = nlohmann::json{
-            {"repo_key", repo_key},
+            {"repo_key", repo_key.hash()},
             {"target_name",
              nlohmann::json{target_name.module, target_name.name}.dump()},
             {"effective_config", effective_config.ToString()}};

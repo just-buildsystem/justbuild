@@ -25,6 +25,7 @@
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
@@ -140,7 +141,7 @@ class RepositoryConfig {
     // std::nullopt otherwise.
     [[nodiscard]] auto RepositoryKey(Storage const& storage,
                                      std::string const& repo) const noexcept
-        -> std::optional<std::string>;
+        -> std::optional<ArtifactDigest>;
 
     // used for testing
     void Reset() {
@@ -159,7 +160,7 @@ class RepositoryConfig {
         // Base description if content-fixed
         std::optional<nlohmann::json> base_desc{};
         // Cache key if content-fixed
-        AtomicValue<std::optional<std::string>> key{};
+        AtomicValue<std::optional<ArtifactDigest>> key{};
     };
 
     std::unordered_map<std::string, RepositoryData> repos_;

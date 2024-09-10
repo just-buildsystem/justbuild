@@ -56,7 +56,7 @@ TargetClient::TargetClient(
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,
-                               const std::string& repo_key) const noexcept
+                               const ArtifactDigest& repo_key) const noexcept
     -> std::optional<serve_target_result_t> {
     // make sure the blob containing the key is in the remote cas
     if (not apis_.local->RetrieveToCas({key.Id()}, *apis_.remote)) {
@@ -67,12 +67,13 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     }
     // make sure the repository configuration blob is in the remote cas
     if (not apis_.local->RetrieveToCas(
-            {Artifact::ObjectInfo{.digest = ArtifactDigest{repo_key, 0, false},
+            {Artifact::ObjectInfo{.digest = repo_key,
                                   .type = ObjectType::File}},
             *apis_.remote)) {
         return serve_target_result_t{
             std::in_place_index<1>,
-            fmt::format("Failed to retrieve to remote cas blob {}", repo_key)};
+            fmt::format("Failed to retrieve to remote cas blob {}",
+                        repo_key.hash())};
     }
 
     // add target cache key to request

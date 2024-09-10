@@ -36,18 +36,16 @@ auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
 
 auto RepositoryConfig::RepositoryKey(Storage const& storage,
                                      std::string const& repo) const noexcept
-    -> std::optional<std::string> {
+    -> std::optional<ArtifactDigest> {
     auto const unique = DeduplicateRepo(repo, storage.GetHashFunction());
     if (auto const* data = Data(unique)) {
         // compute key only once (thread-safe)
         return data->key.SetOnceAndGet(
-            [this, &storage, &unique]() -> std::optional<std::string> {
+            [this, &storage, &unique]() -> std::optional<ArtifactDigest> {
                 if (auto graph = BuildGraphForRepository(
                         unique, storage.GetHashFunction())) {
                     auto const& cas = storage.CAS();
-                    if (auto digest = cas.StoreBlob(graph->dump(2))) {
-                        return digest->hash();
-                    }
+                    return cas.StoreBlob(graph->dump(2));
                 }
                 return std::nullopt;
             });

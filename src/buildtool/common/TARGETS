@@ -156,6 +156,7 @@
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "common"]
   , "private-deps": [["src/utils/automata", "dfa_minimizer"]]
