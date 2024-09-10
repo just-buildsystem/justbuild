@@ -26,7 +26,10 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -230,8 +233,16 @@ class FileRoot {
                     if (auto id = data->Hash()) {
                         auto const& size = data->Size();
                         if (size) {
+                            auto digest = ArtifactDigestFactory::Create(
+                                HashFunction::Type::GitSHA1,
+                                *id,
+                                *size,
+                                /*is_tree=*/true);
+                            if (not digest) {
+                                return std::nullopt;
+                            }
                             return ArtifactDescription::CreateKnown(
-                                ArtifactDigest{*id, *size, /*is_tree=*/true},
+                                *std::move(digest),
                                 ObjectType::Tree,
                                 repository);
                         }
@@ -575,17 +586,27 @@ class FileRoot {
                     if (Compatibility::IsCompatible()) {
                         auto compatible_hash = Compatibility::RegisterGitEntry(
                             entry->Hash(), *entry->Blob(), repository);
+                        auto digest = ArtifactDigestFactory::Create(
+                            HashFunction::Type::PlainSHA256,
+                            compatible_hash,
+                            *entry->Size(),
+                            /*is_tree=*/false);
+                        if (not digest) {
+                            return std::nullopt;
+                        }
                         return ArtifactDescription::CreateKnown(
-                            ArtifactDigest{compatible_hash,
-                                           *entry->Size(),
-                                           /*is_tree=*/false},
-                            entry->Type());
+                            *std::move(digest), entry->Type());
+                    }
+                    auto digest = ArtifactDigestFactory::Create(
+                        HashFunction::Type::GitSHA1,
+                        entry->Hash(),
+                        *entry->Size(),
+                        /*is_tree=*/false);
+                    if (not digest) {
+                        return std::nullopt;
                     }
                     return ArtifactDescription::CreateKnown(
-                        ArtifactDigest{
-                            entry->Hash(), *entry->Size(), /*is_tree=*/false},
-                        entry->Type(),
-                        repository);
+                        *std::move(digest), entry->Type(), repository);
                 }
             }
             return std::nullopt;
