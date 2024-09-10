@@ -30,6 +30,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -324,10 +325,19 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
-    ArtifactDigest repo_key_dgst{repo_key->String(), 0, /*is_tree=*/false};
-    if (not apis_.local->IsAvailable(repo_key_dgst) and
+    auto const repo_key_dgst =
+        ArtifactDigestFactory::Create(apis_.hash_function.GetType(),
+                                      repo_key->String(),
+                                      0,
+                                      /*is_tree=*/false);
+    if (not repo_key_dgst) {
+        logger_->Emit(LogLevel::Error, "{}", repo_key_dgst.error());
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL,
+                              repo_key_dgst.error()};
+    }
+    if (not apis_.local->IsAvailable(*repo_key_dgst) and
         not apis_.remote->RetrieveToCas(
-            {Artifact::ObjectInfo{.digest = repo_key_dgst,
+            {Artifact::ObjectInfo{.digest = *repo_key_dgst,
                                   .type = ObjectType::File}},
             *apis_.local)) {
         auto msg = fmt::format(
@@ -337,7 +347,7 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     auto repo_config_path = local_context_.storage->CAS().BlobPath(
-        repo_key_dgst, /*is_executable=*/false);
+        *repo_key_dgst, /*is_executable=*/false);
     if (not repo_config_path) {
         // This should not fail unless something went really bad...
         auto msg = fmt::format(
