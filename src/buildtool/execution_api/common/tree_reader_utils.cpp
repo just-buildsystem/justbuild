@@ -132,13 +132,16 @@ auto TreeReaderUtils::ReadObjectInfos(GitRepo::tree_entries_t const& entries,
         for (auto const& [raw_id, es] : entries) {
             auto const hex_id = ToHexString(raw_id);
             for (auto const& entry : es) {
-                if (not store_info(
+                auto digest =
+                    ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                  hex_id,
+                                                  /*size is unknown*/ 0,
+                                                  IsTreeObject(entry.type));
+                if (not digest or
+                    not store_info(
                         entry.name,
-                        Artifact::ObjectInfo{
-                            .digest = ArtifactDigest{hex_id,
-                                                     /*size is unknown*/ 0,
-                                                     IsTreeObject(entry.type)},
-                            .type = entry.type})) {
+                        Artifact::ObjectInfo{.digest = *std::move(digest),
+                                             .type = entry.type})) {
                     return false;
                 }
             }
