@@ -17,7 +17,6 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/compatibility/compatibility.hpp"
 
 auto ArtifactDigestFactory::Create(HashFunction::Type hash_type,
                                    std::string hash,
@@ -30,7 +29,7 @@ auto ArtifactDigestFactory::Create(HashFunction::Type hash_type,
     if (not hash_info) {
         return unexpected{std::move(hash_info).error()};
     }
-    return ArtifactDigest{*hash_info, size};
+    return ArtifactDigest{*std::move(hash_info), size};
 }
 
 auto ArtifactDigestFactory::FromBazel(HashFunction::Type hash_type,
@@ -40,23 +39,12 @@ auto ArtifactDigestFactory::FromBazel(HashFunction::Type hash_type,
     if (not hash_info) {
         return unexpected{std::move(hash_info).error()};
     }
-    return ArtifactDigest{*hash_info,
+    return ArtifactDigest{*std::move(hash_info),
                           static_cast<std::size_t>(digest.size_bytes())};
 }
 
 auto ArtifactDigestFactory::ToBazel(ArtifactDigest const& digest)
     -> bazel_re::Digest {
-    static constexpr std::size_t kGitSHA1Length = 40;
-    // TODO(denisov): The type of the bazel digest produced here doesn't have to
-    // be the same as Compatibility::IsCompatible returns, since we're
-    // computing hashes with a predefined type in many places. Once
-    // ArtifactDigest gets HashInfo as a field, it will be taken from there
-    // directly, but for now it is 'guessed' based on the length of the hash.
-    auto const type = digest.hash().size() == kGitSHA1Length
-                          ? HashFunction::Type::GitSHA1
-                          : HashFunction::Type::PlainSHA256;
-    auto const hash_info =
-        HashInfo::Create(type, digest.hash(), digest.IsTree());
-    return BazelDigestFactory::Create(*hash_info,
-                                      gsl::narrow<std::int64_t>(digest.size()));
+    return BazelDigestFactory::Create(digest.hash_info_,
+                                      gsl::narrow<std::int64_t>(digest.size_));
 }

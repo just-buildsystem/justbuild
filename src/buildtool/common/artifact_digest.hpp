@@ -16,44 +16,43 @@
 #define INCLUDED_SRC_COMMON_ARTIFACT_DIGEST_HPP
 
 #include <cstddef>
-#include <optional>
 #include <string>
 #include <utility>  // std::move
 
-#include "gsl/gsl"
 #include "src/buildtool/crypto/hash_info.hpp"
-#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 // Provides getter for size with convenient non-protobuf type. Contains an
 // unprefixed hex string as hash.
 class ArtifactDigest final {
+    friend class ArtifactDigestFactory;
+
   public:
     ArtifactDigest() noexcept = default;
 
-    explicit ArtifactDigest(HashInfo const& hash_info,
-                            std::size_t size) noexcept
-        : size_{size}, hash_{hash_info.Hash()}, is_tree_{hash_info.IsTree()} {}
+    explicit ArtifactDigest(HashInfo hash_info, std::size_t size) noexcept
+        : hash_info_{std::move(hash_info)}, size_{size} {}
 
     [[nodiscard]] auto hash() const& noexcept -> std::string const& {
-        return hash_;
+        return hash_info_.Hash();
     }
 
     [[nodiscard]] auto hash() && noexcept -> std::string {
-        return std::move(hash_);
+        return std::move(hash_info_).Hash();
     }
 
     [[nodiscard]] auto size() const noexcept -> std::size_t { return size_; }
-    [[nodiscard]] auto IsTree() const noexcept -> bool { return is_tree_; }
+    [[nodiscard]] auto IsTree() const noexcept -> bool {
+        return hash_info_.IsTree();
+    }
 
     [[nodiscard]] auto operator==(ArtifactDigest const& other) const -> bool {
-        return hash_ == other.hash_ and is_tree_ == other.is_tree_;
+        return hash_info_ == other.hash_info_;
     }
 
   private:
-    std::size_t size_{};
-    std::string hash_{};
-    bool is_tree_{};
+    HashInfo hash_info_{};
+    std::size_t size_ = 0;
 };
 
 namespace std {

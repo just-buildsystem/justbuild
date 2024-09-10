@@ -74,9 +74,9 @@ class ArtifactDigestFactory final {
     [[nodiscard]] static auto HashDataAs(HashFunction hash_function,
                                          std::string const& content) noexcept
         -> ArtifactDigest {
-        auto const hash_info =
+        auto hash_info =
             HashInfo::HashData(hash_function, content, IsTreeObject(kType));
-        return ArtifactDigest{hash_info, content.size()};
+        return ArtifactDigest{std::move(hash_info), content.size()};
     }
 
     /// \brief Hash file using hash function and return a valid ArtifactDigest
@@ -89,12 +89,12 @@ class ArtifactDigestFactory final {
         HashFunction hash_function,
         std::filesystem::path const& path) noexcept
         -> std::optional<ArtifactDigest> {
-        auto const hash_info =
+        auto hash_info =
             HashInfo::HashFile(hash_function, path, IsTreeObject(kType));
         if (not hash_info) {
             return std::nullopt;
         }
-        return ArtifactDigest{hash_info->first,
+        return ArtifactDigest{std::move(hash_info->first),
                               static_cast<std::size_t>(hash_info->second)};
     }
 };
