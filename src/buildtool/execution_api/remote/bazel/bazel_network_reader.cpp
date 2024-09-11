@@ -41,7 +41,7 @@ BazelNetworkReader::BazelNetworkReader(
     : instance_name_{other.instance_name_},
       cas_{other.cas_},
       hash_function_{other.hash_function_} {
-    if (ProtocolTraits::Instance().IsCompatible() and request_remote_tree) {
+    if (not IsNativeProtocol() and request_remote_tree) {
         // Query full tree from remote CAS. Note that this is currently not
         // supported by Buildbarn revision c3c06bbe2a.
         auto full_tree =
@@ -72,7 +72,7 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
 
 auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     const noexcept -> std::optional<GitRepo::tree_entries_t> {
-    ExpectsAudit(ProtocolTraits::IsNative(hash_function_.GetType()));
+    ExpectsAudit(IsNativeProtocol());
 
     auto read_blob = ReadSingleBlob(digest);
     if (not read_blob) {
@@ -143,10 +143,14 @@ auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
     return data.has_value();
 }
 
+auto BazelNetworkReader::IsNativeProtocol() const noexcept -> bool {
+    return ProtocolTraits::IsNative(hash_function_.GetType());
+}
+
 auto BazelNetworkReader::MakeAuxiliaryMap(
     std::vector<bazel_re::Directory>&& full_tree) const noexcept
     -> std::optional<DirectoryMap> {
-    ExpectsAudit(not ProtocolTraits::IsNative(hash_function_.GetType()));
+    ExpectsAudit(not IsNativeProtocol());
 
     DirectoryMap result;
     result.reserve(full_tree.size());

@@ -63,6 +63,8 @@ class BazelNetworkReader final {
                                 DumpCallback const& dumper) const noexcept
         -> bool;
 
+    [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
+
     [[nodiscard]] auto ReadSingleBlob(bazel_re::Digest const& digest)
         const noexcept -> std::optional<ArtifactBlob>;
 

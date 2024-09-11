@@ -164,6 +164,10 @@ auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
     return true;
 }
 
+auto LocalCasReader::IsNativeProtocol() const noexcept -> bool {
+    return ProtocolTraits::IsNative(cas_.GetHashFunction().GetType());
+}
+
 namespace {
 [[nodiscard]] auto AssembleTree(
     bazel_re::Directory root,

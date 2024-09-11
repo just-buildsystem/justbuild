@@ -65,7 +65,7 @@ class StreamDumper final {
     [[nodiscard]] auto DumpTree(
         Artifact::ObjectInfo const& info,
         gsl::not_null<FILE*> const& stream) const noexcept -> bool {
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not impl_.IsNativeProtocol()) {
             auto directory = impl_.ReadDirectory(info.digest);
             auto data = directory
                             ? TreeReaderUtils::DirectoryToString(*directory)

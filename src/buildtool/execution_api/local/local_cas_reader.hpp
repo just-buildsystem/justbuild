@@ -52,6 +52,8 @@ class LocalCasReader final {
                                 DumpCallback const& dumper) const noexcept
         -> bool;
 
+    [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
+
   private:
     LocalCAS<true> const& cas_;
 

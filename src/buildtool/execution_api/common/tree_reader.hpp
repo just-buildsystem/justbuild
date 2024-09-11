@@ -59,7 +59,7 @@ class TreeReader final {
                 return true;
             };
 
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not impl_.IsNativeProtocol()) {
             auto tree = impl_.ReadDirectory(digest);
             if (tree and
                 not TreeReaderUtils::ReadObjectInfos(*tree, store_info)) {
@@ -132,7 +132,7 @@ class TreeReader final {
                        : store(parent / path, info);
         };
 
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not impl_.IsNativeProtocol()) {
             if (auto tree = impl_.ReadDirectory(digest)) {
                 if (include_trees and IsDirectoryEmpty(*tree)) {
                     if (not store(parent, {digest, ObjectType::Tree})) {
