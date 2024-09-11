@@ -276,7 +276,12 @@ namespace {
     ::bazel_re::OutputDirectory out_dir{};
     *(out_dir.mutable_path()) = std::move(path);
 
-    if (ProtocolTraits::Instance().IsCompatible()) {
+    if (ProtocolTraits::IsNative(storage.GetHashFunction().GetType())) {
+        // In native mode: Set the directory digest directly.
+        (*out_dir.mutable_tree_digest()) =
+            ArtifactDigestFactory::ToBazel(digest);
+    }
+    else {
         // In compatible mode: Create a tree digest from directory
         // digest on the fly and set tree digest.
         LocalCasReader reader(&storage.CAS());
@@ -298,11 +303,6 @@ namespace {
         }
         (*out_dir.mutable_tree_digest()) =
             ArtifactDigestFactory::ToBazel(*cas_digest);
-    }
-    else {
-        // In native mode: Set the directory digest directly.
-        (*out_dir.mutable_tree_digest()) =
-            ArtifactDigestFactory::ToBazel(digest);
     }
     return std::move(out_dir);
 }
@@ -404,16 +404,17 @@ namespace {
                                       action_digest.hash())};
     }
 
-    auto const input_root_digest = ArtifactDigestFactory::FromBazel(
-        storage.GetHashFunction().GetType(), action.input_root_digest());
+    auto const hash_type = storage.GetHashFunction().GetType();
+    auto const input_root_digest =
+        ArtifactDigestFactory::FromBazel(hash_type, action.input_root_digest());
     if (not input_root_digest) {
         return unexpected{input_root_digest.error()};
     }
     auto const input_root_path =
-        ProtocolTraits::Instance().IsCompatible()
-            ? storage.CAS().BlobPath(*input_root_digest,
-                                     /*is_executable=*/false)
-            : storage.CAS().TreePath(*input_root_digest);
+        ProtocolTraits::IsNative(hash_type)
+            ? storage.CAS().TreePath(*input_root_digest)
+            : storage.CAS().BlobPath(*input_root_digest,
+                                     /*is_executable=*/false);
 
     if (not input_root_path) {
         return unexpected{

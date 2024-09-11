@@ -49,12 +49,13 @@ namespace {
 }
 
 [[nodiscard]] auto CheckDigestConsistency(
+    HashFunction::Type hash_type,
     ArtifactDigest const& ref,
     ArtifactDigest const& computed) noexcept -> std::optional<std::string> {
     bool valid = ref.hash() == computed.hash();
     if (valid) {
         bool const check_sizes =
-            ProtocolTraits::Instance().IsCompatible() or ref.size() != 0;
+            not ProtocolTraits::IsNative(hash_type) or ref.size() != 0;
         if (check_sizes) {
             valid = ref.size() == computed.size();
         }
@@ -121,11 +122,12 @@ auto CASServiceImpl::BatchUpdateBlobs(
         logger_.Emit(LogLevel::Error, "{}", str);
         return grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
+    auto const hash_type = storage_config_.hash_function.GetType();
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
         logger_.Emit(LogLevel::Trace, "BatchUpdateBlobs: {}", hash);
-        auto const digest = ArtifactDigestFactory::FromBazel(
-            storage_config_.hash_function.GetType(), x.digest());
+        auto const digest =
+            ArtifactDigestFactory::FromBazel(hash_type, x.digest());
         if (not digest) {
             auto const str =
                 fmt::format("BatchUpdateBlobs: unsupported digest {}", hash);
@@ -163,7 +165,8 @@ auto CASServiceImpl::BatchUpdateBlobs(
             return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
         }
 
-        if (auto err = CheckDigestConsistency(*digest, *cas_digest)) {
+        if (auto err =
+                CheckDigestConsistency(hash_type, *digest, *cas_digest)) {
             auto const str =
                 fmt::format("BatchUpdateBlobs: {}", *std::move(err));
             logger_.Emit(LogLevel::Error, "{}", str);
@@ -320,8 +323,9 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    auto const blob_digest = ArtifactDigestFactory::FromBazel(
-        storage_config_.hash_function.GetType(), request->blob_digest());
+    auto const hash_type = storage_config_.hash_function.GetType();
+    auto const blob_digest =
+        ArtifactDigestFactory::FromBazel(hash_type, request->blob_digest());
     if (not blob_digest) {
         auto const str = fmt::format("SpliceBlob: unsupported digest {}",
                                      request->blob_digest().hash());
@@ -337,8 +341,7 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
     auto chunk_digests = std::vector<ArtifactDigest>{};
     chunk_digests.reserve(request->chunk_digests().size());
     for (auto const& x : request->chunk_digests()) {
-        auto chunk = ArtifactDigestFactory::FromBazel(
-            storage_config_.hash_function.GetType(), x);
+        auto chunk = ArtifactDigestFactory::FromBazel(hash_type, x);
         if (not chunk) {
             auto const str =
                 fmt::format("SpliceBlob: unsupported digest {}", x.hash());
@@ -366,7 +369,8 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
     }
-    if (auto err = CheckDigestConsistency(*blob_digest, *splice_result)) {
+    if (auto err =
+            CheckDigestConsistency(hash_type, *blob_digest, *splice_result)) {
         auto const str = fmt::format("SpliceBlob: {}", *std::move(err));
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};

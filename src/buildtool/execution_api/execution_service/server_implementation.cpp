@@ -142,13 +142,11 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
         }
     }
 
-    auto const& info_str = nlohmann::to_string(info);
-    Logger::Log(
-        LogLevel::Info,
-        fmt::format(
-            "{}execution service started: {}",
-            ProtocolTraits::Instance().IsCompatible() ? "compatible " : "",
-            info_str));
+    auto const info_str = nlohmann::to_string(info);
+    Logger::Log(LogLevel::Info,
+                "{}execution service started: {}",
+                ProtocolTraits::IsNative(hash_type) ? "" : "compatible ",
+                info_str);
 
     if (not info_file_.empty()) {
         if (not TryWrite(info_file_, info_str)) {
