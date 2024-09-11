@@ -22,6 +22,7 @@
 #include <string>
 
 #include "gsl/gsl"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
@@ -41,7 +42,8 @@ using ArchiveFetchMap = AsyncMapConsumer<ArchiveContent, bool>;
 
 // use explicit cast to std::function to allow template deduction when used
 static const std::function<std::string(ArchiveContent const&)>
-    kArchiveContentPrinter =
-        [](ArchiveContent const& x) -> std::string { return x.content; };
+    kArchiveContentPrinter = [](ArchiveContent const& x) -> std::string {
+    return x.content_hash.Hash();
+};
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_ARCHIVE_FETCH_MAP_HPP

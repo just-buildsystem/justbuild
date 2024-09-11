@@ -15,6 +15,7 @@
 #include "src/other_tools/root_maps/foreign_file_git_map.hpp"
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -33,8 +34,11 @@ void WithRootImportedToGit(ForeignFileInfo const& key,
         (*logger)("Importing to git failed", /*fatal=*/true);
         return;
     }
-    auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(
-        storage_config, key.archive.content, key.name, key.executable);
+    auto tree_id_file =
+        StorageUtils::GetForeignFileTreeIDFile(storage_config,
+                                               key.archive.content_hash.Hash(),
+                                               key.name,
+                                               key.executable);
     auto cache_written =
         StorageUtils::WriteTreeIDFile(tree_id_file, result.first);
     if (not cache_written) {
@@ -58,12 +62,12 @@ void WithFetchedFile(ForeignFileInfo const& key,
                      ForeignFileGitMap::LoggerPtr const& logger) {
     auto tmp_dir = storage_config->CreateTypedTmpDir("foreign-file");
     auto const& cas = storage.CAS();
-    auto digest = ArtifactDigest(key.archive.content, 0, key.executable);
+    auto digest = ArtifactDigest{key.archive.content_hash, 0};
     auto content_cas_path = cas.BlobPath(digest, key.executable);
     if (not content_cas_path) {
         (*logger)(
             fmt::format("Failed to locally find {} after fetching for repo {}",
-                        key.archive.content,
+                        key.archive.content_hash.Hash(),
                         nlohmann::json(key.archive.origin).dump()),
             true);
         return;
@@ -82,7 +86,7 @@ void WithFetchedFile(ForeignFileInfo const& key,
     CommitInfo c_info{
         tmp_dir->GetPath(),
         fmt::format("foreign file at {}", nlohmann::json(key.name).dump()),
-        key.archive.content};
+        key.archive.content_hash.Hash()};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
@@ -122,10 +126,10 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                              ForeignFileGitMap::LoggerPtr const& logger) {
     // Compute tree in memory
     GitRepo::tree_entries_t entries{};
-    auto raw_id = FromHexString(key.archive.content);
+    auto raw_id = FromHexString(key.archive.content_hash.Hash());
     if (not raw_id) {
         (*logger)(fmt::format("Failure converting {} to raw id.",
-                              key.archive.content),
+                              key.archive.content_hash.Hash()),
                   true);
         return;
     }
@@ -135,7 +139,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
     if (not tree) {
         (*logger)(fmt::format("Failure to construct in-memory tree with entry "
                               "{} at place {}",
-                              key.archive.content,
+                              key.archive.content_hash.Hash(),
                               nlohmann::json(key.name).dump()),
                   true);
         return;
@@ -153,7 +157,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
             return;
         }
         auto serve_result = serve->RetrieveTreeFromForeignFile(
-            key.archive.content, key.name, key.executable);
+            key.archive.content_hash.Hash(), key.name, key.executable);
         if (serve_result) {
             // if serve has set up the tree, it must match what we
             // expect
@@ -175,7 +179,7 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
         if (serve_result.error() == GitLookupError::Fatal) {
             (*logger)(fmt::format("Serve endpoint failed to set up root "
                                   "from known foreign-file content {}",
-                                  key.archive.content),
+                                  key.archive.content_hash.Hash()),
                       /*fatal=*/true);
             return;
         }
@@ -218,7 +222,10 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
             return;
         }
         auto tree_id_file = StorageUtils::GetForeignFileTreeIDFile(
-            *storage_config, key.archive.content, key.name, key.executable);
+            *storage_config,
+            key.archive.content_hash.Hash(),
+            key.name,
+            key.executable);
         if (FileSystemManager::Exists(tree_id_file)) {
             auto tree_id = FileSystemManager::ReadFile(tree_id_file);
             if (not tree_id) {
@@ -248,11 +255,11 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                                 setter,
                                 logger);
             },
-            [logger, content = key.archive.content](auto const& msg,
-                                                    bool fatal) {
+            [logger, hash = key.archive.content_hash.Hash()](auto const& msg,
+                                                             bool fatal) {
                 (*logger)(fmt::format("While ensuring content {} is in "
                                       "CAS:\n{}",
-                                      content,
+                                      hash,
                                       msg),
                           fatal);
             });

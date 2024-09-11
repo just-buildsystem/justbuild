@@ -22,6 +22,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/user_structs.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
@@ -34,7 +35,7 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
-    std::string content{}; /* key */
+    HashInfo content_hash{}; /* key */
     std::optional<std::string> distfile{std::nullopt};
     std::string fetch_url{};
     std::vector<std::string> mirrors{};
@@ -44,7 +45,7 @@ struct ArchiveContent {
     std::string origin{};
 
     [[nodiscard]] auto operator==(const ArchiveContent& other) const -> bool {
-        return content == other.content;
+        return content_hash.Hash() == other.content_hash.Hash();
     }
 };
 
@@ -100,7 +101,7 @@ template <>
 struct hash<ArchiveContent> {
     [[nodiscard]] auto operator()(const ArchiveContent& ct) const noexcept
         -> std::size_t {
-        return std::hash<std::string>{}(ct.content);
+        return std::hash<std::string>{}(ct.content_hash.Hash());
     }
 };
 

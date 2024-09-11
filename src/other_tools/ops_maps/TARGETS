@@ -72,6 +72,7 @@
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -93,6 +94,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":

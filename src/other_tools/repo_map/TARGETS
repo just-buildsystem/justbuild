@@ -27,6 +27,7 @@
     , ["src/other_tools/utils", "parse_archive"]
     , ["src/other_tools/utils", "parse_git_tree"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   }
 }

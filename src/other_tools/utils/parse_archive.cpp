@@ -17,6 +17,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_info.hpp"
 
 auto ParseArchiveContent(ExpressionPtr const& repo_desc,
                          std::string const& origin)
@@ -32,6 +33,18 @@ auto ParseArchiveContent(ExpressionPtr const& repo_desc,
             fmt::format("Unsupported value {} for mandatory field \"content\"",
                         repo_desc_content->get()->ToString())};
     }
+
+    auto const repo_desc_hash_info =
+        HashInfo::Create(HashFunction::Type::GitSHA1,
+                         repo_desc_content->get()->String(),
+                         /*is_tree=*/false);
+    if (not repo_desc_hash_info) {
+        return unexpected{fmt::format(
+            "Unsupported value {} for mandatory field \"content\"\n{}",
+            repo_desc_content->get()->ToString(),
+            repo_desc_hash_info.error())};
+    }
+
     auto repo_desc_fetch = repo_desc->At("fetch");
     if (not repo_desc_fetch) {
         return unexpected<std::string>{"Mandatory field \"fetch\" is missing"};
@@ -66,7 +79,7 @@ auto ParseArchiveContent(ExpressionPtr const& repo_desc,
     }
 
     return ArchiveContent{
-        .content = repo_desc_content->get()->String(),
+        .content_hash = *repo_desc_hash_info,
         .distfile = repo_desc_distfile->IsString()
                         ? std::make_optional(repo_desc_distfile->String())
                         : std::nullopt,

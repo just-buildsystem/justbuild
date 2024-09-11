@@ -15,6 +15,7 @@
 #include "src/other_tools/root_maps/content_git_map.hpp"
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
@@ -67,12 +68,12 @@ void EnsureRootAsAbsent(
             // try to see if serve endpoint has the information to prepare the
             // root itself; this is redundant if root is not already cached
             if (is_cache_hit) {
-                auto serve_result =
-                    serve->RetrieveTreeFromArchive(key.archive.content,
-                                                   key.repo_type,
-                                                   key.subdir,
-                                                   key.pragma_special,
-                                                   /*sync_tree=*/false);
+                auto serve_result = serve->RetrieveTreeFromArchive(
+                    key.archive.content_hash.Hash(),
+                    key.repo_type,
+                    key.subdir,
+                    key.pragma_special,
+                    /*sync_tree=*/false);
                 if (serve_result) {
                     // if serve has set up the tree, it must match what we
                     // expect
@@ -93,7 +94,7 @@ void EnsureRootAsAbsent(
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up "
                                         "root from known archive content {}",
-                                        key.archive.content),
+                                        key.archive.content_hash.Hash()),
                             /*fatal=*/true);
                         return;
                     }
@@ -303,11 +304,11 @@ void ResolveContentTree(
                                 fatal);
                         });
                 },
-                [logger, content = key.archive.content](auto const& msg,
-                                                        bool fatal) {
+                [logger, hash = key.archive.content_hash.Hash()](
+                    auto const& msg, bool fatal) {
                     (*logger)(fmt::format("While resolving symlinks for "
                                           "content {}:\n{}",
-                                          content,
+                                          hash,
                                           msg),
                               fatal);
                 });
@@ -421,7 +422,7 @@ void ExtractAndImportToGit(
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp path for {} target {}",
                               key.repo_type,
-                              key.archive.content),
+                              key.archive.content_hash.Hash()),
                   /*fatal=*/true);
         return;
     }
@@ -436,7 +437,8 @@ void ExtractAndImportToGit(
         return;
     }
     // import to git
-    CommitInfo c_info{tmp_dir->GetPath(), key.repo_type, key.archive.content};
+    CommitInfo c_info{
+        tmp_dir->GetPath(), key.repo_type, key.archive.content_hash.Hash()};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
@@ -490,8 +492,11 @@ auto IdFileExistsInOlderGeneration(
     for (std::size_t generation = 1;
          generation < storage_config->num_generations;
          generation++) {
-        auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-            *storage_config, key.repo_type, key.archive.content, generation);
+        auto archive_tree_id_file =
+            StorageUtils::GetArchiveTreeIDFile(*storage_config,
+                                               key.repo_type,
+                                               key.archive.content_hash.Hash(),
+                                               generation);
         if (FileSystemManager::Exists(archive_tree_id_file)) {
             return generation;
         }
@@ -614,7 +619,7 @@ void HandleKnownInOlderGenerationAfterImport(
     // Now that we have the tree persisted in the git repository of the youngest
     // generation; hence we can write the map-entry.
     auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-        *storage_config, key.repo_type, key.archive.content);
+        *storage_config, key.repo_type, key.archive.content_hash.Hash());
     if (not StorageUtils::WriteTreeIDFile(archive_tree_id_file, tree_id)) {
         (*logger)(fmt::format("Failed to write tree id to file {}",
                               archive_tree_id_file.string()),
@@ -807,8 +812,11 @@ void HandleKnownInOlderGeneration(
     gsl::not_null<TaskSystem*> const& ts,
     ContentGitMap::SetterPtr const& setter,
     ContentGitMap::LoggerPtr const& logger) {
-    auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-        *storage_config, key.repo_type, key.archive.content, generation);
+    auto archive_tree_id_file =
+        StorageUtils::GetArchiveTreeIDFile(*storage_config,
+                                           key.repo_type,
+                                           key.archive.content_hash.Hash(),
+                                           generation);
     auto archive_tree_id = FileSystemManager::ReadFile(archive_tree_id_file);
     if (not archive_tree_id) {
         (*logger)(fmt::format("Failed to read tree id from file {}",
@@ -907,7 +915,7 @@ auto CreateContentGitMap(
                                      auto /* unused */,
                                      auto const& key) {
         auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-            *storage_config, key.repo_type, key.archive.content);
+            *storage_config, key.repo_type, key.archive.content_hash.Hash());
         if (FileSystemManager::Exists(archive_tree_id_file)) {
             HandleLocallyKnownTree(key,
                                    archive_tree_id_file,
@@ -942,12 +950,12 @@ auto CreateContentGitMap(
                 // request the resolved subdir tree from the serve endpoint, if
                 // given
                 if (serve != nullptr) {
-                    auto serve_result =
-                        serve->RetrieveTreeFromArchive(key.archive.content,
-                                                       key.repo_type,
-                                                       key.subdir,
-                                                       key.pragma_special,
-                                                       /*sync_tree = */ false);
+                    auto serve_result = serve->RetrieveTreeFromArchive(
+                        key.archive.content_hash.Hash(),
+                        key.repo_type,
+                        key.subdir,
+                        key.pragma_special,
+                        /*sync_tree = */ false);
                     if (serve_result) {
                         // set the workspace root as absent
                         progress->TaskTracker().Stop(key.archive.origin);
@@ -963,7 +971,7 @@ auto CreateContentGitMap(
                         (*logger)(
                             fmt::format("Serve endpoint failed to set up root "
                                         "from known archive content {}",
-                                        key.archive.content),
+                                        key.archive.content_hash.Hash()),
                             /*fatal=*/true);
                         return;
                     }
@@ -974,7 +982,7 @@ auto CreateContentGitMap(
 
                 // check if content already in CAS
                 auto const& cas = storage->CAS();
-                auto digest = ArtifactDigest(key.archive.content, 0, false);
+                auto const digest = ArtifactDigest{key.archive.content_hash, 0};
                 if (auto content_cas_path =
                         cas.BlobPath(digest, /*is_executable=*/false)) {
                     ExtractAndImportToGit(key,
@@ -1044,17 +1052,18 @@ auto CreateContentGitMap(
                         // verify if local Git knows content blob
                         auto wrapped_logger =
                             std::make_shared<AsyncMapConsumerLogger>(
-                                [&logger, blob = key.archive.content](
+                                [&logger,
+                                 hash = key.archive.content_hash.Hash()](
                                     auto const& msg, bool fatal) {
                                     (*logger)(
                                         fmt::format("While verifying presence "
                                                     "of blob {}:\n{}",
-                                                    blob,
+                                                    hash,
                                                     msg),
                                         fatal);
                                 });
                         auto res = just_git_repo->TryReadBlob(
-                            key.archive.content, wrapped_logger);
+                            key.archive.content_hash.Hash(), wrapped_logger);
                         if (not res.first) {
                             // blob check failed
                             return;
@@ -1064,9 +1073,10 @@ auto CreateContentGitMap(
                             // blob found; add it to CAS
                             if (not cas.StoreBlob(*res.second,
                                                   /*is_executable=*/false)) {
-                                (*logger)(fmt::format("Failed to store content "
-                                                      "{} to local CAS",
-                                                      key.archive.content),
+                                (*logger)(fmt::format(
+                                              "Failed to store content "
+                                              "{} to local CAS",
+                                              key.archive.content_hash.Hash()),
                                           /*fatal=*/true);
                                 return;
                             }
@@ -1129,7 +1139,7 @@ auto CreateContentGitMap(
                         // report not being able to set up this root as absent
                         (*logger)(fmt::format("Cannot create workspace root as "
                                               "absent for content {}.",
-                                              key.archive.content),
+                                              key.archive.content_hash.Hash()),
                                   /*fatal=*/true);
                     },
                     [logger, target_path = storage_config->GitRoot()](
@@ -1159,9 +1169,9 @@ auto CreateContentGitMap(
                         // content is in local CAS now
                         auto const& cas = storage->CAS();
                         auto content_cas_path =
-                            cas.BlobPath(ArtifactDigest(
-                                             key.archive.content, 0, false),
-                                         /*is_executable=*/false)
+                            cas.BlobPath(
+                                   ArtifactDigest{key.archive.content_hash, 0},
+                                   /*is_executable=*/false)
                                 .value();
                         // root can only be present, so default all arguments
                         // that refer to a serve endpoint
@@ -1179,11 +1189,11 @@ auto CreateContentGitMap(
                                               setter,
                                               logger);
                     },
-                    [logger, content = key.archive.content](auto const& msg,
-                                                            bool fatal) {
+                    [logger, hash = key.archive.content_hash.Hash()](
+                        auto const& msg, bool fatal) {
                         (*logger)(fmt::format("While ensuring content {} is in "
                                               "CAS:\n{}",
-                                              content,
+                                              hash,
                                               msg),
                                   fatal);
                     });

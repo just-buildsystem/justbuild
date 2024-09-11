@@ -126,6 +126,7 @@
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/utils", "content"]
     , ["src/utils/archive", "archive_ops"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   }
 , "foreign_file_git_map":
@@ -149,6 +150,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/utils/cpp", "tmp_dir"]
     , "root_utils"
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
   }

@@ -44,7 +44,7 @@ void FetchFromNetwork(ArchiveContent const& key,
     if (not data) {
         (*logger)(fmt::format("Failed to fetch a file with id {} from provided "
                               "remotes:{}",
-                              key.content,
+                              key.content_hash.Hash(),
                               data.error()),
                   /*fatal=*/true);
         return;
@@ -83,11 +83,11 @@ void FetchFromNetwork(ArchiveContent const& key,
     }
     // check that the data we stored actually produces the requested digest
     auto const& cas = storage.CAS();
-    if (not cas.BlobPath(ArtifactDigest{key.content, 0, /*is_tree=*/false},
+    if (not cas.BlobPath(ArtifactDigest{key.content_hash, 0},
                          /*is_executable=*/false)) {
         (*logger)(
             fmt::format("Content {} was not found at given fetch location {}",
-                        key.content,
+                        key.content_hash.Hash(),
                         key.fetch_url),
             /*fatal=*/true);
         return;
@@ -125,7 +125,7 @@ auto CreateContentCASMap(
                                     auto logger,
                                     auto /*unused*/,
                                     auto const& key) {
-        auto digest = ArtifactDigest(key.content, 0, false);
+        auto const digest = ArtifactDigest{key.content_hash, 0};
         // check local CAS
         if (local_api->IsAvailable(digest)) {
             (*setter)(nullptr);
@@ -175,15 +175,16 @@ auto CreateContentCASMap(
                 }
                 // verify if local Git knows content blob
                 auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-                    [&logger, blob = key.content](auto const& msg, bool fatal) {
+                    [&logger, hash = key.content_hash.Hash()](auto const& msg,
+                                                              bool fatal) {
                         (*logger)(fmt::format("While verifying presence of "
                                               "blob {}:\n{}",
-                                              blob,
+                                              hash,
                                               msg),
                                   fatal);
                     });
-                auto res =
-                    just_git_repo->TryReadBlob(key.content, wrapped_logger);
+                auto res = just_git_repo->TryReadBlob(key.content_hash.Hash(),
+                                                      wrapped_logger);
                 if (not res.first) {
                     // blob check failed
                     return;
@@ -195,7 +196,7 @@ auto CreateContentCASMap(
                                           /*is_executable=*/false)) {
                         (*logger)(fmt::format("Failed to store content {} "
                                               "to local CAS",
-                                              key.content),
+                                              key.content_hash.Hash()),
                                   /*fatal=*/true);
                         return;
                     }
@@ -214,8 +215,8 @@ auto CreateContentCASMap(
                             std::make_shared<AsyncMapConsumerLogger>(
                                 [](auto /*unused*/, auto /*unused*/) {});
                         if (old_repo) {
-                            auto res =
-                                old_repo->TryReadBlob(key.content, no_logging);
+                            auto res = old_repo->TryReadBlob(
+                                key.content_hash.Hash(), no_logging);
                             if (res.first and res.second) {
                                 // read blob from older generation
                                 auto const& cas = storage->CAS();
@@ -224,7 +225,7 @@ auto CreateContentCASMap(
                                     (*logger)(fmt::format(
                                                   "Failed to store content {} "
                                                   "to local CAS",
-                                                  key.content),
+                                                  key.content_hash.Hash()),
                                               /*fatal=*/true);
                                 }
                                 // content stored in CAS
@@ -253,7 +254,7 @@ auto CreateContentCASMap(
                 }
                 // check if content is known to remote serve service
                 if (serve != nullptr and remote_api != nullptr and
-                    serve->ContentInRemoteCAS(key.content)) {
+                    serve->ContentInRemoteCAS(key.content_hash.Hash())) {
                     // try to get content from remote CAS
                     if (remote_api->RetrieveToCas(
                             {Artifact::ObjectInfo{.digest = digest,

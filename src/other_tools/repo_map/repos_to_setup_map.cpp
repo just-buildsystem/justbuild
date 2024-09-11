@@ -19,6 +19,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -514,8 +515,10 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
                                          .filename()
                                          .string());
             distdir_content_for_id->insert_or_assign(
-                repo_distfile, std::make_pair(archive->content, false));
-            distdir_content->insert_or_assign(repo_distfile, archive->content);
+                repo_distfile,
+                std::make_pair(archive->content_hash.Hash(), false));
+            distdir_content->insert_or_assign(repo_distfile,
+                                              archive->content_hash.Hash());
             // add to fetch list
             dist_repos_to_fetch->emplace_back(*std::move(archive));
         }
