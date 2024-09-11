@@ -17,15 +17,17 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 
 auto ArtifactDigestFactory::Create(HashFunction::Type hash_type,
                                    std::string hash,
                                    std::size_t size,
                                    bool is_tree) noexcept
     -> expected<ArtifactDigest, std::string> {
-    const bool kTreesAllowed = hash_type == HashFunction::Type::GitSHA1;
     auto hash_info =
-        HashInfo::Create(hash_type, std::move(hash), kTreesAllowed and is_tree);
+        HashInfo::Create(hash_type,
+                         std::move(hash),
+                         ProtocolTraits::IsTreeAllowed(hash_type) and is_tree);
     if (not hash_info) {
         return unexpected{std::move(hash_info).error()};
     }

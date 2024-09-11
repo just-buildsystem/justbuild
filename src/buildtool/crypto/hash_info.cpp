@@ -16,6 +16,7 @@
 
 #include "fmt/core.h"
 #include "gsl/gsl"  // Ensures
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
@@ -58,7 +59,7 @@ auto HashInfo::HashData(HashFunction hash_function,
     return HashInfo{
         hash_digest.HexString(),
         hash_function.GetType(),
-        is_tree and hash_function.GetType() == HashFunction::Type::GitSHA1};
+        is_tree and ProtocolTraits::IsTreeAllowed(hash_function.GetType())};
 }
 
 auto HashInfo::HashFile(HashFunction hash_function,
@@ -85,7 +86,7 @@ auto HashInfo::ValidateInput(HashFunction::Type type,
                              std::string const& hash,
                              bool is_tree) noexcept
     -> std::optional<std::string> {
-    if (type != HashFunction::Type::GitSHA1 and is_tree) {
+    if (is_tree and not ProtocolTraits::IsTreeAllowed(type)) {
         return fmt::format(
             "HashInfo: hash {} is expected to be {}.\nTrees are "
             "not allowed in this mode.",

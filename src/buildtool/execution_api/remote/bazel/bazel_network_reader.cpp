@@ -18,6 +18,7 @@
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -71,7 +72,7 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
 
 auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     const noexcept -> std::optional<GitRepo::tree_entries_t> {
-    ExpectsAudit(hash_function_.GetType() == HashFunction::Type::GitSHA1);
+    ExpectsAudit(ProtocolTraits::IsNative(hash_function_.GetType()));
 
     auto read_blob = ReadSingleBlob(digest);
     if (not read_blob) {
@@ -145,7 +146,7 @@ auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
 auto BazelNetworkReader::MakeAuxiliaryMap(
     std::vector<bazel_re::Directory>&& full_tree) const noexcept
     -> std::optional<DirectoryMap> {
-    ExpectsAudit(hash_function_.GetType() == HashFunction::Type::PlainSHA256);
+    ExpectsAudit(not ProtocolTraits::IsNative(hash_function_.GetType()));
 
     DirectoryMap result;
     result.reserve(full_tree.size());

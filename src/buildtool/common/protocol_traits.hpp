@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP
 
+#include "src/buildtool/crypto/hash_function.hpp"
+
 class ProtocolTraits final {
   public:
     [[nodiscard]] static auto Instance() noexcept -> ProtocolTraits& {
@@ -25,6 +27,16 @@ class ProtocolTraits final {
         return compatible_;
     }
     void SetCompatible(bool value = true) noexcept { compatible_ = value; }
+
+    inline static constexpr auto IsNative(HashFunction::Type hash_type) noexcept
+        -> bool {
+        return hash_type == HashFunction::Type::GitSHA1;
+    }
+
+    inline static constexpr auto IsTreeAllowed(
+        HashFunction::Type hash_type) noexcept -> bool {
+        return IsNative(hash_type);
+    }
 
   private:
     bool compatible_ = false;

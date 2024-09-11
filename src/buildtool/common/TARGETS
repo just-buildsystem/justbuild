@@ -52,7 +52,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "expected"]
     ]
-  , "private-deps": [["src/buildtool/crypto", "hasher"]]
+  , "private-deps": [["src/buildtool/crypto", "hasher"], "protocol_traits"]
   , "stage": ["src", "buildtool", "common"]
   }
 , "artifact_digest_factory":
@@ -68,7 +68,11 @@
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    ["bazel_digest_factory", "bazel_types", ["@", "gsl", "", "gsl"]]
+    [ "bazel_digest_factory"
+    , "bazel_types"
+    , ["@", "gsl", "", "gsl"]
+    , "protocol_traits"
+    ]
   , "stage": ["src", "buildtool", "common"]
   }
 , "common":
@@ -196,6 +200,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["protocol_traits"]
   , "hdrs": ["protocol_traits.hpp"]
+  , "deps": [["src/buildtool/crypto", "hash_function"]]
   , "stage": ["src", "buildtool", "common"]
   }
 }

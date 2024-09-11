@@ -35,6 +35,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "hex_string"]
+    , ["src/buildtool/common", "protocol_traits"]
     ]
   , "stage": ["src", "buildtool", "crypto"]
   }

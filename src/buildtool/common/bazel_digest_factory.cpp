@@ -16,12 +16,13 @@
 
 #include <utility>
 
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 
 auto BazelDigestFactory::Create(HashInfo const& hash_info,
                                 std::int64_t size) noexcept
     -> bazel_re::Digest {
-    auto hash = hash_info.HashType() == HashFunction::Type::GitSHA1
+    auto hash = ProtocolTraits::IsNative(hash_info.HashType())
                     ? Prefix(hash_info.Hash(), hash_info.IsTree())
                     : hash_info.Hash();
 
