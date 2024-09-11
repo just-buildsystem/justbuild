@@ -83,7 +83,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkTree(
     LocalGenerationCAS const& latest,
     ArtifactDigest const& digest,
     bool splice_result) const noexcept -> bool {
-    if (ProtocolTraits::Instance().IsCompatible()) {
+    if (not ProtocolTraits::IsNative(hash_function_.GetType())) {
         std::unordered_set<ArtifactDigest> seen{};
         return LocalUplinkBazelDirectory(latest, digest, &seen, splice_result);
     }
@@ -303,7 +303,7 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
     ArtifactDigest const& tree_digest,
     std::string const& tree_data) const noexcept
     -> std::optional<LargeObjectError> {
-    if (ProtocolTraits::Instance().IsCompatible()) {
+    if (not ProtocolTraits::IsNative(hash_function_.GetType())) {
         return std::nullopt;
     }
 
@@ -399,7 +399,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
 
     // Check tree invariants:
     if constexpr (kIsTree) {
-        if (not ProtocolTraits::Instance().IsCompatible()) {
+        if (ProtocolTraits::IsNative(hash_function_.GetType())) {
             // Read tree entries:
             auto const tree_data = FileSystemManager::ReadFile(file_path);
             if (not tree_data) {

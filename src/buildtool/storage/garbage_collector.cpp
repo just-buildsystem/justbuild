@@ -20,9 +20,7 @@
 #include <filesystem>
 #include <vector>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -214,22 +212,6 @@ auto GarbageCollector::TriggerGarbageCollection(
 
 auto GarbageCollector::Compactify(StorageConfig const& storage_config,
                                   size_t threshold) noexcept -> bool {
-    // Return to the initial compatibility mode once done:
-    auto const guard =
-        gsl::finally([mode = ProtocolTraits::Instance().IsCompatible()] {
-            ProtocolTraits::Instance().SetCompatible(mode);
-        });
-
-    auto compactify = [threshold](StorageConfig const& config) -> bool {
-        ProtocolTraits::Instance().SetCompatible(
-            config.hash_function.GetType() == HashFunction::Type::PlainSHA256);
-        auto const storage = ::Generation::Create(&config);
-
-        return Compactifier::RemoveInvalid(storage.CAS()) and
-               Compactifier::RemoveSpliced(storage.CAS()) and
-               Compactifier::SplitLarge(storage.CAS(), threshold);
-    };
-
     // Compactification must be done for both native and compatible storages.
     static constexpr std::array kHashes = {HashFunction::Type::GitSHA1,
                                            HashFunction::Type::PlainSHA256};
@@ -237,13 +219,20 @@ auto GarbageCollector::Compactify(StorageConfig const& storage_config,
                        .SetBuildRoot(storage_config.build_root)
                        .SetNumGenerations(storage_config.num_generations);
 
-    return std::all_of(kHashes.begin(),
-                       kHashes.end(),
-                       [&builder, &compactify](HashFunction::Type hash_type) {
-                           auto const config =
-                               builder.SetHashType(hash_type).Build();
-                           return config.has_value() and compactify(*config);
-                       });
+    return std::all_of(
+        kHashes.begin(),
+        kHashes.end(),
+        [threshold, &builder](HashFunction::Type hash_type) {
+            auto const config = builder.SetHashType(hash_type).Build();
+            if (not config) {
+                return false;
+            }
+
+            auto const storage = ::Generation::Create(&*config);
+            return Compactifier::RemoveInvalid(storage.CAS()) and
+                   Compactifier::RemoveSpliced(storage.CAS()) and
+                   Compactifier::SplitLarge(storage.CAS(), threshold);
+        });
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL

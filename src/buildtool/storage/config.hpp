@@ -132,19 +132,17 @@ struct StorageConfig final {
 
     [[nodiscard]] auto CreateGenerationConfig(
         std::size_t generation) const noexcept -> GenerationConfig {
-        bool const compatible = ProtocolTraits::Instance().IsCompatible();
+        bool const native = ProtocolTraits::IsNative(hash_function.GetType());
         auto const cache_root = GenerationCacheRoot(generation);
-        auto const cache_dir =
-            UpdatePathForCompatibility(cache_root, compatible);
+        auto const cache_dir = UpdatePathForCompatibility(cache_root, native);
 
         return GenerationConfig{
             .storage_config = this,
             .cas_f = cache_dir / "casf",
             .cas_x = cache_dir / "casx",
-            .cas_t = cache_dir / (compatible ? "casf" : "cast"),
+            .cas_t = cache_dir / (native ? "cast" : "casf"),
             .cas_large_f = cache_dir / "cas-large-f",
-            .cas_large_t =
-                cache_dir / (compatible ? "cas-large-f" : "cas-large-t"),
+            .cas_large_t = cache_dir / (native ? "cas-large-t" : "cas-large-f"),
             .action_cache = cache_dir / "ac",
             .target_cache = cache_dir / "tc"};
     };
@@ -153,8 +151,8 @@ struct StorageConfig final {
     // different folder for different caching protocol
     [[nodiscard]] static auto UpdatePathForCompatibility(
         std::filesystem::path const& dir,
-        bool is_compatible) -> std::filesystem::path {
-        return dir / (is_compatible ? "compatible-sha256" : "git-sha1");
+        bool is_native) -> std::filesystem::path {
+        return dir / (is_native ? "git-sha1" : "compatible-sha256");
     };
 
     [[nodiscard]] auto DefaultBackendDescriptionId() noexcept -> std::string {

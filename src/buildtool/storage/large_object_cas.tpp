@@ -47,10 +47,11 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     if constexpr (kDoGlobalUplink) {
         // To promote parts of the tree properly, regular uplinking logic for
         // trees is used:
-        bool uplinked = IsTreeObject(kType) and
-                                not ProtocolTraits::Instance().IsCompatible()
-                            ? uplinker_.UplinkTree(digest)
-                            : uplinker_.UplinkLargeBlob(digest);
+        auto const hash_type = storage_config_.hash_function.GetType();
+        bool const uplinked =
+            IsTreeObject(kType) and not ProtocolTraits::IsTreeAllowed(hash_type)
+                ? uplinker_.UplinkTree(digest)
+                : uplinker_.UplinkLargeBlob(digest);
         if (uplinked and FileSystemManager::IsFile(file_path)) {
             return file_path;
         }

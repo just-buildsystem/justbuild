@@ -54,13 +54,13 @@ class LocalCAS {
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
         : cas_file_{config.storage_config->hash_function,
                     config.cas_f,
-                    MakeUplinker<ObjectType::File>(uplinker)},
+                    MakeUplinker<ObjectType::File>(config, uplinker)},
           cas_exec_{config.storage_config->hash_function,
                     config.cas_x,
-                    MakeUplinker<ObjectType::Executable>(uplinker)},
+                    MakeUplinker<ObjectType::Executable>(config, uplinker)},
           cas_tree_{config.storage_config->hash_function,
                     config.cas_t,
-                    MakeUplinker<ObjectType::Tree>(uplinker)},
+                    MakeUplinker<ObjectType::Tree>(config, uplinker)},
           cas_file_large_{this, config, uplinker},
           cas_tree_large_{this, config, uplinker},
           hash_function_{config.storage_config->hash_function} {}
@@ -281,13 +281,17 @@ class LocalCAS {
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>
     [[nodiscard]] static auto MakeUplinker(
+        GenerationConfig const& config,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker) {
         if constexpr (kDoGlobalUplink) {
-            return [uplinker](auto const& digest, auto const& /*path*/) {
+            bool const native = ProtocolTraits::IsNative(
+                config.storage_config->hash_function.GetType());
+            return [native, uplinker](auto const& digest,
+                                      auto const& /*path*/) {
                 if constexpr (IsTreeObject(kType)) {
                     // in non-compatible mode, do explicit deep tree uplink
                     // in compatible mode, treat all trees as blobs
-                    if (not ProtocolTraits::Instance().IsCompatible()) {
+                    if (native) {
                         return uplinker->UplinkTree(digest);
                     }
                 }
