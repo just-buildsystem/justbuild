@@ -134,6 +134,7 @@
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/other_tools/utils", "parse_archive"]
+    , ["src/other_tools/utils", "parse_git_tree"]
     , "setup_utils"
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]

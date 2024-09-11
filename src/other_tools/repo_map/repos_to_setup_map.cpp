@@ -27,6 +27,7 @@
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/utils/parse_archive.hpp"
+#include "src/other_tools/utils/parse_git_tree.hpp"
 
 namespace {
 
@@ -568,80 +569,12 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                      gsl::not_null<TaskSystem*> const& ts,
                      ReposToSetupMap::SetterPtr const& setter,
                      ReposToSetupMap::LoggerPtr const& logger) {
-    // enforce mandatory fields
-    auto repo_desc_hash = repo_desc->At("id");
-    if (not repo_desc_hash) {
-        (*logger)("GitTreeCheckout: Mandatory field \"id\" is missing",
-                  /*fatal=*/true);
+    auto tree_info = ParseGitTree(repo_desc);
+    if (not tree_info) {
+        (*logger)(
+            fmt::format("GitTreeCheckout: {}", std::move(tree_info).error()),
+            /*fatal=*/true);
         return;
-    }
-    if (not repo_desc_hash->get()->IsString()) {
-        (*logger)(fmt::format("GitTreeCheckout: Unsupported value {} for "
-                              "mandatory field \"id\"",
-                              repo_desc_hash->get()->ToString()),
-                  /*fatal=*/true);
-        return;
-    }
-    auto repo_desc_cmd = repo_desc->At("cmd");
-    if (not repo_desc_cmd) {
-        (*logger)("GitTreeCheckout: Mandatory field \"cmd\" is missing",
-                  /*fatal=*/true);
-        return;
-    }
-    if (not repo_desc_cmd->get()->IsList()) {
-        (*logger)(fmt::format("GitTreeCheckout: Unsupported value {} for "
-                              "mandatory field \"cmd\"",
-                              repo_desc_cmd->get()->ToString()),
-                  /*fatal=*/true);
-        return;
-    }
-    std::vector<std::string> cmd{};
-    for (auto const& token : repo_desc_cmd->get()->List()) {
-        if (token.IsNotNull() and token->IsString()) {
-            cmd.emplace_back(token->String());
-        }
-        else {
-            (*logger)(fmt::format("GitTreeCheckout: Unsupported entry {} in "
-                                  "mandatory field \"cmd\"",
-                                  token->ToString()),
-                      /*fatal=*/true);
-            return;
-        }
-    }
-    std::map<std::string, std::string> env{};
-    auto repo_desc_env = repo_desc->Get("env", Expression::none_t{});
-    if (repo_desc_env.IsNotNull() and repo_desc_env->IsMap()) {
-        for (auto const& envar : repo_desc_env->Map().Items()) {
-            if (envar.second.IsNotNull() and envar.second->IsString()) {
-                env.insert({envar.first, envar.second->String()});
-            }
-            else {
-                (*logger)(fmt::format("GitTreeCheckout: Unsupported value {} "
-                                      "for key {} in optional field \"envs\"",
-                                      envar.second->ToString(),
-                                      nlohmann::json(envar.first).dump()),
-                          /*fatal=*/true);
-                return;
-            }
-        }
-    }
-    std::vector<std::string> inherit_env{};
-    auto repo_desc_inherit_env =
-        repo_desc->Get("inherit env", Expression::none_t{});
-    if (repo_desc_inherit_env.IsNotNull() and repo_desc_inherit_env->IsList()) {
-        for (auto const& envvar : repo_desc_inherit_env->List()) {
-            if (envvar->IsString()) {
-                inherit_env.emplace_back(envvar->String());
-            }
-            else {
-                (*logger)(
-                    fmt::format("GitTreeCheckout: Not a variable name in the "
-                                "specification of \"inherit env\": {}",
-                                envvar->ToString()),
-                    /*fatal=*/true);
-                return;
-            }
-        }
     }
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
@@ -663,10 +596,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
                                pragma_absent->get()->Bool();
     // populate struct
     TreeIdInfo tree_id_info = {
-        .tree_info = GitTreeInfo{.hash = repo_desc_hash->get()->String(),
-                                 .env_vars = std::move(env),
-                                 .inherit_env = std::move(inherit_env),
-                                 .command = std::move(cmd)},
+        .tree_info = *std::move(tree_info),
         .ignore_special = pragma_special_value == PragmaSpecial::Ignore,
         .absent = not fetch_absent and pragma_absent_value};
     // get the WS root as git tree

@@ -46,6 +46,7 @@
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/other_tools/utils/parse_archive.hpp"
+#include "src/other_tools/utils/parse_git_tree.hpp"
 
 auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoCommonArguments const& common_args,
@@ -272,107 +273,17 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     // explicitly told to fetch absent archives
                     if (not pragma_absent_value or common_args.fetch_absent) {
                         // enforce mandatory fields
-                        auto repo_desc_hash = (*resolved_repo_desc)->At("id");
-                        if (not repo_desc_hash) {
+                        auto tree_info =
+                            ParseGitTree(*resolved_repo_desc, repo_name);
+                        if (not tree_info) {
                             Logger::Log(
                                 LogLevel::Error,
-                                "Config: Mandatory field \"id\" is missing");
+                                fmt::format("Config: {}",
+                                            std::move(tree_info).error()));
                             return kExitFetchError;
                         }
-                        if (not repo_desc_hash->get()->IsString()) {
-                            Logger::Log(
-                                LogLevel::Error,
-                                fmt::format("Config: Unsupported value {} for "
-                                            "mandatory field \"id\"",
-                                            repo_desc_hash->get()->ToString()));
-                            return kExitFetchError;
-                        }
-                        auto repo_desc_cmd = (*resolved_repo_desc)->At("cmd");
-                        if (not repo_desc_cmd) {
-                            Logger::Log(
-                                LogLevel::Error,
-                                "Config: Mandatory field \"cmd\" is missing");
-                            return kExitFetchError;
-                        }
-                        if (not repo_desc_cmd->get()->IsList()) {
-                            Logger::Log(
-                                LogLevel::Error,
-                                fmt::format("Config: Unsupported value {} for "
-                                            "mandatory field \"cmd\"",
-                                            repo_desc_cmd->get()->ToString()));
-                            return kExitFetchError;
-                        }
-                        std::vector<std::string> cmd{};
-                        for (auto const& token : repo_desc_cmd->get()->List()) {
-                            if (token.IsNotNull() and token->IsString()) {
-                                cmd.emplace_back(token->String());
-                            }
-                            else {
-                                Logger::Log(
-                                    LogLevel::Error,
-                                    fmt::format("Config: Unsupported entry {} "
-                                                "in mandatory field \"cmd\"",
-                                                token->ToString()));
-                                return kExitFetchError;
-                            }
-                        }
-                        std::map<std::string, std::string> env{};
-                        auto repo_desc_env =
-                            (*resolved_repo_desc)
-                                ->Get("env", Expression::none_t{});
-                        if (repo_desc_env.IsNotNull() and
-                            repo_desc_env->IsMap()) {
-                            for (auto const& envar :
-                                 repo_desc_env->Map().Items()) {
-                                if (envar.second.IsNotNull() and
-                                    envar.second->IsString()) {
-                                    env.insert(
-                                        {envar.first, envar.second->String()});
-                                }
-                                else {
-                                    Logger::Log(
-                                        LogLevel::Error,
-                                        fmt::format(
-                                            "Config: Unsupported value {} for "
-                                            "key {} in optional field \"envs\"",
-                                            envar.second->ToString(),
-                                            nlohmann::json(envar.first)
-                                                .dump()));
-                                    return kExitFetchError;
-                                }
-                            }
-                        }
-                        std::vector<std::string> inherit_env{};
-                        auto repo_desc_inherit_env =
-                            (*resolved_repo_desc)
-                                ->Get("inherit env", Expression::none_t{});
-                        if (repo_desc_inherit_env.IsNotNull() and
-                            repo_desc_inherit_env->IsList()) {
-                            for (auto const& envvar :
-                                 repo_desc_inherit_env->List()) {
-                                if (envvar->IsString()) {
-                                    inherit_env.emplace_back(envvar->String());
-                                }
-                                else {
-                                    Logger::Log(
-                                        LogLevel::Error,
-                                        fmt::format("Config: Not a variable "
-                                                    "name in the specification "
-                                                    "of \"inherit env\": {}",
-                                                    envvar->ToString()));
-                                    return kExitFetchError;
-                                }
-                            }
-                        }
-                        // populate struct
-                        GitTreeInfo tree_info = {
-                            .hash = repo_desc_hash->get()->String(),
-                            .env_vars = std::move(env),
-                            .inherit_env = std::move(inherit_env),
-                            .command = std::move(cmd),
-                            .origin = repo_name};
                         // add to list
-                        git_trees_to_fetch.emplace_back(std::move(tree_info));
+                        git_trees_to_fetch.emplace_back(*std::move(tree_info));
                     }
                 } break;
                 default:
