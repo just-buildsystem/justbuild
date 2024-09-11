@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_info.hpp"
 
 [[nodiscard]] auto ParseGitTree(ExpressionPtr const& repo_desc,
                                 std::optional<std::string> origin)
@@ -32,6 +33,17 @@
             fmt::format("Unsupported value {} for "
                         "mandatory field \"id\"",
                         repo_desc_hash->get()->ToString())};
+    }
+
+    auto repo_desc_hash_info = HashInfo::Create(HashFunction::Type::GitSHA1,
+                                                repo_desc_hash->get()->String(),
+                                                /*is_tree=*/true);
+    if (not repo_desc_hash_info) {
+        return unexpected{
+            fmt::format("Unsupported value {} for "
+                        "mandatory field \"id\"\n{}",
+                        repo_desc_hash->get()->ToString(),
+                        std::move(repo_desc_hash_info).error())};
     }
 
     auto repo_desc_cmd = repo_desc->At("cmd");
@@ -90,7 +102,7 @@
         }
     }
     // populate struct
-    auto info = GitTreeInfo{.hash = repo_desc_hash->get()->String(),
+    auto info = GitTreeInfo{.tree_hash = *std::move(repo_desc_hash_info),
                             .env_vars = std::move(env),
                             .inherit_env = std::move(inherit_env),
                             .command = std::move(cmd)};

@@ -117,11 +117,13 @@
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/compatibility", "compatibility"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]

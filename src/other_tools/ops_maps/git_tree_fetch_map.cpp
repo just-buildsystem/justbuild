@@ -19,6 +19,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/compatibility/compatibility.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
@@ -30,7 +31,7 @@
 
 namespace {
 
-void BackupToRemote(std::string const& tree_id,
+void BackupToRemote(ArtifactDigest const& digest,
                     StorageConfig const& storage_config,
                     IExecutionApi const& remote_api,
                     GitTreeFetchMap::LoggerPtr const& logger) {
@@ -39,14 +40,13 @@ void BackupToRemote(std::string const& tree_id,
     if (repo.SetGitCAS(storage_config.GitRoot())) {
         auto git_api = GitApi{&repo};
         if (not git_api.RetrieveToCas(
-                {Artifact::ObjectInfo{
-                    .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
-                    .type = ObjectType::Tree}},
+                {Artifact::ObjectInfo{.digest = digest,
+                                      .type = ObjectType::Tree}},
                 remote_api)) {
             // give a warning
             (*logger)(fmt::format(
                           "Failed to back up tree {} from local CAS to remote",
-                          tree_id),
+                          digest.hash()),
                       /*fatal=*/false);
         }
     }
@@ -60,8 +60,7 @@ void BackupToRemote(std::string const& tree_id,
 
 /// \brief Moves the root tree from local CAS to the Git cache and sets the
 /// root.
-void MoveCASTreeToGit(std::string const& tree_id,
-                      ArtifactDigest const& digest,
+void MoveCASTreeToGit(ArtifactDigest const& digest,
                       gsl::not_null<ImportToGitMap*> const& import_to_git_map,
                       gsl::not_null<StorageConfig const*> const& storage_config,
                       gsl::not_null<IExecutionApi const*> const& local_api,
@@ -83,17 +82,17 @@ void MoveCASTreeToGit(std::string const& tree_id,
             {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
             {tmp_dir->GetPath()})) {
         (*logger)(fmt::format("Failed to copy git-tree {} to {}",
-                              tree_id,
+                              digest.hash(),
                               tmp_dir->GetPath().string()),
                   true);
         return;
     }
-    CommitInfo c_info{tmp_dir->GetPath(), "tree", tree_id};
+    CommitInfo c_info{tmp_dir->GetPath(), "tree", digest.hash()};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
-         tree_id,
+         digest,
          storage_config,
          remote_api,
          backup_to_remote,
@@ -106,21 +105,21 @@ void MoveCASTreeToGit(std::string const& tree_id,
             }
             // backup to remote if needed and in compatibility mode
             if (backup_to_remote and remote_api != nullptr) {
-                BackupToRemote(tree_id, *storage_config, *remote_api, logger);
+                BackupToRemote(digest, *storage_config, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
         },
-        [logger, tmp_dir, tree_id](auto const& msg, bool fatal) {
+        [logger, tmp_dir, digest](auto const& msg, bool fatal) {
             (*logger)(fmt::format(
                           "While moving git-tree {} from {} to local git:\n{}",
-                          tree_id,
+                          digest.hash(),
                           tmp_dir->GetPath().string(),
                           msg),
                       fatal);
         });
 }
 
-void TagAndSetRoot(std::string tree_id,
+void TagAndSetRoot(ArtifactDigest const& digest,
                    gsl::not_null<StorageConfig const*> const& storage_config,
                    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
                    IExecutionApi const* remote_api,
@@ -132,14 +131,14 @@ void TagAndSetRoot(std::string tree_id,
     GitOpKey op_key = {.params =
                            {
                                repo,                         // target_path
-                               tree_id,                      // git_hash
+                               digest.hash(),                // git_hash
                                "Keep referenced tree alive"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
-        [tree_id, backup_to_remote, storage_config, remote_api, logger, setter](
+        [digest, backup_to_remote, storage_config, remote_api, logger, setter](
             auto const& values) {
             GitOpValue op_result = *values[0];
             if (not op_result.result) {
@@ -149,14 +148,14 @@ void TagAndSetRoot(std::string tree_id,
             }
             // backup to remote if needed and in compatibility mode
             if (backup_to_remote and remote_api != nullptr) {
-                BackupToRemote(tree_id, *storage_config, *remote_api, logger);
+                BackupToRemote(digest, *storage_config, *remote_api, logger);
             }
             (*setter)(false /*no cache hit*/);
         },
-        [logger, repo, tree_id](auto const& msg, bool fatal) {
+        [logger, repo, digest](auto const& msg, bool fatal) {
             (*logger)(
                 fmt::format("While tagging tree {} in {} to keep it alive:\n{}",
-                            tree_id,
+                            digest.hash(),
                             repo.string(),
                             msg),
                 fatal);
@@ -165,7 +164,7 @@ void TagAndSetRoot(std::string tree_id,
 
 void TakeTreeFromOlderGeneration(
     std::size_t generation,
-    std::string tree_id,
+    ArtifactDigest const& digest,
     gsl::not_null<StorageConfig const*> const& storage_config,
     GitCASPtr const& git_cas,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
@@ -178,14 +177,14 @@ void TakeTreeFromOlderGeneration(
     GitOpKey op_key = {.params =
                            {
                                source,                    // target_path
-                               tree_id,                   // git_hash
+                               digest.hash(),             // git_hash
                                "Tag commit for fetching"  // message
                            },
                        .op_type = GitOpType::KEEP_TREE};
     critical_git_op_map->ConsumeAfterKeysReady(
         ts,
         {std::move(op_key)},
-        [tree_id,
+        [digest,
          git_cas,
          critical_git_op_map,
          remote_api,
@@ -218,7 +217,7 @@ void TakeTreeFromOlderGeneration(
                     *storage_config, source, tag, fetch_logger)) {
                 return;
             }
-            TagAndSetRoot(tree_id,
+            TagAndSetRoot(digest,
                           storage_config,
                           critical_git_op_map,
                           remote_api,
@@ -227,11 +226,11 @@ void TakeTreeFromOlderGeneration(
                           setter,
                           logger);
         },
-        [logger, source, tree_id](auto const& msg, bool fatal) {
+        [logger, source, digest](auto const& msg, bool fatal) {
             (*logger)(
                 fmt::format("While tagging tree {} in {} for fetching:\n{}",
                             source.string(),
-                            tree_id,
+                            digest.hash(),
                             msg),
                 fatal);
         });
@@ -318,8 +317,8 @@ auto CreateGitTreeFetchMap(
                                   fatal);
                     });
                 // check if the desired tree ID is in Git cache
-                auto tree_found =
-                    git_repo->CheckTreeExists(key.hash, wrapped_logger);
+                auto tree_found = git_repo->CheckTreeExists(
+                    key.tree_hash.Hash(), wrapped_logger);
                 if (not tree_found) {
                     // errors encountered
                     return;
@@ -327,8 +326,10 @@ auto CreateGitTreeFetchMap(
                 if (*tree_found) {
                     // backup to remote if needed and in native mode
                     if (backup_to_remote and remote_api != nullptr) {
-                        BackupToRemote(
-                            key.hash, *storage_config, *remote_api, logger);
+                        BackupToRemote(ArtifactDigest{key.tree_hash, 0},
+                                       *storage_config,
+                                       *remote_api,
+                                       logger);
                     }
                     // success
                     (*setter)(true /*cache hit*/);
@@ -346,19 +347,20 @@ auto CreateGitTreeFetchMap(
                             std::make_shared<AsyncMapConsumerLogger>(
                                 [](auto /*unused*/, auto /*unused*/) {});
                         if (old_repo) {
-                            auto check_result =
-                                old_repo->CheckTreeExists(key.hash, no_logging);
+                            auto check_result = old_repo->CheckTreeExists(
+                                key.tree_hash.Hash(), no_logging);
                             if (check_result and *check_result) {
-                                TakeTreeFromOlderGeneration(generation,
-                                                            key.hash,
-                                                            storage_config,
-                                                            op_result.git_cas,
-                                                            critical_git_op_map,
-                                                            remote_api,
-                                                            backup_to_remote,
-                                                            ts,
-                                                            setter,
-                                                            logger);
+                                TakeTreeFromOlderGeneration(
+                                    generation,
+                                    ArtifactDigest{key.tree_hash, 0},
+                                    storage_config,
+                                    op_result.git_cas,
+                                    critical_git_op_map,
+                                    remote_api,
+                                    backup_to_remote,
+                                    ts,
+                                    setter,
+                                    logger);
                                 return;
                             }
                         }
@@ -366,11 +368,10 @@ auto CreateGitTreeFetchMap(
                 }
 
                 // check if tree is known to local CAS
-                auto digest = ArtifactDigest{key.hash, 0, /*is_tree=*/true};
+                auto const digest = ArtifactDigest{key.tree_hash, 0};
                 if (local_api->IsAvailable(digest)) {
                     // import tree to Git cache
-                    MoveCASTreeToGit(key.hash,
-                                     digest,
+                    MoveCASTreeToGit(digest,
                                      import_to_git_map,
                                      storage_config,
                                      local_api,
@@ -389,7 +390,7 @@ auto CreateGitTreeFetchMap(
                     // as we anyway interrogate the remote execution endpoint,
                     // we're only interested here in the serve endpoint making
                     // an attempt to upload the tree, if known, to remote CAS
-                    std::ignore = serve->TreeInRemoteCAS(key.hash);
+                    std::ignore = serve->TreeInRemoteCAS(key.tree_hash.Hash());
                 }
                 // check if tree is in remote CAS, if a remote is given
                 if (remote_api != nullptr and
@@ -399,7 +400,6 @@ auto CreateGitTreeFetchMap(
                         *local_api)) {
                     progress->TaskTracker().Stop(key.origin);
                     MoveCASTreeToGit(
-                        key.hash,
                         digest,
                         import_to_git_map,
                         storage_config,
@@ -432,7 +432,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 // execute command in temporary location
-                SystemCommand system{key.hash};
+                SystemCommand system{key.tree_hash.Hash()};
                 auto cmdline = launcher;
                 std::copy(key.command.begin(),
                           key.command.end(),
@@ -468,8 +468,8 @@ auto CreateGitTreeFetchMap(
                             repo_dir->GetPath(),  // target_path
                             "",                   // git_hash
                             fmt::format("Content of tree {}",
-                                        key.hash),  // message
-                            content_dir->GetPath()  // source_path
+                                        key.tree_hash.Hash()),  // message
+                            content_dir->GetPath()              // source_path
                         },
                     .op_type = GitOpType::INITIAL_COMMIT};
                 critical_git_op_map->ConsumeAfterKeysReady(
@@ -518,8 +518,8 @@ auto CreateGitTreeFetchMap(
                                               fatal);
                                 });
                         // check that the desired tree ID is part of the repo
-                        auto tree_check =
-                            git_repo->CheckTreeExists(key.hash, wrapped_logger);
+                        auto tree_check = git_repo->CheckTreeExists(
+                            key.tree_hash.Hash(), wrapped_logger);
                         if (not tree_check) {
                             // errors encountered
                             return;
@@ -548,7 +548,7 @@ auto CreateGitTreeFetchMap(
                                 fmt::format("Executing {} did not create "
                                             "specified tree {}{}",
                                             nlohmann::json(cmdline).dump(),
-                                            key.hash,
+                                            key.tree_hash.Hash(),
                                             output),
                                 /*fatal=*/true);
                             return;
@@ -638,10 +638,11 @@ auto CreateGitTreeFetchMap(
                                 // backup to remote if needed and in native mode
                                 if (backup_to_remote and
                                     remote_api != nullptr) {
-                                    BackupToRemote(key.hash,
-                                                   *storage_config,
-                                                   *remote_api,
-                                                   logger);
+                                    BackupToRemote(
+                                        ArtifactDigest{key.tree_hash, 0},
+                                        *storage_config,
+                                        *remote_api,
+                                        logger);
                                 }
                                 // success
                                 (*setter)(false /*no cache hit*/);

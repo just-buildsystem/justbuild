@@ -76,7 +76,8 @@
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/utils/cpp", "expected"]
     ]
-  , "private-deps": [["@", "fmt", "", "fmt"]]
+  , "private-deps":
+    [["@", "fmt", "", "fmt"], ["src/buildtool/crypto", "hash_info"]]
   , "stage": ["src", "other_tools", "utils"]
   }
 }

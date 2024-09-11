@@ -175,8 +175,10 @@
     [ ["@", "fmt", "", "fmt"]
     , "root_utils"
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/crypto", "hash_info"]
     ]
   }
 , "root_utils":

@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -32,7 +33,7 @@
 
 // Stores all the information needed to make a Git tree available
 struct GitTreeInfo {
-    std::string hash{}; /* key */
+    HashInfo tree_hash{}; /* key */
     std::map<std::string, std::string> env_vars{};
     std::vector<std::string> inherit_env{};
     std::vector<std::string> command{};
@@ -40,7 +41,7 @@ struct GitTreeInfo {
     std::string origin{};
 
     [[nodiscard]] auto operator==(const GitTreeInfo& other) const -> bool {
-        return hash == other.hash;
+        return tree_hash.Hash() == other.tree_hash.Hash();
     }
 };
 
@@ -49,7 +50,7 @@ template <>
 struct hash<GitTreeInfo> {
     [[nodiscard]] auto operator()(const GitTreeInfo& gti) const noexcept
         -> std::size_t {
-        return std::hash<std::string>{}(gti.hash);
+        return std::hash<std::string>{}(gti.tree_hash.Hash());
     }
 };
 }  // namespace std
@@ -74,6 +75,6 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
 // use explicit cast to std::function to allow template deduction when used
 static const std::function<std::string(GitTreeInfo const&)>
     kGitTreeInfoPrinter =
-        [](GitTreeInfo const& x) -> std::string { return x.hash; };
+        [](GitTreeInfo const& x) -> std::string { return x.tree_hash.Hash(); };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_OPS_MAPS_GIT_TREE_FETCH_MAP_HPP
