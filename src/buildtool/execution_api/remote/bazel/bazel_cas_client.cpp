@@ -28,7 +28,6 @@
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -49,14 +48,12 @@ namespace {
 // execution protocol. Then, the ordinary way to determine server capabilities
 // can be employed by using the capabilities service.
 [[nodiscard]] auto BlobSplitSupport(
+    HashFunction hash_function,
     std::string const& instance_name,
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
     auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, empty_str);
 
@@ -87,6 +84,7 @@ namespace {
 
 // Cached version of blob-split support request.
 [[nodiscard]] auto BlobSplitSupportCached(
+    HashFunction hash_function,
     std::string const& instance_name,
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
     Logger const* logger) noexcept -> bool {
@@ -99,7 +97,7 @@ namespace {
             return blob_split_support_map[instance_name];
         }
     }
-    auto supported = ::BlobSplitSupport(instance_name, stub);
+    auto supported = ::BlobSplitSupport(hash_function, instance_name, stub);
     logger->Emit(LogLevel::Debug,
                  "Blob split support for \"{}\": {}",
                  instance_name,
@@ -115,14 +113,12 @@ namespace {
 // remote execution protocol. Then, the ordinary way to determine server
 // capabilities can be employed by using the capabilities service.
 [[nodiscard]] auto BlobSpliceSupport(
+    HashFunction hash_function,
     std::string const& instance_name,
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
         stub) noexcept -> bool {
     // Create empty blob.
     std::string empty_str{};
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
     auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, empty_str);
 
@@ -154,6 +150,7 @@ namespace {
 
 // Cached version of blob-splice support request.
 [[nodiscard]] auto BlobSpliceSupportCached(
+    HashFunction hash_function,
     std::string const& instance_name,
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
     Logger const* logger) noexcept -> bool {
@@ -166,7 +163,7 @@ namespace {
             return blob_splice_support_map[instance_name];
         }
     }
-    auto supported = ::BlobSpliceSupport(instance_name, stub);
+    auto supported = ::BlobSpliceSupport(hash_function, instance_name, stub);
     logger->Emit(LogLevel::Debug,
                  "Blob splice support for \"{}\": {}",
                  instance_name,
@@ -356,10 +353,12 @@ auto BazelCasClient::ReadSingleBlob(
     return std::nullopt;
 }
 
-auto BazelCasClient::SplitBlob(std::string const& instance_name,
+auto BazelCasClient::SplitBlob(HashFunction hash_function,
+                               std::string const& instance_name,
                                bazel_re::Digest const& blob_digest)
     const noexcept -> std::optional<std::vector<bazel_re::Digest>> {
-    if (not BlobSplitSupportCached(instance_name, stub_, &logger_)) {
+    if (not BlobSplitSupportCached(
+            hash_function, instance_name, stub_, &logger_)) {
         return std::nullopt;
     }
     bazel_re::SplitBlobRequest request{};
@@ -383,11 +382,13 @@ auto BazelCasClient::SplitBlob(std::string const& instance_name,
 }
 
 auto BazelCasClient::SpliceBlob(
+    HashFunction hash_function,
     std::string const& instance_name,
     bazel_re::Digest const& blob_digest,
     std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
     -> std::optional<bazel_re::Digest> {
-    if (not BlobSpliceSupportCached(instance_name, stub_, &logger_)) {
+    if (not BlobSpliceSupportCached(
+            hash_function, instance_name, stub_, &logger_)) {
         return std::nullopt;
     }
     bazel_re::SpliceBlobRequest request{};
@@ -415,13 +416,17 @@ auto BazelCasClient::SpliceBlob(
 }
 
 auto BazelCasClient::BlobSplitSupport(
+    HashFunction hash_function,
     std::string const& instance_name) const noexcept -> bool {
-    return ::BlobSplitSupportCached(instance_name, stub_, &logger_);
+    return ::BlobSplitSupportCached(
+        hash_function, instance_name, stub_, &logger_);
 }
 
 auto BazelCasClient::BlobSpliceSupport(
+    HashFunction hash_function,
     std::string const& instance_name) const noexcept -> bool {
-    return ::BlobSpliceSupportCached(instance_name, stub_, &logger_);
+    return ::BlobSpliceSupportCached(
+        hash_function, instance_name, stub_, &logger_);
 }
 
 template <class T_ForwardIter>
