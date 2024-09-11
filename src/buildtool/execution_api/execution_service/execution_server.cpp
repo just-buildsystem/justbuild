@@ -22,12 +22,14 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 void UpdateTimeStamp(
@@ -284,15 +286,21 @@ namespace {
     ::bazel_re::OutputDirectory out_dir{};
     *(out_dir.mutable_path()) = std::move(path);
 
+    LocalCasReader reader(&storage.CAS());
     if (ProtocolTraits::IsNative(storage.GetHashFunction().GetType())) {
-        // In native mode: Set the directory digest directly.
+        // In native mode: Check validity of tree entries, otherwise set the
+        // digest directly.
+        if (not reader.ReadGitTree(digest)) {
+            auto const error = fmt::format(
+                "Found invalid entry in the Git Tree {}", digest.hash());
+            return unexpected{error};
+        }
         (*out_dir.mutable_tree_digest()) =
             ArtifactDigestFactory::ToBazel(digest);
     }
     else {
         // In compatible mode: Create a tree digest from directory
         // digest on the fly and set tree digest.
-        LocalCasReader reader(&storage.CAS());
         auto const tree = reader.MakeTree(digest);
         if (not tree) {
             return unexpected{fmt::format("Failed to build bazel Tree for {}",
@@ -331,6 +339,13 @@ namespace {
     if (not content) {
         return unexpected{fmt::format(
             "Failed to read the symlink content for {}", digest.hash())};
+    }
+
+    // in native mode, check that we do not pass invalid symlinks
+    if (ProtocolTraits::IsNative(storage.GetHashFunction().GetType()) and
+        not PathIsNonUpwards(*content)) {
+        auto const error = fmt::format("Invalid symlink for {}", digest.hash());
+        return unexpected{error};
     }
 
     *(out_link.mutable_target()) = *std::move(content);

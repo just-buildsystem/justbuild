@@ -22,6 +22,7 @@
     , ["src/buildtool/logging", "log_level"]
     , "operation_cache"
     , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "artifact_digest_factory"]
