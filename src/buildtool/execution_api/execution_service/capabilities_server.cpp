@@ -25,7 +25,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     const ::bazel_re::GetCapabilitiesRequest*
     /*request*/,
     ::bazel_re::ServerCapabilities* response) -> ::grpc::Status {
-    if (not ProtocolTraits::Instance().IsCompatible()) {
+    if (ProtocolTraits::IsNative(hash_type_)) {
         auto const* str = "GetCapabilities not implemented";
         Logger::Log(LogLevel::Error, str);
         return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};

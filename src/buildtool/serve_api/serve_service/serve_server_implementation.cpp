@@ -112,6 +112,8 @@ auto ServeServerImpl::Run(
         return false;
     }
 
+    auto const hash_type =
+        local_context->storage_config->hash_function.GetType();
     SourceTreeService sts{&serve_config, local_context, &apis};
     TargetService ts{&serve_config,
                      local_context,
@@ -133,7 +135,7 @@ auto ServeServerImpl::Run(
     [[maybe_unused]] ActionCacheServiceImpl ac{local_context};
     [[maybe_unused]] CASServiceImpl cas{local_context};
     [[maybe_unused]] BytestreamServiceImpl b{local_context};
-    [[maybe_unused]] CapabilitiesServiceImpl cap{};
+    [[maybe_unused]] CapabilitiesServiceImpl cap{hash_type};
     [[maybe_unused]] OperationsServiceImpl op{&es.GetOpCache()};
     if (with_execute) {
         builder.RegisterService(&es)

@@ -135,7 +135,10 @@
   , "srcs": ["capabilities_server.cpp"]
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
-  , "deps": [["src/buildtool/common", "bazel_types"]]
+  , "deps":
+    [ ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/crypto", "hash_function"]
+    ]
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

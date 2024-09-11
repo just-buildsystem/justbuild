@@ -17,9 +17,13 @@
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 
 class CapabilitiesServiceImpl final : public bazel_re::Capabilities::Service {
   public:
+    explicit CapabilitiesServiceImpl(HashFunction::Type hash_type) noexcept
+        : hash_type_{hash_type} {}
+
     // GetCapabilities returns the server capabilities configuration of the
     // remote endpoint.
     // Only the capabilities of the services supported by the endpoint will
@@ -32,5 +36,8 @@ class CapabilitiesServiceImpl final : public bazel_re::Capabilities::Service {
                          const ::bazel_re::GetCapabilitiesRequest* request,
                          ::bazel_re::ServerCapabilities* response)
         -> ::grpc::Status override;
+
+  private:
+    HashFunction::Type const hash_type_;
 };
-#endif
+#endif  // CAPABILITIES_SERVER_HPP

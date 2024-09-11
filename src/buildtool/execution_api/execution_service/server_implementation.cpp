@@ -84,11 +84,13 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
                      gsl::not_null<RemoteContext const*> const& remote_context,
                      ApiBundle const& apis,
                      std::optional<std::uint8_t> op_exponent) -> bool {
+    auto const hash_type =
+        local_context->storage_config->hash_function.GetType();
     ExecutionServiceImpl es{local_context, &*apis.local, op_exponent};
     ActionCacheServiceImpl ac{local_context};
     CASServiceImpl cas{local_context};
     BytestreamServiceImpl b{local_context};
-    CapabilitiesServiceImpl cap{};
+    CapabilitiesServiceImpl cap{hash_type};
     OperationsServiceImpl op{&es.GetOpCache()};
 
     grpc::ServerBuilder builder;
