@@ -56,7 +56,7 @@ class LocalApi final : public IExecutionApi {
     explicit LocalApi(gsl::not_null<LocalContext const*> const& local_context,
                       RepositoryConfig const* repo_config = nullptr) noexcept
         : local_context_{*local_context},
-          git_api_{CreateFallbackApi(repo_config)} {}
+          git_api_{CreateFallbackApi(*local_context->storage, repo_config)} {}
 
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
@@ -284,24 +284,23 @@ class LocalApi final : public IExecutionApi {
             return std::nullopt;
         }
 
-        if (ProtocolTraits::Instance().IsCompatible()) {
-            return CommonUploadTreeCompatible(
-                *this,
-                *build_root,
-                [&cas = local_context_.storage->CAS()](
-                    std::vector<ArtifactDigest> const& digests,
-                    gsl::not_null<std::vector<std::string>*> const& targets) {
-                    targets->reserve(digests.size());
-                    for (auto const& digest : digests) {
-                        auto p = cas.BlobPath(digest,
-                                              /*is_executable=*/false);
-                        auto content = FileSystemManager::ReadFile(*p);
-                        targets->emplace_back(*content);
-                    }
-                });
+        auto const& cas = local_context_.storage->CAS();
+        if (ProtocolTraits::IsNative(cas.GetHashFunction().GetType())) {
+            return CommonUploadTreeNative(*this, *build_root);
         }
-
-        return CommonUploadTreeNative(*this, *build_root);
+        return CommonUploadTreeCompatible(
+            *this,
+            *build_root,
+            [&cas](std::vector<ArtifactDigest> const& digests,
+                   gsl::not_null<std::vector<std::string>*> const& targets) {
+                targets->reserve(digests.size());
+                for (auto const& digest : digests) {
+                    auto p = cas.BlobPath(digest,
+                                          /*is_executable=*/false);
+                    auto content = FileSystemManager::ReadFile(*p);
+                    targets->emplace_back(*content);
+                }
+            });
     }
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
@@ -382,9 +381,10 @@ class LocalApi final : public IExecutionApi {
     std::optional<GitApi> const git_api_;
 
     [[nodiscard]] static auto CreateFallbackApi(
+        Storage const& storage,
         RepositoryConfig const* repo_config) noexcept -> std::optional<GitApi> {
         if (repo_config == nullptr or
-            ProtocolTraits::Instance().IsCompatible()) {
+            not ProtocolTraits::IsNative(storage.GetHashFunction().GetType())) {
             return std::nullopt;
         }
         return GitApi{repo_config};

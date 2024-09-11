@@ -70,10 +70,10 @@ class BuildCleanupAnchor {
         [&cas](std::string const& content) -> std::optional<ArtifactDigest> {
         return cas.StoreBlob(content);
     };
-    return ProtocolTraits::Instance().IsCompatible()
-               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+    return ProtocolTraits::IsNative(storage.GetHashFunction().GetType())
+               ? BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
                      dir_path, store_blob, store_tree, store_symlink)
-               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+               : BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                      dir_path, store_blob, store_tree, store_symlink);
 }
 
