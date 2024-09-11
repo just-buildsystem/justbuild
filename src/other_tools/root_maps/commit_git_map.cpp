@@ -19,6 +19,8 @@
 #include <string>
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -851,12 +853,16 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             }
 
                             // try to get root tree from remote CAS
-                            auto root_digest = ArtifactDigest{
-                                root_tree_id, 0, /*is_tree=*/true};
-                            if (remote_api != nullptr and
+                            auto const root_digest =
+                                ArtifactDigestFactory::Create(
+                                    storage_config->hash_function.GetType(),
+                                    root_tree_id,
+                                    0,
+                                    /*is_tree=*/true);
+                            if (remote_api != nullptr and root_digest and
                                 remote_api->RetrieveToCas(
                                     {Artifact::ObjectInfo{
-                                        .digest = root_digest,
+                                        .digest = *root_digest,
                                         .type = ObjectType::Tree}},
                                     *local_api)) {
                                 progress->TaskTracker().Stop(repo_info.origin);
@@ -877,7 +883,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 }
                                 if (not local_api->RetrieveToPaths(
                                         {Artifact::ObjectInfo{
-                                            .digest = root_digest,
+                                            .digest = *root_digest,
                                             .type = ObjectType::Tree}},
                                         {tmp_dir->GetPath()})) {
                                     (*logger)(fmt::format(

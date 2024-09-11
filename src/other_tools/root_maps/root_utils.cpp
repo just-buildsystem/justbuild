@@ -17,7 +17,9 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
@@ -50,12 +52,14 @@ auto EnsureAbsentRootOnServe(ServeApi const& serve,
                 /*fatal=*/true);
             return false;
         }
+        auto const digest = ArtifactDigestFactory::Create(
+            HashFunction::Type::GitSHA1, tree_id, 0, /*is_tree=*/true);
+
         auto git_api = GitApi{&repo};
-        if (not git_api.RetrieveToCas(
-                {Artifact::ObjectInfo{
-                    .digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true},
-                    .type = ObjectType::Tree}},
-                *remote_api)) {
+        if (not digest or not git_api.RetrieveToCas(
+                              {Artifact::ObjectInfo{.digest = *digest,
+                                                    .type = ObjectType::Tree}},
+                              *remote_api)) {
             (*logger)(fmt::format("Failed to sync tree {} from repository {}",
                                   tree_id,
                                   repo_path.string()),

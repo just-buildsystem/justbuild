@@ -19,6 +19,8 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
@@ -46,9 +48,16 @@ namespace {
         content_list->begin(),
         content_list->end(),
         [&cas, tmp_dir](auto const& kv) {
-            auto content_path =
-                cas.BlobPath(ArtifactDigest(kv.second, 0, false),
-                             /*is_executable=*/false);
+            auto const digest =
+                ArtifactDigestFactory::Create(cas.GetHashFunction().GetType(),
+                                              kv.second,
+                                              0,
+                                              /*is_tree=*/false);
+            if (not digest) {
+                return false;
+            }
+            auto content_path = cas.BlobPath(*digest,
+                                             /*is_executable=*/false);
             if (content_path) {
                 return FileSystemManager::CreateFileHardlink(
                            *content_path,       // from: cas_path/content_id
@@ -329,9 +338,10 @@ auto CreateDistdirGitMap(
                 return;
             }
             // get hash from raw_id
-            auto tree_id = ToHexString(tree->first);
+            auto const tree_id = ToHexString(tree->first);
             // get digest object
-            auto digest = ArtifactDigest{tree_id, 0, /*is_tree=*/true};
+            auto const digest = ArtifactDigestFactory::Create(
+                HashFunction::Type::GitSHA1, tree_id, 0, /*is_tree=*/false);
 
             // use this knowledge of the resulting tree identifier to try to set
             // up the absent root without actually checking the local status of
@@ -398,7 +408,7 @@ auto CreateDistdirGitMap(
                     }
                     // try to supply the serve endpoint with the tree via the
                     // remote CAS
-                    if (remote_api->IsAvailable({digest})) {
+                    if (digest and remote_api->IsAvailable({*digest})) {
                         // tell serve to set up the root from the remote CAS
                         // tree; upload can be skipped
                         if (EnsureAbsentRootOnServe(
@@ -424,10 +434,10 @@ auto CreateDistdirGitMap(
                     }
                     // check if we have the tree in local CAS; if yes, upload it
                     // to remote for the serve endpoint to find it
-                    if (local_api->IsAvailable({digest})) {
+                    if (digest and local_api->IsAvailable({*digest})) {
                         if (not local_api->RetrieveToCas(
                                 {Artifact::ObjectInfo{
-                                    .digest = digest,
+                                    .digest = *digest,
                                     .type = ObjectType::Tree}},
                                 *remote_api)) {
                             (*logger)(fmt::format("Failed to sync tree {} from "
@@ -475,7 +485,7 @@ auto CreateDistdirGitMap(
 
             // if the root is not-absent, the order of checks is different;
             // first, look in the local CAS
-            if (local_api->IsAvailable({digest})) {
+            if (digest and local_api->IsAvailable({*digest})) {
                 ImportFromCASAndSetRoot(key,
                                         *storage_config,
                                         *storage,
