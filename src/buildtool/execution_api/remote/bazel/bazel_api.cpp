@@ -527,24 +527,23 @@ auto BazelApi::CreateAction(
         return std::nullopt;
     }
 
-    if (ProtocolTraits::Instance().IsCompatible()) {
-        return CommonUploadTreeCompatible(
-            *this,
-            *build_root,
-            [&network = network_](
-                std::vector<ArtifactDigest> const& digests,
-                gsl::not_null<std::vector<std::string>*> const& targets) {
-                auto reader = network->CreateReader();
-                targets->reserve(digests.size());
-                for (auto blobs : reader.ReadIncrementally(digests)) {
-                    for (auto const& blob : blobs) {
-                        targets->emplace_back(*blob.data);
-                    }
-                }
-            });
+    if (ProtocolTraits::IsNative(network_->GetHashFunction().GetType())) {
+        return CommonUploadTreeNative(*this, *build_root);
     }
-
-    return CommonUploadTreeNative(*this, *build_root);
+    return CommonUploadTreeCompatible(
+        *this,
+        *build_root,
+        [&network = network_](
+            std::vector<ArtifactDigest> const& digests,
+            gsl::not_null<std::vector<std::string>*> const& targets) {
+            auto reader = network->CreateReader();
+            targets->reserve(digests.size());
+            for (auto blobs : reader.ReadIncrementally(digests)) {
+                for (auto const& blob : blobs) {
+                    targets->emplace_back(*blob.data);
+                }
+            }
+        });
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(
