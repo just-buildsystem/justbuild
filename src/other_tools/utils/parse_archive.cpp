@@ -18,38 +18,28 @@
 
 #include "fmt/core.h"
 
-namespace {
 auto ParseArchiveContent(ExpressionPtr const& repo_desc,
-                         std::string const& origin,
-                         const AsyncMapConsumerLoggerPtr& logger)
-    -> std::optional<ArchiveContent> {
-
+                         std::string const& origin)
+    -> expected<ArchiveContent, std::string> {
     // enforce mandatory fields
     auto repo_desc_content = repo_desc->At("content");
     if (not repo_desc_content) {
-        (*logger)("ArchiveCheckout: Mandatory field \"content\" is missing",
-                  /*fatal=*/true);
-        return std::nullopt;
+        return unexpected<std::string>{
+            "Mandatory field \"content\" is missing"};
     }
     if (not repo_desc_content->get()->IsString()) {
-        (*logger)(fmt::format("ArchiveCheckout: Unsupported value {} for "
-                              "mandatory field \"content\"",
-                              repo_desc_content->get()->ToString()),
-                  /*fatal=*/true);
-        return std::nullopt;
+        return unexpected{
+            fmt::format("Unsupported value {} for mandatory field \"content\"",
+                        repo_desc_content->get()->ToString())};
     }
     auto repo_desc_fetch = repo_desc->At("fetch");
     if (not repo_desc_fetch) {
-        (*logger)("ArchiveCheckout: Mandatory field \"fetch\" is missing",
-                  /*fatal=*/true);
-        return std::nullopt;
+        return unexpected<std::string>{"Mandatory field \"fetch\" is missing"};
     }
     if (not repo_desc_fetch->get()->IsString()) {
-        (*logger)(fmt::format("ArchiveCheckout: Unsupported value {} for "
-                              "mandatory field \"fetch\"",
-                              repo_desc_fetch->get()->ToString()),
-                  /*fatal=*/true);
-        return std::nullopt;
+        return unexpected{
+            fmt::format("Unsupported value {} for mandatory field \"fetch\"",
+                        repo_desc_fetch->get()->ToString())};
     }
     auto repo_desc_distfile = repo_desc->Get("distfile", Expression::none_t{});
     auto repo_desc_sha256 = repo_desc->Get("sha256", Expression::none_t{});
@@ -61,21 +51,18 @@ auto ParseArchiveContent(ExpressionPtr const& repo_desc,
         mirrors.reserve(repo_desc_mirrors->List().size());
         for (auto const& elem : repo_desc_mirrors->List()) {
             if (not elem->IsString()) {
-                (*logger)(fmt::format("ArchiveCheckout: Unsupported list entry "
-                                      "{} in optional field \"mirrors\"",
-                                      elem->ToString()),
-                          /*fatal=*/true);
-                return std::nullopt;
+                return unexpected{fmt::format(
+                    "Unsupported list entry {} in optional field \"mirrors\"",
+                    elem->ToString())};
             }
             mirrors.emplace_back(elem->String());
         }
     }
     else {
-        (*logger)(fmt::format("ArchiveCheckout: Optional field \"mirrors\" "
-                              "should be a list of strings, but found: {}",
-                              repo_desc_mirrors->ToString()),
-                  /*fatal=*/true);
-        return std::nullopt;
+        return unexpected{
+            fmt::format("Optional field \"mirrors\" should be a list of "
+                        "strings, but found: {}",
+                        repo_desc_mirrors->ToString())};
     }
 
     return ArchiveContent{
@@ -104,15 +91,15 @@ auto IsValidFileName(const std::string& s) -> bool {
     return true;
 }
 
-}  // namespace
-
 auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
                              std::string const& repo_type,
                              std::string const& origin,
                              const AsyncMapConsumerLoggerPtr& logger)
     -> std::optional<ArchiveRepoInfo> {
-    auto archive_content = ParseArchiveContent(repo_desc, origin, logger);
+    auto const archive_content = ParseArchiveContent(repo_desc, origin);
     if (not archive_content) {
+        (*logger)(fmt::format("ArchiveCheckout: {}", archive_content.error()),
+                  /*fatal=*/true);
         return std::nullopt;
     }
     // additional mandatory fields
@@ -151,8 +138,9 @@ auto ParseForeignFileDescription(ExpressionPtr const& repo_desc,
                                  std::string const& origin,
                                  const AsyncMapConsumerLoggerPtr& logger)
     -> std::optional<ForeignFileInfo> {
-    auto archive_content = ParseArchiveContent(repo_desc, origin, logger);
+    auto const archive_content = ParseArchiveContent(repo_desc, origin);
     if (not archive_content) {
+        (*logger)(archive_content.error(), /*fatal=*/true);
         return std::nullopt;
     }
     auto name = repo_desc->At("name");

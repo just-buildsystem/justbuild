@@ -20,6 +20,11 @@
 
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
+#include "src/utils/cpp/expected.hpp"
+
+auto ParseArchiveContent(ExpressionPtr const& repo_desc,
+                         std::string const& origin)
+    -> expected<ArchiveContent, std::string>;
 
 // Parse the description of an archive repository; if an error
 // occurs, call the logger with fatal set to true and return std::nullopt
