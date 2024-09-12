@@ -137,7 +137,10 @@
   , "srcs": ["configuration.cpp"]
   , "proto": ["just_serve_proto"]
   , "deps":
-    [["@", "gsl", "", "gsl"], ["src/buildtool/execution_api/remote", "config"]]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/crypto", "hash_function"]
+    ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps": [["src/buildtool/common", "protocol_traits"]]
   }

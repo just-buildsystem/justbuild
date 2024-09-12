@@ -120,7 +120,7 @@ auto ServeServerImpl::Run(
                      remote_context,
                      &apis,
                      serve ? &*serve : nullptr};
-    ConfigurationService cs{remote_context->exec_config};
+    ConfigurationService cs{hash_type, remote_context->exec_config};
 
     grpc::ServerBuilder builder;
 

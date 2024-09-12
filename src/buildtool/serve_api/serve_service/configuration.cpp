@@ -33,7 +33,7 @@ auto ConfigurationService::Compatibility(
     const ::justbuild::just_serve::CompatibilityRequest* /*request*/,
     ::justbuild::just_serve::CompatibilityResponse* response)
     -> ::grpc::Status {
-    response->set_compatible(ProtocolTraits::Instance().IsCompatible());
+    response->set_compatible(not ProtocolTraits::IsNative(hash_type_));
     return ::grpc::Status::OK;
 }
 

@@ -17,6 +17,7 @@
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 
 // This service can be used by the client to double-check the server
@@ -25,9 +26,10 @@ class ConfigurationService final
     : public justbuild::just_serve::Configuration::Service {
   public:
     explicit ConfigurationService(
+        HashFunction::Type hash_type,
         gsl::not_null<RemoteExecutionConfig const*> const&
             remote_config) noexcept
-        : remote_config_{*remote_config} {};
+        : hash_type_{hash_type}, remote_config_{*remote_config} {};
 
     // Returns the address of the associated remote endpoint, if set,
     // or an empty string signaling that the serve endpoint acts also
@@ -51,6 +53,7 @@ class ConfigurationService final
         -> ::grpc::Status override;
 
   private:
+    HashFunction::Type hash_type_;
     RemoteExecutionConfig const& remote_config_;
 };
 
