@@ -365,7 +365,7 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
                             tainted,
                             std::move(*config_transitions),
                             std::make_shared<ExpressionFunction>(
-                                std::move(config_vars),
+                                config_vars,
                                 std::move(imports),
                                 std::move(expr)),
                             [&logger](auto const& msg) {
