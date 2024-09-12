@@ -222,9 +222,10 @@ class FileRoot {
 
         /// \brief Retrieve a root tree as a KNOWN artifact.
         /// Only succeeds if no entries have to be ignored.
-        [[nodiscard]] auto AsKnownTree(std::string const& repository)
+        [[nodiscard]] auto AsKnownTree(HashFunction::Type hash_type,
+                                       std::string const& repository)
             const noexcept -> std::optional<ArtifactDescription> {
-            if (ProtocolTraits::Instance().IsCompatible()) {
+            if (not ProtocolTraits::IsNative(hash_type)) {
                 return std::nullopt;
             }
             if (std::holds_alternative<tree_t>(data_)) {

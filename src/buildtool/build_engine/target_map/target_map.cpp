@@ -41,8 +41,10 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
@@ -1619,6 +1621,7 @@ void withTargetNode(
 }
 
 void TreeTarget(
+    const gsl::not_null<AnalyseContext*>& context,
     const BuildMaps::Target::ConfiguredTarget& key,
     const gsl::not_null<TaskSystem*>& ts,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
@@ -1626,8 +1629,7 @@ void TreeTarget(
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
     const gsl::not_null<BuildMaps::Base::DirectoryEntriesMap*>&
-        directory_entries,
-    const gsl::not_null<Statistics*>& stats) {
+        directory_entries) {
     const auto& target = key.target.GetNamedTarget();
     const auto dir_name = std::filesystem::path{target.module} / target.name;
     auto module_ = BuildMaps::Base::ModuleName{target.repository, dir_name};
@@ -1635,11 +1637,13 @@ void TreeTarget(
     directory_entries->ConsumeAfterKeysReady(
         ts,
         {module_},
-        [setter, subcaller, target, key, result_map, logger, dir_name, stats](
+        [context, setter, subcaller, target, key, result_map, logger, dir_name](
             auto values) {
             // expected values.size() == 1
             const auto& dir_entries = *values[0];
-            auto known_tree = dir_entries.AsKnownTree(target.repository);
+            auto known_tree = dir_entries.AsKnownTree(
+                context->storage->GetHashFunction().GetType(),
+                target.repository);
             if (known_tree) {
                 auto tree = ExpressionPtr{
                     Expression::map_t{target.name, ExpressionPtr{*known_tree}}};
@@ -1665,7 +1669,7 @@ void TreeTarget(
                     "Source tree reference for non-known tree {}",
                     key.target.ToString());
             });
-            stats->IncrementTreesAnalysedCounter();
+            context->statistics->IncrementTreesAnalysedCounter();
 
             using BuildMaps::Target::ConfiguredTarget;
 
@@ -1864,14 +1868,14 @@ auto CreateTargetMap(
                                           msg),
                               fatal);
                 });
-            TreeTarget(key,
+            TreeTarget(context,
+                       key,
                        ts,
                        subcaller,
                        setter,
                        wrapped_logger,
                        result_map,
-                       directory_entries_map,
-                       context->statistics);
+                       directory_entries_map);
         }
         else if (key.target.GetNamedTarget().reference_t ==
                  BuildMaps::Base::ReferenceType::kFile) {
