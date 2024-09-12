@@ -211,9 +211,10 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
 
         // verify result
         CHECK_FALSE(output->IsCached());
-        auto artifacts = output->Artifacts();
-        REQUIRE(artifacts.contains(output_path));
-        CHECK(artifacts.at(output_path).digest == test_digest);
+        auto const artifacts = output->Artifacts();
+        REQUIRE(artifacts.has_value());
+        REQUIRE(artifacts.value()->contains(output_path));
+        CHECK(artifacts.value()->at(output_path).digest == test_digest);
 
         // ensure result IS in cache
         output = action->Execute(nullptr);
@@ -229,9 +230,10 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
 
         // verify result
         CHECK_FALSE(output->IsCached());
-        auto artifacts = output->Artifacts();
-        REQUIRE(artifacts.contains(output_path));
-        CHECK(artifacts.at(output_path).digest == test_digest);
+        auto const artifacts = output->Artifacts();
+        REQUIRE(artifacts.has_value());
+        REQUIRE(artifacts.value()->contains(output_path));
+        CHECK(artifacts.value()->at(output_path).digest == test_digest);
 
         // ensure result IS STILL NOT in cache
         output = action->Execute(nullptr);
@@ -290,9 +292,10 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
 
         // verify result
         CHECK_FALSE(output->IsCached());
-        auto artifacts = output->Artifacts();
-        REQUIRE(artifacts.contains(output_path));
-        CHECK(artifacts.at(output_path).digest == test_digest);
+        auto const artifacts = output->Artifacts();
+        REQUIRE(artifacts.has_value());
+        REQUIRE(artifacts.value()->contains(output_path));
+        CHECK(artifacts.value()->at(output_path).digest == test_digest);
 
         // ensure result IS in cache
         output = action->Execute(nullptr);
@@ -308,9 +311,10 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
 
         // verify result
         CHECK_FALSE(output->IsCached());
-        auto artifacts = output->Artifacts();
-        REQUIRE(artifacts.contains(output_path));
-        CHECK(artifacts.at(output_path).digest == test_digest);
+        auto const artifacts = output->Artifacts();
+        REQUIRE(artifacts.has_value());
+        REQUIRE(artifacts.value()->contains(output_path));
+        CHECK(artifacts.value()->at(output_path).digest == test_digest);
 
         // ensure result IS STILL NOT in cache
         output = action->Execute(nullptr);

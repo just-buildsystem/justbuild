@@ -94,8 +94,16 @@ auto ExecutionServiceImpl::ToIExecutionAction(
 auto ExecutionServiceImpl::ToBazelExecuteResponse(
     IExecutionResponse::Ptr const& i_execution_response) const noexcept
     -> expected<::bazel_re::ExecuteResponse, std::string> {
-    auto result = ToBazelActionResult(i_execution_response->Artifacts(),
-                                      i_execution_response->DirectorySymlinks(),
+    auto artifacts = i_execution_response->Artifacts();
+    if (not artifacts) {
+        return unexpected{std::move(artifacts).error()};
+    }
+    auto dir_symlinks = i_execution_response->DirectorySymlinks();
+    if (not dir_symlinks) {
+        return unexpected{std::move(dir_symlinks).error()};
+    }
+    auto result = ToBazelActionResult(*std::move(artifacts).value(),
+                                      *std::move(dir_symlinks).value(),
                                       storage_);
     if (not result) {
         return unexpected{std::move(result).error()};

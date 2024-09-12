@@ -154,10 +154,14 @@ class ExecutorImpl {
         auto result = remote_action->Execute(&logger);
         if (alternative_api) {
             if (result) {
-                auto const& artifacts = result->Artifacts();
+                auto const artifacts = result->Artifacts();
+                if (not artifacts) {
+                    logger.Emit(LogLevel::Error, artifacts.error());
+                    return nullptr;
+                }
                 std::vector<Artifact::ObjectInfo> object_infos{};
-                object_infos.reserve(artifacts.size());
-                for (auto const& [path, info] : artifacts) {
+                object_infos.reserve(artifacts.value()->size());
+                for (auto const& [path, info] : *artifacts.value()) {
                     object_infos.emplace_back(info);
                 }
                 if (not alternative_api->RetrieveToCas(object_infos, api)) {
@@ -588,15 +592,19 @@ class ExecutorImpl {
             }
         }
 
-        auto artifacts = response->Artifacts();
+        auto const artifacts = response->Artifacts();
+        if (not artifacts) {
+            logger.Emit(LogLevel::Error, artifacts.error());
+            return false;
+        }
         auto output_files = action->OutputFilePaths();
         auto output_dirs = action->OutputDirPaths();
 
-        if (artifacts.empty() or
+        if (artifacts.value()->empty() or
             not CheckOutputsExist(
-                artifacts, output_files, action->Content().Cwd()) or
+                *artifacts.value(), output_files, action->Content().Cwd()) or
             not CheckOutputsExist(
-                artifacts, output_dirs, action->Content().Cwd())) {
+                *artifacts.value(), output_dirs, action->Content().Cwd())) {
             logger.Emit(LogLevel::Error, [&] {
                 std::string message{
                     "action executed with missing outputs.\n"
@@ -613,7 +621,7 @@ class ExecutorImpl {
             return false;
         }
 
-        SaveObjectInfo(artifacts, action, should_fail_outputs);
+        SaveObjectInfo(*artifacts.value(), action, should_fail_outputs);
 
         return true;
     }
@@ -901,7 +909,11 @@ class Rebuilder {
             return false;
         }
 
-        DetectFlakyAction(*response, *response_cached, action->Content());
+        if (auto error = DetectFlakyAction(
+                *response, *response_cached, action->Content())) {
+            logger_cached.Emit(LogLevel::Error, *error);
+            return false;
+        }
         return Impl::ParseResponse(logger,
                                    *response,
                                    action,
@@ -943,18 +955,25 @@ class Rebuilder {
             std::pair<Artifact::ObjectInfo, Artifact::ObjectInfo>>>
         flaky_actions_{};
 
-    void DetectFlakyAction(IExecutionResponse::Ptr const& response,
-                           IExecutionResponse::Ptr const& response_cached,
-                           Action const& action) const noexcept {
+    [[nodiscard]] auto DetectFlakyAction(
+        IExecutionResponse::Ptr const& response,
+        IExecutionResponse::Ptr const& response_cached,
+        Action const& action) const noexcept -> std::optional<std::string> {
         auto& stats = *context_.statistics;
         if (response and response_cached and
             response_cached->ActionDigest() == response->ActionDigest()) {
             stats.IncrementRebuiltActionComparedCounter();
-            auto artifacts = response->Artifacts();
-            auto artifacts_cached = response_cached->Artifacts();
+            auto const artifacts = response->Artifacts();
+            if (not artifacts) {
+                return artifacts.error();
+            }
+            auto const artifacts_cached = response_cached->Artifacts();
+            if (not artifacts_cached) {
+                return artifacts_cached.error();
+            }
             std::ostringstream msg{};
-            for (auto const& [path, info] : artifacts) {
-                auto const& info_cached = artifacts_cached[path];
+            for (auto const& [path, info] : *artifacts.value()) {
+                auto const& info_cached = artifacts_cached.value()->at(path);
                 if (info != info_cached) {
                     RecordFlakyAction(&msg, action, path, info, info_cached);
                 }
@@ -975,6 +994,7 @@ class Rebuilder {
             std::unique_lock lock{m_};
             cache_misses_.emplace_back(action.Id());
         }
+        return std::nullopt;  // ok
     }
 
     void RecordFlakyAction(gsl::not_null<std::ostringstream*> const& msg,

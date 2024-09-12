@@ -43,6 +43,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/execution_service", "cas_utils"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/crypto", "hash_function"]
     ]

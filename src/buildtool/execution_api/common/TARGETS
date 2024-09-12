@@ -21,6 +21,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/buildtool/file_system", "git_repo"]

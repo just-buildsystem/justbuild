@@ -38,6 +38,7 @@
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
@@ -97,16 +98,17 @@ class TestResponse : public IExecutionResponse {
         static const std::string kEmptyHash;
         return kEmptyHash;
     }
-    [[nodiscard]] auto Artifacts() noexcept -> ArtifactInfos const& final {
+    [[nodiscard]] auto Artifacts() noexcept
+        -> expected<gsl::not_null<ArtifactInfos const*>, std::string> final {
         if (not populated_) {
             Populate();
         }
-        return artifacts_;
+        return gsl::not_null<ArtifactInfos const*>(&artifacts_);
     }
     [[nodiscard]] auto DirectorySymlinks() noexcept
-        -> DirSymlinks const& final {
+        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final {
         static const DirSymlinks kEmptySymlinks{};
-        return kEmptySymlinks;
+        return gsl::not_null<DirSymlinks const*>(&kEmptySymlinks);
     }
 
   private:

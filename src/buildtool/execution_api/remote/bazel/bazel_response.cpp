@@ -17,7 +17,7 @@
 #include <cstddef>
 #include <functional>
 
-#include "gsl/gsl"
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
@@ -56,20 +56,28 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     return std::string{};
 }
 
-auto BazelResponse::Artifacts() noexcept -> ArtifactInfos const& {
-    Populate();
-    return artifacts_;
+auto BazelResponse::Artifacts() noexcept
+    -> expected<gsl::not_null<ArtifactInfos const*>, std::string> {
+    if (auto error_msg = Populate()) {
+        return unexpected{*std::move(error_msg)};
+    }
+    return gsl::not_null<ArtifactInfos const*>(
+        &artifacts_);  // explicit type needed for expected
 }
 
-auto BazelResponse::DirectorySymlinks() noexcept -> DirSymlinks const& {
-    Populate();
-    return dir_symlinks_;
+auto BazelResponse::DirectorySymlinks() noexcept
+    -> expected<gsl::not_null<DirSymlinks const*>, std::string> {
+    if (auto error_msg = Populate()) {
+        return unexpected{*std::move(error_msg)};
+    }
+    return gsl::not_null<DirSymlinks const*>(
+        &dir_symlinks_);  // explicit type needed for expected
 }
 
-void BazelResponse::Populate() noexcept {
+auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     // Initialized only once lazily
     if (populated_) {
-        return;
+        return std::nullopt;
     }
     populated_ = true;
 
@@ -92,7 +100,9 @@ void BazelResponse::Populate() noexcept {
         auto digest =
             ArtifactDigestFactory::FromBazel(hash_type, file.digest());
         if (not digest) {
-            return;
+            return fmt::format(
+                "BazelResponse: failed to create artifact digest for {}",
+                file.path());
         }
         try {
             artifacts.emplace(
@@ -101,8 +111,12 @@ void BazelResponse::Populate() noexcept {
                                      .type = file.is_executable()
                                                  ? ObjectType::Executable
                                                  : ObjectType::File});
-        } catch (...) {
-            return;
+        } catch (std::exception const& ex) {
+            return fmt::format(
+                "BazelResponse: unexpected failure gathering digest for "
+                "{}:\n{}",
+                file.path(),
+                ex.what());
         }
     }
 
@@ -116,8 +130,12 @@ void BazelResponse::Populate() noexcept {
                         ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                             network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
-        } catch (...) {
-            return;
+        } catch (std::exception const& ex) {
+            return fmt::format(
+                "BazelResponse: unexpected failure gathering digest for "
+                "{}:\n{}",
+                link.path(),
+                ex.what());
         }
     }
     for (auto const& link : action_result.output_directory_symlinks()) {
@@ -130,8 +148,12 @@ void BazelResponse::Populate() noexcept {
                             network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
             dir_symlinks.emplace(link.path());  // add it to set
-        } catch (...) {
-            return;
+        } catch (std::exception const& ex) {
+            return fmt::format(
+                "BazelResponse: unexpected failure gathering digest for "
+                "{}:\n{}",
+                link.path(),
+                ex.what());
         }
     }
 
@@ -141,7 +163,9 @@ void BazelResponse::Populate() noexcept {
             auto digest =
                 ArtifactDigestFactory::FromBazel(hash_type, tree.tree_digest());
             if (not digest) {
-                return;
+                return fmt::format(
+                    "BazelResponse: failed to create artifact digest for {}",
+                    tree.path());
             }
             ExpectsAudit(digest->IsTree());
             try {
@@ -149,13 +173,17 @@ void BazelResponse::Populate() noexcept {
                     tree.path(),
                     Artifact::ObjectInfo{.digest = *std::move(digest),
                                          .type = ObjectType::Tree});
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "BazelResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    tree.path(),
+                    ex.what());
             }
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
-        return;
+        return std::nullopt;
     }
 
     // obtain tree digests for output directories
@@ -176,7 +204,9 @@ void BazelResponse::Populate() noexcept {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
                     *tree_blob.data);
                 if (not tree) {
-                    return;
+                    return fmt::format(
+                        "BazelResponse: failed to create Tree for {}",
+                        tree_blob.digest.hash());
                 }
 
                 // The server does not store the Directory messages it just
@@ -185,22 +215,30 @@ void BazelResponse::Populate() noexcept {
                 // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
-                    Logger::Log(LogLevel::Error,
-                                "uploading Tree's Directory messages failed");
-                    return;
+                    auto const error = fmt::format(
+                        "BazelResponse: failure in uploading Tree Directory "
+                        "message for {}",
+                        tree_blob.digest.hash());
+                    Logger::Log(LogLevel::Trace, error);
+                    return error;
                 }
                 artifacts.emplace(
                     action_result.output_directories(pos).path(),
                     Artifact::ObjectInfo{.digest = *root_digest,
                                          .type = ObjectType::Tree});
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "BazelResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    tree_blob.digest.hash(),
+                    ex.what());
             }
             ++pos;
         }
     }
     artifacts_ = std::move(artifacts);
     dir_symlinks_ = std::move(dir_symlinks);
+    return std::nullopt;
 }
 
 auto BazelResponse::UploadTreeMessageDirectories(

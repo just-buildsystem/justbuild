@@ -16,9 +16,11 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <utility>
 
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -28,6 +30,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 /// \brief Response of a LocalAction.
 class LocalResponse final : public IExecutionResponse {
@@ -66,14 +69,22 @@ class LocalResponse final : public IExecutionResponse {
         return action_id_;
     }
 
-    auto Artifacts() noexcept -> ArtifactInfos const& final {
-        Populate();
-        return artifacts_;
+    auto Artifacts() noexcept
+        -> expected<gsl::not_null<ArtifactInfos const*>, std::string> final {
+        if (auto error_msg = Populate()) {
+            return unexpected{*std::move(error_msg)};
+        }
+        return gsl::not_null<ArtifactInfos const*>(
+            &artifacts_);  // explicit type needed for expected
     }
 
-    auto DirectorySymlinks() noexcept -> DirSymlinks const& final {
-        Populate();
-        return dir_symlinks_;
+    auto DirectorySymlinks() noexcept
+        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final {
+        if (auto error_msg = Populate()) {
+            return unexpected{*std::move(error_msg)};
+        }
+        return gsl::not_null<DirSymlinks const*>(
+            &dir_symlinks_);  // explicit type needed for expected
     }
 
   private:
@@ -92,10 +103,12 @@ class LocalResponse final : public IExecutionResponse {
           output_{std::move(output)},
           storage_{*storage} {}
 
-    void Populate() noexcept {
+    /// \brief Populates the stored data, once.
+    /// \returns Error message on failure, nullopt on success.
+    [[nodiscard]] auto Populate() noexcept -> std::optional<std::string> {
         // Initialized only once lazily
         if (populated_) {
-            return;
+            return std::nullopt;
         }
         populated_ = true;
 
@@ -119,7 +132,9 @@ class LocalResponse final : public IExecutionResponse {
             auto digest =
                 ArtifactDigestFactory::FromBazel(hash_type, file.digest());
             if (not digest) {
-                return;
+                return fmt::format(
+                    "LocalResponse: failed to create artifact digest for {}",
+                    file.path());
             }
             try {
                 artifacts.emplace(
@@ -128,8 +143,12 @@ class LocalResponse final : public IExecutionResponse {
                                          .type = file.is_executable()
                                                      ? ObjectType::Executable
                                                      : ObjectType::File});
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "LocalResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    file.path(),
+                    ex.what());
             }
         }
 
@@ -143,8 +162,12 @@ class LocalResponse final : public IExecutionResponse {
                             ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                                 storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "LocalResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    link.path(),
+                    ex.what());
             }
         }
         for (auto const& link : action_result.output_directory_symlinks()) {
@@ -157,8 +180,12 @@ class LocalResponse final : public IExecutionResponse {
                                 storage_.GetHashFunction(), link.target()),
                         .type = ObjectType::Symlink});
                 dir_symlinks.emplace(link.path());  // add it to set
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "LocalResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    link.path(),
+                    ex.what());
             }
         }
 
@@ -167,19 +194,26 @@ class LocalResponse final : public IExecutionResponse {
             auto digest =
                 ArtifactDigestFactory::FromBazel(hash_type, dir.tree_digest());
             if (not digest) {
-                return;
+                return fmt::format(
+                    "LocalResponse: failed to create artifact digest for {}",
+                    dir.path());
             }
             try {
                 artifacts.emplace(
                     dir.path(),
                     Artifact::ObjectInfo{.digest = *std::move(digest),
                                          .type = ObjectType::Tree});
-            } catch (...) {
-                return;
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "LocalResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    dir.path(),
+                    ex.what());
             }
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
+        return std::nullopt;
     }
 
     [[nodiscard]] auto ReadContent(bazel_re::Digest const& digest)

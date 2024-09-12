@@ -20,9 +20,11 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class BazelAction;
 
@@ -58,8 +60,10 @@ class BazelResponse final : public IExecutionResponse {
         return action_id_;
     }
 
-    auto Artifacts() noexcept -> ArtifactInfos const& final;
-    auto DirectorySymlinks() noexcept -> DirSymlinks const& final;
+    auto Artifacts() noexcept
+        -> expected<gsl::not_null<ArtifactInfos const*>, std::string> final;
+    auto DirectorySymlinks() noexcept
+        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final;
 
   private:
     std::string action_id_{};
@@ -84,7 +88,9 @@ class BazelResponse final : public IExecutionResponse {
         return id.size_bytes() != 0;
     }
 
-    void Populate() noexcept;
+    /// \brief Populates the stored data, once.
+    /// \returns Error message on failure, nullopt on success.
+    [[nodiscard]] auto Populate() noexcept -> std::optional<std::string>;
 
     [[nodiscard]] auto UploadTreeMessageDirectories(
         bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest>;
