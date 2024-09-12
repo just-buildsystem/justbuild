@@ -287,7 +287,8 @@ auto SourceTreeService::SyncGitEntryToCas(
     std::string const& object_hash,
     std::filesystem::path const& repo_path) const noexcept
     -> std::remove_cvref_t<decltype(TResponse::OK)> {
-    if (IsTreeObject(kType) and ProtocolTraits::Instance().IsCompatible()) {
+    auto const hash_type = storage_config_.hash_function.GetType();
+    if (IsTreeObject(kType) and not ProtocolTraits::IsTreeAllowed(hash_type)) {
         logger_->Emit(LogLevel::Error,
                       "Cannot sync tree {} from repository {} with "
                       "the remote in compatible mode",
@@ -302,11 +303,8 @@ auto SourceTreeService::SyncGitEntryToCas(
             LogLevel::Error, "Failed to SetGitCAS at {}", repo_path.string());
         return TResponse::INTERNAL_ERROR;
     }
-    auto const digest =
-        ArtifactDigestFactory::Create(storage_config_.hash_function.GetType(),
-                                      object_hash,
-                                      0,
-                                      IsTreeObject(kType));
+    auto const digest = ArtifactDigestFactory::Create(
+        hash_type, object_hash, 0, IsTreeObject(kType));
     if (not digest) {
         logger_->Emit(LogLevel::Error, "{}", digest.error());
         return TResponse::INTERNAL_ERROR;
@@ -967,6 +965,8 @@ auto SourceTreeService::ServeDistdirTree(
         content_list{};
     content_list.reserve(request->distfiles().size());
 
+    bool const is_native =
+        ProtocolTraits::IsNative(storage_config_.hash_function.GetType());
     for (auto const& kv : request->distfiles()) {
         bool blob_found{};
         std::string blob_digest;  // The digest of the requested distfile, taken
@@ -984,7 +984,7 @@ auto SourceTreeService::ServeDistdirTree(
             0,
             /*is_tree=*/false);
 
-        if (not ProtocolTraits::Instance().IsCompatible()) {
+        if (is_native) {
             blob_found = digest and cas.BlobPath(*digest, kv.executable());
         }
         if (blob_found) {
@@ -1054,8 +1054,8 @@ auto SourceTreeService::ServeDistdirTree(
                 }
                 if (not blob_found) {
                     // check remote CAS
-                    if (not ProtocolTraits::Instance().IsCompatible() and
-                        digest and apis_.remote->IsAvailable(*digest)) {
+                    if (is_native and digest and
+                        apis_.remote->IsAvailable(*digest)) {
                         // retrieve content to local CAS
                         if (not apis_.remote->RetrieveToCas(
                                 {Artifact::ObjectInfo{
@@ -1316,11 +1316,12 @@ auto SourceTreeService::ServeTree(
         }
     }
     // check also in the local CAS
-    auto const digest = ArtifactDigestFactory::Create(
-        storage_config_.hash_function.GetType(), tree_id, 0, /*is_tree=*/true);
+    auto const hash_type = storage_config_.hash_function.GetType();
+    auto const digest =
+        ArtifactDigestFactory::Create(hash_type, tree_id, 0, /*is_tree=*/true);
     if (digest and apis_.local->IsAvailable(*digest)) {
         // upload tree to remote CAS; only possible in native mode
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not ProtocolTraits::IsNative(hash_type)) {
             logger_->Emit(LogLevel::Error,
                           "Cannot sync tree {} from local CAS with the remote "
                           "in compatible mode",

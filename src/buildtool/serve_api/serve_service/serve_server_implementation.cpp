@@ -187,14 +187,12 @@ auto ServeServerImpl::Run(
     }
 
     auto const& info_str = nlohmann::to_string(info);
-    Logger::Log(
-        LogLevel::Info,
-        fmt::format(
-            "{}serve{} service{} started: {}",
-            ProtocolTraits::Instance().IsCompatible() ? "compatible " : "",
-            with_execute ? " and execute" : "",
-            with_execute ? "s" : "",
-            info_str));
+    Logger::Log(LogLevel::Info,
+                "{}serve{} service{} started: {}",
+                ProtocolTraits::IsNative(hash_type) ? "" : "compatible ",
+                with_execute ? " and execute" : "",
+                with_execute ? "s" : "",
+                info_str);
 
     if (not info_file_.empty()) {
         if (not TryWrite(info_file_, info_str)) {
