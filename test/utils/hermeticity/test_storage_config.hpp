@@ -22,11 +22,11 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 class TestStorageConfig final {
   public:
@@ -54,9 +54,7 @@ class TestStorageConfig final {
 
         StorageConfig::Builder builder;
         auto config = builder.SetBuildRoot(temp_dir->GetPath())
-                          .SetHashType(ProtocolTraits::Instance().IsCompatible()
-                                           ? HashFunction::Type::PlainSHA256
-                                           : HashFunction::Type::GitSHA1)
+                          .SetHashType(TestHashType::ReadFromEnvironment())
                           .Build();
         if (not config) {
             Logger::Log(LogLevel::Error, config.error());

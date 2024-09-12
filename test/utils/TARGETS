@@ -53,7 +53,17 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , "test_hash_function_type"
+    ]
+  , "stage": ["test", "utils"]
+  }
+, "test_hash_function_type":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["test_hash_function_type"]
+  , "hdrs": ["hermeticity/test_hash_function_type.hpp"]
+  , "deps":
+    [ ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     ]
   , "stage": ["test", "utils"]
