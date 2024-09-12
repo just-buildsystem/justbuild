@@ -26,7 +26,6 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
@@ -207,15 +206,15 @@ void SetupLogging(MultiRepoLogArguments const& clargs) {
     }
 }
 
-[[nodiscard]] auto CreateStorageConfig(MultiRepoCommonArguments const& args,
-                                       bool is_compatible) noexcept
+[[nodiscard]] auto CreateStorageConfig(
+    MultiRepoCommonArguments const& args) noexcept
     -> std::optional<StorageConfig> {
     StorageConfig::Builder builder;
     if (args.just_mr_paths->root.has_value()) {
         builder.SetBuildRoot(*args.just_mr_paths->root);
     }
-    builder.SetHashType(is_compatible ? HashFunction::Type::PlainSHA256
-                                      : HashFunction::Type::GitSHA1);
+    // For now just-mr uses only the native storage.
+    builder.SetHashType(HashFunction::Type::GitSHA1);
 
     // As just-mr does not require the TargetCache, we do not need to set any of
     // the remote execution fields for the backend description.
@@ -318,8 +317,7 @@ auto main(int argc, char* argv[]) -> int {
 
         // Setup LocalStorageConfig to store the local_build_root properly
         // and make the cas and git cache roots available
-        auto storage_config = CreateStorageConfig(
-            arguments.common, ProtocolTraits::Instance().IsCompatible());
+        auto const storage_config = CreateStorageConfig(arguments.common);
         if (not storage_config) {
             Logger::Log(LogLevel::Error,
                         "Failed to configure local build root.");
