@@ -400,6 +400,8 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                             REQUIRE(fetched_commit);
                             CHECK(*fetched_commit == kRootCommit);
                         } break;
+                        default:
+                            REQUIRE(false);
                     }
                 },
                 id);

@@ -743,6 +743,8 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                                 std::nullopt,
                                 logger));
                         } break;
+                        default:
+                            REQUIRE(false);
                     }
                 },
                 id);
