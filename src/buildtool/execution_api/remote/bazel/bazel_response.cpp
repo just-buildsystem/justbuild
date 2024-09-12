@@ -215,10 +215,8 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
                 // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
-                    auto const error = fmt::format(
-                        "BazelResponse: failure in uploading Tree Directory "
-                        "message for {}",
-                        tree_blob.digest.hash());
+                    auto const error =
+                        fmt::format("BazelResponse: {}", root_digest.error());
                     Logger::Log(LogLevel::Trace, error);
                     return error;
                 }
@@ -242,7 +240,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
 }
 
 auto BazelResponse::UploadTreeMessageDirectories(
-    bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest> {
+    bazel_re::Tree const& tree) const -> expected<ArtifactDigest, std::string> {
     auto const upload_callback =
         [&network = *network_](BazelBlobContainer&& blobs) -> bool {
         return network.UploadBlobs(std::move(blobs));
@@ -258,7 +256,8 @@ auto BazelResponse::UploadTreeMessageDirectories(
             std::move(rootdir_blob),
             /*exception_is_fatal=*/false,
             upload_callback)) {
-        return std::nullopt;
+        return unexpected{fmt::format("failed to upload root for Tree {}",
+                                      tree.SerializeAsString())};
     }
 
     for (auto const& subdir : tree.children()) {
@@ -268,13 +267,15 @@ auto BazelResponse::UploadTreeMessageDirectories(
                 ProcessDirectoryMessage(hash_function, subdir),
                 /*exception_is_fatal=*/false,
                 upload_callback)) {
-            return std::nullopt;
+            return unexpected{fmt::format("failed to upload subdir for Tree {}",
+                                          tree.SerializeAsString())};
         }
     }
 
     // upload any remaining blob
     if (not std::invoke(upload_callback, std::move(dir_blobs))) {
-        return std::nullopt;
+        return unexpected{fmt::format("failed to upload blobs for Tree {}",
+                                      tree.SerializeAsString())};
     }
     return ArtifactDigestFactory::FromBazel(hash_function.GetType(),
                                             root_digest)

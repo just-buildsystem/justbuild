@@ -92,8 +92,8 @@ class BazelResponse final : public IExecutionResponse {
     /// \returns Error message on failure, nullopt on success.
     [[nodiscard]] auto Populate() noexcept -> std::optional<std::string>;
 
-    [[nodiscard]] auto UploadTreeMessageDirectories(
-        bazel_re::Tree const& tree) const -> std::optional<ArtifactDigest>;
+    [[nodiscard]] auto UploadTreeMessageDirectories(bazel_re::Tree const& tree)
+        const -> expected<ArtifactDigest, std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
