@@ -55,6 +55,7 @@ struct CommandLineArguments {
     RetryArguments retry;
     GcArguments gc;
     ToAddArguments to_add;
+    ProtocolArguments protocol;
 };
 
 auto ParseCommandLineArguments(int argc,

@@ -33,7 +33,7 @@ auto SetupDescribeCommandArguments(
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupDescribeArguments(app, &clargs->describe);
     SetupRetryArguments(app, &clargs->retry);
 }
@@ -52,7 +52,7 @@ auto SetupAnalyseCommandArguments(
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupDiagnosticArguments(app, &clargs->diagnose);
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupRetryArguments(app, &clargs->retry);
 }
 
@@ -72,7 +72,7 @@ auto SetupBuildCommandArguments(
     SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
     SetupTCArguments(app, &clargs->tc);
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupRetryArguments(app, &clargs->retry);
 }
 
@@ -96,7 +96,7 @@ auto SetupRebuildCommandArguments(
 auto SetupInstallCasCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupCommonAuthArguments(app, &clargs->auth);
@@ -110,7 +110,7 @@ auto SetupInstallCasCommandArguments(
 auto SetupAddToCasCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupExecutionEndpointArguments(app, &clargs->endpoint);
     SetupCommonAuthArguments(app, &clargs->auth);
@@ -135,7 +135,7 @@ auto SetupTraverseCommandArguments(
     SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
     SetupStageArguments(app, &clargs->stage);
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
 }
 
 /// \brief Setup arguments for sub command "just gc".
@@ -151,7 +151,7 @@ auto SetupGcCommandArguments(
 auto SetupExecutionServiceCommandArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<CommandLineArguments*> const& clargs) {
-    SetupCompatibilityArguments(app);
+    SetupProtocolArguments(app, &clargs->protocol);
     SetupCommonBuildArguments(app, &clargs->build);
     SetupCacheArguments(app, &clargs->endpoint);
     SetupServiceArguments(app, &clargs->service);

@@ -32,8 +32,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -190,6 +190,10 @@ struct GcArguments {
 struct ToAddArguments {
     std::filesystem::path location{};
     bool follow_symlinks{};
+};
+
+struct ProtocolArguments final {
+    HashFunction::Type hash_type = HashFunction::Type::GitSHA1;
 };
 
 static inline auto SetupCommonArguments(
@@ -682,11 +686,14 @@ static inline auto SetupGraphArguments(
                     "missing KNOWN artifacts.");
 }
 
-static inline auto SetupCompatibilityArguments(
-    gsl::not_null<CLI::App*> const& app) {
+static inline auto SetupProtocolArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<ProtocolArguments*> const& protocol) {
     app->add_flag_function(
         "--compatible",
-        [](auto /*unused*/) { ProtocolTraits::Instance().SetCompatible(); },
+        [protocol](auto /*unused*/) {
+            protocol->hash_type = HashFunction::Type::PlainSHA256;
+        },
         "At increased computational effort, be compatible with the original "
         "remote build execution protocol. As the change affects identifiers, "
         "the flag must be used consistently for all related invocations.");

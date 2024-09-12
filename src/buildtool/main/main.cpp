@@ -113,7 +113,7 @@ void SetupLogging(LogArguments const& clargs) {
 
 [[nodiscard]] auto CreateStorageConfig(
     EndpointArguments const& eargs,
-    bool is_compatible,
+    HashFunction::Type hash_type,
     std::optional<ServerAddress> const& remote_address = std::nullopt,
     ExecutionProperties const& remote_platform_properties = {},
     std::vector<DispatchEndpoint> const& remote_dispatch = {}) noexcept
@@ -124,9 +124,7 @@ void SetupLogging(LogArguments const& clargs) {
     }
 
     auto config =
-        builder
-            .SetHashType(is_compatible ? HashFunction::Type::PlainSHA256
-                                       : HashFunction::Type::GitSHA1)
+        builder.SetHashType(hash_type)
             .SetRemoteExecutionArgs(
                 remote_address, remote_platform_properties, remote_dispatch)
             .Build();
@@ -765,7 +763,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kGc) {
             // Set up storage for GC, as we have all the config args we need.
             auto const storage_config = CreateStorageConfig(
-                arguments.endpoint, ProtocolTraits::Instance().IsCompatible());
+                arguments.endpoint, arguments.protocol.hash_type);
             if (not storage_config) {
                 return kExitFailure;
             }
@@ -803,8 +801,7 @@ auto main(int argc, char* argv[]) -> int {
 
                 // Set up storage for local execution.
                 auto const storage_config = CreateStorageConfig(
-                    arguments.endpoint,
-                    ProtocolTraits::Instance().IsCompatible());
+                    arguments.endpoint, arguments.protocol.hash_type);
                 if (not storage_config) {
                     return kExitFailure;
                 }
@@ -866,12 +863,12 @@ auto main(int argc, char* argv[]) -> int {
                 }
 
                 // Set up storage for serve operation.
-                auto const storage_config = CreateStorageConfig(
-                    arguments.endpoint,
-                    ProtocolTraits::Instance().IsCompatible(),
-                    remote_exec_config->remote_address,
-                    remote_exec_config->platform_properties,
-                    remote_exec_config->dispatch);
+                auto const storage_config =
+                    CreateStorageConfig(arguments.endpoint,
+                                        arguments.protocol.hash_type,
+                                        remote_exec_config->remote_address,
+                                        remote_exec_config->platform_properties,
+                                        remote_exec_config->dispatch);
                 if (not storage_config) {
                     return kExitFailure;
                 }
@@ -943,7 +940,7 @@ auto main(int argc, char* argv[]) -> int {
         // correctly-sharded target cache.
         auto const storage_config =
             CreateStorageConfig(arguments.endpoint,
-                                ProtocolTraits::Instance().IsCompatible(),
+                                arguments.protocol.hash_type,
                                 remote_exec_config->remote_address,
                                 remote_exec_config->platform_properties,
                                 remote_exec_config->dispatch);
@@ -951,7 +948,7 @@ auto main(int argc, char* argv[]) -> int {
         // For bootstrapping the TargetCache sharding is not needed, so we can
         // default all execution arguments.
         auto const storage_config = CreateStorageConfig(
-            arguments.endpoint, ProtocolTraits::Instance().IsCompatible());
+            arguments.endpoint, arguments.protocol.hash_type);
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
             return kExitFailure;
@@ -1042,7 +1039,8 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kTraverse) {
             if (arguments.graph.git_cas) {
-                if (ProtocolTraits::Instance().IsCompatible()) {
+                if (not ProtocolTraits::IsNative(
+                        arguments.protocol.hash_type)) {
                     Logger::Log(LogLevel::Error,
                                 "Command line options {} and {} cannot be used "
                                 "together.",

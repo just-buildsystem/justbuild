@@ -20,7 +20,7 @@
     [ "clidefaults"
     , "retry_cli"
     , ["src/buildtool/build_engine/expression", "expression"]
-    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "build_utils"]

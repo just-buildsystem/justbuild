@@ -293,11 +293,11 @@
     [ ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "location"]
-    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , "common"
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "build_utils":
