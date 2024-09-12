@@ -213,6 +213,7 @@ class ExecutorImpl {
                 }
 
                 if (not VerifyOrUploadKnownArtifact(
+                        apis.hash_function.GetType(),
                         *apis.remote,
                         artifact->Content().Repository(),
                         repo_config,
@@ -433,11 +434,12 @@ class ExecutorImpl {
     /// \param info         The info of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
+        HashFunction::Type hash_type,
         IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not ProtocolTraits::IsNative(hash_type)) {
             auto opt =
                 GitHashesConverter::Instance().GetGitEntry(info.digest.hash());
             if (opt) {
