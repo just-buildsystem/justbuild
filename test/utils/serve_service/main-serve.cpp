@@ -33,7 +33,6 @@
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 #include "test/utils/shell_quoting.hpp"
-#include "test/utils/test_env.hpp"
 
 namespace {
 
@@ -110,8 +109,6 @@ void wait_for_grpc_to_shutdown() {
 
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
-    ReadCompatibilityFromEnv();
-
     // Setup of serve service, including known repositories.
     if (not ConfigureServeService()) {
         return EXIT_FAILURE;

@@ -64,7 +64,9 @@
   , "hdrs": ["hermeticity/test_hash_function_type.hpp"]
   , "deps":
     [ ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/logging", "log_level"]
+    , ["@", "src", "src/buildtool/logging", "logging"]
+    , "test_env"
     ]
   , "stage": ["test", "utils"]
   }

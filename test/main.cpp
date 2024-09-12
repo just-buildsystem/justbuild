@@ -20,12 +20,9 @@
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
 #include "test/utils/logging/log_config.hpp"
-#include "test/utils/test_env.hpp"
 
 auto main(int argc, char* argv[]) -> int {
     ConfigureLogging();
-    ReadCompatibilityFromEnv();
-
     /**
      * The current implementation of libgit2 uses pthread_key_t incorrectly
      * on POSIX systems to handle thread-specific data, which requires us to

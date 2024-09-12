@@ -29,7 +29,6 @@
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
-#include "test/utils/test_env.hpp"
 
 namespace {
 
@@ -42,8 +41,6 @@ void wait_for_grpc_to_shutdown() {
 /// environment variable is malformed, we write a message and stop execution.
 /// \returns true   If remote execution was successfully configured.
 void ConfigureRemoteExecution() {
-    ReadCompatibilityFromEnv();
-
     // Ensure authentication config is available
     if (not TestAuthConfig::ReadFromEnvironment()) {
         std::exit(EXIT_FAILURE);

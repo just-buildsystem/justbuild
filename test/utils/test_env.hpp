@@ -40,10 +40,12 @@
     return properties;
 }
 
-static inline void ReadCompatibilityFromEnv() {
-    auto* compatible = std::getenv("COMPATIBLE");
-    if (compatible != nullptr) {
-        ProtocolTraits::Instance().SetCompatible();
+[[nodiscard]] static inline auto ReadCompatibilityFromEnv() noexcept
+    -> std::optional<bool> {
+    try {
+        return std::getenv("COMPATIBLE") != nullptr;
+    } catch (...) {
+        return std::nullopt;
     }
 }
 

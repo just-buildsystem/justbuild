@@ -15,16 +15,26 @@
 #ifndef INCLUDED_SRC_TEST_UTILS_HERMETICITY_TEST_HASH_FUNCTION_TYPE_HPP
 #define INCLUDED_SRC_TEST_UTILS_HERMETICITY_TEST_HASH_FUNCTION_TYPE_HPP
 
-#include "src/buildtool/common/protocol_traits.hpp"
+#include <cstddef>  //std::exit
+#include <optional>
+
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
+#include "test/utils/test_env.hpp"
 
 class TestHashType final {
   public:
     [[nodiscard]] static auto ReadFromEnvironment() noexcept
         -> HashFunction::Type {
-        return ProtocolTraits::Instance().IsCompatible()
-                   ? HashFunction::Type::PlainSHA256
-                   : HashFunction::Type::GitSHA1;
+        auto const compatible = ReadCompatibilityFromEnv();
+        if (not compatible) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to read COMPATIBLE from environment");
+            std::exit(EXIT_FAILURE);
+        }
+        return *compatible ? HashFunction::Type::PlainSHA256
+                           : HashFunction::Type::GitSHA1;
     }
 };
 
