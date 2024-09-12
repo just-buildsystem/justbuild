@@ -140,7 +140,7 @@ auto TargetService::CreateRemoteExecutionConfig(
 
     auto res = GetDispatchList(*dispatch_info_digest);
     if (not res) {
-        auto err = move(res).error();
+        auto err = std::move(res).error();
         logger_->Emit(LogLevel::Error, "{}", err.error_message());
         return unexpected{std::move(err)};
     }
