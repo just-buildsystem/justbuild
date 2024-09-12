@@ -23,6 +23,7 @@
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -71,7 +72,8 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
             digest = cas.StoreBlob(*content, /*is_executable=*/false);
         } break;
         case ObjectType::Tree: {
-            if (ProtocolTraits::Instance().IsCompatible()) {
+            if (not ProtocolTraits::IsTreeAllowed(
+                    cas.GetHashFunction().GetType())) {
                 Logger::Log(LogLevel::Error,
                             "Storing of trees only supported in native mode");
                 return false;
@@ -115,4 +117,4 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
     return true;
 }
 
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
