@@ -877,8 +877,6 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         // wrap remote object
         auto remote = std::unique_ptr<git_remote, decltype(&remote_closer)>(
             remote_ptr, remote_closer);
-        // get the canonical url
-        auto canonical_url = std::string(git_remote_url(remote.get()));
 
         // get a well-defined config file
         if (not cfg) {

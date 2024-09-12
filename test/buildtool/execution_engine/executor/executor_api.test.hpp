@@ -575,7 +575,6 @@ static inline void TestRetrieveOutputDirectories(
     int /*expected_queued*/ = 0,
     int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
-    auto tmpdir = GetTestDir();
 
     HashFunction const hash_function{Compatibility::IsCompatible()
                                          ? HashFunction::Type::PlainSHA256
