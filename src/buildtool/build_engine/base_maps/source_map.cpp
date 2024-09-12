@@ -49,12 +49,13 @@ auto as_target(const BuildMaps::Base::EntityName& key,
 auto CreateSourceTargetMap(
     const gsl::not_null<DirectoryEntriesMap*>& dirs,
     gsl::not_null<const RepositoryConfig*> const& repo_config,
+    HashFunction::Type hash_type,
     std::size_t jobs) -> SourceTargetMap {
-    auto src_target_reader = [dirs, repo_config](auto ts,
-                                                 auto setter,
-                                                 auto logger,
-                                                 auto /* unused */,
-                                                 auto const& key) {
+    auto src_target_reader = [dirs, repo_config, hash_type](auto ts,
+                                                            auto setter,
+                                                            auto logger,
+                                                            auto /* unused */,
+                                                            auto const& key) {
         using std::filesystem::path;
         const auto& target = key.GetNamedTarget();
         auto name = path(target.name).lexically_normal();
@@ -68,27 +69,30 @@ auto CreateSourceTargetMap(
         auto dir = (path(target.module) / name).parent_path();
         auto const* ws_root = repo_config->WorkspaceRoot(target.repository);
 
-        auto src_file_reader = [key, name, setter, logger, dir, ws_root](
-                                   bool exists_in_ws_root) {
-            if (ws_root != nullptr and exists_in_ws_root) {
-                if (auto desc = ws_root->ToArtifactDescription(
-                        path(key.GetNamedTarget().module) / name,
-                        key.GetNamedTarget().repository)) {
-                    (*setter)(as_target(key, ExpressionPtr{std::move(*desc)}));
-                    return;
+        auto src_file_reader =
+            [key, name, setter, logger, dir, ws_root, hash_type](
+                bool exists_in_ws_root) {
+                if (ws_root != nullptr and exists_in_ws_root) {
+                    if (auto desc = ws_root->ToArtifactDescription(
+                            hash_type,
+                            path(key.GetNamedTarget().module) / name,
+                            key.GetNamedTarget().repository)) {
+                        (*setter)(
+                            as_target(key, ExpressionPtr{std::move(*desc)}));
+                        return;
+                    }
                 }
-            }
-            (*logger)(
-                fmt::format(
-                    "Cannot determine source file {} in directory {} of "
-                    "repository {}",
-                    nlohmann::json(
-                        path(key.GetNamedTarget().name).filename().string())
-                        .dump(),
-                    nlohmann::json(dir.string()).dump(),
-                    nlohmann::json(key.GetNamedTarget().repository).dump()),
-                true);
-        };
+                (*logger)(
+                    fmt::format(
+                        "Cannot determine source file {} in directory {} of "
+                        "repository {}",
+                        nlohmann::json(
+                            path(key.GetNamedTarget().name).filename().string())
+                            .dump(),
+                        nlohmann::json(dir.string()).dump(),
+                        nlohmann::json(key.GetNamedTarget().repository).dump()),
+                    true);
+            };
 
         if (ws_root != nullptr and ws_root->HasFastDirectoryLookup()) {
             // by-pass directory map and directly attempt to read from ws_root

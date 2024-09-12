@@ -90,7 +90,8 @@
     , ["src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
-  , "private-deps": [["src/utils/cpp", "json"]]
+  , "private-deps":
+    [["src/utils/cpp", "json"], ["src/buildtool/crypto", "hash_function"]]
   }
 , "field_reader":
   { "type": ["@", "rules", "CC", "library"]

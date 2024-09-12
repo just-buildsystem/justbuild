@@ -93,8 +93,10 @@ TEST_CASE("simple targets", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -720,8 +722,10 @@ TEST_CASE("configuration deduplication", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -830,8 +834,10 @@ TEST_CASE("generator functions in string arguments", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -952,8 +958,10 @@ TEST_CASE("built-in rules", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -1186,8 +1194,10 @@ TEST_CASE("target reference", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -1351,8 +1361,10 @@ TEST_CASE("trees", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -1480,8 +1492,10 @@ TEST_CASE("RESULT error reporting", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
@@ -1668,8 +1682,10 @@ TEST_CASE("wrong arguments", "[target_map]") {
     auto repo_config = SetupConfig();
     auto directory_entries =
         BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
-    auto source = BuildMaps::Base::CreateSourceTargetMap(&directory_entries,
-                                                         &repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
     auto targets_file_map =
         BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
     auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);

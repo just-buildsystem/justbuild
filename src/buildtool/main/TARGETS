@@ -199,6 +199,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "analyse_context":

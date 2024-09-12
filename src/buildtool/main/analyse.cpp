@@ -26,11 +26,13 @@
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/serve_api/remote/config.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -127,7 +129,10 @@ namespace Target = BuildMaps::Target;
     auto rule_map = Base::CreateRuleMap(
         &rule_file_map, &expr_map, context->repo_config, jobs);
     auto source_targets = Base::CreateSourceTargetMap(
-        &directory_entries, context->repo_config, jobs);
+        &directory_entries,
+        context->repo_config,
+        context->storage->GetHashFunction().GetType(),
+        jobs);
     auto absent_target_variables_map =
         Target::CreateAbsentTargetVariablesMap(context, jobs);
 

@@ -576,6 +576,7 @@ class FileRoot {
     // Create LOCAL or KNOWN artifact. Does not check existence for LOCAL.
     // `file_path` must reference a blob.
     [[nodiscard]] auto ToArtifactDescription(
+        HashFunction::Type hash_type,
         std::filesystem::path const& file_path,
         std::string const& repository) const noexcept
         -> std::optional<ArtifactDescription> {
@@ -584,26 +585,26 @@ class FileRoot {
                     std::get<git_root_t>(root_).tree->LookupEntryByPath(
                         file_path)) {
                 if (entry->IsBlob()) {
-                    if (ProtocolTraits::Instance().IsCompatible()) {
+                    if (not ProtocolTraits::IsNative(hash_type)) {
                         auto compatible_hash =
                             GitHashesConverter::Instance().RegisterGitEntry(
                                 entry->Hash(), *entry->Blob(), repository);
-                        auto digest = ArtifactDigestFactory::Create(
-                            HashFunction::Type::PlainSHA256,
-                            compatible_hash,
-                            *entry->Size(),
-                            /*is_tree=*/false);
+                        auto digest =
+                            ArtifactDigestFactory::Create(hash_type,
+                                                          compatible_hash,
+                                                          *entry->Size(),
+                                                          /*is_tree=*/false);
                         if (not digest) {
                             return std::nullopt;
                         }
                         return ArtifactDescription::CreateKnown(
                             *std::move(digest), entry->Type());
                     }
-                    auto digest = ArtifactDigestFactory::Create(
-                        HashFunction::Type::GitSHA1,
-                        entry->Hash(),
-                        *entry->Size(),
-                        /*is_tree=*/false);
+                    auto digest =
+                        ArtifactDigestFactory::Create(hash_type,
+                                                      entry->Hash(),
+                                                      *entry->Size(),
+                                                      /*is_tree=*/false);
                     if (not digest) {
                         return std::nullopt;
                     }

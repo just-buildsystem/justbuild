@@ -27,6 +27,7 @@
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -60,13 +61,14 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
 
 auto ReadSourceTarget(EntityName const& id,
                       SourceTargetMap::Consumer consumer,
+                      HashFunction::Type hash_type,
                       bool use_git = false,
                       std::optional<SourceTargetMap::FailureFunction>
                           fail_func = std::nullopt) -> bool {
     auto repo_config = SetupConfig(use_git);
     auto directory_entries = CreateDirectoryEntriesMap(&repo_config);
     auto source_artifacts =
-        CreateSourceTargetMap(&directory_entries, &repo_config);
+        CreateSourceTargetMap(&directory_entries, &repo_config, hash_type);
     std::string error_msg;
     bool success{true};
     {
@@ -93,14 +95,18 @@ TEST_CASE("from file") {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
 
+    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
+                               ? HashFunction::Type::PlainSHA256
+                               : HashFunction::Type::GitSHA1;
+
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/false));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
         CHECK(artifacts["file"]["type"] == "LOCAL");
         CHECK(artifacts["file"]["data"]["path"] == "file");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["file"]["type"] == "KNOWN");
         CHECK(artifacts["file"]["data"]["id"] ==
               (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
@@ -116,16 +122,20 @@ TEST_CASE("not present at all") {
     auto consumer = [&consumed](auto /*unused*/) { consumed = true; };
     auto fail_func = [&failure_called]() { failure_called = true; };
 
+    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
+                               ? HashFunction::Type::PlainSHA256
+                               : HashFunction::Type::GitSHA1;
+
     SECTION("via file") {
-        CHECK_FALSE(
-            ReadSourceTarget(name, consumer, /*use_git=*/false, fail_func));
+        CHECK_FALSE(ReadSourceTarget(
+            name, consumer, hash_type, /*use_git=*/false, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(
-            ReadSourceTarget(name, consumer, /*use_git=*/true, fail_func));
+        CHECK_FALSE(ReadSourceTarget(
+            name, consumer, hash_type, /*use_git=*/true, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
@@ -138,16 +148,20 @@ TEST_CASE("malformed entry") {
     auto consumer = [&consumed](auto /*unused*/) { consumed = true; };
     auto fail_func = [&failure_called]() { failure_called = true; };
 
+    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
+                               ? HashFunction::Type::PlainSHA256
+                               : HashFunction::Type::GitSHA1;
+
     SECTION("via git tree") {
-        CHECK_FALSE(
-            ReadSourceTarget(name, consumer, /*use_git=*/false, fail_func));
+        CHECK_FALSE(ReadSourceTarget(
+            name, consumer, hash_type, /*use_git=*/false, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(
-            ReadSourceTarget(name, consumer, /*use_git=*/true, fail_func));
+        CHECK_FALSE(ReadSourceTarget(
+            name, consumer, hash_type, /*use_git=*/true, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
@@ -160,14 +174,18 @@ TEST_CASE("subdir file") {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
 
+    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
+                               ? HashFunction::Type::PlainSHA256
+                               : HashFunction::Type::GitSHA1;
+
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/false));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
         CHECK(artifacts["bar/file"]["type"] == "LOCAL");
         CHECK(artifacts["bar/file"]["data"]["path"] == "foo/bar/file");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["bar/file"]["type"] == "KNOWN");
         CHECK(artifacts["bar/file"]["data"]["id"] ==
               (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
@@ -183,14 +201,18 @@ TEST_CASE("subdir symlink") {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
 
+    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
+                               ? HashFunction::Type::PlainSHA256
+                               : HashFunction::Type::GitSHA1;
+
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/false));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
         CHECK(artifacts["link"]["type"] == "LOCAL");
         CHECK(artifacts["link"]["data"]["path"] == "foo/link");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, /*use_git=*/true));
+        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["link"]["type"] == "KNOWN");
         CHECK(artifacts["link"]["data"]["id"] ==
               (ProtocolTraits::Instance().IsCompatible() ? kSrcLinkIdSha256

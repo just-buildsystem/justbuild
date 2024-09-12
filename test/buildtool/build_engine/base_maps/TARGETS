@@ -68,6 +68,7 @@
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
