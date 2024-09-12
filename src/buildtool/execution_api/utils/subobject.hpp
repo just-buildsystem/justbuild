@@ -21,13 +21,13 @@
 #include <optional>
 
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 
 auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
-                       IExecutionApi const& api,
+                       ApiBundle const& apis,
                        const std::filesystem::path& sub_path)
     -> std::optional<Artifact::ObjectInfo>;
 
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_UTILS_SUBOBJECT_HPP

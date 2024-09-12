@@ -5,10 +5,11 @@
   , "srcs": ["subobject.cpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     ]
   , "private-deps":
     [ ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/crypto", "hash_function"]

@@ -103,7 +103,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
 
     if (clargs.sub_path) {
         auto new_object_info =
-            RetrieveSubPathId(*object_info, *apis.remote, *clargs.sub_path);
+            RetrieveSubPathId(*object_info, apis, *clargs.sub_path);
         if (new_object_info) {
             object_info = new_object_info;
         }

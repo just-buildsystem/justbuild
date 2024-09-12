@@ -18,12 +18,13 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
-                       IExecutionApi const& api,
+                       ApiBundle const& apis,
                        const std::filesystem::path& sub_path)
     -> std::optional<Artifact::ObjectInfo> {
     std::filesystem::path sofar{};
@@ -35,7 +36,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                         segment.string());
             break;
         }
-        auto data = api.RetrieveToMemory(object_info);
+        auto data = apis.remote->RetrieveToMemory(object_info);
         if (not data) {
             Logger::Log(LogLevel::Error,
                         "Failed to retrieve artifact {} at path '{}'",
@@ -43,7 +44,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                         sofar.string());
             return std::nullopt;
         }
-        if (ProtocolTraits::Instance().IsCompatible()) {
+        if (not ProtocolTraits::IsNative(apis.hash_function.GetType())) {
             auto directory =
                 BazelMsgFactory::MessageFromString<bazel_re::Directory>(*data);
             if (not directory) {
@@ -121,4 +122,4 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
     return object_info;
 }
 
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL

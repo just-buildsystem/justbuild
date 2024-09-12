@@ -687,7 +687,7 @@ class GraphTraverser {
                     auto info = artifacts[i]->Content().Info();
                     if (info) {
                         auto new_info =
-                            RetrieveSubPathId(*info, remote, relpath);
+                            RetrieveSubPathId(*info, *context_.apis, relpath);
                         if (new_info) {
                             if (not remote.RetrieveToFds({*new_info},
                                                          {dup(fileno(stdout))},
