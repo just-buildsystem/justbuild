@@ -37,7 +37,11 @@ auto read_stream_data(gsl::not_null<std::FILE*> const& stream) noexcept
     // obtain stream size
     std::fseek(stream, 0, SEEK_END);
     auto size = std::ftell(stream);
-    std::rewind(stream);
+    auto pos = std::fseek(stream, 0, SEEK_SET);
+    if (pos != 0) {
+        Logger::Log(LogLevel::Warning,
+                    "Rewinding temporary file for curl log failed.");
+    }
 
     // create string buffer to hold stream content
     std::string content(static_cast<std::size_t>(size), '\0');
