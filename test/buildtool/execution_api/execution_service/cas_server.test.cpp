@@ -27,6 +27,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
@@ -48,7 +49,7 @@ namespace {
 
 TEST_CASE("CAS Service: upload incomplete tree", "[execution_service]") {
     // For compatible mode tree invariants aren't checked.
-    if (ProtocolTraits::Instance().IsCompatible()) {
+    if (not ProtocolTraits::IsNative(TestHashType::ReadFromEnvironment())) {
         return;
     }
 

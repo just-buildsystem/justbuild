@@ -18,11 +18,11 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "test/buildtool/execution_api/common/api_test.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
@@ -59,14 +59,12 @@ class FactoryApi final {
 
 TEST_CASE("BazelAPI: No input, no output", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -75,14 +73,12 @@ TEST_CASE("BazelAPI: No input, no output", "[execution_api]") {
 
 TEST_CASE("BazelAPI: No input, create output", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -91,14 +87,12 @@ TEST_CASE("BazelAPI: No input, create output", "[execution_api]") {
 
 TEST_CASE("BazelAPI: One input copied to output", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -107,14 +101,12 @@ TEST_CASE("BazelAPI: One input copied to output", "[execution_api]") {
 
 TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -124,14 +116,12 @@ TEST_CASE("BazelAPI: Non-zero exit code, create output", "[execution_api]") {
 
 TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -142,14 +132,12 @@ TEST_CASE("BazelAPI: Retrieve two identical trees to path", "[execution_api]") {
 TEST_CASE("BazelAPI: Retrieve file and symlink with same content to path",
           "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -159,14 +147,12 @@ TEST_CASE("BazelAPI: Retrieve file and symlink with same content to path",
 
 TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};
@@ -176,14 +162,12 @@ TEST_CASE("BazelAPI: Retrieve mixed blobs and trees", "[execution_api]") {
 
 TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
     auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     auto auth = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth);
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     FactoryApi api_factory{
         &*remote_config->remote_address, &*auth, hash_function};

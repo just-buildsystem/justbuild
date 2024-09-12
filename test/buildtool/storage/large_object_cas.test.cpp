@@ -405,7 +405,8 @@ static void TestExternal(StorageConfig const& storage_config,
             REQUIRE(FileSystemManager::IsFile(path));
         }
 
-        if (kIsTree and not ProtocolTraits::Instance().IsCompatible()) {
+        if (kIsTree and ProtocolTraits::IsTreeAllowed(
+                            storage_config.hash_function.GetType())) {
             // Tree invariants check is omitted in compatible mode.
             SECTION("Tree invariants check fails") {
                 // Check splice fails due to the tree invariants check.
@@ -606,7 +607,8 @@ TEST_CASE("LargeObjectCAS: uplink nested large objects", "[storage]") {
 
     // However, in native mode they might be reconstructed on request because
     // their entries are in the latest generation:
-    if (not ProtocolTraits::Instance().IsCompatible()) {
+    if (ProtocolTraits::IsNative(
+            storage_config.Get().hash_function.GetType())) {
         auto split_nested_tree_2 = latest.CAS().SplitTree(*nested_tree_digest);
         REQUIRE(split_nested_tree_2);
 
@@ -720,10 +722,10 @@ auto Tree::StoreRaw(LocalCAS<kDefaultDoGlobalUplink> const& cas,
         return cas.StoreBlob(content);
     };
 
-    return ProtocolTraits::Instance().IsCompatible()
-               ? BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
+    return ProtocolTraits::IsNative(cas.GetHashFunction().GetType())
+               ? BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
                      directory, store_blob, store_tree, store_symlink)
-               : BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
+               : BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                      directory, store_blob, store_tree, store_symlink);
 }
 }  // namespace LargeTestUtils

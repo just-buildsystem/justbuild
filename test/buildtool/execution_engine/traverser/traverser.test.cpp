@@ -24,10 +24,10 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 namespace {
 
@@ -184,9 +184,7 @@ class TestProject {
         auto inputs_desc = ActionDescription::inputs_t{};
         if (not inputs.empty()) {
             command.emplace_back("FROM");
-            auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                                       ? HashFunction::Type::PlainSHA256
-                                       : HashFunction::Type::GitSHA1;
+            auto const hash_type = TestHashType::ReadFromEnvironment();
             for (auto const& input_desc : inputs) {
                 auto artifact =
                     ArtifactDescription::FromJson(hash_type, input_desc);

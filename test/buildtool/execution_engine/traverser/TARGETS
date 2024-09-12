@@ -7,11 +7,11 @@
     , ["", "catch-main"]
     , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/traverser", "traverser"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "traverser"]
   }

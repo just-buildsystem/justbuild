@@ -29,7 +29,6 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -40,6 +39,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 /// \brief Mockup API test config.
 struct TestApiConfig {
@@ -64,9 +64,7 @@ struct TestApiConfig {
 };
 
 static auto NamedDigest(std::string const& str) -> ArtifactDigest {
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
     return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
                                                                str);
 }
@@ -305,9 +303,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
@@ -383,9 +379,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();

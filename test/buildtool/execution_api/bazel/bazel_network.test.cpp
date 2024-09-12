@@ -29,6 +29,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
@@ -46,9 +47,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,
@@ -97,7 +96,8 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 }
 
 TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
-    if (ProtocolTraits::Instance().IsCompatible()) {
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    if (not ProtocolTraits::IsNative(hash_function.GetType())) {
         // only supported in native mode
         return;
     }
@@ -112,10 +112,6 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     REQUIRE(remote_config->remote_address);
 
     RetryConfig retry_config{};  // default retry config
-
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
 
     auto network = BazelNetwork{instance_name,
                                 remote_config->remote_address->host,

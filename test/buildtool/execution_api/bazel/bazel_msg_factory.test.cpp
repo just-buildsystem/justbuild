@@ -23,11 +23,11 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 namespace {
 /// \brief Create a blob from the content found in file or symlink pointed to by
@@ -62,9 +62,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     std::filesystem::path link = subdir1 / "link";
     REQUIRE(FileSystemManager::CreateSymlink("file1", link));
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     // create the corresponding blobs
     auto file1_blob = CreateBlobFromPath(file1, hash_function);

@@ -27,7 +27,6 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -41,6 +40,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
@@ -56,9 +56,7 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
                                  ApiFactory const& factory) {
     SetupConfig(repo_config);
     auto api = factory();
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     std::string const blob = "test";
     CHECK(api->Upload(ArtifactBlobContainer{
@@ -144,9 +142,7 @@ static inline void RunHelloWorldCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto api = factory();
     auto const apis = CreateTestApiBundle(hash_function, api);
@@ -279,9 +275,7 @@ static inline void RunGreeterCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto api = factory();
     auto const apis = CreateTestApiBundle(hash_function, api);
@@ -420,9 +414,7 @@ static inline void TestUploadAndDownloadTrees(
         env.emplace("PATH", "/bin:/usr/bin");
     }
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto foo = std::string{"foo"};
     auto bar = std::string{"bar"};
@@ -576,9 +568,7 @@ static inline void TestRetrieveOutputDirectories(
     int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto const make_tree_id = std::string{"make_tree"};
     auto const* make_tree_cmd =

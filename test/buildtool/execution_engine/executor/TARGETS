@@ -7,7 +7,6 @@
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
@@ -21,6 +20,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["utils", "test_api_bundle"]
     , ["utils", "test_remote_config"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
@@ -34,7 +34,6 @@
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "config"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
@@ -48,6 +47,7 @@
     , ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
     , ["utils", "test_api_bundle"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }
@@ -84,7 +84,6 @@
     [ "executor_api_tests"
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
@@ -95,6 +94,7 @@
     , ["utils", "test_auth_config"]
     , ["utils", "test_remote_config"]
     , ["@", "catch2", "", "catch2"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_engine", "executor"]
   }

@@ -32,6 +32,7 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 namespace {
 
@@ -89,15 +90,13 @@ auto ReadSourceTarget(EntityName const& id,
 }  // namespace
 
 TEST_CASE("from file") {
+    auto const hash_type = TestHashType::ReadFromEnvironment();
+
     nlohmann::json artifacts;
     auto name = EntityName{"", ".", "file"};
     auto consumer = [&artifacts](auto values) {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
-
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
 
     SECTION("via file") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
@@ -108,23 +107,21 @@ TEST_CASE("from file") {
     SECTION("via git tree") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["file"]["type"] == "KNOWN");
-        CHECK(artifacts["file"]["data"]["id"] ==
-              (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
-                                                         : kEmptySha1));
+        CHECK(
+            artifacts["file"]["data"]["id"] ==
+            (ProtocolTraits::IsNative(hash_type) ? kEmptySha1 : kEmptySha256));
         CHECK(artifacts["file"]["data"]["size"] == 0);
     }
 }
 
 TEST_CASE("not present at all") {
+    auto const hash_type = TestHashType::ReadFromEnvironment();
+
     bool consumed{false};
     bool failure_called{false};
     auto name = EntityName{"", ".", "does_not_exist"};
     auto consumer = [&consumed](auto /*unused*/) { consumed = true; };
     auto fail_func = [&failure_called]() { failure_called = true; };
-
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
 
     SECTION("via file") {
         CHECK_FALSE(ReadSourceTarget(
@@ -142,15 +139,13 @@ TEST_CASE("not present at all") {
 }
 
 TEST_CASE("malformed entry") {
+    auto const hash_type = TestHashType::ReadFromEnvironment();
+
     bool consumed{false};
     bool failure_called{false};
     auto name = EntityName{"", ".", "bad_entry"};
     auto consumer = [&consumed](auto /*unused*/) { consumed = true; };
     auto fail_func = [&failure_called]() { failure_called = true; };
-
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
 
     SECTION("via git tree") {
         CHECK_FALSE(ReadSourceTarget(
@@ -168,15 +163,13 @@ TEST_CASE("malformed entry") {
 }
 
 TEST_CASE("subdir file") {
+    auto const hash_type = TestHashType::ReadFromEnvironment();
+
     nlohmann::json artifacts;
     auto name = EntityName{"", "foo", "bar/file"};
     auto consumer = [&artifacts](auto values) {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
-
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
 
     SECTION("via file") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
@@ -187,23 +180,21 @@ TEST_CASE("subdir file") {
     SECTION("via git tree") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["bar/file"]["type"] == "KNOWN");
-        CHECK(artifacts["bar/file"]["data"]["id"] ==
-              (ProtocolTraits::Instance().IsCompatible() ? kEmptySha256
-                                                         : kEmptySha1));
+        CHECK(
+            artifacts["bar/file"]["data"]["id"] ==
+            (ProtocolTraits::IsNative(hash_type) ? kEmptySha1 : kEmptySha256));
         CHECK(artifacts["bar/file"]["data"]["size"] == 0);
     }
 }
 
 TEST_CASE("subdir symlink") {
+    auto const hash_type = TestHashType::ReadFromEnvironment();
+
     nlohmann::json artifacts;
     auto name = EntityName{"", "foo", "link"};
     auto consumer = [&artifacts](auto values) {
         artifacts = (*values[0])->Artifacts()->ToJson();
     };
-
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
 
     SECTION("via file") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
@@ -215,8 +206,8 @@ TEST_CASE("subdir symlink") {
         CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
         CHECK(artifacts["link"]["type"] == "KNOWN");
         CHECK(artifacts["link"]["data"]["id"] ==
-              (ProtocolTraits::Instance().IsCompatible() ? kSrcLinkIdSha256
-                                                         : kSrcLinkIdSha1));
+              (ProtocolTraits::IsNative(hash_type) ? kSrcLinkIdSha1
+                                                   : kSrcLinkIdSha256));
         CHECK(artifacts["link"]["data"]["size"] == 5);  // content: dummy
     }
 }

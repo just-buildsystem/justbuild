@@ -25,7 +25,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -34,6 +33,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;
 using ExecProps = std::map<std::string, std::string>;
@@ -140,9 +140,7 @@ using ExecProps = std::map<std::string, std::string>;
     bool is_hermetic = false) {
     std::string test_content("test");
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, test_content);
@@ -224,9 +222,7 @@ using ExecProps = std::map<std::string, std::string>;
     bool is_hermetic = false) {
     std::string test_content("test");
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, test_content);
@@ -315,9 +311,7 @@ using ExecProps = std::map<std::string, std::string>;
     ExecProps const& props) {
     std::string test_content("test");
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, test_content);

@@ -20,14 +20,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-
-[[nodiscard]] static inline auto GetHashType(bool compatible) noexcept
-    -> HashFunction::Type {
-    return compatible ? HashFunction::Type::PlainSHA256
-                      : HashFunction::Type::GitSHA1;
-}
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 TEST_CASE("From JSON", "[action_description]") {
     using path = std::filesystem::path;
@@ -45,8 +39,7 @@ TEST_CASE("From JSON", "[action_description]") {
                           desc.Inputs()}
             .ToJson();
 
-    auto const hash_type =
-        GetHashType(ProtocolTraits::Instance().IsCompatible());
+    auto const hash_type = TestHashType::ReadFromEnvironment();
     SECTION("Parse full action") {
         auto description = ActionDescription::FromJson(hash_type, "id", json);
         REQUIRE(description);

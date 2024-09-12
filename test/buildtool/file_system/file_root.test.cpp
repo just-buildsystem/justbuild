@@ -25,10 +25,10 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/container_matchers.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/shell_quoting.hpp"
 
 namespace {
@@ -380,9 +380,7 @@ static void CheckGitRoot(HashFunction::Type hash_type,
                          bool ignore_special) noexcept;
 
 TEST_CASE("Creating artifact descriptions", "[file_root]") {
-    auto const hash_type = ProtocolTraits::Instance().IsCompatible()
-                               ? HashFunction::Type::PlainSHA256
-                               : HashFunction::Type::GitSHA1;
+    auto const hash_type = TestHashType::ReadFromEnvironment();
 
     SECTION("local root") {
         CheckLocalRoot(hash_type, /*ignore_special=*/false);

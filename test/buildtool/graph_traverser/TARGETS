@@ -23,6 +23,7 @@
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }
@@ -55,10 +56,10 @@
     , ["utils", "catch-main-remote-execution"]
     , ["utils", "test_auth_config"]
     , ["utils", "test_remote_config"]
+    , ["utils", "test_hash_function_type"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
   }

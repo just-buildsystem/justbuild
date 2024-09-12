@@ -62,11 +62,11 @@
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["utils", "shell_quoting"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }

@@ -47,6 +47,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/json.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 // NOLINTNEXTLINE(google-build-namespaces)
 namespace {
@@ -128,7 +129,8 @@ class TestProject {
         CommandLineArguments clargs{gtargs};
         clargs.artifacts = entry_points;
         auto const comp_graph = root_dir_ / "graph_description_compatible";
-        if (ProtocolTraits::Instance().IsCompatible() and
+        if (not ProtocolTraits::IsNative(
+                TestHashType::ReadFromEnvironment()) and
             FileSystemManager::Exists(comp_graph)) {
             clargs.graph_description = comp_graph;
         }

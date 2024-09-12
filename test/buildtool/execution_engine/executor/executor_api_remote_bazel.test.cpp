@@ -15,7 +15,6 @@
 #include <optional>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -25,6 +24,7 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
@@ -41,9 +41,7 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestBlobUpload(&repo_config, [&] {
         return BazelApi::Ptr{new BazelApi{"remote-execution",
@@ -72,9 +70,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestHelloWorldCompilation(
         &repo_config,
@@ -110,9 +106,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestGreeterCompilation(
         &repo_config,
@@ -148,9 +142,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestUploadAndDownloadTrees(
         &repo_config,
@@ -186,9 +178,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{ProtocolTraits::Instance().IsCompatible()
-                                         ? HashFunction::Type::PlainSHA256
-                                         : HashFunction::Type::GitSHA1};
+    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestRetrieveOutputDirectories(
         &repo_config,
