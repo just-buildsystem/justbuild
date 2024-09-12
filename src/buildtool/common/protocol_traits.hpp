@@ -19,15 +19,6 @@
 
 class ProtocolTraits final {
   public:
-    [[nodiscard]] static auto Instance() noexcept -> ProtocolTraits& {
-        static ProtocolTraits instance{};
-        return instance;
-    }
-    [[nodiscard]] auto IsCompatible() const noexcept -> bool {
-        return compatible_;
-    }
-    void SetCompatible(bool value = true) noexcept { compatible_ = value; }
-
     inline static constexpr auto IsNative(HashFunction::Type hash_type) noexcept
         -> bool {
         return hash_type == HashFunction::Type::GitSHA1;
@@ -37,8 +28,5 @@ class ProtocolTraits final {
         HashFunction::Type hash_type) noexcept -> bool {
         return IsNative(hash_type);
     }
-
-  private:
-    bool compatible_ = false;
 };
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_PROTOCOL_TRAITS_HPP
