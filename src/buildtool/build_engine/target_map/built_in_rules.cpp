@@ -947,8 +947,7 @@ void InstallRule(
         }
         dependency_keys.emplace_back(
             BuildMaps::Target::ConfiguredTarget{*dep_target, key.config});
-        dirs.emplace_back(std::pair<BuildMaps::Base::EntityName, std::string>{
-            *dep_target, entry->List()[1]->String()});
+        dirs.emplace_back(*dep_target, entry->List()[1]->String());
     }
 
     (*subcaller)(

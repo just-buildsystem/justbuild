@@ -209,9 +209,9 @@ struct TargetData {
             Expression::list_t targets{};
             targets.reserve(nodes.size());
             for (auto const& node_expr : nodes) {
-                targets.emplace_back(ExpressionPtr{BuildMaps::Base::EntityName{
+                targets.emplace_back(BuildMaps::Base::EntityName{
                     BuildMaps::Base::AnonymousTarget{
-                        .rule_map = rule_map, .target_node = node_expr}}});
+                        .rule_map = rule_map, .target_node = node_expr}});
             }
             target_exprs.emplace(field_name, targets);
         }
@@ -1238,7 +1238,7 @@ void withRuleDefinition(
                 if (not target) {
                     return;
                 }
-                dep_target_exps.emplace_back(ExpressionPtr{*target});
+                dep_target_exps.emplace_back(*target);
             }
         }
         else {
@@ -1796,20 +1796,18 @@ void GlobTargetWithDirEntry(
     std::vector<BuildMaps::Base::EntityName> matches;
     for (auto const& x : dir.FilesIterator()) {
         if (fnmatch(pattern.c_str(), x.c_str(), 0) == 0) {
-            matches.emplace_back(BuildMaps::Base::EntityName{
-                target.repository,
-                target.module,
-                x,
-                BuildMaps::Base::ReferenceType::kFile});
+            matches.emplace_back(target.repository,
+                                 target.module,
+                                 x,
+                                 BuildMaps::Base::ReferenceType::kFile);
         }
     }
     for (auto const& x : dir.SymlinksIterator()) {
         if (fnmatch(pattern.c_str(), x.c_str(), 0) == 0) {
-            matches.emplace_back(BuildMaps::Base::EntityName{
-                target.repository,
-                target.module,
-                x,
-                BuildMaps::Base::ReferenceType::kSymlink});
+            matches.emplace_back(target.repository,
+                                 target.module,
+                                 x,
+                                 BuildMaps::Base::ReferenceType::kSymlink);
         }
     }
     source_target_map->ConsumeAfterKeysReady(

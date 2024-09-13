@@ -319,7 +319,7 @@ auto Range(ExpressionPtr const& expr) -> ExpressionPtr {
     auto result = Expression::list_t{};
     result.reserve(len);
     for (std::size_t i = 0; i < len; i++) {
-        result.emplace_back(ExpressionPtr{fmt::format("{}", i)});
+        result.emplace_back(fmt::format("{}", i));
     }
     return ExpressionPtr{result};
 }

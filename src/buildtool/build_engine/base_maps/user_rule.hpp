@@ -169,7 +169,7 @@ class UserRule {
             std::vector<ExpressionPtr> target_exps;
             target_exps.reserve(target_entity_vec.size());
             for (auto const& target_entity : target_entity_vec) {
-                target_exps.emplace_back(ExpressionPtr{target_entity});
+                target_exps.emplace_back(target_entity);
             }
             implicit_target_exp.emplace(target_name, target_exps);
         }
