@@ -1066,7 +1066,7 @@ void withRuleDefinition(
     std::unordered_map<std::string, ExpressionPtr> params;
     params.reserve(rule->ConfigFields().size() + rule->TargetFields().size() +
                    rule->ImplicitTargetExps().size());
-    for (auto field_name : rule->ConfigFields()) {
+    for (auto const& field_name : rule->ConfigFields()) {
         auto const& field_expression = data->config_exprs[field_name];
         auto field_value = field_expression.Evaluate(
             param_config, {}, [&logger, &field_name](auto const& msg) {
@@ -1197,10 +1197,10 @@ void withRuleDefinition(
 
     std::vector<BuildMaps::Target::ConfiguredTarget> dependency_keys;
     std::vector<BuildMaps::Target::ConfiguredTarget> transition_keys;
-    for (auto target_field_name : rule->TargetFields()) {
+    for (auto const& target_field_name : rule->TargetFields()) {
         auto const& deps_expression = data->target_exprs[target_field_name];
         auto deps_names = deps_expression.Evaluate(
-            param_config, {}, [logger, target_field_name](auto const& msg) {
+            param_config, {}, [&logger, &target_field_name](auto const& msg) {
                 (*logger)(
                     fmt::format("While evaluating target parameter {}:\n{}",
                                 target_field_name,
