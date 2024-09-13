@@ -520,7 +520,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             distdir_content->insert_or_assign(repo_distfile,
                                               archive->content_hash.Hash());
             // add to fetch list
-            dist_repos_to_fetch->emplace_back(*std::move(archive));
+            dist_repos_to_fetch->emplace_back(*archive);
         }
     }
     // get hash of distdir content

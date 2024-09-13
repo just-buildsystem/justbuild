@@ -287,19 +287,17 @@ namespace {
         LocalCasReader reader(&storage.CAS());
         auto const tree = reader.MakeTree(digest);
         if (not tree) {
-            auto const error =
-                fmt::format("Failed to build bazel Tree for {}", digest.hash());
-            return unexpected{std::move(error)};
+            return unexpected{fmt::format("Failed to build bazel Tree for {}",
+                                          digest.hash())};
         }
 
         auto const cas_digest =
             storage.CAS().StoreBlob(tree->SerializeAsString(),
                                     /*is_executable=*/false);
         if (not cas_digest) {
-            auto const error = fmt::format(
+            return unexpected{fmt::format(
                 "Failed to add to the storage the bazel Tree for {}",
-                digest.hash());
-            return unexpected{std::move(error)};
+                digest.hash())};
         }
         (*out_dir.mutable_tree_digest()) =
             ArtifactDigestFactory::ToBazel(*cas_digest);
@@ -317,16 +315,14 @@ namespace {
     auto const cas_path =
         storage.CAS().BlobPath(digest, /*is_executable=*/false);
     if (not cas_path) {
-        auto const error =
-            fmt::format("Failed to recover the symlink for {}", digest.hash());
-        return unexpected{std::move(error)};
+        return unexpected{
+            fmt::format("Failed to recover the symlink for {}", digest.hash())};
     }
 
     auto content = FileSystemManager::ReadFile(*cas_path);
     if (not content) {
-        auto const error = fmt::format(
-            "Failed to read the symlink content for {}", digest.hash());
-        return unexpected{std::move(error)};
+        return unexpected{fmt::format(
+            "Failed to read the symlink content for {}", digest.hash())};
     }
 
     *(out_link.mutable_target()) = *std::move(content);
