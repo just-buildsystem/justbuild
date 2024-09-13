@@ -48,7 +48,7 @@ TEST_CASE("Basic", "[task_system]") {
     }
     SECTION("1-argument constructor") {
         std::size_t const desired_number_of_threads_in_ts =
-            GENERATE(1u, 2u, 5u, 10u, std::thread::hardware_concurrency());
+            GENERATE(1U, 2U, 5U, 10U, std::thread::hardware_concurrency());
         TaskSystem ts(desired_number_of_threads_in_ts);
         CHECK(ts.NumberOfThreads() == desired_number_of_threads_in_ts);
     }
