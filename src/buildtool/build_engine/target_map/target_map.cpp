@@ -316,7 +316,7 @@ void withDependencies(
     const BuildMaps::Base::UserRulePtr& rule,
     const TargetData::Ptr& data,
     const BuildMaps::Target::ConfiguredTarget& key,
-    std::unordered_map<std::string, ExpressionPtr> params,
+    std::unordered_map<std::string, ExpressionPtr> params,  // NOLINT
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
     const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
