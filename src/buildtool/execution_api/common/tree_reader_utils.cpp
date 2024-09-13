@@ -106,6 +106,12 @@ auto TreeReaderUtils::ReadObjectInfos(bazel_re::Directory const& dir,
         }
 
         for (auto const& l : dir.symlinks()) {
+            // check validity of symlinks
+            if (not PathIsNonUpwards(l.target())) {
+                Logger::Log(
+                    LogLevel::Error, "found invalid symlink at {}", l.name());
+                return false;
+            }
             if (not store_info(l.name(), CreateObjectInfo(hash_function, l))) {
                 return false;
             }

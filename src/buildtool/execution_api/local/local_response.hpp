@@ -23,14 +23,18 @@
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
+#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/path.hpp"
 
 /// \brief Response of a LocalAction.
 class LocalResponse final : public IExecutionResponse {
@@ -155,6 +159,14 @@ class LocalResponse final : public IExecutionResponse {
         // collect all symlinks and store them
         for (auto const& link : action_result.output_file_symlinks()) {
             try {
+                // in compatible mode: check symlink validity
+                if (not ProtocolTraits::IsNative(
+                        storage_.GetHashFunction().GetType()) and
+                    not PathIsNonUpwards(link.target())) {
+                    return fmt::format(
+                        "LocalResponse: found invalid symlink at {}",
+                        link.path());
+                }
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
@@ -172,6 +184,14 @@ class LocalResponse final : public IExecutionResponse {
         }
         for (auto const& link : action_result.output_directory_symlinks()) {
             try {
+                // in compatible mode: check symlink validity
+                if (not ProtocolTraits::IsNative(
+                        storage_.GetHashFunction().GetType()) and
+                    not PathIsNonUpwards(link.target())) {
+                    return fmt::format(
+                        "LocalResponse: found invalid symlink at {}",
+                        link.path());
+                }
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
@@ -199,6 +219,19 @@ class LocalResponse final : public IExecutionResponse {
                     dir.path());
             }
             try {
+                // in compatible mode: check validity of symlinks in dir
+                if (not ProtocolTraits::IsNative(
+                        storage_.GetHashFunction().GetType())) {
+                    auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
+                    auto result = reader.RecursivelyReadTreeLeafs(
+                        *digest, "", /*include_trees=*/true);
+                    if (not result) {
+                        return fmt::format(
+                            "LocalResponse: found invalid entries in directory "
+                            "{}",
+                            dir.path());
+                    }
+                }
                 artifacts.emplace(
                     dir.path(),
                     Artifact::ObjectInfo{.digest = *std::move(digest),

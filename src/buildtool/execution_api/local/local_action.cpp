@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
@@ -30,6 +31,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/system/system_command.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 
@@ -367,12 +369,21 @@ auto LocalAction::CollectOutputFileOrSymlink(
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
-        auto content = FileSystemManager::ReadSymlink(file_path);
-        if (content and local_context_.storage->CAS().StoreBlob(*content)) {
-            auto out_symlink = bazel_re::OutputSymlink{};
-            out_symlink.set_path(local_path);
-            out_symlink.set_target(*content);
-            return out_symlink;
+        if (auto content = FileSystemManager::ReadSymlink(file_path)) {
+            // in native mode: check validity of symlink
+            if (ProtocolTraits::IsNative(
+                    local_context_.storage->GetHashFunction().GetType()) and
+                not PathIsNonUpwards(*content)) {
+                Logger::Log(
+                    LogLevel::Error, "found invalid symlink at {}", local_path);
+                return std::nullopt;
+            }
+            if (local_context_.storage->CAS().StoreBlob(*content)) {
+                auto out_symlink = bazel_re::OutputSymlink{};
+                out_symlink.set_path(local_path);
+                out_symlink.set_target(*content);
+                return out_symlink;
+            }
         }
     }
     else if (IsFileObject(*type)) {
@@ -406,12 +417,21 @@ auto LocalAction::CollectOutputDirOrSymlink(
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
-        auto content = FileSystemManager::ReadSymlink(dir_path);
-        if (content and local_context_.storage->CAS().StoreBlob(*content)) {
-            auto out_symlink = bazel_re::OutputSymlink{};
-            out_symlink.set_path(local_path);
-            out_symlink.set_target(*content);
-            return out_symlink;
+        if (auto content = FileSystemManager::ReadSymlink(dir_path)) {
+            // in native mode: check validity of symlink
+            if (ProtocolTraits::IsNative(
+                    local_context_.storage->GetHashFunction().GetType()) and
+                not PathIsNonUpwards(*content)) {
+                Logger::Log(
+                    LogLevel::Error, "found invalid symlink at {}", local_path);
+                return std::nullopt;
+            }
+            if (local_context_.storage->CAS().StoreBlob(*content)) {
+                auto out_symlink = bazel_re::OutputSymlink{};
+                out_symlink.set_path(local_path);
+                out_symlink.set_target(*content);
+                return out_symlink;
+            }
         }
     }
     else if (IsTreeObject(*type)) {
@@ -423,6 +443,9 @@ auto LocalAction::CollectOutputDirOrSymlink(
                 ArtifactDigestFactory::ToBazel(*digest);
             return out_dir;
         }
+        Logger::Log(LogLevel::Error,
+                    "found invalid entries in directory at {}",
+                    local_path);
     }
     else {
         Logger::Log(

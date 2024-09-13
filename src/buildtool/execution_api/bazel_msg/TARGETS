@@ -34,6 +34,7 @@
     ]
   , "private-deps":
     [ ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/common", "artifact_digest_factory"]

@@ -29,6 +29,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 /// \brief Serialize protobuf message to string.
@@ -427,7 +428,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
         try {
             if (IsSymlinkObject(type)) {
                 auto content = FileSystemManager::ReadSymlink(full_name);
-                if (content) {
+                if (content and PathIsNonUpwards(*content)) {
                     if (auto digest = store_symlink(*content)) {
                         if (auto raw_id = FromHexString(digest->hash())) {
                             entries[std::move(*raw_id)].emplace_back(

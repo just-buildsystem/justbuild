@@ -44,6 +44,7 @@
     , ["src/buildtool/execution_api/execution_service", "cas_utils"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "tmp_dir"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
@@ -54,7 +55,6 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/utils/cpp", "path"]
     ]
   }
 , "context":
