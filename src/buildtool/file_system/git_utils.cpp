@@ -32,8 +32,8 @@ constexpr std::size_t kOIDHexSize{GIT_OID_HEXSZ};
 
 auto GitLastError() noexcept -> std::string {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    git_error const* err{nullptr};
-    if ((err = git_error_last()) != nullptr and err->message != nullptr) {
+    git_error const* const err = git_error_last();
+    if (err != nullptr and err->message != nullptr) {
         return fmt::format("error code {}: {}", err->klass, err->message);
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
