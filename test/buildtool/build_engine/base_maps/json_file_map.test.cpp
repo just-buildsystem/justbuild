@@ -146,11 +146,12 @@ TEST_CASE("non existent") {
 
 TEST_CASE("Bad syntax") {
     std::atomic<int> failcont_counter{0};
+    auto fail_func = [&failcont_counter]() { ++failcont_counter; };
     CHECK_FALSE(ReadJsonFile(
         "bad.json",
         {"", "data_json"},
         [](auto const& /* unused */) {},
         /*use_git=*/false,
-        [&failcont_counter]() { failcont_counter++; }));
+        fail_func));
     CHECK(failcont_counter == 1);
 }
