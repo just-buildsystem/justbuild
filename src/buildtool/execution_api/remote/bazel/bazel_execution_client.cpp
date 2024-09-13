@@ -90,20 +90,19 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
         std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>>
             reader(stub_->Execute(&context, request));
 
-        auto [op, fatal, error_msg] = ReadExecution(reader.get(), wait);
+        auto [op, fatal, _] = ReadExecution(reader.get(), wait);
         if (not op.has_value()) {
-            return {
-                .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
+            return {.ok = false, .exit_retry_loop = fatal};
         }
         auto contents = ExtractContents(std::move(op));
         response = contents.response;
         if (response.state == ExecutionResponse::State::Finished) {
             return {.ok = true};
         }
+        auto const is_fatal = response.state != ExecutionResponse::State::Retry;
         return {.ok = false,
-                .exit_retry_loop =
-                    response.state != ExecutionResponse::State::Retry,
-                .error_msg = contents.error_msg};
+                .exit_retry_loop = is_fatal,
+                .error_msg = is_fatal ? std::nullopt : contents.error_msg};
     };
     if (not WithRetry(execute, retry_config_, logger_)) {
         logger_.Emit(LogLevel::Error,
@@ -125,21 +124,19 @@ auto BazelExecutionClient::WaitExecution(std::string const& execution_handle)
         std::unique_ptr<grpc::ClientReader<google::longrunning::Operation>>
             reader(stub_->WaitExecution(&context, request));
 
-        auto [op, fatal, error_msg] =
-            ReadExecution(reader.get(), /*wait=*/true);
+        auto [op, fatal, _] = ReadExecution(reader.get(), /*wait=*/true);
         if (not op.has_value()) {
-            return {
-                .ok = false, .exit_retry_loop = fatal, .error_msg = error_msg};
+            return {.ok = false, .exit_retry_loop = fatal};
         }
         auto contents = ExtractContents(std::move(op));
         response = contents.response;
         if (response.state == ExecutionResponse::State::Finished) {
             return {.ok = true};
         }
+        auto const is_fatal = response.state != ExecutionResponse::State::Retry;
         return {.ok = false,
-                .exit_retry_loop =
-                    response.state != ExecutionResponse::State::Retry,
-                .error_msg = contents.error_msg};
+                .exit_retry_loop = is_fatal,
+                .error_msg = is_fatal ? std::nullopt : contents.error_msg};
     };
     if (not WithRetry(wait_execution, retry_config_, logger_)) {
         logger_.Emit(
