@@ -1,4 +1,4 @@
-// Copyright 2022 Huawei Cloud Computing Technology Co., Ltd.
+// Copyright 2024 Huawei Cloud Computing Technology Co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// settings common for server and client
-#ifndef BYTESTREAM_COMMON_HPP
-#define BYTESTREAM_COMMON_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BYTESTREAM_UTILS_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BYTESTREAM_UTILS_HPP
+
 #include <cstddef>
 
-// Chunk size for uploads (default size used by BuildBarn)
-constexpr static std::size_t kChunkSize = 64 * 1024;
+class ByteStreamUtils final {
+  public:
+    // Chunk size for uploads (default size used by BuildBarn)
+    static constexpr std::size_t kChunkSize = 64 * 1024;
+};
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BYTESTREAM_UTILS_HPP

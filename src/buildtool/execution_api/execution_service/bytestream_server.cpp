@@ -23,7 +23,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/common/bytestream_common.hpp"
+#include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -104,10 +104,10 @@ auto BytestreamServiceImpl::Read(
 
     ::google::bytestream::ReadResponse response;
     std::string& buffer = *response.mutable_data();
-    buffer.resize(kChunkSize);
+    buffer.resize(ByteStreamUtils::kChunkSize);
 
     while (not stream.eof()) {
-        stream.read(buffer.data(), kChunkSize);
+        stream.read(buffer.data(), ByteStreamUtils::kChunkSize);
         if (stream.bad()) {
             auto const str =
                 fmt::format("Failed to read data for {}", read_digest->hash());

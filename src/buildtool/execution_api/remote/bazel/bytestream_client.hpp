@@ -27,7 +27,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
-#include "src/buildtool/execution_api/common/bytestream_common.hpp"
+#include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -115,11 +115,12 @@ class ByteStreamClient {
 
             google::bytestream::WriteRequest request{};
             request.set_resource_name(resource_name);
-            request.mutable_data()->resize(kChunkSize, '\0');
+            request.mutable_data()->resize(ByteStreamUtils::kChunkSize, '\0');
 
             std::size_t pos{};
             do {
-                auto const size = std::min(data.size() - pos, kChunkSize);
+                auto const size =
+                    std::min(data.size() - pos, ByteStreamUtils::kChunkSize);
                 request.mutable_data()->resize(size);
                 data.copy(request.mutable_data()->data(), size, pos);
                 request.set_write_offset(static_cast<int>(pos));
@@ -141,7 +142,7 @@ class ByteStreamClient {
                     pos = gsl::narrow<std::size_t>(committed_size);
                 }
                 else {
-                    pos += kChunkSize;
+                    pos += ByteStreamUtils::kChunkSize;
                 }
             } while (pos < data.size());
             if (not writer->WritesDone()) {

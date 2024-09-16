@@ -30,10 +30,10 @@
   , "private-deps": [["src/buildtool/common", "artifact_digest_factory"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
-, "bytestream-common":
+, "bytestream_utils":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["bytestream-common"]
-  , "hdrs": ["bytestream_common.hpp"]
+  , "name": ["bytestream_utils"]
+  , "hdrs": ["bytestream_utils.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "api_bundle":
