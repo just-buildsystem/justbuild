@@ -115,11 +115,9 @@ class ByteStreamClient {
             google::bytestream::WriteResponse response{};
             auto writer = stub_->Write(&ctx, &response);
 
-            auto* allocated_data =
-                std::make_unique<std::string>(kChunkSize, '\0').release();
             google::bytestream::WriteRequest request{};
             request.set_resource_name(resource_name);
-            request.set_allocated_data(allocated_data);
+            request.mutable_data()->resize(kChunkSize, '\0');
 
             std::size_t pos{};
             do {
