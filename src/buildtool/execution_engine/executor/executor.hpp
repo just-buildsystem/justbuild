@@ -972,11 +972,17 @@ class Rebuilder {
                 return artifacts_cached.error();
             }
             std::ostringstream msg{};
-            for (auto const& [path, info] : *artifacts.value()) {
-                auto const& info_cached = artifacts_cached.value()->at(path);
-                if (info != info_cached) {
-                    RecordFlakyAction(&msg, action, path, info, info_cached);
+            try {
+                for (auto const& [path, info] : *artifacts.value()) {
+                    auto const& info_cached =
+                        artifacts_cached.value()->at(path);
+                    if (info != info_cached) {
+                        RecordFlakyAction(
+                            &msg, action, path, info, info_cached);
+                    }
                 }
+            } catch (std::exception const& ex) {
+                return ex.what();
             }
             if (msg.tellp() > 0) {
                 stats.IncrementActionsFlakyCounter();

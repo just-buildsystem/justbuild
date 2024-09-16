@@ -325,7 +325,7 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
             auto const digest =
                 ArtifactDigestFactory::Create(hash_function_.GetType(),
                                               ToHexString(entry.first),
-                                              /*size_unknown=*/0,
+                                              0,  // size unknown
                                               IsTreeObject(item.type));
             if (not digest) {
                 return LargeObjectError{

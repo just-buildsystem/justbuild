@@ -32,7 +32,7 @@
 namespace {
 /// \brief Create a blob from the content found in file or symlink pointed to by
 /// given path.
-[[nodiscard]] static inline auto CreateBlobFromPath(
+[[nodiscard]] inline auto CreateBlobFromPath(
     std::filesystem::path const& fpath,
     HashFunction hash_function) noexcept -> std::optional<ArtifactBlob> {
     auto const type = FileSystemManager::Type(fpath, /*allow_upwards=*/true);

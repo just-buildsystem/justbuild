@@ -386,11 +386,19 @@ auto BazelApi::CreateAction(
     gsl::not_null<std::unordered_set<Artifact::ObjectInfo>*> done)
     const noexcept -> bool {
     std::unordered_set<Artifact::ObjectInfo> artifacts_info;
-    artifacts_info.reserve(all_artifacts_info.size());
-    for (auto const& info : all_artifacts_info) {
-        if (not done->contains(info)) {
-            artifacts_info.insert(info);
+    try {
+        artifacts_info.reserve(all_artifacts_info.size());
+        for (auto const& info : all_artifacts_info) {
+            if (not done->contains(info)) {
+                artifacts_info.emplace(info);
+            }
         }
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Error,
+            "BazelApi: Collecting the set of artifacts failed with:\n{}",
+            ex.what());
+        return false;
     }
     if (artifacts_info.empty()) {
         return true;  // Nothing to do

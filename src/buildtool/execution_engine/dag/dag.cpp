@@ -148,7 +148,7 @@ auto DependencyGraph::AddAction(ActionDescription const& description) -> bool {
 
 auto DependencyGraph::AddAction(Action const& a) noexcept
     -> DependencyGraph::ActionNodeIdentifier {
-    auto id = a.Id();
+    auto const& id = a.Id();
     auto const action_it = action_ids_.find(id);
     if (action_it != action_ids_.end()) {
         return action_it->second;

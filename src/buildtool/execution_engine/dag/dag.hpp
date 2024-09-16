@@ -314,57 +314,60 @@ class DependencyGraph : DirectedAcyclicGraph {
             return true;
         }
 
-        [[nodiscard]] auto OutputFiles()
-            const& -> std::vector<NamedOtherNodePtr> const& {
+        [[nodiscard]] auto OutputFiles() const& noexcept
+            -> std::vector<NamedOtherNodePtr> const& {
             return output_files_;
         }
 
-        [[nodiscard]] auto OutputDirs()
-            const& -> std::vector<NamedOtherNodePtr> const& {
+        [[nodiscard]] auto OutputDirs() const& noexcept
+            -> std::vector<NamedOtherNodePtr> const& {
             return output_dirs_;
         }
 
-        [[nodiscard]] auto Dependencies()
-            const& -> std::vector<NamedOtherNodePtr> const& {
+        [[nodiscard]] auto Dependencies() const& noexcept
+            -> std::vector<NamedOtherNodePtr> const& {
             return dependencies_;
         }
 
-        [[nodiscard]] auto Command() const -> std::vector<std::string> {
+        [[nodiscard]] auto Command() const noexcept
+            -> std::vector<std::string> const& {
             return Content().Command();
         }
 
-        [[nodiscard]] auto Env() const -> std::map<std::string, std::string> {
+        [[nodiscard]] auto Env() const noexcept
+            -> std::map<std::string, std::string> const& {
             return Content().Env();
         }
 
-        [[nodiscard]] auto MayFail() const -> std::optional<std::string> {
+        [[nodiscard]] auto MayFail() const noexcept
+            -> std::optional<std::string> const& {
             return Content().MayFail();
         }
 
-        [[nodiscard]] auto TimeoutScale() const -> double {
+        [[nodiscard]] auto TimeoutScale() const noexcept -> double {
             return Content().TimeoutScale();
         }
 
-        [[nodiscard]] auto ExecutionProperties() const
-            -> std::map<std::string, std::string> {
+        [[nodiscard]] auto ExecutionProperties() const noexcept
+            -> std::map<std::string, std::string> const& {
             return Content().ExecutionProperties();
         }
 
-        [[nodiscard]] auto NoCache() const -> bool {
+        [[nodiscard]] auto NoCache() const noexcept -> bool {
             return Content().NoCache();
         }
 
-        [[nodiscard]] auto OutputFilePaths() const
+        [[nodiscard]] auto OutputFilePaths() const noexcept
             -> std::vector<Action::LocalPath> {
             return NodePaths(output_files_);
         }
 
-        [[nodiscard]] auto OutputDirPaths() const
+        [[nodiscard]] auto OutputDirPaths() const noexcept
             -> std::vector<Action::LocalPath> {
             return NodePaths(output_dirs_);
         }
 
-        [[nodiscard]] auto DependencyPaths() const
+        [[nodiscard]] auto DependencyPaths() const noexcept
             -> std::vector<Action::LocalPath> {
             return NodePaths(dependencies_);
         }

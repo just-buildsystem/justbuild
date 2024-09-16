@@ -86,7 +86,7 @@ auto SetupConfig() -> RepositoryConfig {
 
 }  // namespace
 
-TEST_CASE("simple targets", "[target_map]") {
+TEST_CASE("simple targets", "[target_map]") {  // NOLINT
     auto const storage_config = TestStorageConfig::Create();
     auto const storage = Storage::Create(&storage_config.Get());
 
