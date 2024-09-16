@@ -262,11 +262,11 @@ class LocalApi final : public IExecutionApi {
                               bool /*skip_find_missing*/) const noexcept
         -> bool final {
         for (auto const& blob : blobs.Blobs()) {
-            auto const is_tree = blob.digest.IsTree();
-            auto cas_digest =
-                is_tree ? local_context_.storage->CAS().StoreTree(*blob.data)
-                        : local_context_.storage->CAS().StoreBlob(*blob.data,
-                                                                  blob.is_exec);
+            auto const cas_digest =
+                blob.digest.IsTree()
+                    ? local_context_.storage->CAS().StoreTree(*blob.data)
+                    : local_context_.storage->CAS().StoreBlob(*blob.data,
+                                                              blob.is_exec);
             if (not cas_digest or *cas_digest != blob.digest) {
                 return false;
             }
