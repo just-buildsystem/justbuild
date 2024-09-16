@@ -26,4 +26,4 @@
 [[nodiscard]] auto ReadJustMRRC(
     gsl::not_null<CommandLineArguments*> const& clargs)
     -> std::optional<std::filesystem::path>;
-#endif
+#endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_RC_HPP

@@ -66,4 +66,4 @@ struct hash<BuildMaps::Target::ConfiguredTarget> {
 };
 }  // namespace std
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_CONFIGURED_TARGET_HPP

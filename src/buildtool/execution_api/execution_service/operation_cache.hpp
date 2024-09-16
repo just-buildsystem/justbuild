@@ -82,4 +82,4 @@ class OperationCache final {
     void GarbageCollection();
 };
 
-#endif
+#endif  // OPERATION_CACHE_HPP

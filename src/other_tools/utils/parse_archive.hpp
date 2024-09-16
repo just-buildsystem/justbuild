@@ -43,4 +43,4 @@ auto ParseForeignFileDescription(ExpressionPtr const& repo_desc,
                                  const AsyncMapConsumerLoggerPtr& logger)
     -> std::optional<ForeignFileInfo>;
 
-#endif
+#endif  // INCLUDED_SRC_OTHER_TOOLS_UTILS_PARSE_ARCHIVE_HPP

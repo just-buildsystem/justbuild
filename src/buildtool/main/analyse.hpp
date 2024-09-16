@@ -43,4 +43,4 @@ struct AnalysisResult {
     Logger const* logger = nullptr,
     BuildMaps::Target::ServeFailureLogReporter* = nullptr)
     -> std::optional<AnalysisResult>;
-#endif
+#endif  // INCLUDED_SRC_BUILDOOL_MAIN_ANALYSE_HPP

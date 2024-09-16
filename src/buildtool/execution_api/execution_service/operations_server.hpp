@@ -74,4 +74,4 @@ class OperationsServiceImpl final
     Logger logger_{"execution-service:operations"};
 };
 
-#endif
+#endif  // OPERATIONS_SERVER_HPP

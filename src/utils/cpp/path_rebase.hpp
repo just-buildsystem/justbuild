@@ -36,4 +36,4 @@
     return result;
 }
 
-#endif
+#endif  // INCLUDED_SRC_UTILS_CPP_PATH_REBASE_HPP

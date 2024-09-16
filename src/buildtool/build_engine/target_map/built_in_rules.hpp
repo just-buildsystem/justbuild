@@ -33,4 +33,4 @@ auto HandleBuiltin(const gsl::not_null<AnalyseContext*>& context,
                    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>&
                        result_map) -> bool;
 }  // namespace BuildMaps::Target
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_BUILT_IN_RULES_HPP

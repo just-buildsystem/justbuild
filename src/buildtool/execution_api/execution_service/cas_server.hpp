@@ -222,4 +222,4 @@ class CASServiceImpl final
     Storage const& storage_;
     Logger logger_{"execution-service"};
 };
-#endif
+#endif  // CAS_SERVER_HPP

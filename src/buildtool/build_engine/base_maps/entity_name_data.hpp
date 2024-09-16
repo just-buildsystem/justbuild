@@ -211,4 +211,4 @@ struct hash<BuildMaps::Base::EntityName> {
 
 }  // namespace std
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_ENTITY_NAME_DATA_HPP

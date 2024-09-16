@@ -51,4 +51,4 @@ struct hash<BuildMaps::Base::ModuleName> {
 
 }  // namespace std
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_MODULE_NAME_HPP

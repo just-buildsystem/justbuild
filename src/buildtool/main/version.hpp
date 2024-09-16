@@ -19,4 +19,4 @@
 
 auto version() -> std::string;
 
-#endif
+#endif  // INCLUDED_SRC_BUILDOOL_MAIN_VERSION_HPP

@@ -32,4 +32,4 @@
 
 #endif
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_MAIN_ARCHIVE_HPP

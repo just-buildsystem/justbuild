@@ -37,4 +37,4 @@ auto CreateDirectoryEntriesMap(
 
 }  // namespace BuildMaps::Base
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_DIRECTORY_MAP_HPP

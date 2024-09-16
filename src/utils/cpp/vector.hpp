@@ -25,4 +25,4 @@ void sort_and_deduplicate(std::vector<T>* x) {
     auto it = std::unique(x->begin(), x->end());
     x->erase(it, x->end());
 }
-#endif
+#endif  // INCLUDED_SRC_UTILS_CPP_VECTOR_HPP

@@ -55,4 +55,4 @@ class TargetGraphInformation {
 
 inline const TargetGraphInformation TargetGraphInformation::kSource =
     TargetGraphInformation{nullptr, {}, {}, {}};
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILDENGINE_ANALYSED_TARGET_TARGET_GRAPH_INFORMATION_HPP

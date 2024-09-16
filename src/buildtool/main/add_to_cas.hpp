@@ -25,4 +25,4 @@
                                      ApiBundle const& apis) -> bool;
 
 #endif
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_MAIN_ADD_TO_CAS_HPP

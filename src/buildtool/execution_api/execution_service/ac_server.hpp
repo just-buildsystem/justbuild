@@ -73,4 +73,4 @@ class ActionCacheServiceImpl final : public bazel_re::ActionCache::Service {
     Logger logger_{"execution-service"};
 };
 
-#endif
+#endif  // AC_SERVER_HPP

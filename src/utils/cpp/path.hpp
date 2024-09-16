@@ -59,4 +59,4 @@
     return PathIsNonUpwards(applied_to.parent_path() / path);
 }
 
-#endif
+#endif  // INCLUDED_SRC_UTILS_CPP_PATH_HPP

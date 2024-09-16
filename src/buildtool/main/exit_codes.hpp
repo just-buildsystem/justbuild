@@ -21,4 +21,4 @@ enum ExitCodes {
     kExitSuccessFailedArtifacts = 2
 };
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_MAIN_EXIT_CODES_HPP

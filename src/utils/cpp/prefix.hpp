@@ -30,4 +30,4 @@
     return out.str();
 }
 
-#endif
+#endif  // INCLUDED_SRC_UTILS_CPP_PREFIX_HPP

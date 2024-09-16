@@ -342,4 +342,4 @@ class GitApi final : public IExecutionApi {
     }
 };
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_GIT_GIT_API_HPP

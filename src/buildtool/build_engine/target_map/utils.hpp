@@ -77,4 +77,4 @@ auto createAction(const ActionDescription::outputs_t& output_files,
                   const ExpressionPtr& inputs_exp) -> ActionDescription::Ptr;
 
 }  // namespace BuildMaps::Target::Utils
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_UTILS_HPP

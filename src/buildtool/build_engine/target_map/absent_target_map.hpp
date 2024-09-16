@@ -76,4 +76,4 @@ struct hash<BuildMaps::Target::AbsentTargetDescription> {
 };
 }  // namespace std
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_ABSENT_TARGET_MAP_HPP

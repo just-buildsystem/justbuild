@@ -48,4 +48,4 @@ static inline void SetupRetryArguments(
                     "the resources that survived the outage. (Default: 60)");
 }
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_CLI_HPP

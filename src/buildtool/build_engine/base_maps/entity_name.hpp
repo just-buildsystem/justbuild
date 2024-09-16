@@ -302,4 +302,4 @@ template <typename T>
 
 }  // namespace BuildMaps::Base
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_ENTITY_NAME_HPP

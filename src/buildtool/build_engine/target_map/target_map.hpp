@@ -54,4 +54,4 @@ auto IsBuiltInRule(nlohmann::json const& rule_type) -> bool;
 
 }  // namespace BuildMaps::Target
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_TARGET_MAP_HPP

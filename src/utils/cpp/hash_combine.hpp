@@ -28,4 +28,4 @@ inline auto hash_combine(gsl::not_null<std::size_t*> const& seed,
         std::hash<T>{}(v) + 0x9e3779b9 + (*seed << 6) + (*seed >> 2);  // NOLINT
 }
 
-#endif
+#endif  // INCLUDED_SRC_UTILS_CPP_HASH_COMBINE_HPP

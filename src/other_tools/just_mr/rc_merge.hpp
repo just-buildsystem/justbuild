@@ -21,4 +21,4 @@
 [[nodiscard]] auto MergeMRRC(const Configuration& base,
                              const Configuration& delta) noexcept
     -> Configuration;
-#endif
+#endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_RC_MERGE_HPP

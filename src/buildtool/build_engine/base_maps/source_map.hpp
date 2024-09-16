@@ -41,4 +41,4 @@ auto CreateSourceTargetMap(
 
 }  // namespace BuildMaps::Base
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_SOURCE_MAP_HPP

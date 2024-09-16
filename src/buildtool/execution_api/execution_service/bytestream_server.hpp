@@ -88,4 +88,4 @@ class BytestreamServiceImpl : public ::google::bytestream::ByteStream::Service {
     Logger logger_{"execution-service:bytestream"};
 };
 
-#endif
+#endif  // BYTESTREAM_SERVER_HPP

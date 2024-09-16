@@ -62,4 +62,4 @@ class ServerImpl final {
     std::string pid_file_{};
 };
 
-#endif
+#endif  // SERVER_IMPLEMENATION_HPP

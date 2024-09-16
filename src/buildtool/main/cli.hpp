@@ -61,4 +61,4 @@ struct CommandLineArguments {
 auto ParseCommandLineArguments(int argc,
                                char const* const* argv) -> CommandLineArguments;
 
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_MAIN_CLI

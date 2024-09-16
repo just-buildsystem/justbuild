@@ -22,4 +22,4 @@
 void DiagnoseResults(AnalysisResult const& result,
                      BuildMaps::Target::ResultTargetMap const& result_map,
                      DiagnosticArguments const& clargs);
-#endif
+#endif  // INCLUDED_SRC_BUILDTOOL_MAIN_DIAGNOSE_HPP

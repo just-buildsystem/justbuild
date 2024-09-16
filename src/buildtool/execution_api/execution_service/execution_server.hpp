@@ -150,4 +150,4 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
         ::google::longrunning::Operation&& op) noexcept;
 };
 
-#endif
+#endif  // EXECUTION_SERVER_HPP

@@ -42,4 +42,4 @@ using ForeignFileGitMap =
     bool fetch_absent,
     std::size_t jobs) -> ForeignFileGitMap;
 
-#endif
+#endif  // INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_FOREIGN_FILE_GIT_MAP_HPP
