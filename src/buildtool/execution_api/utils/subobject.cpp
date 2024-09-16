@@ -15,6 +15,8 @@
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 
+#include <utility>
+
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -56,9 +58,11 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
             std::optional<Artifact::ObjectInfo> new_object_info{};
             if (not TreeReaderUtils::ReadObjectInfos(
                     *directory,
-                    [&new_object_info, &segment](auto path, auto info) {
+                    [&new_object_info, &segment](
+                        std::filesystem::path const& path,
+                        Artifact::ObjectInfo&& info) {
                         if (path == segment) {
-                            new_object_info = info;
+                            new_object_info = std::move(info);
                         }
                         return true;
                     })) {
@@ -95,9 +99,11 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
             std::optional<Artifact::ObjectInfo> new_object_info{};
             if (not TreeReaderUtils::ReadObjectInfos(
                     *entries,
-                    [&new_object_info, &segment](auto path, auto info) {
+                    [&new_object_info, &segment](
+                        std::filesystem::path const& path,
+                        Artifact::ObjectInfo&& info) {
                         if (path == segment) {
-                            new_object_info = info;
+                            new_object_info = std::move(info);
                         }
                         return true;
                     })) {

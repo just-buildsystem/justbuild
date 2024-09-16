@@ -16,6 +16,7 @@
 
 #include <exception>
 #include <type_traits>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -68,11 +69,11 @@ template <typename TTree>
     auto json = nlohmann::json::object();
     TreeReaderUtils::InfoStoreFunc store_infos =
         [&json](std::filesystem::path const& path,
-                Artifact::ObjectInfo const& info) -> bool {
+                Artifact::ObjectInfo&& info) -> bool {
         static constexpr bool kSizeUnknown =
             std::is_same_v<TTree, GitRepo::tree_entries_t>;
 
-        json[path.string()] = info.ToString(kSizeUnknown);
+        json[path.string()] = std::move(info).ToString(kSizeUnknown);
         return true;
     };
 
@@ -99,8 +100,8 @@ auto TreeReaderUtils::ReadObjectInfos(bazel_re::Directory const& dir,
     HashFunction const hash_function{HashFunction::Type::PlainSHA256};
     try {
         for (auto const& f : dir.files()) {
-            auto const info = CreateObjectInfo(hash_function, f);
-            if (not info or not store_info(f.name(), *info)) {
+            auto info = CreateObjectInfo(hash_function, f);
+            if (not info or not store_info(f.name(), *std::move(info))) {
                 return false;
             }
         }
@@ -117,8 +118,8 @@ auto TreeReaderUtils::ReadObjectInfos(bazel_re::Directory const& dir,
             }
         }
         for (auto const& d : dir.directories()) {
-            auto const info = CreateObjectInfo(hash_function, d);
-            if (not store_info(d.name(), *info)) {
+            auto info = CreateObjectInfo(hash_function, d);
+            if (not info or not store_info(d.name(), *std::move(info))) {
                 return false;
             }
         }

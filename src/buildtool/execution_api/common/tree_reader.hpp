@@ -53,9 +53,9 @@ class TreeReader final {
 
         TreeReaderUtils::InfoStoreFunc store_info =
             [&result, &parent](std::filesystem::path const& path,
-                               Artifact::ObjectInfo const& info) {
+                               Artifact::ObjectInfo&& info) {
                 result.paths.emplace_back(parent / path);
-                result.infos.emplace_back(info);
+                result.infos.emplace_back(std::move(info));
                 return true;
             };
 
@@ -125,11 +125,11 @@ class TreeReader final {
         TreeReaderUtils::InfoStoreFunc internal_store =
             [this, &store, &parent, include_trees](
                 std::filesystem::path const& path,
-                Artifact::ObjectInfo const& info) -> bool {
+                Artifact::ObjectInfo&& info) -> bool {
             return IsTreeObject(info.type)
                        ? ReadObjectInfosRecursively(
                              store, parent / path, info.digest, include_trees)
-                       : store(parent / path, info);
+                       : store(parent / path, std::move(info));
         };
 
         if (not impl_.IsNativeProtocol()) {

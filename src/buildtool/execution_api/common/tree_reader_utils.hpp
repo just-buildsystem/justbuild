@@ -27,7 +27,7 @@
 class TreeReaderUtils final {
   public:
     using InfoStoreFunc = std::function<bool(std::filesystem::path const&,
-                                             Artifact::ObjectInfo const&)>;
+                                             Artifact::ObjectInfo&&)>;
 
     /// \brief Read object infos from directory.
     /// \returns true on success.
