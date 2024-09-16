@@ -80,8 +80,7 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
     bazel_re::ExecuteRequest request;
     request.set_instance_name(instance_name);
     request.set_skip_cache_lookup(config.skip_cache_lookup);
-    request.set_allocated_action_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest(action_digest)});
+    (*request.mutable_action_digest()) = action_digest;
     request.set_allocated_execution_policy(execution_policy.release());
     request.set_allocated_results_cache_policy(results_cache_policy.release());
     BazelExecutionClient::ExecutionResponse response;

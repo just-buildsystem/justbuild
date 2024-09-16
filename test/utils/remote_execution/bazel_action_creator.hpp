@@ -76,11 +76,9 @@
     blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
-    action.set_allocated_command_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{cmd_id}});
+    (*action.mutable_command_digest()) = cmd_id;
     action.set_do_not_cache(false);
-    action.set_allocated_input_root_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{dir_id}});
+    (*action.mutable_input_root_digest()) = dir_id;
 
     auto action_data = action.SerializeAsString();
     auto action_id = BazelDigestFactory::HashDataAs<ObjectType::File>(

@@ -688,8 +688,7 @@ auto BazelCasClient::CreateBatchRequestsMaxSize(
 auto BazelCasClient::CreateUpdateBlobsSingleRequest(BazelBlob const& b) noexcept
     -> bazel_re::BatchUpdateBlobsRequest_Request {
     bazel_re::BatchUpdateBlobsRequest_Request r{};
-    r.set_allocated_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{b.digest}});
+    (*r.mutable_digest()) = b.digest;
     r.set_data(*b.data);
     return r;
 }
@@ -701,8 +700,7 @@ auto BazelCasClient::CreateGetTreeRequest(
     std::string const& page_token) noexcept -> bazel_re::GetTreeRequest {
     bazel_re::GetTreeRequest request;
     request.set_instance_name(instance_name);
-    request.set_allocated_root_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{root_digest}});
+    (*request.mutable_root_digest()) = root_digest;
     request.set_page_size(page_size);
     request.set_page_token(page_token);
     return request;

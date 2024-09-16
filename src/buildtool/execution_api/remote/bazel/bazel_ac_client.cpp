@@ -39,8 +39,7 @@ auto BazelAcClient::GetActionResult(
     -> std::optional<bazel_re::ActionResult> {
     bazel_re::GetActionResultRequest request{};
     request.set_instance_name(instance_name);
-    request.set_allocated_action_digest(
-        gsl::owner<bazel_re::Digest*>{new bazel_re::Digest{action_digest}});
+    (*request.mutable_action_digest()) = action_digest;
     request.set_inline_stdout(inline_stdout);
     request.set_inline_stderr(inline_stderr);
     std::copy(inline_output_files.begin(),
