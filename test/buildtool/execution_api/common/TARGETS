@@ -16,4 +16,25 @@
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
   }
+, "bytestream_utils":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["bytestream_utils"]
+  , "srcs": ["bytestream_utils.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["", "catch-main"]
+    , ["utils", "test_hash_function_type"]
+    , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "common"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["common"]
+  , "deps": ["bytestream_utils"]
+  }
 }

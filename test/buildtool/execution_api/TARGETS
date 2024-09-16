@@ -12,7 +12,8 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["execution_api"]
   , "deps":
-    [ ["./", "bazel", "TESTS"]
+    [ ["./", "common", "TESTS"]
+    , ["./", "bazel", "TESTS"]
     , ["./", "local", "TESTS"]
     , ["./", "execution_service", "TESTS"]
     ]
