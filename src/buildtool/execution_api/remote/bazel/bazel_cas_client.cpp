@@ -28,19 +28,13 @@
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 namespace {
-
-[[nodiscard]] auto ToResourceName(std::string const& instance_name,
-                                  bazel_re::Digest const& digest) noexcept
-    -> std::string {
-    return fmt::format(
-        "{}/blobs/{}/{}", instance_name, digest.hash(), digest.size_bytes());
-}
 
 // In order to determine whether blob splitting is supported at the remote, a
 // trial request to the remote CAS service is issued. This is just a workaround
@@ -341,13 +335,15 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
 auto BazelCasClient::IncrementalReadSingleBlob(std::string const& instance_name,
                                                bazel_re::Digest const& digest)
     const noexcept -> ByteStreamClient::IncrementalReader {
-    return stream_->IncrementalRead(ToResourceName(instance_name, digest));
+    return stream_->IncrementalRead(
+        ByteStreamUtils::ReadRequest{instance_name, digest});
 }
 
 auto BazelCasClient::ReadSingleBlob(
     std::string const& instance_name,
     bazel_re::Digest const& digest) const noexcept -> std::optional<BazelBlob> {
-    if (auto data = stream_->Read(ToResourceName(instance_name, digest))) {
+    if (auto data = stream_->Read(
+            ByteStreamUtils::ReadRequest{instance_name, digest})) {
         return BazelBlob{digest, std::move(*data), /*is_exec=*/false};
     }
     return std::nullopt;

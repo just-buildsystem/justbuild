@@ -63,18 +63,16 @@ auto BytestreamServiceImpl::Read(
     ::grpc::ServerWriter<::google::bytestream::ReadResponse>* writer)
     -> ::grpc::Status {
     logger_.Emit(LogLevel::Trace, "Read {}", request->resource_name());
-    // resource_name is of type
-    // remote-execution/blobs/62f408d64bca5de775c4b1dbc3288fc03afd6b19eb/0
-    auto const digest = ParseResourceName(request->resource_name());
-    if (not digest) {
+    auto const read_request =
+        ByteStreamUtils::ReadRequest::FromString(request->resource_name());
+    if (not read_request) {
         auto const str =
             fmt::format("could not parse {}", request->resource_name());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
-
     auto const read_digest = ArtifactDigestFactory::FromBazel(
-        storage_config_.hash_function.GetType(), *digest);
+        storage_config_.hash_function.GetType(), read_request->GetDigest());
     if (not read_digest) {
         logger_.Emit(LogLevel::Debug, "{}", read_digest.error());
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,

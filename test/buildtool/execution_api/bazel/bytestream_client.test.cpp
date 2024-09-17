@@ -22,6 +22,7 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -60,10 +61,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
                            content));
 
         SECTION("Download small blob") {
-            auto data = stream.Read(fmt::format("{}/blobs/{}/{}",
-                                                instance_name,
-                                                digest.hash(),
-                                                digest.size_bytes()));
+            auto const data = stream.Read(
+                ByteStreamUtils::ReadRequest{instance_name, digest});
 
             CHECK(data == content);
         }
@@ -108,20 +107,15 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
                            content));
 
         SECTION("Download large blob") {
-            auto data = stream.Read(fmt::format("{}/blobs/{}/{}",
-                                                instance_name,
-                                                digest.hash(),
-                                                digest.size_bytes()));
+            auto const data = stream.Read(
+                ByteStreamUtils::ReadRequest{instance_name, digest});
 
             CHECK(data == content);
         }
 
         SECTION("Incrementally download large blob") {
-            auto reader =
-                stream.IncrementalRead(fmt::format("{}/blobs/{}/{}",
-                                                   instance_name,
-                                                   digest.hash(),
-                                                   digest.size_bytes()));
+            auto reader = stream.IncrementalRead(
+                ByteStreamUtils::ReadRequest{instance_name, digest});
 
             std::string data{};
             auto chunk = reader.Next();

@@ -34,6 +34,9 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bytestream_utils"]
   , "hdrs": ["bytestream_utils.hpp"]
+  , "srcs": ["bytestream_utils.cpp"]
+  , "private-deps":
+    [["@", "fmt", "", "fmt"], ["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "api_bundle":

@@ -70,11 +70,11 @@ class ByteStreamClient {
 
         IncrementalReader(
             gsl::not_null<google::bytestream::ByteStream::Stub*> const& stub,
-            Logger const* logger,
-            std::string const& resource_name)
+            ByteStreamUtils::ReadRequest&& read_request,
+            Logger const* logger)
             : logger_{logger} {
             google::bytestream::ReadRequest request{};
-            request.set_resource_name(resource_name);
+            request.set_resource_name(std::move(read_request).ToString());
             reader_ = stub->Read(&ctx_, request);
         }
     };
@@ -86,14 +86,14 @@ class ByteStreamClient {
             CreateChannelWithCredentials(server, port, auth));
     }
 
-    [[nodiscard]] auto IncrementalRead(
-        std::string const& resource_name) const noexcept -> IncrementalReader {
-        return IncrementalReader{stub_.get(), &logger_, resource_name};
+    [[nodiscard]] auto IncrementalRead(ByteStreamUtils::ReadRequest&& request)
+        const noexcept -> IncrementalReader {
+        return IncrementalReader{stub_.get(), std::move(request), &logger_};
     }
 
-    [[nodiscard]] auto Read(std::string const& resource_name) const noexcept
-        -> std::optional<std::string> {
-        auto reader = IncrementalRead(resource_name);
+    [[nodiscard]] auto Read(ByteStreamUtils::ReadRequest&& request)
+        const noexcept -> std::optional<std::string> {
+        auto reader = IncrementalRead(std::move(request));
         std::string output{};
         auto data = reader.Next();
         while (data and not data->empty()) {

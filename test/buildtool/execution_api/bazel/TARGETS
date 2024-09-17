@@ -50,6 +50,7 @@
     , ["utils", "test_auth_config"]
     , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
