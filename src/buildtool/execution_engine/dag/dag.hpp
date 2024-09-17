@@ -37,6 +37,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/transformed_range.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
 
 /// \brief Plain DirectedAcyclicGraph.
@@ -262,6 +263,9 @@ class DependencyGraph : DirectedAcyclicGraph {
             Action::LocalPath path;
             base::OtherNodePtr node;
         };
+        using LocalPaths =
+            TransformedRange<std::vector<NamedOtherNodePtr>::const_iterator,
+                             Action::LocalPath>;
 
         [[nodiscard]] static auto Create(Action const& content) noexcept
             -> Ptr {
@@ -357,19 +361,16 @@ class DependencyGraph : DirectedAcyclicGraph {
             return Content().NoCache();
         }
 
-        [[nodiscard]] auto OutputFilePaths() const noexcept
-            -> std::vector<Action::LocalPath> {
-            return NodePaths(output_files_);
+        [[nodiscard]] auto OutputFilePaths() const& noexcept -> LocalPaths {
+            return NodePaths(&output_files_);
         }
 
-        [[nodiscard]] auto OutputDirPaths() const noexcept
-            -> std::vector<Action::LocalPath> {
-            return NodePaths(output_dirs_);
+        [[nodiscard]] auto OutputDirPaths() const& noexcept -> LocalPaths {
+            return NodePaths(&output_dirs_);
         }
 
-        [[nodiscard]] auto DependencyPaths() const noexcept
-            -> std::vector<Action::LocalPath> {
-            return NodePaths(dependencies_);
+        [[nodiscard]] auto DependencyPaths() const& noexcept -> LocalPaths {
+            return NodePaths(&dependencies_);
         }
 
         // To initialise the action traversal specific data before traversing
@@ -390,19 +391,13 @@ class DependencyGraph : DirectedAcyclicGraph {
         std::unique_ptr<ActionNodeTraversalState> traversal_state_{
             std::make_unique<ActionNodeTraversalState>()};
 
-        // Collect paths from named nodes.
-        // TODO(oreiche): This could be potentially speed up by using a wrapper
-        // iterator to provide a read-only view (similar to BazelBlobContainer)
         [[nodiscard]] static auto NodePaths(
-            std::vector<NamedOtherNodePtr> const& nodes)
-            -> std::vector<Action::LocalPath> {
-            std::vector<Action::LocalPath> paths{nodes.size()};
-            std::transform(
-                nodes.cbegin(),
-                nodes.cend(),
-                paths.begin(),
-                [](auto const& named_node) { return named_node.path; });
-            return paths;
+            gsl::not_null<std::vector<NamedOtherNodePtr> const*> const& nodes)
+            -> LocalPaths {
+            return TransformedRange{
+                nodes->begin(),
+                nodes->end(),
+                [](NamedOtherNodePtr const& node) { return node.path; }};
         }
     };
 

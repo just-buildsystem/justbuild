@@ -23,6 +23,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path_rebase"]
     , ["src/utils/cpp", "prefix"]
+    , ["src/utils/cpp", "transformed_range"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]

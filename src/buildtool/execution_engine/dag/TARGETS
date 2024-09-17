@@ -6,6 +6,7 @@
   , "deps":
     [ ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "type_safe_arithmetic"]
+    , ["src/utils/cpp", "transformed_range"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
