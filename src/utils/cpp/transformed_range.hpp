@@ -20,6 +20,7 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>  //std::move
+#include <vector>
 
 #include "gsl/gsl"
 
@@ -86,6 +87,18 @@ class TransformedRange final {
 
     [[nodiscard]] auto begin() const noexcept -> iterator { return begin_; }
     [[nodiscard]] auto end() const noexcept -> iterator { return end_; }
+    [[nodiscard]] auto size() const -> typename iterator::difference_type {
+        return std::distance(begin_, end_);
+    }
+
+    [[nodiscard]] auto ToVector() const -> std::vector<Result> {
+        std::vector<Result> result;
+        result.reserve(size());
+        for (auto item : *this) {
+            result.emplace_back(std::move(item));
+        }
+        return result;
+    }
 
   private:
     iterator const begin_;
