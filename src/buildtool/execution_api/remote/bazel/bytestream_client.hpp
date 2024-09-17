@@ -17,12 +17,10 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <functional>
 #include <iomanip>
 #include <optional>
 #include <string>
 #include <utility>  // std::move
-#include <vector>
 
 #include "google/bytestream/bytestream.grpc.pb.h"
 #include "gsl/gsl"
@@ -172,32 +170,6 @@ class ByteStreamClient {
             logger_.Emit(LogLevel::Warning, "Caught exception in Write");
             return false;
         }
-    }
-
-    template <class T_Input>
-    void ReadMany(
-        std::vector<T_Input> const& inputs,
-        std::function<std::string(T_Input const&)> const& to_resource_name,
-        std::function<void(std::string)> const& parse_data) const noexcept {
-        for (auto const& i : inputs) {
-            auto data = Read(to_resource_name(i));
-            if (data) {
-                parse_data(std::move(*data));
-            }
-        }
-    }
-
-    template <class T_Input>
-    [[nodiscard]] auto WriteMany(
-        std::vector<T_Input> const& inputs,
-        std::function<std::string(T_Input const&)> const& to_resource_name,
-        std::function<std::string(T_Input const&)> const& to_data)
-        const noexcept -> bool {
-        return std::all_of(inputs.begin(),
-                           inputs.end(),
-                           [this, &to_resource_name, &to_data](auto const& i) {
-                               return Write(to_resource_name(i), to_data(i));
-                           });
     }
 
   private:
