@@ -102,3 +102,56 @@ auto ByteStreamUtils::ReadRequest::GetDigest() const noexcept
     -> bazel_re::Digest {
     return ToBazelDigest(hash_, size_);
 }
+
+ByteStreamUtils::WriteRequest::WriteRequest(
+    std::string instance_name,
+    std::string uuid,
+    bazel_re::Digest const& digest) noexcept
+    : instance_name_{std::move(instance_name)},
+      uuid_{std::move(uuid)},
+      hash_{digest.hash()},
+      size_{digest.size_bytes()} {}
+
+auto ByteStreamUtils::WriteRequest::ToString() && noexcept -> std::string {
+    return fmt::format("{}/{}/{}/{}/{}/{}",
+                       std::move(instance_name_),
+                       ByteStreamUtils::kUploads,
+                       std::move(uuid_),
+                       ByteStreamUtils::kBlobs,
+                       std::move(hash_),
+                       size_);
+}
+
+auto ByteStreamUtils::WriteRequest::FromString(
+    std::string const& request) noexcept -> std::optional<WriteRequest> {
+    static constexpr std::size_t kInstanceNameIndex = 0U;
+    static constexpr std::size_t kUploadsIndex = 1U;
+    static constexpr std::size_t kUUIDIndex = 2U;
+    static constexpr std::size_t kBlobsIndex = 3U;
+    static constexpr std::size_t kHashIndex = 4U;
+    static constexpr std::size_t kSizeIndex = 5U;
+    static constexpr std::size_t kWriteRequestPartsCount = 6U;
+
+    auto const parts = ::SplitRequest(request);
+    if (parts.size() != kWriteRequestPartsCount or
+        parts.at(kUploadsIndex).compare(ByteStreamUtils::kUploads) != 0 or
+        parts.at(kBlobsIndex).compare(ByteStreamUtils::kBlobs) != 0) {
+        return std::nullopt;
+    }
+
+    WriteRequest result;
+    result.instance_name_ = std::string(parts.at(kInstanceNameIndex));
+    result.uuid_ = std::string(parts.at(kUUIDIndex));
+    result.hash_ = std::string(parts.at(kHashIndex));
+    try {
+        result.size_ = std::stoi(std::string(parts.at(kSizeIndex)));
+    } catch (...) {
+        return std::nullopt;
+    }
+    return result;
+}
+
+auto ByteStreamUtils::WriteRequest::GetDigest() const noexcept
+    -> bazel_re::Digest {
+    return ToBazelDigest(hash_, size_);
+}

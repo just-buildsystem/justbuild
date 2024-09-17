@@ -30,33 +30,6 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
-namespace {
-auto ParseResourceName(std::string const& x) noexcept
-    -> std::optional<bazel_re::Digest> {
-    // resource name is like this
-    // remote-execution/uploads/c4f03510-7d56-4490-8934-01bce1b1288e/blobs/62183d7a696acf7e69e218efc82c93135f8c85f895/4424712
-    auto const size_delim = x.rfind('/');
-    if (size_delim == std::string::npos) {
-        return std::nullopt;
-    }
-
-    auto const hash_delim = x.rfind('/', size_delim - 1);
-    if (hash_delim == std::string::npos) {
-        return std::nullopt;
-    }
-
-    try {
-        bazel_re::Digest digest{};
-
-        digest.set_size_bytes(std::stoll(x.substr(size_delim + 1)));
-        digest.set_hash(x.substr(hash_delim + 1, size_delim - hash_delim - 1));
-        return digest;
-    } catch (...) {
-        return std::nullopt;
-    }
-}
-}  // namespace
-
 auto BytestreamServiceImpl::Read(
     ::grpc::ServerContext* /*context*/,
     const ::google::bytestream::ReadRequest* request,
@@ -129,8 +102,9 @@ auto BytestreamServiceImpl::Write(
     ::google::bytestream::WriteRequest request;
     reader->Read(&request);
     logger_.Emit(LogLevel::Debug, "write {}", request.resource_name());
-    auto const digest = ParseResourceName(request.resource_name());
-    if (not digest) {
+    auto const write_request =
+        ByteStreamUtils::WriteRequest::FromString(request.resource_name());
+    if (not write_request) {
         auto const str =
             fmt::format("could not parse {}", request.resource_name());
         logger_.Emit(LogLevel::Error, "{}", str);
@@ -138,7 +112,7 @@ auto BytestreamServiceImpl::Write(
     }
 
     auto const write_digest = ArtifactDigestFactory::FromBazel(
-        storage_config_.hash_function.GetType(), *digest);
+        storage_config_.hash_function.GetType(), write_request->GetDigest());
     if (not write_digest) {
         logger_.Emit(LogLevel::Debug, "{}", write_digest.error());
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,

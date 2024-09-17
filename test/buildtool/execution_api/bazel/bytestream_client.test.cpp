@@ -53,12 +53,9 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
-        CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
-                                       instance_name,
-                                       uuid,
-                                       digest.hash(),
-                                       digest.size_bytes()),
-                           content));
+        CHECK(stream.Write(
+            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
+            content));
 
         SECTION("Download small blob") {
             auto const data = stream.Read(
@@ -77,12 +74,9 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, other_content);
 
-        CHECK(not stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
-                                           instance_name,
-                                           uuid,
-                                           digest.hash(),
-                                           digest.size_bytes()),
-                               content));
+        CHECK(not stream.Write(
+            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
+            content));
     }
 
     SECTION("Upload large blob") {
@@ -99,12 +93,9 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
-        CHECK(stream.Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
-                                       instance_name,
-                                       uuid,
-                                       digest.hash(),
-                                       digest.size_bytes()),
-                           content));
+        CHECK(stream.Write(
+            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
+            content));
 
         SECTION("Download large blob") {
             auto const data = stream.Read(

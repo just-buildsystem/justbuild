@@ -106,7 +106,7 @@ class ByteStreamClient {
         return output;
     }
 
-    [[nodiscard]] auto Write(std::string const& resource_name,
+    [[nodiscard]] auto Write(ByteStreamUtils::WriteRequest&& write_request,
                              std::string const& data) const noexcept -> bool {
         try {
             grpc::ClientContext ctx;
@@ -114,7 +114,7 @@ class ByteStreamClient {
             auto writer = stub_->Write(&ctx, &response);
 
             google::bytestream::WriteRequest request{};
-            request.set_resource_name(resource_name);
+            request.set_resource_name(std::move(write_request).ToString());
             request.mutable_data()->resize(ByteStreamUtils::kChunkSize, '\0');
 
             std::size_t pos{};
@@ -131,12 +131,13 @@ class ByteStreamClient {
                     // the `Write()`, the client should check the status of the
                     // `Write()` by calling `QueryWriteStatus()` and continue
                     // writing from the returned `committed_size`.
-                    auto const committed_size = QueryWriteStatus(resource_name);
+                    auto const committed_size =
+                        QueryWriteStatus(request.resource_name());
                     if (committed_size <= 0) {
                         logger_.Emit(
                             LogLevel::Warning,
                             "broken stream for upload to resource name {}",
-                            resource_name);
+                            request.resource_name());
                         return false;
                     }
                     pos = gsl::narrow<std::size_t>(committed_size);
@@ -148,7 +149,7 @@ class ByteStreamClient {
             if (not writer->WritesDone()) {
                 logger_.Emit(LogLevel::Warning,
                              "broken stream for upload to resource name {}",
-                             resource_name);
+                             request.resource_name());
                 return false;
             }
 

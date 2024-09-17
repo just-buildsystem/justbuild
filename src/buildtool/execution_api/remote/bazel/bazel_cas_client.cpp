@@ -317,12 +317,9 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
         }
         uuid = CreateUUIDVersion4(*id);
     }
-    auto ok = stream_->Write(fmt::format("{}/uploads/{}/blobs/{}/{}",
-                                         instance_name,
-                                         uuid,
-                                         blob.digest.hash(),
-                                         blob.digest.size_bytes()),
-                             *blob.data);
+    auto ok = stream_->Write(
+        ByteStreamUtils::WriteRequest{instance_name, uuid, blob.digest},
+        *blob.data);
     if (not ok) {
         logger_.Emit(LogLevel::Error,
                      "Failed to write {}:{}",
