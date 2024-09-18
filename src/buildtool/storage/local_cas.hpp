@@ -52,13 +52,13 @@ class LocalCAS {
     explicit LocalCAS(
         GenerationConfig const& config,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
-        : cas_file_{config.storage_config->hash_function,
+        : cas_file_{&config.storage_config->hash_function,
                     config.cas_f,
                     MakeUplinker<ObjectType::File>(config, uplinker)},
-          cas_exec_{config.storage_config->hash_function,
+          cas_exec_{&config.storage_config->hash_function,
                     config.cas_x,
                     MakeUplinker<ObjectType::Executable>(config, uplinker)},
-          cas_tree_{config.storage_config->hash_function,
+          cas_tree_{&config.storage_config->hash_function,
                     config.cas_t,
                     MakeUplinker<ObjectType::Tree>(config, uplinker)},
           cas_file_large_{this, config, uplinker},
@@ -284,7 +284,7 @@ class LocalCAS {
     ObjectCAS<ObjectType::Tree> cas_tree_;
     LargeObjectCAS<kDoGlobalUplink, ObjectType::File> cas_file_large_;
     LargeObjectCAS<kDoGlobalUplink, ObjectType::Tree> cas_tree_large_;
-    HashFunction const hash_function_;
+    HashFunction const& hash_function_;
 
     /// \brief Provides uplink via "exists callback" for physical object CAS.
     template <ObjectType kType>

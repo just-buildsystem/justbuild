@@ -55,7 +55,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
                                 &*auth_config,
                                 &retry_config,
                                 {},
-                                hash_function};
+                                &hash_function};
 
     std::string content_foo("foo");
     std::string content_bar("bar");
@@ -119,7 +119,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
                                 &*auth_config,
                                 &retry_config,
                                 {},
-                                hash_function};
+                                &hash_function};
 
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob

@@ -34,7 +34,7 @@ TEST_CASE("ObjectCAS", "[file_system]") {
         storage_config.Get().hash_function, test_content);
 
     SECTION("CAS for files") {
-        ObjectCAS<ObjectType::File> cas{storage_config.Get().hash_function,
+        ObjectCAS<ObjectType::File> cas{&storage_config.Get().hash_function,
                                         gen_config.cas_f};
         CHECK(not cas.BlobPath(test_digest));
 
@@ -74,7 +74,7 @@ TEST_CASE("ObjectCAS", "[file_system]") {
 
     SECTION("CAS for executables") {
         ObjectCAS<ObjectType::Executable> cas{
-            storage_config.Get().hash_function, gen_config.cas_x};
+            &storage_config.Get().hash_function, gen_config.cas_x};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

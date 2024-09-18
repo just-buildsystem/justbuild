@@ -145,7 +145,7 @@ static inline void RunHelloWorldCompilation(
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto api = factory();
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(&hash_function, api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -278,7 +278,7 @@ static inline void RunGreeterCompilation(
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     auto api = factory();
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(&hash_function, api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -447,7 +447,7 @@ static inline void TestUploadAndDownloadTrees(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(&hash_function, api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -621,7 +621,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(&hash_function, api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -675,7 +675,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(&hash_function, api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -746,7 +746,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(&hash_function, api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -819,7 +819,7 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
-            auto const apis = CreateTestApiBundle(hash_function, api);
+            auto const apis = CreateTestApiBundle(&hash_function, api);
 
             ExecutionContext const exec_context{
                 .repo_config = repo_config,
@@ -846,7 +846,7 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
-            auto const apis = CreateTestApiBundle(hash_function, api);
+            auto const apis = CreateTestApiBundle(&hash_function, api);
 
             ExecutionContext const exec_context{
                 .repo_config = repo_config,

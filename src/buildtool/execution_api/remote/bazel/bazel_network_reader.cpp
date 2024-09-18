@@ -30,10 +30,10 @@
 BazelNetworkReader::BazelNetworkReader(
     std::string instance_name,
     gsl::not_null<BazelCasClient const*> const& cas,
-    HashFunction hash_function) noexcept
+    gsl::not_null<HashFunction const*> const& hash_function) noexcept
     : instance_name_{std::move(instance_name)},
       cas_{*cas},
-      hash_function_{hash_function} {}
+      hash_function_{*hash_function} {}
 
 BazelNetworkReader::BazelNetworkReader(
     BazelNetworkReader&& other,

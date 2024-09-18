@@ -50,7 +50,7 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
                                           &*auth_config,
                                           &retry_config,
                                           config,
-                                          hash_function}};
+                                          &hash_function}};
     });
 }
 
@@ -84,7 +84,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
                              &*auth_config,
                              &retry_config,
                              config,
-                             hash_function}};
+                             &hash_function}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -120,7 +120,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
                              &*auth_config,
                              &retry_config,
                              config,
-                             hash_function}};
+                             &hash_function}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -156,7 +156,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
                              &*auth_config,
                              &retry_config,
                              config,
-                             hash_function}};
+                             &hash_function}};
         },
         &*auth_config,
         false /* not hermetic */);
@@ -192,7 +192,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
                              &*auth_config,
                              &retry_config,
                              config,
-                             hash_function}};
+                             &hash_function}};
         },
         &*auth_config,
         false /* not hermetic */);

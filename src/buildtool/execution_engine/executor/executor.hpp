@@ -64,7 +64,7 @@ class ExecutorImpl {
         IExecutionApi const& api,
         ExecutionProperties const& merged_properties,
         gsl::not_null<RemoteContext const*> const& remote_context,
-        HashFunction hash_function,
+        gsl::not_null<HashFunction const*> const& hash_function,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
         gsl::not_null<Statistics*> const& stats,
@@ -717,7 +717,8 @@ class ExecutorImpl {
     [[nodiscard]] static inline auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
         const gsl::not_null<RemoteContext const*>& remote_context,
-        HashFunction hash_function) -> std::unique_ptr<BazelApi> {
+        const gsl::not_null<HashFunction const*>& hash_function)
+        -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] :
              remote_context->exec_config->dispatch) {
             bool match = true;
@@ -783,7 +784,7 @@ class Executor {
                     context_.remote_context->exec_config->platform_properties,
                     action->ExecutionProperties()),
                 context_.remote_context,
-                context_.apis->hash_function,
+                &context_.apis->hash_function,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
                 context_.statistics,
@@ -806,7 +807,7 @@ class Executor {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
+            &context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
             context_.statistics,
@@ -880,7 +881,7 @@ class Rebuilder {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
+            &context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
             context_.statistics,
@@ -899,7 +900,7 @@ class Rebuilder {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
+            &context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
             context_.statistics,

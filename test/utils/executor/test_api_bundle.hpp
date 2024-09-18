@@ -26,10 +26,10 @@
 /// implementation. As only the hash_function field is actually needed, the
 /// remote_context and repo_config are not needed to be provided.
 [[nodiscard]] static auto CreateTestApiBundle(
-    HashFunction hash_function,
+    gsl::not_null<HashFunction const*> const& hash_function,
     gsl::not_null<IExecutionApi::Ptr> const& api) noexcept -> ApiBundle {
     return ApiBundle{
-        .hash_function = hash_function, .local = api, .remote = api};
+        .hash_function = *hash_function, .local = api, .remote = api};
 }
 
 #endif  // INCLUDED_SRC_TEST_UTILS_EXECUTOR_TEST_API_BUNDLE_HPP

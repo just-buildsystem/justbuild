@@ -49,9 +49,7 @@ struct ApiBundle final {
         gsl::not_null<RetryConfig const*> const& retry_config) const
         -> gsl::not_null<IExecutionApi::Ptr>;
 
-    HashFunction const hash_function;
-    // 7 bytes of alignment.
-
+    HashFunction const& hash_function;
     gsl::not_null<IExecutionApi::Ptr> const local;
     gsl::not_null<IExecutionApi::Ptr> const remote;
 };
