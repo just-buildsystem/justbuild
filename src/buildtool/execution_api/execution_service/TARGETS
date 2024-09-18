@@ -188,7 +188,9 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/common", "protocol_traits"]
     ]
   }
 }

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_EXECUTION_SERVICE_CAS_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_EXECUTION_SERVICE_CAS_UTILS_HPP
 
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <vector>
@@ -30,6 +31,17 @@ class CASUtils {
         ArtifactDigest const& digest,
         std::string const& tree_data,
         Storage const& storage) noexcept -> std::optional<std::string>;
+
+    [[nodiscard]] static auto AddDataToCAS(ArtifactDigest const& digest,
+                                           std::string const& content,
+                                           Storage const& storage) noexcept
+        -> grpc::Status;
+
+    [[nodiscard]] static auto AddFileToCAS(ArtifactDigest const& digest,
+                                           std::filesystem::path const& file,
+                                           Storage const& storage,
+                                           bool is_owner = true) noexcept
+        -> grpc::Status;
 
     [[nodiscard]] static auto SplitBlobIdentity(
         ArtifactDigest const& blob_digest,
