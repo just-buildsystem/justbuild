@@ -124,17 +124,6 @@ auto CASUtils::AddFileToCAS(ArtifactDigest const& digest,
     return CASContentValidator{&storage, is_owner}.Add(digest, file);
 }
 
-auto CASUtils::EnsureTreeInvariant(ArtifactDigest const& digest,
-                                   std::string const& tree_data,
-                                   Storage const& storage) noexcept
-    -> std::optional<std::string> {
-    auto error = storage.CAS().CheckTreeInvariant(digest, tree_data);
-    if (error) {
-        return std::move(*error).Message();
-    }
-    return std::nullopt;
-}
-
 auto CASUtils::SplitBlobIdentity(ArtifactDigest const& blob_digest,
                                  Storage const& storage) noexcept
     -> expected<std::vector<ArtifactDigest>, grpc::Status> {

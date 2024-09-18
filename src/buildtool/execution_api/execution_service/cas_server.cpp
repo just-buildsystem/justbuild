@@ -47,31 +47,6 @@ namespace {
             return "[Unknown Chunking Algorithm Type]";
     }
 }
-
-[[nodiscard]] auto CheckDigestConsistency(
-    HashFunction::Type hash_type,
-    ArtifactDigest const& ref,
-    ArtifactDigest const& computed) noexcept -> std::optional<std::string> {
-    bool valid = ref.hash() == computed.hash();
-    if (valid) {
-        bool const check_sizes =
-            not ProtocolTraits::IsNative(hash_type) or ref.size() != 0;
-        if (check_sizes) {
-            valid = ref.size() == computed.size();
-        }
-    }
-    if (not valid) {
-        return fmt::format(
-            "Blob {} is corrupted: provided digest {}:{} and digest computed "
-            "from data {}:{} do not correspond.",
-            ref.hash(),
-            ref.hash(),
-            ref.size(),
-            computed.hash(),
-            computed.size());
-    }
-    return std::nullopt;
-}
 }  // namespace
 
 auto CASServiceImpl::FindMissingBlobs(
@@ -138,39 +113,12 @@ auto CASServiceImpl::BatchUpdateBlobs(
         auto* r = response->add_responses();
         r->mutable_digest()->CopyFrom(x.digest());
 
-        if (digest->IsTree()) {
-            // In native mode: for trees, check whether the tree invariant holds
-            // before storing the actual tree object.
-            if (auto err = CASUtils::EnsureTreeInvariant(
-                    *digest, x.data(), storage_)) {
-                auto const str =
-                    fmt::format("BatchUpdateBlobs: {}", *std::move(err));
-                logger_.Emit(LogLevel::Error, "{}", str);
-                return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION,
-                                      str};
-            }
-        }
-
-        auto const cas_digest =
-            digest->IsTree()
-                ? storage_.CAS().StoreTree(x.data())
-                : storage_.CAS().StoreBlob(x.data(), /*is_executable=*/false);
-
-        if (not cas_digest) {
+        auto const status = CASUtils::AddDataToCAS(*digest, x.data(), storage_);
+        if (not status.ok()) {
             auto const str =
-                fmt::format("BatchUpdateBlobs: could not upload {} {}",
-                            digest->IsTree() ? "tree" : "blob",
-                            digest->hash());
+                fmt::format("BatchUpdateBlobs: {}", status.error_message());
             logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
-        }
-
-        if (auto err =
-                CheckDigestConsistency(hash_type, *digest, *cas_digest)) {
-            auto const str =
-                fmt::format("BatchUpdateBlobs: {}", *std::move(err));
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+            return ::grpc::Status{status.error_code(), str};
         }
     }
     return ::grpc::Status::OK;
@@ -368,12 +316,6 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
         auto const str = fmt::format("SpliceBlob: {}", status.error_message());
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{status.error_code(), str};
-    }
-    if (auto err =
-            CheckDigestConsistency(hash_type, *blob_digest, *splice_result)) {
-        auto const str = fmt::format("SpliceBlob: {}", *std::move(err));
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
     (*response->mutable_blob_digest()) =

@@ -150,53 +150,12 @@ auto BytestreamServiceImpl::Write(
         } while (not request.finish_write() and reader->Read(&request));
     }
 
-    // Before storing a tree, we have to verify that its parts are present
-    if (write_digest->IsTree()) {
-        // ... unfortunately, this requires us to read the whole tree object
-        // into memory
-        auto const content = FileSystemManager::ReadFile(tmp);
-        if (not content) {
-            auto const msg =
-                fmt::format("Failed to read temporary file {} for {}",
-                            tmp.string(),
-                            write_digest->hash());
-            logger_.Emit(LogLevel::Error, "{}", msg);
-            return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
-        }
-
-        if (auto err = CASUtils::EnsureTreeInvariant(
-                *write_digest, *content, storage_)) {
-            auto const str = fmt::format("Write: {}", *std::move(err));
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, str};
-        }
-    }
-
-    // Store blob and verify hash
-    static constexpr bool kOwner = true;
-    auto const stored =
-        write_digest->IsTree()
-            ? storage_.CAS().StoreTree<kOwner>(tmp)
-            : storage_.CAS().StoreBlob<kOwner>(tmp, /*is_executable=*/false);
-    if (not stored) {
-        // This is a serious problem: we have a sequence of bytes, but cannot
-        // write them to CAS.
-        auto const str =
-            fmt::format("Failed to store object {}", write_digest->hash());
+    auto const status = CASUtils::AddFileToCAS(*write_digest, tmp, storage_);
+    if (not status.ok()) {
+        auto const str = fmt::format("Write: {}", status.error_message());
         logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{::grpc::StatusCode::INTERNAL, str};
+        return ::grpc::Status{status.error_code(), str};
     }
-
-    if (*stored != *write_digest) {
-        // User error: did not get a file with the announced hash
-        auto const str =
-            fmt::format("In upload for {} received object with hash {}",
-                        write_digest->hash(),
-                        stored->hash());
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
-    }
-
     response->set_committed_size(
         static_cast<google::protobuf::int64>(std::filesystem::file_size(tmp)));
     return ::grpc::Status::OK;

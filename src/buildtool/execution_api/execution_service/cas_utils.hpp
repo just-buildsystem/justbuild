@@ -27,11 +27,6 @@
 
 class CASUtils {
   public:
-    [[nodiscard]] static auto EnsureTreeInvariant(
-        ArtifactDigest const& digest,
-        std::string const& tree_data,
-        Storage const& storage) noexcept -> std::optional<std::string>;
-
     [[nodiscard]] static auto AddDataToCAS(ArtifactDigest const& digest,
                                            std::string const& content,
                                            Storage const& storage) noexcept
