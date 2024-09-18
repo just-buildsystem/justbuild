@@ -213,6 +213,14 @@ class LocalCAS {
                                           std::string const& tree_data)
         const noexcept -> std::optional<LargeObjectError>;
 
+    /// \brief Check whether all parts of the tree are in the storage.
+    /// \param tree_digest      Digest of the tree to be checked.
+    /// \param file             Content of the tree.
+    /// \return                 An error on fail.
+    [[nodiscard]] auto CheckTreeInvariant(ArtifactDigest const& tree_digest,
+                                          std::filesystem::path const& file)
+        const noexcept -> std::optional<LargeObjectError>;
+
     /// \brief Uplink blob from this generation to latest LocalCAS generation.
     /// Performs a synchronization if requested and if blob is only available
     /// with inverse x-bit. This function is only available for instances that
@@ -350,6 +358,14 @@ template <bool kDoGlobalUplink>
 auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
     ArtifactDigest const& tree_digest,
     std::string const& tree_data) const noexcept
+    -> std::optional<LargeObjectError> {
+    return std::nullopt;
+}
+
+template <bool kDoGlobalUplink>
+auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
+    ArtifactDigest const& tree_digest,
+    std::filesystem::path const& file) const noexcept
     -> std::optional<LargeObjectError> {
     return std::nullopt;
 }

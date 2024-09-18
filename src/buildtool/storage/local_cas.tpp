@@ -355,6 +355,20 @@ auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
 }
 
 template <bool kDoGlobalUplink>
+auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(
+    ArtifactDigest const& tree_digest,
+    std::filesystem::path const& file) const noexcept
+    -> std::optional<LargeObjectError> {
+    auto const tree_data = FileSystemManager::ReadFile(file);
+    if (not tree_data) {
+        return LargeObjectError{
+            LargeObjectErrorCode::Internal,
+            fmt::format("could not read tree {}", tree_digest.hash())};
+    }
+    return CheckTreeInvariant(tree_digest, *tree_data);
+}
+
+template <bool kDoGlobalUplink>
 template <ObjectType kType>
 auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
                                        std::vector<ArtifactDigest> const& parts)
@@ -400,14 +414,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
     // Check tree invariants:
     if constexpr (kIsTree) {
         if (ProtocolTraits::IsNative(hash_function_.GetType())) {
-            // Read tree entries:
-            auto const tree_data = FileSystemManager::ReadFile(file_path);
-            if (not tree_data) {
-                return unexpected{LargeObjectError{
-                    LargeObjectErrorCode::Internal,
-                    fmt::format("could not read tree {}", digest.hash())}};
-            }
-            if (auto error = CheckTreeInvariant(digest, *tree_data)) {
+            if (auto error = CheckTreeInvariant(digest, file_path)) {
                 return unexpected{std::move(*error)};
             }
         }
