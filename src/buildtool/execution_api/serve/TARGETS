@@ -43,4 +43,31 @@
     , ["src/utils/cpp", "expected"]
     ]
   }
+, "mr_local_api":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mr_local_api"]
+  , "hdrs": ["mr_local_api.hpp"]
+  , "srcs": ["mr_local_api.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/local", "context"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/storage", "config"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "serve"]
+  , "private-deps":
+    [ "utils"
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  }
 }
