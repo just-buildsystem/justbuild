@@ -4,8 +4,8 @@
   , "srcs": ["hasher.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/crypto", "hasher"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
@@ -15,8 +15,8 @@
   , "srcs": ["hash_function.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
@@ -26,15 +26,15 @@
   , "srcs": ["hash_info.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/crypto", "hash_info"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/crypto", "hash_info"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "crypto"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["crypto"]
-  , "deps": ["hasher", "hash_function", "hash_info"]
+  , "deps": ["hash_function", "hash_info", "hasher"]
   }
 }

@@ -33,13 +33,13 @@
     , "upb/reflection/message.hpp"
     ]
   , "deps":
-    [ "reflection_internal"
-    , "base"
+    [ "base"
     , "mem"
     , "message"
     , "message_types"
     , "message_value"
     , "port"
+    , "reflection_internal"
     ]
   , "pure C": ["YES"]
   }
@@ -166,7 +166,7 @@
   , "name": ["tokenizer"]
   , "srcs": ["upb/io/tokenizer.c"]
   , "hdrs": ["upb/io/tokenizer.h"]
-  , "deps": ["string", "zero_copy_stream", "base", "lex", "mem", "port"]
+  , "deps": ["base", "lex", "mem", "port", "string", "zero_copy_stream"]
   , "pure C": ["YES"]
   }
 , "zero_copy_stream":
@@ -226,10 +226,10 @@
   , "hdrs": ["upb/message/accessors.h"]
   , "private-hdrs": ["upb/message/internal/accessors.h"]
   , "deps":
-    [ "message_internal"
-    , "message"
-    , "base"
+    [ "base"
     , "eps_copy_input_stream"
+    , "message"
+    , "message_internal"
     , "mini_table"
     , "mini_table_internal"
     , "port"
@@ -251,12 +251,12 @@
   , "srcs": ["upb/message/copy.c"]
   , "hdrs": ["upb/message/copy.h"]
   , "deps":
-    [ "message_accessors"
-    , "message_internal"
-    , "message"
-    , "message_types"
-    , "base"
+    [ "base"
     , "mem"
+    , "message"
+    , "message_accessors"
+    , "message_internal"
+    , "message_types"
     , "mini_table"
     , "mini_table_internal"
     , "port"
@@ -284,13 +284,13 @@
   , "private-hdrs":
     ["upb/message/array.h", "upb/message/map.h", "upb/message/message.h"]
   , "deps":
-    [ "message_internal_types"
-    , "message_types"
-    , "message_value"
-    , "base"
+    [ "base"
     , "base_internal"
     , "hash"
     , "mem"
+    , "message_internal_types"
+    , "message_types"
+    , "message_value"
     , "mini_table"
     , "port"
     ]
@@ -308,11 +308,11 @@
   , "hdrs":
     ["upb/message/array.h", "upb/message/map.h", "upb/message/message.h"]
   , "deps":
-    [ "message_internal"
+    [ "base"
+    , "mem"
+    , "message_internal"
     , "message_types"
     , "message_value"
-    , "base"
-    , "mem"
     , "mini_table"
     , "port"
     ]
@@ -324,15 +324,15 @@
   , "srcs": ["upb/message/promote.c"]
   , "hdrs": ["upb/message/promote.h"]
   , "deps":
-    [ "message_accessors"
-    , "message_accessors_internal"
-    , "message_internal"
-    , "message"
-    , "message_tagged_ptr"
-    , "message_types"
-    , "base"
+    [ "base"
     , "eps_copy_input_stream"
     , "mem"
+    , "message"
+    , "message_accessors"
+    , "message_accessors_internal"
+    , "message_internal"
+    , "message_tagged_ptr"
+    , "message_types"
     , "mini_table"
     , "mini_table_internal"
     , "port"
@@ -346,7 +346,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["message_split64"]
   , "hdrs": ["upb/message/accessors_split64.h", "upb/message/array_split64.h"]
-  , "deps": ["message_accessors", "message", "port"]
+  , "deps": ["message", "message_accessors", "port"]
   , "pure C": ["YES"]
   }
 , "message_tagged_ptr":
@@ -366,7 +366,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["message_value"]
   , "hdrs": ["upb/message/value.h"]
-  , "deps": ["message_tagged_ptr", "message_types", "base"]
+  , "deps": ["base", "message_tagged_ptr", "message_types"]
   , "pure C": ["YES"]
   }
 , "mini_descriptor":
@@ -383,9 +383,9 @@
     , "upb/mini_descriptor/link.h"
     ]
   , "deps":
-    [ "mini_descriptor_internal"
-    , "base"
+    [ "base"
     , "mem"
+    , "mini_descriptor_internal"
     , "mini_table"
     , "mini_table_internal"
     , "port"
@@ -415,7 +415,7 @@
   , "name": ["mini_table_compat"]
   , "srcs": ["upb/mini_table/compat.c"]
   , "hdrs": ["upb/mini_table/compat.h"]
-  , "deps": ["mini_table", "base", "hash", "mem", "port"]
+  , "deps": ["base", "hash", "mem", "mini_table", "port"]
   , "pure C": ["YES"]
   }
 , "mini_table":
@@ -432,7 +432,7 @@
     , "upb/mini_table/sub.h"
     ]
   , "deps":
-    ["mini_table_internal", "base", "hash", "mem", "message_types", "port"]
+    ["base", "hash", "mem", "message_types", "mini_table_internal", "port"]
   , "pure C": ["YES"]
   }
 , "mini_table_internal":
@@ -484,7 +484,7 @@
   , "name": ["wire"]
   , "hdrs": ["upb/wire/decode.h", "upb/wire/encode.h"]
   , "deps":
-    ["wire_internal", "wire_types", "mem", "message", "mini_table", "port"]
+    ["mem", "message", "mini_table", "port", "wire_internal", "wire_types"]
   , "pure C": ["YES"]
   }
 , "wire_internal":
@@ -500,10 +500,8 @@
     ]
   , "private-hdrs": ["upb/wire/decode.h", "upb/wire/encode.h"]
   , "deps":
-    [ "eps_copy_input_stream"
-    , "wire_reader"
-    , "wire_types"
-    , "base"
+    [ "base"
+    , "eps_copy_input_stream"
     , "hash"
     , "mem"
     , "mem_internal"
@@ -515,6 +513,8 @@
     , "mini_table"
     , "mini_table_internal"
     , "port"
+    , "wire_reader"
+    , "wire_types"
     , ["third_party/utf8_range", ""]
     ]
   , "pure C": ["YES"]
@@ -525,7 +525,7 @@
   , "srcs": ["upb/wire/reader.c"]
   , "hdrs": ["upb/wire/reader.h"]
   , "private-hdrs": ["upb/wire/internal/swap.h"]
-  , "deps": ["eps_copy_input_stream", "wire_types", "port"]
+  , "deps": ["eps_copy_input_stream", "port", "wire_types"]
   , "pure C": ["YES"]
   }
 , "wire_types":

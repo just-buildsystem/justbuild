@@ -3,12 +3,12 @@
   , "name": ["client_common"]
   , "hdrs": ["client_common.hpp"]
   , "deps":
-    [ ["@", "fmt", "", "fmt"]
+    [ "port"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
-    , "port"
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
@@ -31,10 +31,10 @@
   , "name": ["remote_common"]
   , "hdrs": ["remote_common.hpp"]
   , "deps":
-    [ ["@", "fmt", "", "fmt"]
+    [ "port"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/utils/cpp", "expected"]
-    , "port"
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
   }

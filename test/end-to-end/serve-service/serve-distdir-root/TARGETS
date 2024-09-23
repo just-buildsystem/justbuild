@@ -16,9 +16,9 @@
   , "name": ["present"]
   , "test": ["present.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-distdir (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-distdir (data)"
     ]
   , "repos": ["serve-distdir (data)"]
   }
@@ -27,9 +27,9 @@
   , "name": ["absent"]
   , "test": ["absent.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-distdir (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-distdir (data)"
     ]
   , "repos": ["serve-distdir (data)"]
   }
@@ -38,9 +38,9 @@
   , "name": ["upload"]
   , "test": ["upload.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-distdir (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-distdir (data)"
     ]
   }
 , "foreign-file":
@@ -57,6 +57,6 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["serve-distdir-root"]
-  , "deps": ["present", "absent", "upload", "foreign-file"]
+  , "deps": ["absent", "foreign-file", "present", "upload"]
   }
 }

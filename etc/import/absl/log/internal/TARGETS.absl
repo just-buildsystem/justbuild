@@ -139,8 +139,8 @@
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "log_severity"]
-    , ["absl/strings", "strings"]
     , ["absl/strings", "str_format"]
+    , ["absl/strings", "strings"]
     , ["absl/time", "time"]
     , ["absl/types", "span"]
     ]
@@ -478,11 +478,11 @@
   , "hdrs": ["vlog_config.h"]
   , "srcs": ["vlog_config.cc"]
   , "deps":
-    [ ["absl/base", "base"]
+    [ "fnmatch"
+    , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "no_destructor"]
-    , "fnmatch"
     , ["absl/memory", "memory"]
     , ["absl/strings", "strings"]
     , ["absl/synchronization", "synchronization"]

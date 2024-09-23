@@ -3,10 +3,10 @@
   , "name": ["config"]
   , "hdrs": ["config.hpp"]
   , "deps":
-    [ ["src/buildtool/common/remote", "remote_common"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/main", "build_utils"]
     , ["src/utils/cpp", "expected"]
-    , ["@", "fmt", "", "fmt"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
@@ -35,20 +35,20 @@
   , "name": ["serve_api"]
   , "hdrs": ["serve_api.hpp"]
   , "deps":
-    [ ["src/buildtool/auth", "auth"]
+    [ "config"
+    , "configuration_client"
+    , "source_tree_client"
+    , "target_client"
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
-    , ["src/buildtool/file_system", "git_types"]
-    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "context"]
+    , ["src/buildtool/file_system", "git_types"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/utils/cpp", "expected"]
-    , "source_tree_client"
-    , "target_client"
-    , "configuration_client"
-    , "config"
     ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   }
@@ -59,23 +59,23 @@
   , "srcs": ["target_client.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "storage"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
-    [ ["src/buildtool/common/remote", "client_common"]
-    , ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
   }
@@ -86,17 +86,17 @@
   , "srcs": ["configuration_client.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/common/remote", "remote_common"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
     [ ["@", "json", "", "json"]
-    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/common/remote", "client_common"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 }

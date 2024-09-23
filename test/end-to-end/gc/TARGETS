@@ -8,25 +8,25 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["compactification"]
   , "test": ["compactification.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "export":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["export"]
   , "test": ["export.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "tc-deps":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["tc-deps"]
   , "test": ["tc-deps.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "reconstruct-executable":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["reconstruct-executable"]
   , "test": ["reconstruct-executable.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
@@ -35,8 +35,8 @@
     [ "basic"
     , "compactification"
     , "export"
-    , "tc-deps"
     , "reconstruct-executable"
+    , "tc-deps"
     ]
   }
 }

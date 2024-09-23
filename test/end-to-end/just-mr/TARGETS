@@ -38,8 +38,8 @@
   , "test": ["just-mr.test.sh"]
   , "deps":
     [ "create_test_archives"
-    , ["utils", "test_utils_install"]
     , ["", "mr-tool-under-test"]
+    , ["utils", "test_utils_install"]
     ]
   }
 , "just_mr_mirrors":
@@ -48,9 +48,9 @@
   , "test": ["just-mr-mirrors.test.sh"]
   , "deps":
     [ "create_test_archives"
-    , ["utils", "test_utils_install"]
-    , ["utils", "null server"]
     , ["", "mr-tool-under-test"]
+    , ["utils", "null server"]
+    , ["utils", "test_utils_install"]
     ]
   }
 , "git-tree-verbosity":
@@ -122,9 +122,9 @@
   , "name": ["fetch-absent-archives"]
   , "test": ["fetch-absent-archives.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "fetch-absent (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "fetch-absent (data)"
     ]
   , "repos": ["fetch-absent (data)"]
   }
@@ -133,9 +133,9 @@
   , "name": ["fetch-absent-archives-symlinks"]
   , "test": ["fetch-absent-archives-symlinks.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "fetch-absent-with-symlinks (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "fetch-absent-with-symlinks (data)"
     ]
   , "repos": ["fetch-absent-with-symlinks (data)"]
   }
@@ -144,9 +144,9 @@
   , "name": ["fetch-absent-distdir-archive"]
   , "test": ["fetch-absent-distdir-archive.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "fetch-absent (data)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "fetch-absent (data)"
     ]
   , "repos": ["fetch-absent (data)"]
   }
@@ -191,9 +191,9 @@
   , "name": ["reporting-verbosity"]
   , "test": ["reporting-verbosity.sh"]
   , "deps":
-    [ ["", "tool-under-test"]
+    [ "fetch-absent (data)"
     , ["", "mr-tool-under-test"]
-    , "fetch-absent (data)"
+    , ["", "tool-under-test"]
     ]
   }
 , "stay-local":
@@ -201,9 +201,9 @@
   , "name": ["stay-local"]
   , "test": ["stay-local.sh"]
   , "deps":
-    [ ["", "tool-under-test"]
+    [ "fetch-absent (data)"
     , ["", "mr-tool-under-test"]
-    , "fetch-absent (data)"
+    , ["", "tool-under-test"]
     , ["utils", "null server"]
     ]
   }

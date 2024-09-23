@@ -4,9 +4,9 @@
   , "srcs": ["logger.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "logging"]
   }
@@ -16,10 +16,10 @@
   , "srcs": ["log_sink_file.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "logging"]
   , "private-ldflags": ["-pthread"]

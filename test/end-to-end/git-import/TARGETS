@@ -3,9 +3,9 @@
   , "name": ["chained-import"]
   , "test": ["chained-import.sh"]
   , "deps":
-    [ ["end-to-end", "git-import-under-test"]
-    , ["", "mr-tool-under-test"]
+    [ ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
     ]
   }
 , "check-action-equality":
@@ -18,11 +18,11 @@
   , "name": ["deduplicate"]
   , "test": ["deduplicate.sh"]
   , "deps":
-    [ ["end-to-end", "git-import-under-test"]
-    , ["end-to-end", "deduplicate-tool-under-test"]
+    [ "check-action-equality"
     , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "check-action-equality"
+    , ["end-to-end", "deduplicate-tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
     ]
   , "keep":
     ["repos-full.json", "actions-full.json", "repos.json", "actions.json"]
@@ -32,9 +32,9 @@
   , "name": ["annotations"]
   , "test": ["annotations.sh"]
   , "deps":
-    [ ["end-to-end", "git-import-under-test"]
-    , ["", "mr-tool-under-test"]
+    [ ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
     ]
   , "keep": ["repos.json"]
   }
@@ -43,8 +43,8 @@
   , "name": ["absent"]
   , "test": ["absent.sh"]
   , "deps":
-    [ ["end-to-end", "git-import-under-test"]
-    , ["end-to-end", "deduplicate-tool-under-test"]
+    [ ["end-to-end", "deduplicate-tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
     ]
   , "keep": ["repos.json", "deduplicated.json"]
   }

@@ -32,27 +32,27 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["git-cas-P"]
   , "test": ["git-cas-p.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "just-mr reporting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["just-mr-reporting"]
   , "test": ["just-mr-reporting.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep": ["log/warning.txt"]
   }
 , "install --archive":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-archive"]
   , "test": ["install-archive.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep": ["src.tar", "reconstructed.tar", "fromstdout.tar"]
   }
 , "install archived repo":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["install-archived-repo"]
   , "test": ["install-archived-repo.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep": ["src.tar", "reconstructed.tar", "fromstdout.tar"]
   }
 , "conflict report":
@@ -65,7 +65,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["log-limit"]
   , "test": ["log-limit.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "describe":
   { "type": ["@", "rules", "shell/test", "script"]
@@ -77,7 +77,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["output"]
   , "test": ["output.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep": ["log"]
   }
 , "TESTS":

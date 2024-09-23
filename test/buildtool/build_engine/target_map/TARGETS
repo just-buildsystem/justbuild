@@ -4,15 +4,15 @@
   , "srcs": ["result_map.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "json", "", "json"]
-    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/build_engine/analysed_target", "target"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/buildtool/build_engine/target_map", "result_map"]
-    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "action_description"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
@@ -23,7 +23,6 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
@@ -31,22 +30,23 @@
     , ["@", "src", "src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["@", "src", "src/buildtool/build_engine/target_map", "target_map"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
-    , ["@", "src", "src/buildtool/progress_reporting", "progress"]
-    , ["@", "src", "src/buildtool/storage", "config"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/main", "analyse_context"]
-    , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "serve_api"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["utils", "test_storage_config"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["", "catch-main"]
     , ["utils", "test_serve_config"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
@@ -56,13 +56,13 @@
   , "srcs": ["target_map_internals.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , [ "@"
       , "src"
       , "src/buildtool/build_engine/target_map"
       , "target_map_testable_internals"
       ]
-    , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }

@@ -30,14 +30,14 @@
     , "internal/get_current_time_posix.inc"
     ]
   , "deps":
-    [ ["absl/base", "base"]
+    [ "civil_time"
+    , "time_zone"
+    , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/numeric", "int128"]
     , ["absl/strings", "strings"]
-    , "civil_time"
-    , "time_zone"
     , ["absl/types", "optional"]
     ]
   }

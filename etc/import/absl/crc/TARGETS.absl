@@ -75,8 +75,8 @@
     , ["absl/base", "core_headers"]
     , ["absl/base", "endian"]
     , ["absl/base", "prefetch"]
-    , ["absl/strings", "strings"]
     , ["absl/strings", "str_format"]
+    , ["absl/strings", "strings"]
     ]
   }
 , "cpu_detect":

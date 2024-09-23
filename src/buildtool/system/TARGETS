@@ -18,10 +18,10 @@
   , "hdrs": ["system_command.hpp"]
   , "deps":
     [ "system"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "system"]
   }

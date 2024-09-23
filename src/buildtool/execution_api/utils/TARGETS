@@ -9,10 +9,10 @@
     ]
   , "private-deps":
     [ ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
   }

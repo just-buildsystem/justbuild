@@ -8,25 +8,25 @@
   , "deps":
     [ "operation_cache"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
+    [ "operation_cache"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
-    , "operation_cache"
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
-    , ["src/buildtool/execution_api/local", "local"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/common", "protocol_traits"]
     ]
   , "private-ldflags":
     ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
@@ -40,16 +40,16 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 , "cas_server":
@@ -61,19 +61,19 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/logging", "log_level"]
+    [ "cas_utils"
     , ["@", "fmt", "", "fmt"]
-    , "cas_utils"
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 , "server_implementation":
@@ -88,19 +88,19 @@
     , ["src/buildtool/execution_api/remote", "context"]
     ]
   , "private-deps":
-    [ "execution_server"
-    , "ac_server"
-    , "cas_server"
+    [ "ac_server"
     , "bytestream_server"
     , "capabilities_server"
+    , "cas_server"
+    , "execution_server"
     , "operations_server"
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
-    , ["@", "json", "", "json"]
-    , ["@", "grpc", "", "grpc++"]
     , ["@", "fmt", "", "fmt"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   }
 , "bytestream_server":
@@ -114,19 +114,19 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/execution_api/common", "bytestream_utils"]
-    , ["src/buildtool/file_system", "file_system_manager"]
+    [ "cas_utils"
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/execution_api/common", "bytestream_utils"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "tmp_dir"]
-    , ["@", "fmt", "", "fmt"]
-    , "cas_utils"
     ]
   }
 , "capabilities_server":
@@ -141,9 +141,9 @@
     , ["src/buildtool/crypto", "hash_function"]
     ]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/common", "protocol_traits"]
     ]
   }
 , "operation_cache":
@@ -169,9 +169,9 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "private-deps":
     [ "operation_cache"
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "hex_string"]
-    , ["@", "fmt", "", "fmt"]
     ]
   }
 , "cas_utils":
@@ -189,8 +189,8 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }
 }

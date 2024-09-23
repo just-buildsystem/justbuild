@@ -12,12 +12,12 @@
   , "hdrs": ["git_operations.hpp"]
   , "srcs": ["git_operations.cpp"]
   , "deps":
-    [["src/buildtool/multithreading", "async_map_consumer"], "git_ops_types"]
+    ["git_ops_types", ["src/buildtool/multithreading", "async_map_consumer"]]
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
+    [ "git_repo_remote"
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , "git_repo_remote"
     , ["src/buildtool/logging", "logging"]
     ]
   }
@@ -32,14 +32,14 @@
     ]
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/file_system", "git_utils"]
+    [ "git_config_settings"
     , ["@", "fmt", "", "fmt"]
-    , ["", "libgit2"]
     , ["@", "json", "", "json"]
+    , ["", "libgit2"]
+    , ["src/buildtool/file_system", "git_utils"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system_command"]
-    , "git_config_settings"
     ]
   }
 , "git_config_settings":
@@ -49,9 +49,9 @@
   , "srcs": ["git_config_settings.cpp"]
   , "stage": ["src", "other_tools", "git_operations"]
   , "private-deps":
-    [ ["src/other_tools/utils", "curl_url_handle"]
+    [ ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
-    , ["@", "fmt", "", "fmt"]
+    , ["src/other_tools/utils", "curl_url_handle"]
     ]
   }
 }

@@ -2,7 +2,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-target-remote-build"]
   , "test": ["serve_target_remote_build.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos":
     [ "serve-target-remote-build (repo)"
     , "serve-target-remote-build (rule)"
@@ -14,12 +14,12 @@
   , "name": ["serve-target-failed-build"]
   , "test": ["serve_target_failed_build.sh"]
   , "deps":
-    [ ["", "tool-under-test"]
-    , ["", "mr-tool-under-test"]
-    , "serve-tree (archive)"
-    , "data/targets/TARGETS"
-    , "data/rules/RULES"
+    [ "data/rules/RULES"
     , "data/rules/RULES.dummy"
+    , "data/targets/TARGETS"
+    , "serve-tree (archive)"
+    , ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     ]
   , "repos":
     [ "serve-target-remote-build (repo)"
@@ -88,10 +88,10 @@
   , "name": ["serve-tree"]
   , "test": ["serve-tree.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
-    , ["", "tool-under-test"]
+    [ "data/targets/TARGETS.tree"
     , "serve-tree (archive)"
-    , "data/targets/TARGETS.tree"
+    , ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     ]
   , "repos": ["serve-tree (archive)"]
   }
@@ -104,7 +104,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-target-remote-build-dispatch"]
   , "test": ["serve_target_remote_build_dispatch.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["serve-target-remote-build-dispatch (data)"]
   }
 , "serve-query-target-cache-value":
@@ -124,9 +124,9 @@
   , "name": ["describe"]
   , "test": ["describe.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "describe (locally installed)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "describe (locally installed)"
     ]
   , "repos": ["describe (data)"]
   , "keep": ["out/describe.orig", "out/describe"]
@@ -140,9 +140,9 @@
   , "name": ["failure-report"]
   , "test": ["failure-report.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "describe (locally installed)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "describe (locally installed)"
     ]
   , "repos": ["failure-report (data)"]
   , "keep": ["out/log", "out/serve.log", "out/failure.log"]
@@ -160,7 +160,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["serve-many-targets"]
   , "test": ["serve_many_targets.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos":
     ["serve-many-targets (data)", "serve-many-targets (data in module)"]
   }
@@ -168,7 +168,7 @@
   { "type": ["end-to-end", "with serve"]
   , "name": ["deduplication-of-serve-requests"]
   , "test": ["deduplication_of_serve_requests.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["serve-many-targets (data)"]
   }
 , "TESTS (unconfigured)":

@@ -5,17 +5,17 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
-    , ["utils", "catch-main-remote-execution"]
-    , ["utils", "test_auth_config"]
-    , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "test_auth_config"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -25,17 +25,17 @@
   , "srcs": ["bazel_execution_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["utils", "catch-main-remote-execution"]
-    , ["utils", "execution_bazel"]
-    , ["utils", "test_auth_config"]
-    , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["utils", "test_auth_config"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -45,17 +45,17 @@
   , "srcs": ["bytestream_client.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["utils", "catch-main-remote-execution"]
-    , ["utils", "execution_bazel"]
-    , ["utils", "test_auth_config"]
-    , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["utils", "test_auth_config"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -65,19 +65,19 @@
   , "srcs": ["bazel_network.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["utils", "catch-main-remote-execution"]
-    , ["utils", "execution_bazel"]
-    , ["utils", "test_auth_config"]
-    , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "execution_bazel"]
+    , ["utils", "test_auth_config"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -88,25 +88,25 @@
   , "data": [["buildtool/storage", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
-    , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["utils", "test_hash_function_type"]
-    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/common"
       , "artifact_blob_container"
       ]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["", "catch-main"]
+    , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -116,14 +116,14 @@
   , "srcs": ["bazel_api.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["utils", "catch-main-remote-execution"]
-    , ["utils", "test_auth_config"]
-    , ["utils", "test_remote_config"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
     , ["buildtool/execution_api/common", "api_test"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["utils", "catch-main-remote-execution"]
+    , ["utils", "test_auth_config"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_remote_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "bazel"]
   }
@@ -131,12 +131,12 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["bazel"]
   , "deps":
-    [ "bytestream_client"
+    [ "bazel_api"
+    , "bytestream_client"
     , "cas_client"
     , "execution_client"
     , "msg_factory"
     , "network"
-    , "bazel_api"
     ]
   }
 }

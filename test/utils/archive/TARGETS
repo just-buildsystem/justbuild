@@ -4,10 +4,10 @@
   , "srcs": ["archive_usage.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "", "libarchive"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/utils/archive", "archive_ops"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "utils", "archive"]
   }

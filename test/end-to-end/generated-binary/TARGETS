@@ -12,11 +12,11 @@
   , "name": ["compiled"]
   , "test": ["compiled.sh"]
   , "keep": ["graph.json", "out/out.txt"]
-  , "deps": [["", "tool-under-test"], "compile rules"]
+  , "deps": ["compile rules", ["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["generated-binary"]
-  , "deps": ["shell", "compiled"]
+  , "deps": ["compiled", "shell"]
   }
 }

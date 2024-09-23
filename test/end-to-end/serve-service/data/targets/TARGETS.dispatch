@@ -19,12 +19,12 @@
   , "outs": ["out.txt"]
   , "execution properties":
     {"type": "singleton_map", "key": "server", "value": "special"}
-  , "deps": ["payload", "drop"]
+  , "deps": ["drop", "payload"]
   }
 , "internal":
   { "type": "generic"
   , "cmds": ["cat out.txt post.txt > final.txt"]
-  , "deps": ["special-dispatch", "post"]
+  , "deps": ["post", "special-dispatch"]
   , "outs": ["final.txt"]
   }
 , "":

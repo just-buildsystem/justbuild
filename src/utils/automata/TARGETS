@@ -6,8 +6,8 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   }
 }

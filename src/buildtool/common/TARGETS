@@ -19,16 +19,16 @@
   , "deps":
     [ "clidefaults"
     , "retry_cli"
+    , ["@", "cli11", "", "cli11"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "build_utils"]
     , ["src/utils/cpp", "path"]
-    , ["@", "cli11", "", "cli11"]
-    , ["@", "json", "", "json"]
-    , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
@@ -49,10 +49,10 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "gsl"]
     ]
-  , "private-deps": [["src/buildtool/crypto", "hasher"], "protocol_traits"]
+  , "private-deps": ["protocol_traits", ["src/buildtool/crypto", "hasher"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "artifact_digest_factory":
@@ -70,8 +70,8 @@
   , "private-deps":
     [ "bazel_digest_factory"
     , "bazel_types"
-    , ["@", "gsl", "", "gsl"]
     , "protocol_traits"
+    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
@@ -87,13 +87,13 @@
     ]
   , "deps":
     [ "bazel_types"
+    , ["@", "json", "", "json"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hash_combine"]
-    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
@@ -105,11 +105,11 @@
   , "deps":
     [ "common"
     , ["@", "json", "", "json"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
-  , "private-deps": [["src/utils/cpp", "json"], "artifact_digest_factory"]
+  , "private-deps": ["artifact_digest_factory", ["src/utils/cpp", "json"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "action_description":
@@ -117,13 +117,13 @@
   , "name": ["action_description"]
   , "hdrs": ["action_description.hpp"]
   , "deps":
-    [ "common"
-    , "artifact_description"
+    [ "artifact_description"
+    , "common"
     , ["@", "json", "", "json"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "json"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }
@@ -150,12 +150,12 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/common", "common"]
     ]
   , "stage": ["src", "buildtool", "common"]
   , "private-deps": [["src/utils/automata", "dfa_minimizer"]]
@@ -190,9 +190,9 @@
   , "name": ["git_hashes_converter"]
   , "hdrs": ["git_hashes_converter.hpp"]
   , "deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }

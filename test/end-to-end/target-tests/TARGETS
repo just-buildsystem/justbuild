@@ -44,13 +44,13 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["target-tests"]
   , "deps":
-    [ "upwards reference"
+    [ "configure target name"
+    , "configure variables"
+    , "glob expansion"
     , "repository naming"
     , "resolution of built-in rules"
-    , "glob expansion"
-    , "configure target name"
-    , "configure variables"
     , "tree inputs"
+    , "upwards reference"
     ]
   }
 }

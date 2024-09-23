@@ -5,11 +5,11 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }
@@ -19,13 +19,13 @@
   , "srcs": ["object_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_cas"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["", "catch-main"]
     , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
@@ -37,15 +37,15 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
-    , ["utils", "container_matchers"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "git_cas"]
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/file_system", "git_tree"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/utils/cpp", "hex_string"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
@@ -57,14 +57,14 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
-    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
     , ["utils", "shell_quoting"]
     , ["utils", "test_hash_function_type"]
     ]
@@ -77,12 +77,12 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
-    , ["utils", "container_matchers"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["", "catch-main"]
+    , ["utils", "container_matchers"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
@@ -117,7 +117,6 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
@@ -125,9 +124,10 @@
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/utils/cpp", "atomic"]
     , ["@", "src", "src/utils/cpp", "hex_string"]
-    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["", "catch-main"]
     , ["utils", "shell_quoting"]
     , ["utils", "test_storage_config"]
     ]
@@ -140,7 +140,6 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "git_cas"]
@@ -153,6 +152,7 @@
       , "resolve_symlinks_map"
       ]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
@@ -161,12 +161,12 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["file_system"]
   , "deps":
-    [ "file_root"
+    [ "directory_entries"
+    , "file_root"
     , "file_system_manager"
-    , "object_cas"
-    , "git_tree"
-    , "directory_entries"
     , "git_repo"
+    , "git_tree"
+    , "object_cas"
     , "resolve_symlinks_map"
     ]
   }

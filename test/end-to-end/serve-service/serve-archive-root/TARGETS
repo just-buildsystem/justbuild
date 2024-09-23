@@ -60,9 +60,9 @@
   , "name": ["resolved-present"]
   , "test": ["resolved-present.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-tree-syms (archive)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-tree-syms (archive)"
     ]
   , "repos": ["serve-tree-syms (archive)"]
   }
@@ -71,9 +71,9 @@
   , "name": ["resolved-absent"]
   , "test": ["resolved-absent.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-tree-syms (archive)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-tree-syms (archive)"
     ]
   , "repos": ["serve-tree-syms (archive)"]
   }
@@ -82,9 +82,9 @@
   , "name": ["resolved-absent-known"]
   , "test": ["resolved-absent-known.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-tree-syms (archive)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-tree-syms (archive)"
     ]
   , "repos": ["serve-tree-syms (archive)"]
   }
@@ -93,23 +93,23 @@
   , "name": ["resolved-absent-known-upload"]
   , "test": ["resolved-absent-known-upload.sh"]
   , "deps":
-    [ ["", "mr-tool-under-test"]
+    [ "serve-tree-syms (archive)"
+    , ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
-    , "serve-tree-syms (archive)"
     ]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["serve-archive-root"]
   , "deps":
-    [ "unresolved-present"
+    [ "resolved-absent"
+    , "resolved-absent-known"
+    , "resolved-absent-known-upload"
+    , "resolved-present"
     , "unresolved-absent"
     , "unresolved-absent-known"
     , "unresolved-absent-known-upload"
-    , "resolved-present"
-    , "resolved-absent"
-    , "resolved-absent-known"
-    , "resolved-absent-known-upload"
+    , "unresolved-present"
     ]
   }
 }

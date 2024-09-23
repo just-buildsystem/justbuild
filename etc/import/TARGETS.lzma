@@ -340,16 +340,16 @@
 , "extra_sources":
   { "type": "install"
   , "deps":
-    [ "src/liblzma/lzma/lzma_encoder_presets.c"
-    , "src/liblzma/delta/delta_common.c"
-    , "src/liblzma/simple/simple_coder.c"
-    , "src/liblzma/simple/x86.c"
+    [ "src/liblzma/delta/delta_common.c"
+    , "src/liblzma/lzma/lzma_encoder_presets.c"
     , "src/liblzma/simple/arm.c"
-    , "src/liblzma/simple/armthumb.c"
     , "src/liblzma/simple/arm64.c"
-    , "src/liblzma/simple/powerpc.c"
+    , "src/liblzma/simple/armthumb.c"
     , "src/liblzma/simple/ia64.c"
+    , "src/liblzma/simple/powerpc.c"
+    , "src/liblzma/simple/simple_coder.c"
     , "src/liblzma/simple/sparc.c"
+    , "src/liblzma/simple/x86.c"
     ]
   }
 }

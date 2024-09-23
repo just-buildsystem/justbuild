@@ -237,8 +237,8 @@
   , "deps":
     [ ["absl/base", "config"]
     , ["absl/hash", "hash"]
-    , ["absl/strings", "strings"]
     , ["absl/strings", "cord"]
+    , ["absl/strings", "strings"]
     ]
   }
 , "raw_hash_map":
@@ -453,8 +453,8 @@
     , ["absl/base", "throw_delegate"]
     , ["absl/memory", "memory"]
     , ["absl/meta", "type_traits"]
-    , ["absl/strings", "strings"]
     , ["absl/strings", "cord"]
+    , ["absl/strings", "strings"]
     , ["absl/types", "compare"]
     , ["absl/utility", "utility"]
     ]

@@ -19,18 +19,18 @@
   , "deps":
     [ "critical_git_op_map"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/storage", "config"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "path_hash"]
-    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "fs_utils"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "config"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "fs_utils"]
     ]
   }
 , "git_update_map":
@@ -40,12 +40,12 @@
   , "srcs": ["git_update_map.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/utils/cpp", "hash_combine"]
     , ["src/buildtool/storage", "config"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
+    , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
@@ -62,25 +62,25 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "user_structs"]
-    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/utils/cpp", "hash_combine"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/other_tools/utils", "content"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/other_tools/utils", "content"]
     ]
   }
 , "archive_fetch_map":
@@ -89,19 +89,19 @@
   , "hdrs": ["archive_fetch_map.hpp"]
   , "srcs": ["archive_fetch_map.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , "content_cas_map"
+    [ "content_cas_map"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/storage", "storage"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
-    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/other_tools/just_mr", "utils"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/other_tools/just_mr", "utils"]
     ]
   }
 , "git_tree_fetch_map":
@@ -111,28 +111,28 @@
   , "srcs": ["git_tree_fetch_map.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "config"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/crypto", "hash_info"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
-    [ ["src/other_tools/ops_maps", "critical_git_op_map"]
-    , ["src/buildtool/common", "config"]
+    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/system", "system_command"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
+    , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "import_to_git_map"]
-    , ["src/buildtool/execution_api/git", "git"]
-    , ["@", "fmt", "", "fmt"]
     ]
   }
 }

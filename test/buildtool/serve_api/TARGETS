@@ -5,14 +5,14 @@
   , "data": [["buildtool/file_system", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["utils", "catch-main-serve"]
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
-    , ["@", "src", "src/buildtool/serve_api/remote", "source_tree_client"]
-    , ["utils", "test_serve_config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/buildtool/serve_api/remote", "source_tree_client"]
+    , ["utils", "catch-main-serve"]
+    , ["utils", "test_serve_config"]
     ]
   , "stage": ["test", "buildtool", "serve_api"]
   }

@@ -4,9 +4,9 @@
   , "srcs": ["rc_merge.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/other_tools/just_mr", "rc_merge"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "other_tools", "just_mr"]
   }
@@ -16,14 +16,14 @@
   , "srcs": ["mirrors.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/other_tools/just_mr", "mirrors"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "other_tools", "just_mr"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["just_mr"]
-  , "deps": ["rc_merge", "mirrors"]
+  , "deps": ["mirrors", "rc_merge"]
   }
 }

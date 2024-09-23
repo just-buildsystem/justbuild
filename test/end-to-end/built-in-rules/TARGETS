@@ -39,12 +39,12 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["built-in-rules"]
   , "deps":
-    [ "generic_out_dirs"
-    , "generic_sh"
+    [ "export_counting"
     , "filegen_config"
-    , "tree"
+    , "generic_out_dirs"
+    , "generic_sh"
     , "symlink_config"
-    , "export_counting"
+    , "tree"
     ]
   }
 }

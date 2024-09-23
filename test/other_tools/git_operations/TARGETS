@@ -5,12 +5,12 @@
   , "srcs": ["critical_git_ops.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/other_tools/ops_maps", "critical_git_op_map"]
-    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["", "catch-main"]
     , ["utils", "shell_quoting"]
     ]
   , "stage": ["test", "other_tools", "git_operations"]
@@ -20,7 +20,7 @@
   , "name": ["critical_git_ops_mp"]
   , "test": ["critical_git_ops_mp.sh"]
   , "deps":
-    [["buildtool/file_system", "test_data"], "critical_git_ops_test_install"]
+    ["critical_git_ops_test_install", ["buildtool/file_system", "test_data"]]
   }
 , "git_repo_remote":
   { "type": ["@", "rules", "CC/test", "test"]
@@ -29,15 +29,15 @@
   , "data": [["buildtool/file_system", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
-    , ["@", "src", "src/other_tools/git_operations", "git_repo_remote"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/other_tools/git_operations", "git_repo_remote"]
     , ["@", "src", "src/utils/cpp", "atomic"]
+    , ["", "catch-main"]
     , ["utils", "shell_quoting"]
     , ["utils", "test_storage_config"]
     ]
@@ -50,11 +50,11 @@
   , "srcs": ["git_config_run.test.cpp"]
   , "private-deps":
     [ ["@", "src", "", "libgit2"]
-    , ["@", "src", "src/other_tools/git_operations", "git_config_settings"]
-    , ["@", "src", "src/buildtool/file_system", "git_utils"]
     , ["@", "src", "src/buildtool/file_system", "git_context"]
+    , ["@", "src", "src/buildtool/file_system", "git_utils"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/other_tools/git_operations", "git_config_settings"]
     , ["utils", "log_config"]
     ]
   , "stage": ["src"]
@@ -78,9 +78,9 @@
   , "stage": ["git_operations"]
   , "deps":
     [ "critical_git_ops_mp"
-    , "git_repo_remote"
-    , "git_config_ssl"
     , "git_config_proxy"
+    , "git_config_ssl"
+    , "git_repo_remote"
     ]
   }
 }

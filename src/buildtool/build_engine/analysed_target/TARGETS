@@ -4,12 +4,12 @@
   , "hdrs": ["analysed_target.hpp"]
   , "srcs": ["analysed_target.cpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/expression", "expression"]
+    [ "graph_information"
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "tree"]
-    , "graph_information"
-    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
   , "private-deps": [["@", "gsl", "", "gsl"]]
@@ -20,8 +20,8 @@
   , "hdrs": ["target_graph_information.hpp"]
   , "srcs": ["target_graph_information.cpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["@", "json", "", "json"]
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
   }

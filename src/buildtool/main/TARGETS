@@ -4,54 +4,54 @@
   , "name": ["just"]
   , "srcs": ["main.cpp"]
   , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
+    [ "add_to_cas"
+    , "analyse"
+    , "analyse_context"
+    , "build_utils"
+    , "cli"
+    , "common"
+    , "constants"
+    , "describe"
+    , "diagnose"
+    , "install_cas"
+    , "retry"
+    , "serve"
+    , "version"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
-    , ["src/buildtool/common/remote", "remote_common"]
-    , ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/graph_traverser", "graph_traverser"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/progress_reporting", "progress"]
-    , ["src/buildtool/progress_reporting", "progress_reporter"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
-    , ["src/buildtool/multithreading", "task_system"]
-    , ["src/utils/cpp", "concepts"]
-    , ["src/utils/cpp", "json"]
-    , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/execution_engine/executor", "context"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , [ "src/buildtool/execution_api/execution_service"
       , "server_implementation"
       ]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/execution_engine/executor", "context"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/graph_traverser", "graph_traverser"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/buildtool/progress_reporting", "progress_reporter"]
     , ["src/buildtool/serve_api/remote", "config"]
-    , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
-    , ["src/buildtool/storage", "file_chunker"]
-    , ["src/buildtool/storage", "backend_description"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/serve_api/serve_service", "serve_server_implementation"]
+    , ["src/buildtool/storage", "backend_description"]
+    , ["src/buildtool/storage", "file_chunker"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "gsl"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , "common"
-    , "cli"
-    , "version"
-    , "analyse"
-    , "analyse_context"
-    , "add_to_cas"
-    , "install_cas"
-    , "describe"
-    , "diagnose"
-    , "constants"
-    , "serve"
-    , "build_utils"
-    , "retry"
+    , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-ldflags":
@@ -69,8 +69,8 @@
   , "srcs": ["retry.cpp"]
   , "stage": ["src", "buildtool", "main"]
   , "deps":
-    [ ["src/buildtool/common/remote", "retry_config"]
-    , ["src/buildtool/common", "retry_cli"]
+    [ ["src/buildtool/common", "retry_cli"]
+    , ["src/buildtool/common/remote", "retry_config"]
     ]
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
@@ -87,18 +87,18 @@
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ "common"
+    , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , "common"
     ]
   }
 , "common":
@@ -115,8 +115,8 @@
   , "stage": ["src", "buildtool", "main"]
   , "deps": [["src/buildtool/common", "cli"]]
   , "private-deps":
-    [ ["@", "gsl", "", "gsl"]
-    , "common"
+    [ "common"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
@@ -129,18 +129,18 @@
   , "deps":
     [ ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/remote", "context"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/execution_api/utils", "subobject"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , "archive"
+    [ "archive"
     , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/utils", "subobject"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   }
 , "add_to_cas":
@@ -154,14 +154,14 @@
     , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/common", "common"]
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   , "stage": ["src", "buildtool", "main"]
   }
@@ -173,33 +173,33 @@
   , "deps":
     [ "analyse_context"
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "cli"]
+    , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/target_map", "absent_target_map"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
-    , ["src/buildtool/build_engine/analysed_target", "target"]
+    , ["src/buildtool/common", "cli"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/multithreading", "async_map_utils"]
-    , ["src/buildtool/multithreading", "task_system"]
+    [ ["src/buildtool/build_engine/base_maps", "directory_map"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "expression_map"]
-    , ["src/buildtool/build_engine/base_maps", "directory_map"]
     , ["src/buildtool/build_engine/base_maps", "rule_map"]
     , ["src/buildtool/build_engine/base_maps", "source_map"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/target_map", "target_map"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/multithreading", "async_map_utils"]
+    , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/progress_reporting", "exports_progress_reporter"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/serve_api/remote", "config"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "analyse_context":
@@ -212,8 +212,8 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/progress_reporting", "exports_progress_reporter"]
     , ["src/buildtool/progress_reporting", "progress"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "buildtool", "main"]
   }
@@ -225,15 +225,15 @@
   , "stage": ["src", "buildtool", "main"]
   , "deps":
     [ "analyse"
-    , ["src/buildtool/common", "cli"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["src/buildtool/common", "cli"]
     ]
   , "private-deps":
-    [ ["src/utils/cpp", "json"]
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "json"]
     ]
   }
 , "version":
@@ -287,17 +287,17 @@
   , "name": ["serve"]
   , "hdrs": ["serve.hpp"]
   , "srcs": ["serve.cpp"]
-  , "deps": [["@", "gsl", "", "gsl"], "cli"]
+  , "deps": ["cli", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ "common"
+    , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "location"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , "common"
-    , ["src/buildtool/crypto", "hash_function"]
     ]
   }
 , "build_utils":
@@ -317,10 +317,10 @@
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
-    [ ["src/buildtool/multithreading", "async_map_utils"]
+    [ ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/multithreading", "async_map_utils"]
     ]
   }
 , "archive":
@@ -330,16 +330,16 @@
   , "srcs": ["archive.cpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "common"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
     [ ["", "libarchive"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     ]
   }
 }

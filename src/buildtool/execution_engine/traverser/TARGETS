@@ -3,12 +3,12 @@
   , "name": ["traverser"]
   , "hdrs": ["traverser.hpp"]
   , "deps":
-    [ ["src/buildtool/execution_engine/dag", "dag"]
-    , ["src/buildtool/multithreading", "task_system"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "concepts"]
-    , ["@", "gsl", "", "gsl"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "traverser"]
   }

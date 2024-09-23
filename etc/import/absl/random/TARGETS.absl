@@ -26,11 +26,11 @@
   , "hdrs": ["random.h"]
   , "deps":
     [ "distributions"
-    , "seed_sequences"
     , "internal_nonsecure_base"
     , "internal_pcg_engine"
     , "internal_pool_urbg"
     , "internal_randen_engine"
+    , "seed_sequences"
     ]
   }
 , "distributions":
@@ -73,12 +73,7 @@
     ]
   , "srcs": ["discrete_distribution.cc", "gaussian_distribution.cc"]
   , "deps":
-    [ ["absl/base", "base_internal"]
-    , ["absl/base", "config"]
-    , ["absl/base", "core_headers"]
-    , ["absl/meta", "type_traits"]
-    , ["absl/numeric", "bits"]
-    , "internal_distribution_caller"
+    [ "internal_distribution_caller"
     , "internal_fast_uniform_bits"
     , "internal_fastmath"
     , "internal_generate_real"
@@ -86,6 +81,11 @@
     , "internal_traits"
     , "internal_uniform_helper"
     , "internal_wide_multiply"
+    , ["absl/base", "base_internal"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "bits"]
     , ["absl/strings", "strings"]
     ]
   }
@@ -115,12 +115,12 @@
   , "stage": ["absl", "random"]
   , "hdrs": ["bit_gen_ref.h"]
   , "deps":
-    [ "random"
-    , ["absl/base", "core_headers"]
-    , ["absl/base", "fast_type_id"]
-    , "internal_pool_urbg"
+    [ "internal_pool_urbg"
     , "internal_salted_seed_seq"
     , "internal_seed_material"
+    , "random"
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "fast_type_id"]
     , ["absl/types", "span"]
     ]
   }
@@ -145,11 +145,11 @@
   , "stage": ["absl", "random"]
   , "hdrs": ["internal/pcg_engine.h"]
   , "deps":
-    [ ["absl/base", "config"]
-    , ["absl/numeric", "int128"]
-    , "internal_fastmath"
+    [ "internal_fastmath"
     , "internal_iostream_state_saver"
+    , ["absl/base", "config"]
     , ["absl/meta", "type_traits"]
+    , ["absl/numeric", "int128"]
     ]
   }
 , "internal_pool_urbg":
@@ -184,12 +184,12 @@
     [ "internal_randen"
     , "internal_seed_material"
     , "internal_traits"
+    , "seed_gen_exception"
     , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "endian"]
     , ["absl/base", "raw_logging_internal"]
-    , "seed_gen_exception"
     , ["absl/types", "span"]
     ]
   }
@@ -212,11 +212,11 @@
   , "hdrs": ["seed_sequences.h"]
   , "srcs": ["seed_sequences.cc"]
   , "deps":
-    [ "seed_gen_exception"
-    , ["absl/base", "config"]
-    , "internal_pool_urbg"
+    [ "internal_pool_urbg"
     , "internal_salted_seed_seq"
     , "internal_seed_material"
+    , "seed_gen_exception"
+    , ["absl/base", "config"]
     , ["absl/types", "span"]
     ]
   }

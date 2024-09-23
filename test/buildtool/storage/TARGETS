@@ -15,15 +15,15 @@
   , "data": [["buildtool/storage", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["utils", "test_storage_config"]
-    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }
@@ -33,14 +33,14 @@
   , "srcs": ["local_ac.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["", "catch-main"]
     , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "storage"]
@@ -51,27 +51,27 @@
   , "srcs": ["large_object_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
-    , ["@", "src", "src/buildtool/storage", "config"]
-    , ["utils", "test_storage_config"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
-    , ["utils", "large_object_utils"]
-    , ["@", "src", "src/utils/cpp", "tmp_dir"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
+    , ["", "catch-main"]
+    , ["utils", "large_object_utils"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "storage"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["storage"]
-  , "deps": ["local_cas", "local_ac", "large_object_cas"]
+  , "deps": ["large_object_cas", "local_ac", "local_cas"]
   }
 }

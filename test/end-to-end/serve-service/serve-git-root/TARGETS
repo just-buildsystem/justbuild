@@ -25,6 +25,6 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["serve-git-root"]
-  , "deps": ["present", "absent", "absent-upload"]
+  , "deps": ["absent", "absent-upload", "present"]
   }
 }

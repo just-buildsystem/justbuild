@@ -40,9 +40,9 @@
     , "index_encoder.h"
     ]
   , "deps":
-    [ ["src/liblzma/lzma", "lzma1_headers"]
+    [ ["src/liblzma/delta", "headers"]
+    , ["src/liblzma/lzma", "lzma1_headers"]
     , ["src/liblzma/lzma", "lzma2_headers"]
-    , ["src/liblzma/delta", "headers"]
     , ["src/liblzma/simple", "headers"]
     ]
   }
@@ -65,9 +65,9 @@
       ]
     }
   , "deps":
-    [ ["src/liblzma/lzma", "lzma1_headers"]
+    [ ["src/liblzma/delta", "headers"]
+    , ["src/liblzma/lzma", "lzma1_headers"]
     , ["src/liblzma/lzma", "lzma2_headers"]
-    , ["src/liblzma/delta", "headers"]
     , ["src/liblzma/simple", "headers"]
     ]
   }

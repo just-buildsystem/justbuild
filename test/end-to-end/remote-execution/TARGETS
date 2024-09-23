@@ -2,7 +2,7 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["native-protocol"]
   , "test": ["native-protocol.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "large-blobs":
   { "type": ["end-to-end", "with remote"]
@@ -70,7 +70,7 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["add-to-cas"]
   , "test": ["add-to-cas.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]

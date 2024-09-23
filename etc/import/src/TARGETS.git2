@@ -27,15 +27,15 @@
   , "hdrs": [["include", "git2_public_headers"]]
   , "private-hdrs": [["src/libgit2", "libgit2_private_headers"]]
   , "deps":
-    [ ["src/util", "util_os"]
+    [ ["src/util", "util_compress"]
+    , ["src/util", "util_gssapi"]
+    , ["src/util", "util_http_parser"]
+    , ["src/util", "util_https"]
+    , ["src/util", "util_os"]
+    , ["src/util", "util_regex"]
     , ["src/util", "util_sha1"]
     , ["src/util", "util_sha256"]
-    , ["src/util", "util_regex"]
-    , ["src/util", "util_compress"]
     , ["src/util", "util_ssh"]
-    , ["src/util", "util_http_parser"]
-    , ["src/util", "util_gssapi"]
-    , ["src/util", "util_https"]
     ]
   }
 }

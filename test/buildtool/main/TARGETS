@@ -4,10 +4,10 @@
   , "srcs": ["install_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/main", "install_cas"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/main", "install_cas"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "main"]
   }

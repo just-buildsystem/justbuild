@@ -3,8 +3,8 @@
   , "stage": ["other_tools"]
   , "deps":
     [ ["./", "git_operations", "TESTS"]
-    , ["./", "utils", "TESTS"]
     , ["./", "just_mr", "TESTS"]
+    , ["./", "utils", "TESTS"]
     ]
   }
 }

@@ -438,8 +438,7 @@
     , "wire_format_lite.cc"
     ]
   , "deps":
-    [ ["", "libprotobuf_lite"]
-    , ["@", "absl", "absl/base", "base"]
+    [ ["@", "absl", "absl/base", "base"]
     , ["@", "absl", "absl/base", "dynamic_annotations"]
     , ["@", "absl", "absl/container", "btree"]
     , ["@", "absl", "absl/container", "flat_hash_map"]
@@ -452,8 +451,9 @@
     , ["@", "absl", "absl/strings", "internal"]
     , ["@", "absl", "absl/synchronization", "synchronization"]
     , ["@", "absl", "absl/time", "time"]
-    , ["third_party/utf8_range", "utf8_validity"]
     , ["@", "zlib", "", "zlib"]
+    , ["", "libprotobuf_lite"]
+    , ["third_party/utf8_range", "utf8_validity"]
     ]
   }
 , "libprotoc":
@@ -573,7 +573,7 @@
     , "compiler/subprocess.cc"
     , "compiler/zip_writer.cc"
     ]
-  , "deps": [["", "libprotobuf"], ["@", "absl", "absl/log", "initialize"]]
+  , "deps": [["@", "absl", "absl/log", "initialize"], ["", "libprotobuf"]]
   }
 , "protoc":
   { "type": ["@", "rules", "CC", "binary"]

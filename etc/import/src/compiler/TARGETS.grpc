@@ -45,8 +45,8 @@
     ]
   , "deps":
     [ "proto_parser_helper"
-    , ["", "grpc++_config_proto"]
     , ["@", "protobuf", "", "libprotoc"]
+    , ["", "grpc++_config_proto"]
     ]
   }
 , "grpc_cpp_plugin":

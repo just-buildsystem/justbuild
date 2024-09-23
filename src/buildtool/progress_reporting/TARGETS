@@ -14,8 +14,8 @@
   , "hdrs": ["task_tracker.hpp"]
   , "stage": ["src", "buildtool", "progress_reporting"]
   , "deps":
-    [ ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
     ]
   }
 , "progress_reporter":

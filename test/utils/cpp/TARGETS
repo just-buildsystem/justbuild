@@ -4,8 +4,8 @@
   , "srcs": ["path.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/utils/cpp", "path"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "utils", "cpp"]
   }
@@ -15,8 +15,8 @@
   , "srcs": ["path_rebase.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/utils/cpp", "path_rebase"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "utils", "cpp"]
   }
@@ -26,10 +26,10 @@
   , "srcs": ["file_locking.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
-    , ["@", "src", "src/utils/cpp", "file_locking"]
     , ["@", "src", "src/utils/cpp", "atomic"]
+    , ["@", "src", "src/utils/cpp", "file_locking"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "utils", "cpp"]
   , "private-ldflags": ["-pthread"]
@@ -40,14 +40,14 @@
   , "srcs": ["prefix.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/utils/cpp", "prefix"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "utils", "cpp"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["cpp"]
-  , "deps": ["path", "path_rebase", "file_locking", "prefix"]
+  , "deps": ["file_locking", "path", "path_rebase", "prefix"]
   }
 }

@@ -7,9 +7,9 @@
     ]
   , "test": ["test-bootstrap.sh"]
   , "deps":
-    [ ["@", "src", "", "bootstrap-src"]
+    [ "prune-config.py"
     , ["@", "just-distfiles", "", "distdir"]
-    , "prune-config.py"
+    , ["@", "src", "", "bootstrap-src"]
     ]
   }
 , "bundled-test-debug":
@@ -107,8 +107,8 @@
     [ "bundled-test"
     , "bundled-test-debug"
     , "bundled-test-gnu"
-    , "pkgconfig-test"
     , "mixed-test"
+    , "pkgconfig-test"
     , "symlink-test"
     ]
   }

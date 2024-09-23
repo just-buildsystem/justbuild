@@ -4,7 +4,6 @@
   , "srcs": ["local_execution.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "config"]
@@ -14,9 +13,10 @@
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
-    , ["utils", "test_storage_config"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }
@@ -26,14 +26,14 @@
   , "srcs": ["local_api.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["", "catch-main"]
     , ["buildtool/execution_api/common", "api_test"]
     , ["utils", "test_storage_config"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
-    , ["@", "src", "src/buildtool/storage", "config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "local"]
   }

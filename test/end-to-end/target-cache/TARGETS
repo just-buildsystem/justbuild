@@ -2,18 +2,18 @@
   { "type": ["end-to-end", "with remote"]
   , "name": ["target-cache-hit"]
   , "test": ["target-cache-hit.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "artifacts-sync":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["artifacts-sync"]
   , "test": ["artifacts-sync.sh"]
   , "deps":
-    [ ["", "tool-under-test"]
+    [ "bootstrap-src-staged"
     , ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , ["./", "data", "greetlib"]
     , ["./", "data", "pydicts"]
-    , "bootstrap-src-staged"
     ]
   }
 , "serve-sync":
@@ -21,10 +21,10 @@
   , "name": ["serve-sync"]
   , "test": ["serve-sync.sh"]
   , "deps":
-    [ ["", "tool-under-test"]
+    [ "bootstrap-src-staged"
     , ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
     , ["./", "data", "lib with generated hdr"]
-    , "bootstrap-src-staged"
     ]
   , "repos": [["./", "data", "lib with generated hdr"]]
   }
@@ -32,7 +32,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["export-extern"]
   , "test": ["export-extern.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "bootstrap-src-staged":
   {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]}
@@ -40,7 +40,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["check-sharding"]
   , "test": ["check-sharding.sh"]
-  , "deps": [["", "tool-under-test"], ["", "mr-tool-under-test"]]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]

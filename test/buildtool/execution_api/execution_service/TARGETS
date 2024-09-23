@@ -3,9 +3,11 @@
   , "name": ["cas_server"]
   , "srcs": ["cas_server.test.cpp"]
   , "private-deps":
-    [ ["", "catch-main"]
-    , ["@", "catch2", "", "catch2"]
-    , ["utils", "test_storage_config"]
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/execution_service"
@@ -15,13 +17,11 @@
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/file_system", "git_repo"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
-    , ["@", "gsl", "", "gsl"]
+    , ["", "catch-main"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "execution_service"]
   }

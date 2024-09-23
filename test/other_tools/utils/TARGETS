@@ -5,10 +5,10 @@
   , "srcs": ["curl_usage.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/other_tools/utils", "curl_context"]
     , ["@", "src", "src/other_tools/utils", "curl_easy_handle"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "other_tools", "utils"]
   }
@@ -16,7 +16,7 @@
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["curl_usage"]
   , "test": ["curl_usage_test.sh"]
-  , "deps": [["utils", "test_utils_install"], "curl_usage_install"]
+  , "deps": ["curl_usage_install", ["utils", "test_utils_install"]]
   }
 , "curl_url":
   { "type": ["@", "rules", "CC/test", "test"]
@@ -24,14 +24,14 @@
   , "srcs": ["curl_url.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/other_tools/utils", "curl_url_handle"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "other_tools", "utils"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["utils"]
-  , "deps": ["curl_usage", "curl_url"]
+  , "deps": ["curl_url", "curl_usage"]
   }
 }

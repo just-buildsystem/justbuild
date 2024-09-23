@@ -15,8 +15,8 @@
   , "srcs": ["entity_name.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -28,11 +28,11 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "module_name"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -44,11 +44,11 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
+    , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -60,15 +60,15 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
     , ["@", "json", "", "json"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
-    , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/file_system", "file_root"]
+    , ["", "catch-main"]
     , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
@@ -81,14 +81,14 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -100,16 +100,15 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
-    , ["", "catch-main"]
-    , ["@", "src", "src/buildtool/common", "config"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }

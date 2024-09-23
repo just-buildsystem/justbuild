@@ -5,18 +5,20 @@
   , "srcs": ["repos_to_setup_map.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/root_maps", "commit_git_map"]
     , ["src/other_tools/root_maps", "content_git_map"]
-    , ["src/other_tools/root_maps", "foreign_file_git_map"]
     , ["src/other_tools/root_maps", "distdir_git_map"]
+    , ["src/other_tools/root_maps", "foreign_file_git_map"]
     , ["src/other_tools/root_maps", "fpath_git_map"]
-    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/other_tools/root_maps", "tree_id_git_map"]
     ]
   , "stage": ["src", "other_tools", "repo_map"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/logging", "log_level"]
@@ -26,8 +28,6 @@
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/other_tools/utils", "parse_archive"]
     , ["src/other_tools/utils", "parse_git_tree"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/crypto", "hash_info"]
     ]
   }
 }

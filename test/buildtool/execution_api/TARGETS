@@ -12,10 +12,10 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["execution_api"]
   , "deps":
-    [ ["./", "common", "TESTS"]
-    , ["./", "bazel", "TESTS"]
-    , ["./", "local", "TESTS"]
+    [ ["./", "bazel", "TESTS"]
+    , ["./", "common", "TESTS"]
     , ["./", "execution_service", "TESTS"]
+    , ["./", "local", "TESTS"]
     ]
   }
 }

@@ -18,9 +18,9 @@
   , "hdrs": ["json.hpp"]
   , "deps":
     [ "gsl"
-    , ["@", "json", "", "json"]
-    , ["@", "gsl", "", "gsl"]
     , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     ]
   , "stage": ["src", "utils", "cpp"]
   }

@@ -5,9 +5,9 @@
   , "srcs": ["curl_context.cpp"]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["", "libcurl"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["", "libcurl"]
     ]
   }
 , "curl_easy_handle":
@@ -19,9 +19,9 @@
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["", "libcurl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
-    , ["", "libcurl"]
     ]
   }
 , "curl_url_handle":
@@ -32,9 +32,9 @@
   , "deps": ["curl_context", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["", "libcurl"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["", "libcurl"]
     ]
   }
 , "content":
