@@ -19,6 +19,7 @@
 #include <string>
 #include <utility>  // std::move
 
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -48,6 +49,10 @@ class ArtifactDigest final {
 
     [[nodiscard]] auto operator==(ArtifactDigest const& other) const -> bool {
         return hash_info_ == other.hash_info_;
+    }
+
+    [[nodiscard]] auto GetHashType() const& noexcept -> HashFunction::Type {
+        return hash_info_.HashType();
     }
 
   private:
