@@ -21,16 +21,6 @@
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
-[[nodiscard]] inline auto GetHashTypeName(HashFunction::Type type) noexcept
-    -> std::string {
-    switch (type) {
-        case HashFunction::Type::GitSHA1:
-            return "GitSHA1";
-        case HashFunction::Type::PlainSHA256:
-            return "PlainSHA256";
-    }
-    Ensures(false);
-}
 
 inline constexpr auto kSHA1EmptyGitBlobHash =
     "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391";
@@ -91,7 +81,7 @@ auto HashInfo::ValidateInput(HashFunction::Type type,
             "HashInfo: hash {} is expected to be {}.\nTrees are "
             "not allowed in this mode.",
             hash,
-            GetHashTypeName(type));
+            ToString(type));
     }
 
     if (auto const exp_size = HashFunction{type}.MakeHasher().GetHashLength();
@@ -100,7 +90,7 @@ auto HashInfo::ValidateInput(HashFunction::Type type,
             "HashInfo: hash {} is expected to be {}.\n It must have a length "
             "of {}, but its length is {}.",
             hash,
-            GetHashTypeName(type),
+            ToString(type),
             exp_size,
             hash.size());
     }

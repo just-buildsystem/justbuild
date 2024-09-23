@@ -20,6 +20,7 @@
 #include <string>
 
 #include "src/buildtool/common/user_structs.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -71,6 +72,20 @@ namespace StorageUtils {
                                          std::string const& tree_hash,
                                          PragmaSpecial const& pragma_special,
                                          std::size_t generation = 0) noexcept
+    -> std::filesystem::path;
+
+/// \brief Get the path to the file storing the corresponding artifact hashed by
+/// a different hash function.
+/// \param storage_config  Storage under which the file is to be found.
+/// \param target_hash_type  Hash type to identify mapping target.
+/// \param hash  Hash to identify mapping source.
+/// \param from_git  Flag to distinguish further mapping source (CAS / GitCAS)
+/// \param generation  Further specificity in location of the file.
+[[nodiscard]] auto GetRehashIDFile(StorageConfig const& storage_config,
+                                   HashFunction::Type target_hash_type,
+                                   std::string const& hash,
+                                   bool from_git,
+                                   std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
 /// \brief Write a tree id to file. The parent folder of the file must exist!

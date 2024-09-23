@@ -95,4 +95,15 @@ class HashFunction {
         -> std::optional<std::pair<Hasher::HashDigest, std::uintmax_t>>;
 };
 
+[[nodiscard]] constexpr auto ToString(HashFunction::Type type) noexcept -> const
+    char* {
+    switch (type) {
+        case HashFunction::Type::GitSHA1:
+            return "git-SHA1";
+        case HashFunction::Type::PlainSHA256:
+            return "plain-SHA256";
+    }
+    Ensures(false);  // unreachable
+}
+
 #endif  // INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_FUNCTION_HPP
