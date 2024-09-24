@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -34,6 +35,22 @@
 std::vector<std::string> const kAltDirs = {"target_root",
                                            "rule_root",
                                            "expression_root"};
+
+auto const kRepositoryExpectedFields =
+    std::unordered_set<std::string>{"bindings",
+                                    "expression_file_name",
+                                    "expression_root",
+                                    "repository",
+                                    "rule_file_name",
+                                    "rule_root",
+                                    "target_file_name",
+                                    "target_root"};
+
+// Substrings in repository field names that indicate commonly-used
+// additional keys not used by just-mr but deliberately added by the
+// author of the repository configuration.
+auto const kRepositoryPossibleFieldTrunks =
+    std::vector<std::string>{"bootstrap", "doc", "extra"};
 
 namespace JustMR {
 

@@ -14,6 +14,7 @@
 
 #include "src/other_tools/just_mr/setup_utils.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <unordered_set>
 #include <variant>
@@ -25,6 +26,31 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+
+namespace {
+
+void WarnUnknownKeys(std::string const& name, ExpressionPtr const& repo_def) {
+    if (not repo_def->IsMap()) {
+        return;
+    }
+    for (auto const& [key, value] : repo_def->Map()) {
+        if (not kRepositoryExpectedFields.contains(key)) {
+            Logger::Log(std::any_of(kRepositoryPossibleFieldTrunks.begin(),
+                                    kRepositoryPossibleFieldTrunks.end(),
+                                    [k = key](auto const& trunk) {
+                                        return k.find(trunk) !=
+                                               std::string::npos;
+                                    })
+                            ? LogLevel::Debug
+                            : LogLevel::Warning,
+                        "Ignoring unknown field {} in repository {}",
+                        key,
+                        name);
+        }
+    }
+}
+
+}  // namespace
 
 namespace JustMR::Utils {
 
@@ -46,6 +72,7 @@ void ReachableRepositories(
                 if (not repos_repo_name.IsNotNull()) {
                     return;
                 }
+                WarnUnknownKeys(repo_name, repos_repo_name);
                 auto bindings =
                     repos_repo_name->Get("bindings", Expression::none_t{});
                 if (bindings.IsNotNull() and bindings->IsMap()) {
