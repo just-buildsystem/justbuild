@@ -25,6 +25,7 @@
 #include <utility>  // std::move
 #include <vector>
 
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -292,6 +293,31 @@ struct DirectoryNodeBundle final {
     return std::nullopt;
 }
 
+[[nodiscard]] auto GetContentFromGitEntry(
+    BazelMsgFactory::GitReadFunc const& read_git,
+    ArtifactDigest const& digest,
+    ObjectType entry_type) -> expected<std::string, std::string> {
+    auto read_git_res = read_git(digest, entry_type);
+    if (not read_git_res) {
+        return unexpected{
+            fmt::format("failed reading Git entry {}", digest.hash())};
+    }
+    if (std::holds_alternative<std::string>(read_git_res.value())) {
+        return std::get<std::string>(std::move(read_git_res).value());
+    }
+    if (std::holds_alternative<std::filesystem::path>(read_git_res.value())) {
+        auto content = FileSystemManager::ReadFile(
+            std::get<std::filesystem::path>(std::move(read_git_res).value()));
+        if (not content) {
+            return unexpected{fmt::format("failed reading content of tree {}",
+                                          digest.hash())};
+        }
+        return *std::move(content);
+    }
+    return unexpected{
+        fmt::format("unexpected failure reading Git entry {}", digest.hash())};
+}
+
 }  // namespace
 
 auto BazelMsgFactory::CreateDirectoryDigestFromTree(
@@ -313,6 +339,183 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
         return std::nullopt;
     }
     return digest;
+}
+
+auto BazelMsgFactory::CreateDirectoryDigestFromGitTree(
+    ArtifactDigest const& digest,
+    GitReadFunc const& read_git,
+    BlobStoreFunc const& store_file,
+    TreeStoreFunc const& store_dir,
+    SymlinkStoreFunc const& store_symlink,
+    RehashedDigestReadFunc const& read_rehashed,
+    RehashedDigestStoreFunc const& store_rehashed) noexcept
+    -> expected<ArtifactDigest, std::string> {
+    std::vector<bazel_re::FileNode> files{};
+    std::vector<bazel_re::DirectoryNode> dirs{};
+    std::vector<bazel_re::SymlinkNode> symlinks{};
+
+    try {
+        // read tree object
+        auto const tree_content =
+            GetContentFromGitEntry(read_git, digest, ObjectType::Tree);
+        if (not tree_content) {
+            return unexpected{tree_content.error()};
+        }
+        auto const check_symlinks =
+            [&read_git](std::vector<ArtifactDigest> const& ids) {
+                return std::all_of(ids.begin(),
+                                   ids.end(),
+                                   [&read_git](auto const& id) -> bool {
+                                       auto content = GetContentFromGitEntry(
+                                           read_git, id, ObjectType::Symlink);
+                                       return content and
+                                              PathIsNonUpwards(*content);
+                                   });
+            };
+
+        // Git-SHA1 hashing is used for reading from git
+        HashFunction const hash_function{HashFunction::Type::GitSHA1};
+        // the tree digest is in native mode, so no need for rehashing content
+        auto const entries = GitRepo::ReadTreeData(
+            *tree_content, digest.hash(), check_symlinks, /*is_hex_id=*/true);
+        if (not entries) {
+            return unexpected{fmt::format("failed reading entries of tree {}",
+                                          digest.hash())};
+        }
+
+        // handle tree entries
+        for (auto const& [raw_id, es] : *entries) {
+            auto const hex_id = ToHexString(raw_id);
+            for (auto const& entry : es) {
+                // get native digest of entry
+                auto const git_digest =
+                    ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                  hex_id,
+                                                  /*size is unknown*/ 0,
+                                                  IsTreeObject(entry.type));
+                if (not git_digest) {
+                    return unexpected{git_digest.error()};
+                }
+                // get any cached digest mapping, to avoid unnecessary work
+                auto const cached_obj = read_rehashed(*git_digest);
+                if (not cached_obj) {
+                    return unexpected{cached_obj.error()};
+                }
+                // create and store the directory entry
+                switch (entry.type) {
+                    case ObjectType::Tree: {
+                        if (cached_obj.value()) {
+                            // no work to be done if we already know the digest
+                            dirs.emplace_back(CreateDirectoryNode(
+                                entry.name, cached_obj.value()->digest));
+                        }
+                        else {
+                            // create and store sub directory
+                            auto const dir_digest =
+                                CreateDirectoryDigestFromGitTree(
+                                    *git_digest,
+                                    read_git,
+                                    store_file,
+                                    store_dir,
+                                    store_symlink,
+                                    read_rehashed,
+                                    store_rehashed);
+                            if (not dir_digest) {
+                                return unexpected{dir_digest.error()};
+                            }
+                            dirs.emplace_back(
+                                CreateDirectoryNode(entry.name, *dir_digest));
+                            // no need to cache the digest mapping, as this was
+                            // done in the recursive call
+                        }
+                    } break;
+                    case ObjectType::Symlink: {
+                        // create and store symlink; for this entry type the
+                        // cached digest is ignored because we always need the
+                        // target (i.e., the symlink content)
+                        auto const sym_target = GetContentFromGitEntry(
+                            read_git, *git_digest, ObjectType::Symlink);
+                        if (not sym_target) {
+                            return unexpected{sym_target.error()};
+                        }
+                        auto const sym_digest = store_symlink(*sym_target);
+                        if (not sym_digest) {
+                            return unexpected{fmt::format(
+                                "failed storing symlink {}", hex_id)};
+                        }
+                        symlinks.emplace_back(
+                            CreateSymlinkNode(entry.name, *sym_target));
+                        // while useless for future symlinks, cache digest
+                        // mapping for file-type blobs with same content
+                        if (auto error_msg =
+                                store_rehashed(*git_digest,
+                                               *sym_digest,
+                                               ObjectType::Symlink)) {
+                            return unexpected{*std::move(error_msg)};
+                        }
+                    } break;
+                    default: {
+                        if (cached_obj.value()) {
+                            // no work to be done if we already know the digest
+                            files.emplace_back(
+                                CreateFileNode(entry.name,
+                                               entry.type,
+                                               cached_obj.value()->digest));
+                        }
+                        else {
+                            // create and store file; here we want to NOT read
+                            // the content if from CAS, where we can rehash via
+                            // streams!
+                            auto const read_git_file =
+                                read_git(*git_digest, entry.type);
+                            if (not read_git_file) {
+                                return unexpected{
+                                    fmt::format("failed reading Git entry ")};
+                            }
+                            auto const file_digest = store_file(
+                                *read_git_file, IsExecutableObject(entry.type));
+                            if (not file_digest) {
+                                return unexpected{fmt::format(
+                                    "failed storing file {}", hex_id)};
+                            }
+                            files.emplace_back(CreateFileNode(
+                                entry.name, entry.type, *file_digest));
+                            // cache digest mapping
+                            if (auto error_msg = store_rehashed(
+                                    *git_digest, *file_digest, entry.type)) {
+                                return unexpected{*std::move(error_msg)};
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // create and store tree
+        auto const bytes =
+            SerializeMessage(CreateDirectory(files, dirs, symlinks));
+        if (not bytes) {
+            return unexpected{
+                fmt::format("failed serializing bazel Directory for tree {}",
+                            digest.hash())};
+        }
+        auto const tree_digest = store_dir(*bytes);
+        if (not tree_digest) {
+            return unexpected{fmt::format(
+                "failed storing bazel Directory for tree {}", digest.hash())};
+        }
+        // cache digest mapping
+        if (auto error_msg =
+                store_rehashed(digest, *tree_digest, ObjectType::Tree)) {
+            return unexpected{*std::move(error_msg)};
+        }
+        // return digest
+        return *tree_digest;
+    } catch (std::exception const& ex) {
+        return unexpected{fmt::format(
+            "creating bazel Directory digest unexpectedly failed with:\n{}",
+            ex.what())};
+    }
 }
 
 auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
