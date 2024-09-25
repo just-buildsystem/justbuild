@@ -75,7 +75,8 @@ class ChunkPool final {
 }  // namespace
 
 auto LargeObjectUtils::GenerateFile(std::filesystem::path const& path,
-                                    std::uintmax_t size) noexcept -> bool {
+                                    std::uintmax_t size,
+                                    bool is_executable) noexcept -> bool {
     // Remove the file, if exists:
     if (not FileSystemManager::RemoveFile(path)) {
         return false;
@@ -111,6 +112,17 @@ auto LargeObjectUtils::GenerateFile(std::filesystem::path const& path,
         stream.close();
     } catch (...) {
         return false;
+    }
+
+    if (is_executable) {
+        using perms = std::filesystem::perms;
+        perms p = perms::owner_exec | perms::group_exec | perms::others_exec;
+        try {
+            std::filesystem::permissions(
+                path, p, std::filesystem::perm_options::add);
+        } catch (...) {
+            return false;
+        }
     }
     return true;
 }

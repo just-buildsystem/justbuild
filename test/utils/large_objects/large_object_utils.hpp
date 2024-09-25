@@ -30,9 +30,11 @@ class LargeObjectUtils {
     /// randomizations, a pool of pre-generated chunks is used.
     /// \param path             Output path.
     /// \param size             Size of the resulting file in bytes.
+    /// \param is_executable    Set executable permissions
     /// \return                 True if the file is generated properly.
     [[nodiscard]] static auto GenerateFile(std::filesystem::path const& path,
-                                           std::uintmax_t size) noexcept
+                                           std::uintmax_t size,
+                                           bool is_executable = false) noexcept
         -> bool;
 
     /// \brief Generate a directory in the specified location and fill it with a
