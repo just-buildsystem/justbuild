@@ -522,6 +522,223 @@ auto BazelMsgFactory::CreateDirectoryDigestFromGitTree(
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
+auto BazelMsgFactory::CreateGitTreeDigestFromDirectory(
+    ArtifactDigest const& digest,
+    PathReadFunc const& read_path,
+    FileStoreFunc const& store_file,
+    TreeStoreFunc const& store_tree,
+    SymlinkStoreFunc const& store_symlink,
+    RehashedDigestReadFunc const& read_rehashed,
+    RehashedDigestStoreFunc const& store_rehashed) noexcept
+    -> expected<ArtifactDigest, std::string> {
+    GitRepo::tree_entries_t entries{};
+
+    try {
+        // read directory object
+        auto const tree_path = read_path(digest, ObjectType::Tree);
+        if (not tree_path) {
+            return unexpected{
+                fmt::format("failed reading CAS entry {}", digest.hash())};
+        }
+        auto const tree_content = FileSystemManager::ReadFile(*tree_path);
+        if (not tree_content) {
+            return unexpected{fmt::format("failed reading content of tree {}",
+                                          digest.hash())};
+        }
+        auto dir = BazelMsgFactory::MessageFromString<bazel_re::Directory>(
+            *tree_content);
+
+        // process subdirectories
+        for (auto const& subdir : dir->directories()) {
+            // get digest
+            auto const subdir_digest = ArtifactDigestFactory::FromBazel(
+                HashFunction::Type::PlainSHA256, subdir.digest());
+            if (not subdir_digest) {
+                return unexpected{subdir_digest.error()};
+            }
+            // get any cached digest mapping, to avoid unnecessary work
+            auto const cached_obj = read_rehashed(*subdir_digest);
+            if (not cached_obj) {
+                return unexpected{cached_obj.error()};
+            }
+            if (cached_obj.value()) {
+                // no work to be done, just add to map
+                if (auto raw_id =
+                        FromHexString(cached_obj.value()->digest.hash())) {
+                    entries[std::move(*raw_id)].emplace_back(subdir.name(),
+                                                             ObjectType::Tree);
+                }
+                else {
+                    return unexpected{fmt::format(
+                        "failed to get raw id for cached dir digest {}",
+                        cached_obj.value()->digest.hash())};
+                }
+            }
+            else {
+                // recursively get the subdirectory digest
+                auto const tree_digest =
+                    CreateGitTreeDigestFromDirectory(*subdir_digest,
+                                                     read_path,
+                                                     store_file,
+                                                     store_tree,
+                                                     store_symlink,
+                                                     read_rehashed,
+                                                     store_rehashed);
+                if (not tree_digest) {
+                    return unexpected{tree_digest.error()};
+                }
+                if (auto raw_id = FromHexString(tree_digest->hash())) {
+                    entries[std::move(*raw_id)].emplace_back(subdir.name(),
+                                                             ObjectType::Tree);
+                }
+                else {
+                    return unexpected{
+                        fmt::format("failed to get raw id for tree digest {}",
+                                    tree_digest->hash())};
+                }
+                // no need to cache the digest mapping, as this was done in the
+                // recursive call
+            }
+        }
+
+        // process symlinks
+        for (auto const& sym : dir->symlinks()) {
+            // get digest
+            auto const sym_digest =
+                ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                    HashFunction{HashFunction::Type::PlainSHA256},
+                    sym.target());
+            // get any cached digest mapping, to avoid unnecessary work
+            auto const cached_obj = read_rehashed(sym_digest);
+            if (not cached_obj) {
+                return unexpected{cached_obj.error()};
+            }
+            if (cached_obj.value()) {
+                // no work to be done, just add to map
+                if (auto raw_id =
+                        FromHexString(cached_obj.value()->digest.hash())) {
+                    entries[std::move(*raw_id)].emplace_back(
+                        sym.name(), ObjectType::Symlink);
+                }
+                else {
+                    return unexpected{fmt::format(
+                        "failed to get raw id for cached symlink digest {}",
+                        cached_obj.value()->digest.hash())};
+                }
+            }
+            else {
+                // check validity of symlink
+                if (not PathIsNonUpwards(sym.target())) {
+                    return unexpected{fmt::format(
+                        "found non-upwards symlink {}", sym_digest.hash())};
+                }
+                // rehash symlink
+                auto const blob_digest = store_symlink(sym.target());
+                if (not blob_digest) {
+                    return unexpected{
+                        fmt::format("failed rehashing as blob symlink {}",
+                                    sym_digest.hash())};
+                }
+                if (auto raw_id = FromHexString(blob_digest->hash())) {
+                    entries[std::move(*raw_id)].emplace_back(
+                        sym.name(), ObjectType::Symlink);
+                }
+                else {
+                    return unexpected{fmt::format(
+                        "failed to get raw id for symlink blob digest {}",
+                        blob_digest->hash())};
+                }
+                // while useless for future symlinks, cache digest mapping for
+                // file-type blobs with same content
+                if (auto error_msg = store_rehashed(
+                        sym_digest, *blob_digest, ObjectType::Symlink)) {
+                    return unexpected{*std::move(error_msg)};
+                }
+            }
+        }
+
+        // process files
+        for (auto const& file : dir->files()) {
+            // get digest
+            auto const file_digest = ArtifactDigestFactory::FromBazel(
+                HashFunction::Type::PlainSHA256, file.digest());
+            if (not file_digest) {
+                return unexpected{file_digest.error()};
+            }
+            auto const file_type = file.is_executable() ? ObjectType::Executable
+                                                        : ObjectType::File;
+            // get any cached digest mapping, to avoid unnecessary work
+            auto const cached_obj = read_rehashed(*file_digest);
+            if (not cached_obj) {
+                return unexpected{cached_obj.error()};
+            }
+            if (cached_obj.value()) {
+                // no work to be done, just add to map
+                if (auto raw_id =
+                        FromHexString(cached_obj.value()->digest.hash())) {
+                    entries[std::move(*raw_id)].emplace_back(file.name(),
+                                                             file_type);
+                }
+                else {
+                    return unexpected{fmt::format(
+                        "failed to get raw id for cached file digest {}",
+                        cached_obj.value()->digest.hash())};
+                }
+            }
+            else {
+                // rehash file
+                auto const file_path = read_path(*file_digest, file_type);
+                if (not file_path) {
+                    return unexpected{fmt::format("failed reading CAS entry {}",
+                                                  file_digest->hash())};
+                }
+                auto const blob_digest =
+                    store_file(*file_path, file.is_executable());
+                if (not blob_digest) {
+                    return unexpected{
+                        fmt::format("failed rehashing as blob file {}",
+                                    file_digest->hash())};
+                }
+                if (auto raw_id = FromHexString(blob_digest->hash())) {
+                    entries[std::move(*raw_id)].emplace_back(file.name(),
+                                                             file_type);
+                }
+                else {
+                    return unexpected{fmt::format(
+                        "failed to get raw id for file blob digest {}",
+                        blob_digest->hash())};
+                }
+                // cache digest mapping
+                if (auto error_msg =
+                        store_rehashed(*file_digest, *blob_digest, file_type)) {
+                    return unexpected{*std::move(error_msg)};
+                }
+            }
+        }
+
+        // create and store Git tree
+        auto const git_tree = GitRepo::CreateShallowTree(entries);
+        if (not git_tree) {
+            return unexpected{
+                fmt::format("failed creating Git tree for bazel Directory {}",
+                            digest.hash())};
+        }
+        auto const tree_digest = store_tree(git_tree->second);
+        // cache digest mapping
+        if (auto error_msg =
+                store_rehashed(digest, *tree_digest, ObjectType::Tree)) {
+            return unexpected{*std::move(error_msg)};
+        }
+        // return digest
+        return *tree_digest;
+    } catch (std::exception const& ex) {
+        return unexpected{fmt::format(
+            "creating Git tree digest unexpectedly failed with:\n{}",
+            ex.what())};
+    }
+}
+
 auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
     std::filesystem::path const& root,
     FileStoreFunc const& store_file,

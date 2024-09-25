@@ -48,6 +48,9 @@ class BazelMsgFactory {
     using LinkDigestResolveFunc =
         std::function<void(std::vector<ArtifactDigest> const&,
                            gsl::not_null<std::vector<std::string>*> const&)>;
+    using PathReadFunc = std::function<std::optional<std::filesystem::path>(
+        ArtifactDigest const&,
+        ObjectType)>;
     using GitReadFunc = std::function<std::optional<
         std::variant<std::filesystem::path, std::string>>(ArtifactDigest const&,
                                                           ObjectType)>;
@@ -101,6 +104,29 @@ class BazelMsgFactory {
         GitReadFunc const& read_git,
         BlobStoreFunc const& store_file,
         TreeStoreFunc const& store_dir,
+        SymlinkStoreFunc const& store_symlink,
+        RehashedDigestReadFunc const& read_rehashed,
+        RehashedDigestStoreFunc const& store_rehashed) noexcept
+        -> expected<ArtifactDigest, std::string>;
+
+    /// \brief Create Git tree digest from an owned Directory.
+    /// Recursively traverse entire directory and store blobs and trees.
+    /// Used to convert from compatible to native representation of trees.
+    /// \param digest           Digest of a bazel directory.
+    /// \param read_path        Function for reading CAS path of compatible
+    /// blobs.
+    /// \param store_file       Function for storing local file via path.
+    /// \param store_tree       Function for storing Git trees.
+    /// \param store_symlink    Function for storing symlink via content.
+    /// \param read_rehashed    Function for retrieving cached digests.
+    /// \param store_rehashed   Function to register digests for caching.
+    /// \returns Digest of a Git tree representing the entire bazel Directory,
+    /// or error string on failure.
+    [[nodiscard]] static auto CreateGitTreeDigestFromDirectory(
+        ArtifactDigest const& digest,
+        PathReadFunc const& read_path,
+        FileStoreFunc const& store_file,
+        TreeStoreFunc const& store_tree,
         SymlinkStoreFunc const& store_symlink,
         RehashedDigestReadFunc const& read_rehashed,
         RehashedDigestStoreFunc const& store_rehashed) noexcept
