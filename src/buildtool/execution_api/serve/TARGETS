@@ -1,0 +1,19 @@
+{ "utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utils"]
+  , "hdrs": ["utils.hpp"]
+  , "srcs": ["utils.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "serve"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/storage", "fs_utils"]
+    ]
+  }
+}
