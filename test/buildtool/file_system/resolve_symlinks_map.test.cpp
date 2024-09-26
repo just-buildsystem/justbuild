@@ -103,7 +103,7 @@ auto const kBazId = std::string{"27b32561185c2825150893774953906c6daa6798"};
                                           : (*repo_path / ".git").string()),
                     QuoteForShell(repo_path->string()));
     if (std::system(cmd.c_str()) == 0) {
-        return *repo_path;
+        return repo_path;
     }
     return std::nullopt;
 }

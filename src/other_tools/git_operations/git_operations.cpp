@@ -63,7 +63,7 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = commit_hash.value()};
+    return {.git_cas = git_repo->GetGitCAS(), .result = std::move(commit_hash)};
 }
 
 auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
@@ -132,7 +132,7 @@ auto CriticalGitOps::GitKeepTag(GitOpParams const& crit_op_params,
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = *tag_result};
+    return {.git_cas = git_repo->GetGitCAS(), .result = std::move(tag_result)};
 }
 
 auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
@@ -165,7 +165,7 @@ auto CriticalGitOps::GitGetHeadId(GitOpParams const& crit_op_params,
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = *head_commit};
+    return {.git_cas = git_repo->GetGitCAS(), .result = std::move(head_commit)};
 }
 
 auto CriticalGitOps::GitKeepTree(GitOpParams const& crit_op_params,
@@ -208,5 +208,5 @@ auto CriticalGitOps::GitKeepTree(GitOpParams const& crit_op_params,
         return {.git_cas = nullptr, .result = std::nullopt};
     }
     // success
-    return {.git_cas = git_repo->GetGitCAS(), .result = *tag_result};
+    return {.git_cas = git_repo->GetGitCAS(), .result = std::move(tag_result)};
 }

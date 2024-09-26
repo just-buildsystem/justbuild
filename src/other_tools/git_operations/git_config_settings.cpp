@@ -327,7 +327,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                     true /*fatal*/);
                                 return std::nullopt;
                             }
-                            return proxy_info.value();
+                            return proxy_info;
                         }
                     }
                     // check the generic "http.proxy" gitconfig entry;
@@ -348,7 +348,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                     true /*fatal*/);
                                 return std::nullopt;
                             }
-                            return proxy_info.value();
+                            return proxy_info;
                         }
                         // cleanup memory
                         git_buf_dispose(&tmp_buf);
@@ -376,7 +376,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                     true /*fatal*/);
                                 return std::nullopt;
                             }
-                            return proxy_info.value();
+                            return proxy_info;
                         }
                         // check HTTPS_PROXY envariable
                         if (const char* envar = std::getenv("HTTPS_PROXY")) {
@@ -390,7 +390,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                     true /*fatal*/);
                                 return std::nullopt;
                             }
-                            return proxy_info.value();
+                            return proxy_info;
                         }
                     }
                     else if (url_scheme.value() == "http") {
@@ -406,7 +406,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                     true /*fatal*/);
                                 return std::nullopt;
                             }
-                            return proxy_info.value();
+                            return proxy_info;
                         }
                     }
                     // check all_proxy envariable
@@ -421,7 +421,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                 true /*fatal*/);
                             return std::nullopt;
                         }
-                        return proxy_info.value();
+                        return proxy_info;
                     }
                     // check ALL_PROXY envariable
                     if (const char* envar = std::getenv("ALL_PROXY")) {
@@ -435,7 +435,7 @@ auto GitConfigSettings::GetProxySettings(std::shared_ptr<git_config> const& cfg,
                                 true /*fatal*/);
                             return std::nullopt;
                         }
-                        return proxy_info.value();
+                        return proxy_info;
                     }
                 }
             }

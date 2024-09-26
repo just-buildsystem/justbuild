@@ -28,7 +28,7 @@ auto CheckServeHasAbsentRoot(ServeApi const& serve,
                              AsyncMapConsumerLoggerPtr const& logger)
     -> std::optional<bool> {
     if (auto has_tree = serve.CheckRootTree(tree_id)) {
-        return *has_tree;
+        return has_tree;
     }
     (*logger)(fmt::format("Checking that the serve endpoint knows tree "
                           "{} failed.",

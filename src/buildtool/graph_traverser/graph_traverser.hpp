@@ -574,7 +574,7 @@ class GraphTraverser {
             return std::nullopt;
         }
 
-        return std::move(*output_paths);
+        return output_paths;
     }
 
     void PrintOutputs(

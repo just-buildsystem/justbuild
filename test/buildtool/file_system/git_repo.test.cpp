@@ -78,7 +78,7 @@ class TestUtils {
                                               : (*repo_path / ".git").string()),
                         QuoteForShell(repo_path->string()));
         if (std::system(cmd.c_str()) == 0) {
-            return *repo_path;
+            return repo_path;
         }
         return std::nullopt;
     }

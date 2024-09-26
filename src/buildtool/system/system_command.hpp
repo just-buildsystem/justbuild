@@ -120,7 +120,7 @@ class SystemCommand {
             if (auto const err = OpenFile(stderr_file)) {
                 if (auto retval = ForkAndExecute(
                         cmd, envp, cwd, fileno(out.get()), fileno(err.get()))) {
-                    return *retval;
+                    return retval;
                 }
             }
             else {

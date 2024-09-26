@@ -383,9 +383,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
         auto dir = CreateDirectory(files, dirs, symlinks);
         if (auto bytes = SerializeMessage(dir)) {
             try {
-                if (auto digest = store_dir(*bytes)) {
-                    return *digest;
-                }
+                return store_dir(*bytes);
             } catch (std::exception const& ex) {
                 Logger::Log(LogLevel::Error,
                             "storing directory failed with:\n{}",
@@ -468,9 +466,7 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
             root, dir_reader, /*allow_upwards=*/true)) {
         if (auto tree = GitRepo::CreateShallowTree(entries)) {
             try {
-                if (auto digest = store_tree(tree->second)) {
-                    return *digest;
-                }
+                return store_tree(tree->second);
             } catch (std::exception const& ex) {
                 Logger::Log(LogLevel::Error,
                             "storing tree failed with:\n{}",

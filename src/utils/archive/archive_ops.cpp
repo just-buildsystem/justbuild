@@ -255,7 +255,7 @@ auto ArchiveOps::CreateArchive(ArchiveType type,
         // enable the correct format for archive type
         auto res = EnableWriteFormats(a_out.get(), type);
         if (res != std::nullopt) {
-            return *res;
+            return res;
         }
         // open archive to write
         if (not FileSystemManager::CreateDirectory(destDir)) {
@@ -307,7 +307,7 @@ auto ArchiveOps::CreateArchive(ArchiveType type,
             // write entry into archive
             auto res = WriteEntry(entry.get(), a_out.get());
             if (res != std::nullopt) {
-                return *res;
+                return res;
             }
         }
     } catch (std::exception const& ex) {
@@ -343,7 +343,7 @@ auto ArchiveOps::ExtractArchive(ArchiveType type,
         // enable support for known formats
         auto res = EnableReadFormats(a_in.get(), type);
         if (res != std::nullopt) {
-            return *res;
+            return res;
         }
         // open archive for reading
         if (archive_read_open_filename(
@@ -392,7 +392,7 @@ auto ArchiveOps::ExtractArchive(ArchiveType type,
             if (archive_entry_size(entry) > 0) {
                 auto res = CopyData(a_in.get(), disk.get());
                 if (res != std::nullopt) {
-                    return *res;
+                    return res;
                 }
             }
             // finish entry writing

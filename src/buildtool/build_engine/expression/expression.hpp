@@ -152,11 +152,7 @@ class Expression {
 
     [[nodiscard]] auto At(
         std::string const& key) && -> std::optional<ExpressionPtr> {
-        auto value = std::move(*this).Map().Find(key);
-        if (value) {
-            return std::move(*value);
-        }
-        return std::nullopt;
+        return std::move(*this).Map().Find(key);
     }
 
     template <class T>

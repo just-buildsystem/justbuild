@@ -157,7 +157,7 @@ void ResolveKnownEntry(GitObjectToResolve const& obj,
                                 std::make_optional(GitRepo::TreeEntryInfo{
                                     .id = ToHexString(raw_id),
                                     .type = e.type,
-                                    .symlink_content = *target}),
+                                    .symlink_content = std::move(target)}),
                                 obj.source_cas,
                                 obj.target_cas);
                         }

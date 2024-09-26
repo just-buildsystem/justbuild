@@ -1686,7 +1686,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                     GetGitCAS()->ReadObject(entry_id, /*is_hex_id=*/true)) {
                 return TreeEntryInfo{.id = entry_id,
                                      .type = entry_type,
-                                     .symlink_content = *target};
+                                     .symlink_content = std::move(target)};
             }
             Logger::Log(
                 LogLevel::Trace,
@@ -1948,11 +1948,7 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
                         GitLastError());
             return std::nullopt;
         }
-        auto raw_id = ToRawString(oid);
-        if (not raw_id) {
-            return std::nullopt;
-        }
-        return std::move(*raw_id);
+        return ToRawString(oid);
     } catch (std::exception const& ex) {
         Logger::Log(
             LogLevel::Error, "creating tree failed with:\n{}", ex.what());
@@ -2104,9 +2100,7 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
     };
 
     if (ReadDirectory(dir, dir_read_and_store, logger)) {
-        if (auto raw_id = CreateTree(entries)) {
-            return *raw_id;
-        }
+        return CreateTree(entries);
     }
     return std::nullopt;
 #endif  // BOOTSTRAP_BUILD_TOOL
