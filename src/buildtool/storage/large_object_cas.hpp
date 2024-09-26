@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_HPP
 
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -32,7 +33,7 @@
 template <bool>
 class LocalCAS;
 
-enum class LargeObjectErrorCode {
+enum class LargeObjectErrorCode : std::uint8_t {
     /// \brief An internal error occured.
     Internal = 0,
 

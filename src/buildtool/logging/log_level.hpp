@@ -17,12 +17,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <string>
 #include <type_traits>
 
 #include "gsl/gsl"
 
-enum class LogLevel {
+enum class LogLevel : std::uint8_t {
     Error,    ///< Error messages, fatal errors
     Warning,  ///< Warning messages, recoverable situations that shouldn't occur
     Info,     ///< Informative messages, such as reporting status or statistics

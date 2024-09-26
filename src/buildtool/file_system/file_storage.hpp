@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
 
+#include <cstdint>
 #include <filesystem>
 #include <string>
 #include <utility>
@@ -25,7 +26,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-enum class StoreMode {
+enum class StoreMode : std::uint8_t {
     // First thread to write conflicting file wins.
     FirstWins,
     // Last thread to write conflicting file wins, effectively overwriting

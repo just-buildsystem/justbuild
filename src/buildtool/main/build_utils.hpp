@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDOOL_MAIN_BUILD_UTILS_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <optional>
@@ -47,7 +48,7 @@
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets)
     -> std::vector<ArtifactDescription>;
 
-enum class TargetCacheWriteStrategy {
+enum class TargetCacheWriteStrategy : std::uint8_t {
     Disable,  ///< Do not create target-level cache entries
     Sync,     ///< Create target-level cache entries after syncing the artifacts
     Split  ///< Create target-level cache entries after syncing the artifacts;

@@ -19,6 +19,7 @@
 #include <cerrno>  // for errno
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>   // for std::fopen
 #include <cstdlib>  // std::exit, std::getenv
 #include <cstring>
@@ -984,7 +985,7 @@ class FileSystemManager {
     }
 
   private:
-    enum class CreationStatus { Created, Exists, Failed };
+    enum class CreationStatus : std::uint8_t { Created, Exists, Failed };
 
     static constexpr std::size_t kChunkSize{256};
 
@@ -1287,7 +1288,7 @@ class FileSystemManager {
         }
 
       private:
-        enum ErrorCodes {
+        enum ErrorCodes : std::uint8_t {
             ERROR_READ_INPUT,    // read() input file failed
             ERROR_OPEN_INPUT,    // open() input file failed
             ERROR_OPEN_OUTPUT,   // open() output file failed

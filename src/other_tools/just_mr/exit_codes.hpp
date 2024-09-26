@@ -15,7 +15,10 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_EXIT_CODES_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_EXIT_CODES_HPP
 
-enum JustMRExitCodes {
+#include <cstdint>
+
+// NOLINTNEXTLINE(performance-enum-size)
+enum JustMRExitCodes : std::uint16_t {
     kExitSuccess = 0,
     kExitExecError = 64,             // error in execvp
     kExitGenericFailure = 65,        // none of the known errors

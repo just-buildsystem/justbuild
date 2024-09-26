@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP
 
 #include <cstddef>
-#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 

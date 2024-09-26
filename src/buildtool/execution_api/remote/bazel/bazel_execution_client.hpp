@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_EXECUTION_CLIENT_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_EXECUTION_CLIENT_HPP
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -44,7 +45,13 @@ class BazelExecutionClient {
     };
 
     struct ExecutionResponse {
-        enum class State { Failed, Ongoing, Finished, Unknown, Retry };
+        enum class State : std::uint8_t {
+            Failed,
+            Ongoing,
+            Finished,
+            Unknown,
+            Retry
+        };
 
         std::string execution_handle{};
         State state{State::Unknown};

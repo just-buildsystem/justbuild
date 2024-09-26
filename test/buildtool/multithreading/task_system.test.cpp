@@ -18,6 +18,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <mutex>
 #include <numeric>  // std::iota
@@ -33,7 +34,7 @@
 
 namespace {
 
-enum class CallStatus { kNotExecuted, kExecuted };
+enum class CallStatus : std::uint8_t { kNotExecuted, kExecuted };
 
 }  // namespace
 

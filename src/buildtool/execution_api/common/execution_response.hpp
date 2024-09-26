@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_RESPONSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_RESPONSE_HPP
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -35,7 +36,7 @@ class IExecutionResponse {
     // set of paths found in output_directory_symlinks list of the action result
     using DirSymlinks = std::unordered_set<std::string>;
 
-    enum class StatusCode { Failed, Success };
+    enum class StatusCode : std::uint8_t { Failed, Success };
 
     IExecutionResponse() = default;
     IExecutionResponse(IExecutionResponse const&) = delete;

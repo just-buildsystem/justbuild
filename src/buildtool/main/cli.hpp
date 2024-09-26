@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MAIN_CLI
 #define INCLUDED_SRC_BUILDTOOL_MAIN_CLI
 
+#include <cstdint>
+
 #include "src/buildtool/common/cli.hpp"
 
-enum class SubCommand {
+enum class SubCommand : std::uint8_t {
     kUnknown,
     kVersion,
     kDescribe,
@@ -34,7 +36,6 @@ enum class SubCommand {
 };
 
 struct CommandLineArguments {
-    SubCommand cmd{SubCommand::kUnknown};
     CommonArguments common;
     LogArguments log;
     AnalysisArguments analysis;
@@ -56,6 +57,7 @@ struct CommandLineArguments {
     GcArguments gc;
     ToAddArguments to_add;
     ProtocolArguments protocol;
+    SubCommand cmd{SubCommand::kUnknown};
 };
 
 auto ParseCommandLineArguments(int argc,

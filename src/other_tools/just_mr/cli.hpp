@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <string>
@@ -101,7 +102,7 @@ struct ForwardOnlyArguments {
     std::vector<std::string> remote_execution_properties{};
 };
 
-enum class SubCommand {
+enum class SubCommand : std::uint8_t {
     kUnknown,
     kMRVersion,
     kFetch,

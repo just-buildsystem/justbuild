@@ -15,7 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_TYPES_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_TYPES_HPP
 
-enum class GitLookupError {
+#include <cstdint>
+
+enum class GitLookupError : std::uint8_t {
     Fatal = 0,
     NotFound = 1,
 };

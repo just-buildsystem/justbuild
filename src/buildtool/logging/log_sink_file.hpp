@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_FILE_HPP
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_FILE_HPP
 
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <functional>
@@ -64,7 +65,7 @@ class MutexMap {
 
 class LogSinkFile final : public ILogSink {
   public:
-    enum class Mode {
+    enum class Mode : std::uint8_t {
         Append,    ///< Append if log file already exists.
         Overwrite  ///< Overwrite log file with each new program instantiation.
     };

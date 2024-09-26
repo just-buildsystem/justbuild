@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <exception>
 #include <functional>
 #include <memory>
@@ -218,7 +219,11 @@ class Expression {
         std::size_t pos) const& -> ExpressionPtr const&;
     [[nodiscard]] auto operator[](std::size_t pos) && -> ExpressionPtr;
 
-    enum class JsonMode { SerializeAll, SerializeAllButNodes, NullForNonJson };
+    enum class JsonMode : std::uint8_t {
+        SerializeAll,
+        SerializeAllButNodes,
+        NullForNonJson
+    };
 
     [[nodiscard]] auto ToJson(JsonMode mode = JsonMode::SerializeAll) const
         -> nlohmann::json;

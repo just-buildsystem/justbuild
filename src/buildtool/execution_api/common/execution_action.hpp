@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_ACTION_HPP
 
 #include <chrono>
+#include <cstdint>
 #include <memory>
 
 #include "gsl/gsl"
@@ -31,7 +32,7 @@ class IExecutionAction {
   public:
     using Ptr = std::unique_ptr<IExecutionAction>;
 
-    enum class CacheFlag {
+    enum class CacheFlag : std::uint8_t {
         CacheOutput,       ///< run and cache, or serve from cache
         DoNotCacheOutput,  ///< run and do not cache, never served from cached
         FromCacheOnly,     ///< do not run, only serve from cache
