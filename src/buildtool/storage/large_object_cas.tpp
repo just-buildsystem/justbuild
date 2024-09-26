@@ -39,7 +39,7 @@ template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::GetEntryPath(
     ArtifactDigest const& digest) const noexcept
     -> std::optional<std::filesystem::path> {
-    const std::filesystem::path file_path = file_store_.GetPath(digest.hash());
+    std::filesystem::path file_path = file_store_.GetPath(digest.hash());
     if (FileSystemManager::IsFile(file_path)) {
         return file_path;
     }

@@ -238,7 +238,7 @@ auto BazelNetworkReader::Validate(BazelBlob const& blob) const noexcept
     }
 
     // rehash data
-    auto const rehashed_info = HashInfo::HashData(
+    auto rehashed_info = HashInfo::HashData(
         hash_function_, *blob.data, requested_hash_info->IsTree());
 
     // ensure rehashed data produce the same hash

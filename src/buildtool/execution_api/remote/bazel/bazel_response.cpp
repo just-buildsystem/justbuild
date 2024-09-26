@@ -237,7 +237,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
                 // have to upload them manually.
                 auto root_digest = UploadTreeMessageDirectories(*tree);
                 if (not root_digest) {
-                    auto const error =
+                    auto error =
                         fmt::format("BazelResponse: {}", root_digest.error());
                     Logger::Log(LogLevel::Trace, error);
                     return error;

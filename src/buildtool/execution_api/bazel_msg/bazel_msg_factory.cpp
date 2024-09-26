@@ -305,7 +305,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
         return std::nullopt;
     }
 
-    auto const digest = bundle->blob.digest;
+    auto digest = bundle->blob.digest;
     try {
         if (not process_blob(std::move(bundle->blob))) {
             return std::nullopt;
