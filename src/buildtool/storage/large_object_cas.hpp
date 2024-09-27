@@ -198,6 +198,7 @@ class LargeObjectCAS final {
         std::vector<ArtifactDigest> const& parts) const noexcept -> bool;
 };
 
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "src/buildtool/storage/large_object_cas.tpp"
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_HPP

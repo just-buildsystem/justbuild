@@ -159,6 +159,7 @@ using ActiveTargetCache = TargetCache<false>;
 using ActiveTargetCache = TargetCache<true>;
 #endif  // BOOTSTRAP_BUILD_TOOL
 
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "src/buildtool/storage/target_cache.tpp"
 
 namespace std {

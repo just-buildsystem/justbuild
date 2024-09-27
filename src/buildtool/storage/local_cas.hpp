@@ -352,6 +352,7 @@ class LocalCAS {
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "src/buildtool/storage/local_cas.tpp"
 #else
 template <bool kDoGlobalUplink>

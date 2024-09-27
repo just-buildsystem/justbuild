@@ -233,7 +233,7 @@ void SetupFileChunker() {
 /// \brief Write backend description (which determines the target cache shard)
 /// to CAS.
 void StoreTargetCacheShard(
-    StorageConfig const& storage_config,
+    StorageConfig const& storage_config,  // NOLINT(misc-unused-parameters)
     Storage const& storage,
     RemoteExecutionConfig const& remote_exec_config) noexcept {
     auto backend_description =

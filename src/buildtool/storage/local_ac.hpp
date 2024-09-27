@@ -132,6 +132,7 @@ class LocalAC {
 };
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+// NOLINTNEXTLINE(misc-header-include-cycle)
 #include "src/buildtool/storage/local_ac.tpp"
 #endif
 
