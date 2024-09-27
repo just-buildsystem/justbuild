@@ -5,6 +5,7 @@ WarningsAsErrors: >-
   bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-unchecked-optional-access,
   clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks,
   clang-diagnostic-*,-clang-diagnostic-unused-command-line-argument,
+  concurrency-*, -concurrency-mt-unsafe,
   hicpp-*,
   performance-*,-performance-avoid-endl,
   portability-*,
