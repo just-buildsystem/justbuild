@@ -16,4 +16,31 @@
     , ["src/buildtool/storage", "fs_utils"]
     ]
   }
+, "mr_git_api":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mr_git_api"]
+  , "hdrs": ["mr_git_api.hpp"]
+  , "srcs": ["mr_git_api.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "serve"]
+  , "private-deps":
+    [ "utils"
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/execution_api/git", "git"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  }
 }
