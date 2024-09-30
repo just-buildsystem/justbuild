@@ -92,7 +92,7 @@ class LocalResponse final : public IExecutionResponse {
     }
 
   private:
-    std::string action_id_{};
+    std::string action_id_;
     LocalAction::Output output_{};
     Storage const& storage_;
     ArtifactInfos artifacts_;

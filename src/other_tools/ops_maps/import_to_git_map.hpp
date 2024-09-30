@@ -28,9 +28,9 @@
 #include "src/utils/cpp/path_hash.hpp"
 
 struct CommitInfo {
-    std::filesystem::path target_path{}; /*key*/
-    std::string repo_type{};
-    std::string content{};  // hash or path
+    std::filesystem::path target_path; /*key*/
+    std::string repo_type;
+    std::string content;  // hash or path
 
     CommitInfo(std::filesystem::path const& target_path_,
                std::string repo_type_,

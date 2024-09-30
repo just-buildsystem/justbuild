@@ -152,7 +152,7 @@ class BazelCasClient {
         std::string const& instance_name) const noexcept -> bool;
 
   private:
-    std::unique_ptr<ByteStreamClient> stream_{};
+    std::unique_ptr<ByteStreamClient> stream_;
     RetryConfig const& retry_config_;
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
@@ -188,9 +188,9 @@ class BazelCasClient {
     template <typename T_Content>
     struct RetryProcessBatchResponse {
         bool ok{false};
-        std::vector<T_Content> result{};
+        std::vector<T_Content> result;
         bool exit_retry_loop{false};
-        std::optional<std::string> error_msg{};
+        std::optional<std::string> error_msg;
     };
 
     // If this function is defined in the .cpp file, clang raises an error

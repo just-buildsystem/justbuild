@@ -26,9 +26,9 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TargetResult {
-    ExpressionPtr artifact_stage{};
-    ExpressionPtr provides{};
-    ExpressionPtr runfiles{};
+    ExpressionPtr artifact_stage;
+    ExpressionPtr provides;
+    ExpressionPtr runfiles;
     bool is_cacheable{provides.IsCacheable()};
 
     [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,

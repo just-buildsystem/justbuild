@@ -951,13 +951,13 @@ class Rebuilder {
     gsl::not_null<IExecutionApi::Ptr> const api_cached_;
     std::chrono::milliseconds timeout_;
     mutable std::mutex m_;
-    mutable std::vector<std::string> cache_misses_{};
+    mutable std::vector<std::string> cache_misses_;
     mutable std::unordered_map<
         std::string,
         std::unordered_map<
             std::string,
             std::pair<Artifact::ObjectInfo, Artifact::ObjectInfo>>>
-        flaky_actions_{};
+        flaky_actions_;
 
     [[nodiscard]] auto DetectFlakyAction(
         IExecutionResponse::Ptr const& response,

@@ -47,7 +47,7 @@ class Task {
     explicit operator bool() const noexcept { return f_.operator bool(); }
 
   private:
-    TaskFunc f_{};
+    TaskFunc f_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_MULTITHREADING_TASK_HPP

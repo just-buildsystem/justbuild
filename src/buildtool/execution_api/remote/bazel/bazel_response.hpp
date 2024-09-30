@@ -66,8 +66,8 @@ class BazelResponse final : public IExecutionResponse {
         -> expected<gsl::not_null<DirSymlinks const*>, std::string> final;
 
   private:
-    std::string action_id_{};
-    std::shared_ptr<BazelNetwork> const network_{};
+    std::string action_id_;
+    std::shared_ptr<BazelNetwork> const network_;
     BazelExecutionClient::ExecutionOutput output_{};
     ArtifactInfos artifacts_;
     DirSymlinks dir_symlinks_;

@@ -76,8 +76,8 @@ class GitHashesConverter final {
   private:
     explicit GitHashesConverter() noexcept = default;
 
-    GitToCompatibleMap git_to_compatible_{};
-    CompatibleToGitMap compatible_to_git_{};
+    GitToCompatibleMap git_to_compatible_;
+    CompatibleToGitMap compatible_to_git_;
     std::shared_mutex mutex_;
 };
 

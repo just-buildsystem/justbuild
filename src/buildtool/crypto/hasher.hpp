@@ -61,7 +61,7 @@ class Hasher final {
         }
 
       private:
-        std::string bytes_{};
+        std::string bytes_;
 
         explicit HashDigest(std::string bytes) : bytes_{std::move(bytes)} {}
     };

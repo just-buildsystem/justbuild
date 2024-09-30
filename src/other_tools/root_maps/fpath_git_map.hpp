@@ -33,7 +33,7 @@
 #include "src/utils/cpp/path_hash.hpp"
 
 struct FpathInfo {
-    std::filesystem::path fpath{}; /* key */
+    std::filesystem::path fpath; /* key */
     // create root based on "special" pragma value
     std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
     // create an absent root

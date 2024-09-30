@@ -26,8 +26,8 @@
 
 /// \brief Common parameters for all critical Git operations
 struct GitOpParams {
-    std::filesystem::path target_path{}; /*key*/
-    std::string git_hash{};              /*key*/
+    std::filesystem::path target_path; /*key*/
+    std::string git_hash;              /*key*/
     std::optional<std::string> message{
         std::nullopt};  // mandatory for commits and tags
     std::optional<std::filesystem::path> source_path{

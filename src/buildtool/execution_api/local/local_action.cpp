@@ -53,7 +53,7 @@ class BuildCleanupAnchor {
     }
 
   private:
-    std::filesystem::path const build_path{};
+    std::filesystem::path const build_path;
 };
 
 [[nodiscard]] auto CreateDigestFromLocalOwnedTree(

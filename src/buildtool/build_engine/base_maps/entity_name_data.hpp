@@ -48,9 +48,9 @@ enum class ReferenceType : std::int8_t {
 };
 
 struct NamedTarget {
-    std::string repository{};
-    std::string module{};
-    std::string name{};
+    std::string repository;
+    std::string module;
+    std::string name;
     ReferenceType reference_t{ReferenceType::kTarget};
     NamedTarget() = default;
     NamedTarget(std::string repository,

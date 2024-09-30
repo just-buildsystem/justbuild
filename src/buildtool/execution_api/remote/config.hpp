@@ -29,16 +29,16 @@ struct RemoteExecutionConfig final {
     class Builder;
 
     // Server address of remote execution.
-    std::optional<ServerAddress> const remote_address = {};
+    std::optional<ServerAddress> const remote_address;
 
     // Server dispatch data
-    std::vector<DispatchEndpoint> const dispatch = {};
+    std::vector<DispatchEndpoint> const dispatch;
 
     // Server address of cache endpoint for rebuild.
-    std::optional<ServerAddress> const cache_address = {};
+    std::optional<ServerAddress> const cache_address;
 
     // Platform properties for execution.
-    ExecutionProperties const platform_properties = {};
+    ExecutionProperties const platform_properties;
 };
 
 class RemoteExecutionConfig::Builder final {
@@ -80,16 +80,16 @@ class RemoteExecutionConfig::Builder final {
 
   private:
     // Server address of remote execution; needs parsing.
-    std::optional<std::string> remote_address_raw_{};
+    std::optional<std::string> remote_address_raw_;
 
     // Server dispatch data file; needs parsing.
-    std::optional<std::filesystem::path> dispatch_file_{};
+    std::optional<std::filesystem::path> dispatch_file_;
 
     // Server address of cache endpoint for rebuild; needs parsing.
-    std::optional<std::string> cache_address_raw_{};
+    std::optional<std::string> cache_address_raw_;
 
     // Platform properties for execution; needs parsing.
-    std::vector<std::string> platform_properties_raw_{};
+    std::vector<std::string> platform_properties_raw_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP

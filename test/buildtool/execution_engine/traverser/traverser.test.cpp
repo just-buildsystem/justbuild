@@ -95,11 +95,11 @@ class TestBuildInfo {
     }
 
   private:
-    std::unordered_set<ArtifactIdentifier> correctly_built_{};
-    std::unordered_set<ArtifactIdentifier> incorrectly_built_{};
-    std::unordered_set<ArtifactIdentifier> artifacts_uploaded_{};
-    std::unordered_set<ArtifactIdentifier> uploaded_more_than_once_{};
-    std::string name_{};
+    std::unordered_set<ArtifactIdentifier> correctly_built_;
+    std::unordered_set<ArtifactIdentifier> incorrectly_built_;
+    std::unordered_set<ArtifactIdentifier> artifacts_uploaded_;
+    std::unordered_set<ArtifactIdentifier> uploaded_more_than_once_;
+    std::string name_;
     std::mutex mutex_;
 };
 
@@ -218,9 +218,9 @@ class TestProject {
     }
 
   private:
-    std::vector<ActionDescription> graph_full_description_{};
-    std::unordered_set<ArtifactIdentifier> artifacts_to_be_built_{};
-    std::unordered_set<ArtifactIdentifier> local_artifacts_{};
+    std::vector<ActionDescription> graph_full_description_;
+    std::unordered_set<ArtifactIdentifier> artifacts_to_be_built_;
+    std::unordered_set<ArtifactIdentifier> local_artifacts_;
 };
 
 }  // namespace

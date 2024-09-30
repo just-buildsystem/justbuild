@@ -51,7 +51,7 @@ class ArtifactDigest final {
     }
 
   private:
-    HashInfo hash_info_{};
+    HashInfo hash_info_;
     std::size_t size_ = 0;
 };
 

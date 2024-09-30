@@ -265,8 +265,8 @@ class Expression {
                  map_t>
         data_{none_t{}};
 
-    AtomicValue<std::string> hash_{};
-    AtomicValue<bool> is_cachable_{};
+    AtomicValue<std::string> hash_;
+    AtomicValue<bool> is_cachable_;
 
     template <class T, std::size_t kIndex = 0>
         requires(IsValidType<T>())

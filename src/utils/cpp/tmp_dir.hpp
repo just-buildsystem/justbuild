@@ -51,7 +51,7 @@ class TmpDir {
         -> TmpDirPtr;
 
   private:
-    std::filesystem::path tmp_dir_{};
+    std::filesystem::path tmp_dir_;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_TMP_DIR_HPP

@@ -35,18 +35,18 @@ struct Auth final {
         class Builder;
 
         // CA certificate bundle
-        std::string const ca_cert = {};
+        std::string const ca_cert;
         // Client-side signed certificate
-        std::string const client_cert = {};
+        std::string const client_cert;
         // Client-side private key
-        std::string const client_key = {};
+        std::string const client_key;
         // Server-side signed certificate
-        std::string const server_cert = {};
+        std::string const server_cert;
         // Server-side private key
-        std::string const server_key = {};
+        std::string const server_key;
     };
 
-    std::variant<std::monostate, TLS> method = {};
+    std::variant<std::monostate, TLS> method;
 };
 
 class Auth::TLS::Builder final {

@@ -142,10 +142,10 @@ class AsyncMapConsumer {
   private:
     using NodeRequests = std::unordered_map<Key, std::unordered_set<NodePtr>>;
 
-    std::shared_ptr<ValueCreator> value_creator_{};
-    Map map_{};
-    mutable std::shared_mutex requests_m_{};
-    std::unordered_map<std::thread::id, NodeRequests> requests_by_thread_{};
+    std::shared_ptr<ValueCreator> value_creator_;
+    Map map_;
+    mutable std::shared_mutex requests_m_;
+    std::unordered_map<std::thread::id, NodeRequests> requests_by_thread_;
 
     // Similar to previous methods, but in this case the logger and failure
     // function are already std::shared_ptr type.

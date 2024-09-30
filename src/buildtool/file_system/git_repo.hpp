@@ -63,7 +63,7 @@ class GitRepo {
 
     // Stores the info of an object read by its path.
     struct TreeEntryInfo {
-        std::string id{};
+        std::string id;
         ObjectType type;
         // if type is symlink, read it in advance
         std::optional<std::string> symlink_content{std::nullopt};

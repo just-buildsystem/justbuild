@@ -37,7 +37,7 @@
 /// resolved entries being made available in the target Git repository.
 struct GitObjectToResolve {
     // hash of the root tree
-    std::string root_tree_id{}; /* key */
+    std::string root_tree_id; /* key */
     // path of this object relative to root tree, in normal form
     std::filesystem::path rel_path{"."}; /* key */
     // how the tree should be resolved
@@ -47,11 +47,11 @@ struct GitObjectToResolve {
     std::optional<GitRepo::TreeEntryInfo> known_info{std::nullopt};
     // object db to use as source of unresolved entries; it is guaranteed that
     // this repository is treated as read-only if it differs from target_cas
-    GitCASPtr source_cas{};
+    GitCASPtr source_cas;
     // object db to use as target for resolved entries; can be the same as
     // source_cas and usually it is the Git cache; as the caller has access to
     // such a pointer, it reduces the overhead from opening the Git cache often
-    GitCASPtr target_cas{};
+    GitCASPtr target_cas;
 
     GitObjectToResolve() = default;  // needed for cycle detection only!
 

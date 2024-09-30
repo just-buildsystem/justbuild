@@ -93,7 +93,7 @@ class FileSystemManager {
         }
 
       private:
-        std::filesystem::path const kRestorePath{};
+        std::filesystem::path const kRestorePath;
 
         DirectoryAnchor()
             : kRestorePath{FileSystemManager::GetCurrentDirectory()} {}

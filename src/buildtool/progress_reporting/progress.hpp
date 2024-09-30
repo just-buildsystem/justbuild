@@ -47,7 +47,7 @@ class Progress {
         std::string,
         std::vector<
             std::pair<BuildMaps::Target::ConfiguredTarget, std::size_t>>>
-        origin_map_{};
+        origin_map_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_PROGRESS_HPP

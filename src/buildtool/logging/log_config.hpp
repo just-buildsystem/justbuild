@@ -26,10 +26,10 @@
 /// The entire class is thread-safe.
 class LogConfig {
     struct ConfigData {
-        std::mutex mutex{};
+        std::mutex mutex;
         LogLevel log_limit{LogLevel::Info};
-        std::vector<ILogSink::Ptr> sinks{};
-        std::vector<LogSinkFactory> factories{};
+        std::vector<ILogSink::Ptr> sinks;
+        std::vector<LogSinkFactory> factories;
     };
 
   public:

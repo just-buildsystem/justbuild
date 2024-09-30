@@ -56,10 +56,10 @@ class WaitableZeroCounter {
     }
 
   private:
-    std::shared_mutex mutex_{};
-    std::condition_variable_any cv_{};
-    std::atomic<std::size_t> count_{};
-    std::atomic<bool> done_{};
+    std::shared_mutex mutex_;
+    std::condition_variable_any cv_;
+    std::atomic<std::size_t> count_;
+    std::atomic<bool> done_;
 
     [[nodiscard]] auto IsZero() noexcept -> bool {
         return count_ == 0 or done_;
@@ -162,10 +162,10 @@ class NotificationQueue {
     }
 
   private:
-    std::deque<Task> queue_{};
+    std::deque<Task> queue_;
     bool done_{false};
-    std::mutex mutex_{};
-    std::condition_variable ready_{};
+    std::mutex mutex_;
+    std::condition_variable ready_;
     gsl::not_null<WaitableZeroCounter*> total_workload_;
 };
 

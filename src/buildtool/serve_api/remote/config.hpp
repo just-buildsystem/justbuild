@@ -34,10 +34,10 @@ struct RemoteServeConfig final {
     class Builder;
 
     // Server address of remote execution.
-    std::optional<ServerAddress> const remote_address{};
+    std::optional<ServerAddress> const remote_address;
 
     // Known Git repositories to serve server.
-    std::vector<std::filesystem::path> const known_repositories{};
+    std::vector<std::filesystem::path> const known_repositories;
 
     // Number of jobs
     std::size_t const jobs = 0;
@@ -98,7 +98,7 @@ class RemoteServeConfig::Builder final {
         -> expected<RemoteServeConfig, std::string> {
         // To not duplicate default arguments of RemoteServeConfig in builder,
         // create a default config and copy default arguments from there.
-        RemoteServeConfig const default_config;
+        RemoteServeConfig const default_config{};
 
         auto remote_address = default_config.remote_address;
         if (remote_address_.has_value()) {

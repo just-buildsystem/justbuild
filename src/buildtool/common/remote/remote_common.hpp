@@ -28,8 +28,8 @@
 #include "src/utils/cpp/expected.hpp"
 
 struct ServerAddress {
-    std::string host{};
-    Port port{};
+    std::string host;
+    Port port;
 
     [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
         return nlohmann::json(

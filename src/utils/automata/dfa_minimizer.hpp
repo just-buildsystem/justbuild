@@ -44,8 +44,8 @@ class DFAMinimizer {
 
     // Bucket of states with equal local properties (content and acceptance)
     struct Bucket {
-        std::vector<std::string> symbols{};
-        states_t states{};
+        std::vector<std::string> symbols;
+        states_t states;
     };
 
     // Key used for state pairs. Reordering names will result in the same key.
@@ -85,7 +85,7 @@ class DFAMinimizer {
     // Value of state pairs.
     struct StatePairValue {
         // Parent pairs depending on this pair's distinguishability
-        std::vector<StatePairValue*> parents{};
+        std::vector<StatePairValue*> parents;
         // Distinguishability flag (true means distinguishable)
         bool marked{};
     };
@@ -170,8 +170,8 @@ class DFAMinimizer {
     }
 
   private:
-    std::unordered_map<std::string, Bucket> buckets_{};
-    std::unordered_map<std::string, std::string> buckets_by_state_{};
+    std::unordered_map<std::string, Bucket> buckets_;
+    std::unordered_map<std::string, std::string> buckets_by_state_;
 
     template <class M, class K = typename M::key_type>
     [[nodiscard]] static auto GetKeys(M const& map) -> std::vector<K> {

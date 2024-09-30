@@ -37,9 +37,9 @@ struct ContentBlob final {
                 bool is_exec) noexcept
         : digest{std::move(mydigest)}, data(mydata), is_exec{is_exec} {}
 
-    TDigest digest{};
-    std::shared_ptr<std::string> data{};
-    bool is_exec{};
+    TDigest digest;
+    std::shared_ptr<std::string> data;
+    bool is_exec = false;
 };
 
 template <typename TDigest>

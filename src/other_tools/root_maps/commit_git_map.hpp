@@ -35,14 +35,14 @@
 
 struct GitRepoInfo {
     // hash can be a commit or tree
-    std::string hash{}; /* key */
-    std::string repo_url{};
-    std::string branch{};
-    std::string subdir{}; /* key */
-    std::vector<std::string> inherit_env{};
-    std::vector<std::string> mirrors{};
+    std::string hash; /* key */
+    std::string repo_url;
+    std::string branch;
+    std::string subdir; /* key */
+    std::vector<std::string> inherit_env;
+    std::vector<std::string> mirrors;
     // name of repository for which work is done; used in progress reporting
-    std::string origin{};
+    std::string origin;
     // create root that ignores symlinks
     bool ignore_special{}; /* key */
     // create an absent root

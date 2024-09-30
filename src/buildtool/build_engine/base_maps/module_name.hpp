@@ -24,8 +24,8 @@
 namespace BuildMaps::Base {
 
 struct ModuleName {
-    std::string repository{};
-    std::string module{};
+    std::string repository;
+    std::string module;
 
     ModuleName(std::string repository, std::string module)
         : repository{std::move(repository)}, module{std::move(module)} {}

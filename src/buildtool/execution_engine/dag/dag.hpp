@@ -490,17 +490,17 @@ class DependencyGraph : DirectedAcyclicGraph {
 
   private:
     // List of action nodes we already created
-    std::vector<ActionNode::Ptr> action_nodes_{};
+    std::vector<ActionNode::Ptr> action_nodes_;
 
     // List of artifact nodes we already created
-    std::vector<ArtifactNode::Ptr> artifact_nodes_{};
+    std::vector<ArtifactNode::Ptr> artifact_nodes_;
 
     // Associates global action identifier to local node id
-    std::unordered_map<ActionIdentifier, ActionNodeIdentifier> action_ids_{};
+    std::unordered_map<ActionIdentifier, ActionNodeIdentifier> action_ids_;
 
     // Associates global artifact identifier to local node id
     std::unordered_map<ArtifactIdentifier, ArtifactNodeIdentifier>
-        artifact_ids_{};
+        artifact_ids_;
 
     [[nodiscard]] auto CreateOutputArtifactNodes(
         std::string const& action_id,

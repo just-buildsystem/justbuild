@@ -37,11 +37,11 @@
 class BazelExecutionClient {
   public:
     struct ExecutionOutput {
-        bazel_re::ActionResult action_result{};
+        bazel_re::ActionResult action_result;
         bool cached_result{};
-        grpc::Status status{};
-        std::unordered_map<std::string, bazel_re::Digest> server_logs{};
-        std::string message{};
+        grpc::Status status;
+        std::unordered_map<std::string, bazel_re::Digest> server_logs;
+        std::string message;
     };
 
     struct ExecutionResponse {
@@ -53,7 +53,7 @@ class BazelExecutionClient {
             Retry
         };
 
-        std::string execution_handle{};
+        std::string execution_handle;
         State state{State::Unknown};
         std::optional<ExecutionOutput> output{std::nullopt};
 

@@ -90,7 +90,7 @@ class FileStorage {
 
   private:
     static constexpr bool kFdLess{kType == ObjectType::Executable};
-    std::filesystem::path storage_root_{};
+    std::filesystem::path storage_root_;
 
     /// \brief Add file to storage from file path via link or copy and rename.
     /// If a race-condition occurs, the winning thread will be the one

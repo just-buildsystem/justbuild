@@ -72,7 +72,7 @@ class CurlEasyHandle {
 
   private:
     // IMPORTANT: the CurlContext must to be initialized before any curl object!
-    CurlContext curl_context_{};
+    CurlContext curl_context_;
     std::unique_ptr<CURL, decltype(&curl_easy_closer)> handle_{
         nullptr,
         curl_easy_closer};

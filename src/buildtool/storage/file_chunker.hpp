@@ -83,10 +83,10 @@ class FileChunker {
     const std::uint32_t min_chunk_size_{};
     const std::uint32_t average_chunk_size_{};
     const std::uint32_t max_chunk_size_{};
-    std::ifstream stream_{};  // File stream to be splitted.
-    std::string buffer_{};    // Buffer for the file content.
-    std::size_t size_{0};     // Current size of the buffer.
-    std::size_t pos_{0};      // Current read position within the buffer.
+    std::ifstream stream_;  // File stream to be splitted.
+    std::string buffer_;    // Buffer for the file content.
+    std::size_t size_{0};   // Current size of the buffer.
+    std::size_t pos_{0};    // Current read position within the buffer.
 
     /// @brief Find the next chunk boundary from the current read position
     /// within the buffer.

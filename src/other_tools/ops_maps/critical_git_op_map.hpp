@@ -84,7 +84,7 @@ class CriticalGitOpGuard {
     }
 
   private:
-    std::unordered_map<size_t, GitOpKey> curr_critical_key_{};
+    std::unordered_map<size_t, GitOpKey> curr_critical_key_;
     std::mutex critical_key_mutex_;
 };
 

@@ -37,7 +37,7 @@
 class Artifact {
   public:
     struct ObjectInfo {
-        ArtifactDigest digest{};
+        ArtifactDigest digest;
         ObjectType type{};
         bool failed{};
 
@@ -199,10 +199,10 @@ class Artifact {
     }
 
   private:
-    ArtifactIdentifier id_{};
-    std::optional<std::filesystem::path> file_path_{};
-    std::string repo_{};
-    mutable std::optional<ObjectInfo> object_info_{};
+    ArtifactIdentifier id_;
+    std::optional<std::filesystem::path> file_path_;
+    std::string repo_;
+    mutable std::optional<ObjectInfo> object_info_;
 
     Artifact(ArtifactIdentifier id,
              std::filesystem::path const& file_path,

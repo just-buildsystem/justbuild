@@ -63,8 +63,8 @@ class TaskTracker {
 
   private:
     std::uint64_t prio_{};
-    std::mutex m_{};
-    std::unordered_map<std::string, std::uint64_t> running_{};
+    std::mutex m_;
+    std::unordered_map<std::string, std::uint64_t> running_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_TASK_TRACKER_HPP

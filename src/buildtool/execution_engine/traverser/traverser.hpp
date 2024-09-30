@@ -72,7 +72,7 @@ class Traverser {
     Executor const& runner_{};
     DependencyGraph const& graph_;
     gsl::not_null<std::atomic<bool>*> failed_;
-    TaskSystem tasker_{};  // THIS SHOULD BE THE LAST MEMBER VARIABLE
+    TaskSystem tasker_;  // THIS SHOULD BE THE LAST MEMBER VARIABLE
 
     // Visits discover nodes and queue visits to their children nodes.
     void Visit(gsl::not_null<DependencyGraph::ArtifactNode const*>

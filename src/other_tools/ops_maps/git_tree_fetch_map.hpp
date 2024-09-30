@@ -33,12 +33,12 @@
 
 // Stores all the information needed to make a Git tree available
 struct GitTreeInfo {
-    HashInfo tree_hash{}; /* key */
-    std::map<std::string, std::string> env_vars{};
-    std::vector<std::string> inherit_env{};
-    std::vector<std::string> command{};
+    HashInfo tree_hash; /* key */
+    std::map<std::string, std::string> env_vars;
+    std::vector<std::string> inherit_env;
+    std::vector<std::string> command;
     // name of repository for which work is done; used in progress reporting
-    std::string origin{};
+    std::string origin;
 
     [[nodiscard]] auto operator==(const GitTreeInfo& other) const -> bool {
         return tree_hash.Hash() == other.tree_hash.Hash();

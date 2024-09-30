@@ -205,8 +205,8 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
 
 struct InMemoryODBBackend {
     git_odb_backend parent;
-    GitRepo::tree_entries_t const* entries{nullptr};       // object headers
-    std::unordered_map<std::string, std::string> trees{};  // solid tree objects
+    GitRepo::tree_entries_t const* entries{nullptr};     // object headers
+    std::unordered_map<std::string, std::string> trees;  // solid tree objects
 };
 
 [[nodiscard]] auto backend_read_header(size_t* len_p,

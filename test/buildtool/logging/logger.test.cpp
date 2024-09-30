@@ -27,8 +27,8 @@
 // Stores prints from test sink instances
 class TestPrints {
     struct PrintData {
-        std::atomic<int> counter{};
-        std::unordered_map<int, std::vector<std::string>> prints{};
+        std::atomic<int> counter;
+        std::unordered_map<int, std::vector<std::string>> prints;
     };
 
   public:

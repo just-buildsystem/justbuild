@@ -324,16 +324,16 @@ class UserRule {
         return expected_entries;
     }
 
-    std::vector<std::string> target_fields_{};
-    std::vector<std::string> string_fields_{};
-    std::vector<std::string> config_fields_{};
-    implicit_t implicit_targets_{};
-    implicit_exp_t implicit_target_exp_{};
-    anonymous_defs_t anonymous_defs_{};
-    std::vector<std::string> config_vars_{};
-    std::set<std::string> tainted_{};
-    config_trans_t config_transitions_{};
-    ExpressionFunctionPtr expr_{};
+    std::vector<std::string> target_fields_;
+    std::vector<std::string> string_fields_;
+    std::vector<std::string> config_fields_;
+    implicit_t implicit_targets_;
+    implicit_exp_t implicit_target_exp_;
+    anonymous_defs_t anonymous_defs_;
+    std::vector<std::string> config_vars_;
+    std::set<std::string> tainted_;
+    config_trans_t config_transitions_;
+    ExpressionFunctionPtr expr_;
     std::unordered_set<std::string> expected_entries_{
         ComputeExpectedEntries(target_fields_, string_fields_, config_fields_)};
 };

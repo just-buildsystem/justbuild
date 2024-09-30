@@ -42,7 +42,7 @@ class LocalAction final : public IExecutionAction {
 
   public:
     struct Output {
-        bazel_re::ActionResult action{};
+        bazel_re::ActionResult action;
         bool is_cached{};
     };
 
@@ -65,12 +65,12 @@ class LocalAction final : public IExecutionAction {
   private:
     Logger logger_{"LocalExecution"};
     LocalContext const& local_context_;
-    ArtifactDigest const root_digest_{};
-    std::vector<std::string> const cmdline_{};
-    std::string const cwd_{};
-    std::vector<std::string> output_files_{};
-    std::vector<std::string> output_dirs_{};
-    std::map<std::string, std::string> const env_vars_{};
+    ArtifactDigest const root_digest_;
+    std::vector<std::string> const cmdline_;
+    std::string const cwd_;
+    std::vector<std::string> output_files_;
+    std::vector<std::string> output_dirs_;
+    std::map<std::string, std::string> const env_vars_;
     std::vector<bazel_re::Platform_Property> const properties_;
     std::chrono::milliseconds timeout_{kDefaultTimeout};
     CacheFlag cache_flag_{CacheFlag::CacheOutput};

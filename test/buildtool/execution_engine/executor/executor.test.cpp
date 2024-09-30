@@ -52,7 +52,7 @@ struct TestApiConfig {
 
     struct TestExecutionConfig {
         bool failed{};
-        std::vector<std::string> outputs{};
+        std::vector<std::string> outputs;
     };
 
     struct TestResponseConfig {
@@ -60,7 +60,7 @@ struct TestApiConfig {
         int exit_code{};
     };
 
-    std::unordered_map<std::string, TestArtifactConfig> artifacts{};
+    std::unordered_map<std::string, TestArtifactConfig> artifacts;
     TestExecutionConfig execution;
     TestResponseConfig response;
 };

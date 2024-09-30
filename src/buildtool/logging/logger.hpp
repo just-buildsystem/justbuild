@@ -148,9 +148,9 @@ class Logger {
     }
 
   private:
-    std::string name_{};
+    std::string name_;
     LogLevel log_limit_{};
-    std::vector<ILogSink::Ptr> sinks_{};
+    std::vector<ILogSink::Ptr> sinks_;
 
     /// \brief Format message and forward to sinks.
     template <class... T_Args>

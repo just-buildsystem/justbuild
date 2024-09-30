@@ -110,15 +110,15 @@ class Action {
     }
 
   private:
-    ActionIdentifier id_{};
-    std::vector<std::string> command_{};
-    std::string cwd_{};
-    std::map<std::string, std::string> env_{};
+    ActionIdentifier id_;
+    std::vector<std::string> command_;
+    std::string cwd_;
+    std::map<std::string, std::string> env_;
     bool is_tree_{};
-    std::optional<std::string> may_fail_{};
+    std::optional<std::string> may_fail_;
     bool no_cache_{};
     double timeout_scale_{};
-    std::map<std::string, std::string> execution_properties_{};
+    std::map<std::string, std::string> execution_properties_;
 
     explicit Action(ActionIdentifier id) noexcept
         : id_{std::move(id)}, is_tree_{true} {}

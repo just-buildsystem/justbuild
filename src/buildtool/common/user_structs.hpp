@@ -57,8 +57,8 @@ struct LocalPaths {
                 path = path.parent_path();
             }
         }()};
-    nlohmann::json git_checkout_locations{};
-    std::vector<std::filesystem::path> distdirs{};
+    nlohmann::json git_checkout_locations;
+    std::vector<std::filesystem::path> distdirs;
 };
 
 struct CAInfo {

@@ -59,8 +59,8 @@ class MutexMap {
     }
 
   private:
-    std::mutex mutex_{};
-    std::unordered_map<T_Key, std::mutex> map_{};
+    std::mutex mutex_;
+    std::unordered_map<T_Key, std::mutex> map_;
 };
 
 class LogSinkFile final : public ILogSink {
@@ -140,7 +140,7 @@ class LogSinkFile final : public ILogSink {
     }
 
   private:
-    std::string file_path_{};
+    std::string file_path_;
 
     [[nodiscard]] static auto FileMutexes() noexcept -> MutexMap<std::string>& {
         static MutexMap<std::string> instance{};

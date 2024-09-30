@@ -70,7 +70,7 @@ struct ConfigKeyMatchDegree {
 struct NoproxyPattern {
     // stores the substrings of the host portion of the pattern, obtained by
     // splitting with delimiter '.'
-    std::vector<std::string> host_tokens{};
+    std::vector<std::string> host_tokens;
     // port number as string, or nullopt if port missing
     std::optional<std::string> port;
 };
@@ -163,7 +163,7 @@ class CurlURLHandle {
   private:
     // IMPORTANT: the CurlContext must be initialized before any curl
     // object!
-    CurlContext curl_context_{};
+    CurlContext curl_context_;
     std::unique_ptr<CURLU, decltype(&curl_url_closer)> handle_{nullptr,
                                                                curl_url_closer};
 

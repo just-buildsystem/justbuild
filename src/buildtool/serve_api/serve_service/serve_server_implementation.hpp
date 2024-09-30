@@ -63,8 +63,8 @@ class ServeServerImpl final {
 
     std::string interface_{"127.0.0.1"};
     int port_{0};
-    std::string info_file_{};
-    std::string pid_file_{};
+    std::string info_file_;
+    std::string pid_file_;
 };
 
 #endif  // SERVE_SERVER_IMPLEMENTATION_HPP

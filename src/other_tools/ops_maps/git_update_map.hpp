@@ -30,9 +30,9 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct RepoDescriptionForUpdating {
-    std::string repo{};
-    std::string branch{};
-    std::vector<std::string> inherit_env{}; /*non-key!*/
+    std::string repo;
+    std::string branch;
+    std::vector<std::string> inherit_env; /*non-key!*/
 
     [[nodiscard]] auto operator==(const RepoDescriptionForUpdating& other) const
         -> bool {

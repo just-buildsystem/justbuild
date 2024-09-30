@@ -92,10 +92,10 @@ class BazelNetwork {
         -> std::optional<bazel_re::ActionResult>;
 
   private:
-    std::string const instance_name_{};
-    std::unique_ptr<BazelCasClient> cas_{};
-    std::unique_ptr<BazelAcClient> ac_{};
-    std::unique_ptr<BazelExecutionClient> exec_{};
+    std::string const instance_name_;
+    std::unique_ptr<BazelCasClient> cas_;
+    std::unique_ptr<BazelAcClient> ac_;
+    std::unique_ptr<BazelExecutionClient> exec_;
     ExecutionConfiguration exec_config_{};
     HashFunction const& hash_function_;
 

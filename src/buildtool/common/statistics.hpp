@@ -91,19 +91,19 @@ class Statistics {
     }
 
   private:
-    std::atomic<int> num_actions_queued_{};
-    std::atomic<int> num_actions_executed_{};
-    std::atomic<int> num_actions_cached_{};
-    std::atomic<int> num_actions_flaky_{};
-    std::atomic<int> num_actions_flaky_tainted_{};
-    std::atomic<int> num_rebuilt_actions_missing_{};
-    std::atomic<int> num_rebuilt_actions_compared_{};
-    std::atomic<int> num_exports_cached_{};
-    std::atomic<int> num_exports_uncached_{};
-    std::atomic<int> num_exports_not_eligible_{};
-    std::atomic<int> num_exports_found_{};
-    std::atomic<int> num_exports_served_{};
-    std::atomic<int> num_trees_analysed_{};
+    std::atomic<int> num_actions_queued_;
+    std::atomic<int> num_actions_executed_;
+    std::atomic<int> num_actions_cached_;
+    std::atomic<int> num_actions_flaky_;
+    std::atomic<int> num_actions_flaky_tainted_;
+    std::atomic<int> num_rebuilt_actions_missing_;
+    std::atomic<int> num_rebuilt_actions_compared_;
+    std::atomic<int> num_exports_cached_;
+    std::atomic<int> num_exports_uncached_;
+    std::atomic<int> num_exports_not_eligible_;
+    std::atomic<int> num_exports_found_;
+    std::atomic<int> num_exports_served_;
+    std::atomic<int> num_trees_analysed_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_STATISTICS_HPP

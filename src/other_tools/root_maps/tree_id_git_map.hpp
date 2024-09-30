@@ -32,7 +32,7 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct TreeIdInfo {
-    GitTreeInfo tree_info{}; /* key */
+    GitTreeInfo tree_info; /* key */
     // create root that ignores symlinks
     bool ignore_special{}; /* key */
     // create an absent root

@@ -158,7 +158,7 @@ class GitTreeEntry {
     gsl::not_null<GitCASPtr> cas_;
     std::string raw_id_;
     ObjectType type_;
-    AtomicValue<std::optional<GitTree>> tree_cached_{};
+    AtomicValue<std::optional<GitTree>> tree_cached_;
 };
 
 using GitTreePtr = std::shared_ptr<GitTree const>;

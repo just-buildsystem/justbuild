@@ -73,11 +73,11 @@ class TaskSystem {
   private:
     std::size_t const thread_count_{
         std::max(1U, std::thread::hardware_concurrency())};
-    std::vector<std::thread> threads_{};
-    std::vector<NotificationQueue> queues_{};
+    std::vector<std::thread> threads_;
+    std::vector<NotificationQueue> queues_;
     std::atomic<std::size_t> index_{0};
-    std::atomic<bool> shutdown_{};
-    WaitableZeroCounter total_workload_{};
+    std::atomic<bool> shutdown_;
+    WaitableZeroCounter total_workload_;
 
     static constexpr std::size_t kNumberOfAttempts = 5;
 

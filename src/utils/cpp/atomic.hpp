@@ -88,8 +88,8 @@ class atomic {
 
   private:
     std::atomic<T> value_{};
-    mutable std::shared_mutex mutex_{};
-    mutable std::condition_variable_any cv_{};
+    mutable std::shared_mutex mutex_;
+    mutable std::condition_variable_any cv_;
 };
 
 // Atomic shared_pointer with notify/wait capabilities.
@@ -134,8 +134,8 @@ class atomic_shared_ptr {
 
   private:
     ptr_t value_{};
-    mutable std::shared_mutex mutex_{};
-    mutable std::condition_variable_any cv_{};
+    mutable std::shared_mutex mutex_;
+    mutable std::condition_variable_any cv_;
 };
 
 #endif  // INCLUDED_SRC_UTILS_CPP_ATOMIC_HPP

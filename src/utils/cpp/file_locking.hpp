@@ -50,7 +50,7 @@ class LockFile {
 
   private:
     gsl::owner<FILE*> file_handle_{nullptr};
-    std::filesystem::path lock_file_{};
+    std::filesystem::path lock_file_;
 
     /// \brief Private ctor. Instances are only created by Acquire method.
     explicit LockFile(gsl::owner<FILE*> file_handle,

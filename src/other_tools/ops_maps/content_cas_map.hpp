@@ -35,14 +35,14 @@
 #include "src/utils/cpp/hash_combine.hpp"
 
 struct ArchiveContent {
-    HashInfo content_hash{}; /* key */
+    HashInfo content_hash; /* key */
     std::optional<std::string> distfile{std::nullopt};
-    std::string fetch_url{};
-    std::vector<std::string> mirrors{};
+    std::string fetch_url;
+    std::vector<std::string> mirrors;
     std::optional<std::string> sha256{std::nullopt};
     std::optional<std::string> sha512{std::nullopt};
     // name of repository for which work is done; used in progress reporting
-    std::string origin{};
+    std::string origin;
 
     [[nodiscard]] auto operator==(const ArchiveContent& other) const -> bool {
         return content_hash.Hash() == other.content_hash.Hash();
@@ -51,9 +51,9 @@ struct ArchiveContent {
 
 // Used in callers of ContentCASMap which need extra fields
 struct ArchiveRepoInfo {
-    ArchiveContent archive{}; /* key */
-    std::string repo_type{};  /* key */
-    std::string subdir{};     /* key */
+    ArchiveContent archive; /* key */
+    std::string repo_type;  /* key */
+    std::string subdir;     /* key */
     // create root based on "special" pragma value
     std::optional<PragmaSpecial> pragma_special{std::nullopt}; /* key */
     // create an absent root
@@ -68,10 +68,10 @@ struct ArchiveRepoInfo {
 };
 
 struct ForeignFileInfo {
-    ArchiveContent archive{}; /* key */
-    std::string name{};       /* key */
-    bool executable{};        /* key */
-    bool absent{};            /* key */
+    ArchiveContent archive; /* key */
+    std::string name;       /* key */
+    bool executable{};      /* key */
+    bool absent{};          /* key */
 
     [[nodiscard]] auto operator==(const ForeignFileInfo& other) const -> bool {
         return archive == other.archive and name == other.name and

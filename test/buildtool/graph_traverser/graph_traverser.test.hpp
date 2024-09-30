@@ -56,8 +56,8 @@ class TestProject {
   public:
     struct CommandLineArguments {
         GraphTraverser::CommandLineArguments gtargs;
-        nlohmann::json artifacts{};
-        std::filesystem::path graph_description{};
+        nlohmann::json artifacts;
+        std::filesystem::path graph_description;
 
         explicit CommandLineArguments(
             GraphTraverser::CommandLineArguments gtargs)
@@ -111,8 +111,8 @@ class TestProject {
         "test/buildtool/graph_traverser/data/";
     static inline std::string const kDefaultEntryPointsFileName =
         "_entry_points";
-    std::string example_name_{};
-    std::filesystem::path root_dir_{};
+    std::string example_name_;
+    std::filesystem::path root_dir_;
     RepositoryConfig repo_config_{};
 
     void SetupConfig() {

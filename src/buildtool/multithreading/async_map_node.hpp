@@ -170,10 +170,10 @@ class AsyncMapNode {
 
   private:
     Key key_;
-    std::optional<Value> value_{};
-    std::vector<Task> awaiting_tasks_{};
-    std::vector<Task> failure_tasks_{};
-    std::mutex m_{};
+    std::optional<Value> value_;
+    std::vector<Task> awaiting_tasks_;
+    std::vector<Task> failure_tasks_;
+    std::mutex m_;
     std::atomic<bool> is_queued_to_be_processed_{false};
     bool failed_{false};
 

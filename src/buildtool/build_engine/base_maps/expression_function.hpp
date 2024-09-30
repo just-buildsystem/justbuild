@@ -112,9 +112,9 @@ class ExpressionFunction {
             Expression::FromJson(R"([{"type": "empty_map"}])"_json));
 
   private:
-    std::vector<std::string> vars_{};
-    imports_t imports_{};
-    ExpressionPtr expr_{};
+    std::vector<std::string> vars_;
+    imports_t imports_;
+    ExpressionPtr expr_;
 };
 
 using ExpressionFunctionPtr = ExpressionFunction::Ptr;

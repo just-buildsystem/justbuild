@@ -40,7 +40,7 @@ class RepositoryConfig {
         FileRoot target_root{workspace_root};
         FileRoot rule_root{target_root};
         FileRoot expression_root{rule_root};
-        std::map<std::string, std::string> name_mapping{};
+        std::map<std::string, std::string> name_mapping;
         std::string target_file_name{"TARGETS"};
         std::string rule_file_name{"RULES"};
         std::string expression_file_name{"EXPRESSIONS"};
@@ -158,14 +158,14 @@ class RepositoryConfig {
         // Info structure (roots, file names, bindings)
         RepositoryInfo info{};
         // Base description if content-fixed
-        std::optional<nlohmann::json> base_desc{};
+        std::optional<nlohmann::json> base_desc;
         // Cache key if content-fixed
-        AtomicValue<std::optional<ArtifactDigest>> key{};
+        AtomicValue<std::optional<ArtifactDigest>> key;
     };
 
     std::unordered_map<std::string, RepositoryData> repos_;
     GitCASPtr git_cas_;
-    AtomicValue<duplicates_t> duplicates_{};
+    AtomicValue<duplicates_t> duplicates_;
 
     template <class T>
     [[nodiscard]] auto Get(std::string const& repo,

@@ -22,9 +22,9 @@
 
 /// \brief Arguments required for tuning the retry strategy.
 struct RetryArguments {
-    std::optional<unsigned int> max_attempts{};
-    std::optional<unsigned int> initial_backoff_seconds{};
-    std::optional<unsigned int> max_backoff_seconds{};
+    std::optional<unsigned int> max_attempts;
+    std::optional<unsigned int> initial_backoff_seconds;
+    std::optional<unsigned int> max_backoff_seconds;
 };
 
 static inline void SetupRetryArguments(

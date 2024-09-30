@@ -42,7 +42,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> repository_config{std::nullopt};
     std::optional<std::filesystem::path> absent_repository_file{std::nullopt};
     std::optional<std::filesystem::path> checkout_locations_file{std::nullopt};
-    std::vector<std::string> explicit_distdirs{};
+    std::vector<std::string> explicit_distdirs;
     LocalPathsPtr just_mr_paths = std::make_shared<LocalPaths>();
     MirrorsPtr alternative_mirrors = std::make_shared<Mirrors>();
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
@@ -54,7 +54,7 @@ struct MultiRepoCommonArguments {
     std::optional<std::filesystem::path> dump_rc{std::nullopt};
     bool norc{false};
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
-    std::vector<std::string> defines{};
+    std::vector<std::string> defines;
     std::optional<std::string> remote_execution_address;
     bool compatible{false};
     std::optional<std::string> remote_serve_address;
@@ -62,9 +62,9 @@ struct MultiRepoCommonArguments {
 };
 
 struct MultiRepoLogArguments {
-    std::vector<std::filesystem::path> log_files{};
-    std::optional<LogLevel> log_limit{};
-    std::optional<LogLevel> restrict_stderr_log_limit{};
+    std::vector<std::filesystem::path> log_files;
+    std::optional<LogLevel> log_limit;
+    std::optional<LogLevel> restrict_stderr_log_limit;
     bool plain_log{false};
     bool log_append{false};
 };
@@ -80,15 +80,15 @@ struct MultiRepoFetchArguments {
 };
 
 struct MultiRepoUpdateArguments {
-    std::vector<std::string> repos_to_update{};
+    std::vector<std::string> repos_to_update;
 };
 
 struct MultiRepoJustSubCmdsArguments {
     std::optional<std::string> subcmd_name{std::nullopt};
-    std::vector<std::string> additional_just_args{};
-    std::unordered_map<std::string, std::vector<std::string>> just_args{};
-    std::optional<std::filesystem::path> config{};
-    std::optional<std::filesystem::path> endpoint_configuration{};
+    std::vector<std::string> additional_just_args;
+    std::unordered_map<std::string, std::vector<std::string>> just_args;
+    std::optional<std::filesystem::path> config;
+    std::optional<std::filesystem::path> endpoint_configuration;
 };
 
 // corresponding to the similarly-named arguments in 'just'
@@ -99,7 +99,7 @@ struct MultiRepoRemoteAuthArguments {
 };
 
 struct ForwardOnlyArguments {
-    std::vector<std::string> remote_execution_properties{};
+    std::vector<std::string> remote_execution_properties;
 };
 
 enum class SubCommand : std::uint8_t {

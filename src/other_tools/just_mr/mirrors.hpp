@@ -27,8 +27,8 @@
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
 struct Mirrors {
-    nlohmann::json local_mirrors{};        // maps URLs to list of local mirrors
-    nlohmann::json preferred_hostnames{};  // list of mirror hostnames
+    nlohmann::json local_mirrors;        // maps URLs to list of local mirrors
+    nlohmann::json preferred_hostnames;  // list of mirror hostnames
 };
 
 using MirrorsPtr = std::shared_ptr<Mirrors>;
