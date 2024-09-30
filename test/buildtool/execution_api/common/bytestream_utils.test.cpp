@@ -35,7 +35,7 @@ TEST_CASE("ReadRequest", "[common]") {
         ByteStreamUtils::ReadRequest{kInstanceName, digest}.ToString();
     auto const parsed = ByteStreamUtils::ReadRequest::FromString(request);
     REQUIRE(parsed);
-    CHECK(parsed->GetInstanceName().compare(kInstanceName) == 0);
+    CHECK(parsed->GetInstanceName() == kInstanceName);
     CHECK(std::equal_to<bazel_re::Digest>{}(parsed->GetDigest(), digest));
 }
 
@@ -54,7 +54,7 @@ TEST_CASE("WriteRequest", "[common]") {
         ByteStreamUtils::WriteRequest{kInstanceName, uuid, digest}.ToString();
     auto const parsed = ByteStreamUtils::WriteRequest::FromString(request);
     REQUIRE(parsed);
-    CHECK(parsed->GetInstanceName().compare(kInstanceName) == 0);
-    CHECK(parsed->GetUUID().compare(uuid) == 0);
+    CHECK(parsed->GetInstanceName() == kInstanceName);
+    CHECK(parsed->GetUUID() == uuid);
     CHECK(std::equal_to<bazel_re::Digest>{}(parsed->GetDigest(), digest));
 }

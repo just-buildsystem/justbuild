@@ -645,10 +645,13 @@ class ExecutorImpl {
             auto message = ""s;
             bool has_both = has_err and has_out;
             if (has_err or has_out) {
-                message += (has_both  ? "Output"s
-                            : has_out ? "Stdout"s
-                                      : "Stderr"s) +
-                           " of command ";
+                if (has_both) {
+                    message += "Output"s;
+                }
+                else {
+                    message += has_out ? "Stdout"s : "Stderr"s;
+                }
+                message += " of command ";
             }
             message += nlohmann::json(action->Command()).dump() +
                        " in environment " +
@@ -694,14 +697,13 @@ class ExecutorImpl {
         logger.Emit(LogLevel::Error, "{}", msg.str());
     }
 
-    [[nodiscard]] static inline auto ScaleTime(std::chrono::milliseconds t,
-                                               double f)
-        -> std::chrono::milliseconds {
+    [[nodiscard]] static auto ScaleTime(std::chrono::milliseconds t,
+                                        double f) -> std::chrono::milliseconds {
         return std::chrono::milliseconds(
             std::lround(static_cast<double>(t.count()) * f));
     }
 
-    [[nodiscard]] static inline auto MergeProperties(
+    [[nodiscard]] static auto MergeProperties(
         const ExecutionProperties& base,
         const ExecutionProperties& overlay) {
         ExecutionProperties result = base;
@@ -715,7 +717,7 @@ class ExecutorImpl {
     /// \brief Get the alternative endpoint based on a specified set of platform
     /// properties. These are checked against the dispatch list of an existing
     /// remote context.
-    [[nodiscard]] static inline auto GetAlternativeEndpoint(
+    [[nodiscard]] static auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
         const gsl::not_null<RemoteContext const*>& remote_context,
         const gsl::not_null<HashFunction const*>& hash_function)

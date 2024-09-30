@@ -19,13 +19,13 @@
 
 class ProtocolTraits final {
   public:
-    inline static constexpr auto IsNative(HashFunction::Type hash_type) noexcept
+    static constexpr auto IsNative(HashFunction::Type hash_type) noexcept
         -> bool {
         return hash_type == HashFunction::Type::GitSHA1;
     }
 
-    inline static constexpr auto IsTreeAllowed(
-        HashFunction::Type hash_type) noexcept -> bool {
+    static constexpr auto IsTreeAllowed(HashFunction::Type hash_type) noexcept
+        -> bool {
         return IsNative(hash_type);
     }
 };

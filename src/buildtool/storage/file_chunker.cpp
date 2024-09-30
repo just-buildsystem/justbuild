@@ -59,7 +59,7 @@ auto FileChunker::NextChunk() noexcept -> std::optional<std::string> {
     auto remaining = size_ - pos_;
     if (remaining < max_chunk_size_ and not stream_.eof()) {
         // Move the remaining bytes of the buffer to the front.
-        buffer_.copy(&buffer_[0], remaining, pos_);
+        buffer_.copy(buffer_.data(), remaining, pos_);
         auto ssize = static_cast<std::streamsize>(buffer_.size() - remaining);
         // Fill the buffer with stream content.
         stream_.read(&buffer_[remaining], ssize);

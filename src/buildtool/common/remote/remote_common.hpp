@@ -86,7 +86,7 @@ using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
                             dispatch.dump())};
         }
         for (auto const& entry : dispatch) {
-            if (not(entry.is_array() and entry.size() == 2)) {
+            if (not entry.is_array() or entry.size() != 2) {
                 return unexpected{
                     fmt::format("Endpoint configuration has to be a list of "
                                 "pairs, but found entry {}",

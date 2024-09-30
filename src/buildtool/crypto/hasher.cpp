@@ -66,15 +66,15 @@ struct InitializeVisitor final {
     static constexpr std::string_view kLogInfo = "Initialize";
 
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA_CTX& ctx) const -> bool {
         return SHA1_Init(&ctx) == kOpenSslTrue;
     }
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA256_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA256_CTX& ctx) const -> bool {
         return SHA256_Init(&ctx) == kOpenSslTrue;
     }
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA512_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA512_CTX& ctx) const -> bool {
         return SHA512_Init(&ctx) == kOpenSslTrue;
     }
 };
@@ -86,15 +86,15 @@ struct UpdateVisitor final {
         : data_{*data} {}
 
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA_CTX& ctx) const -> bool {
         return SHA1_Update(&ctx, data_.data(), data_.size()) == kOpenSslTrue;
     }
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA256_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA256_CTX& ctx) const -> bool {
         return SHA256_Update(&ctx, data_.data(), data_.size()) == kOpenSslTrue;
     }
     // NOLINTNEXTLINE(google-runtime-references)
-    [[nodiscard]] inline auto operator()(SHA512_CTX& ctx) const -> bool {
+    [[nodiscard]] auto operator()(SHA512_CTX& ctx) const -> bool {
         return SHA512_Update(&ctx, data_.data(), data_.size()) == kOpenSslTrue;
     }
 

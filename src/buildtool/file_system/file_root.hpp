@@ -667,9 +667,11 @@ class FileRoot {
             return std::pair(FileRoot{path}, std::move(path));
         }
         if (root[0] == FileRoot::kGitTreeMarker) {
-            if (not(root.size() == 3 and root[1].is_string() and
-                    root[2].is_string()) and
-                not(root.size() == 2 and root[1].is_string())) {
+            bool const has_one_arg = root.size() == 2 and root[1].is_string();
+            bool const has_two_args = root.size() == 3 and
+                                      root[1].is_string() and
+                                      root[2].is_string();
+            if (not has_one_arg and not has_two_args) {
                 *error_msg = fmt::format(
                     "\"git tree\" scheme expects one or two string "
                     "arguments, but found {} for {} of repository {}",
@@ -709,9 +711,11 @@ class FileRoot {
                              std::move(path));
         }
         if (root[0] == FileRoot::kGitTreeIgnoreSpecialMarker) {
-            if (not(root.size() == 3 and root[1].is_string() and
-                    root[2].is_string()) and
-                not(root.size() == 2 and root[1].is_string())) {
+            bool const has_one_arg = root.size() == 2 and root[1].is_string();
+            bool const has_two_args = root.size() == 3 and
+                                      root[1].is_string() and
+                                      root[2].is_string();
+            if (not has_one_arg and not has_two_args) {
                 *error_msg = fmt::format(
                     "\"git tree ignore-special\" scheme expects one or two "
                     "string arguments, but found {} for {} of repository {}",

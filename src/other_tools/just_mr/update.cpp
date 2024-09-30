@@ -257,7 +257,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                     for (auto const& repo_name : repos_to_update_names) {
                         auto i = static_cast<std::size_t>(
                             &repo_name -
-                            &repos_to_update_names[0]);  // get index
+                            repos_to_update_names.data());  // get index
                         // we know "repository" is a map for repo_name, so
                         // field "commit" is here either overwritten or set if
                         // missing; either way, this should always work

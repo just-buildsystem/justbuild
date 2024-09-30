@@ -263,17 +263,17 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool /*skip_find_missing*/) const noexcept
         -> bool final {
-        for (auto const& blob : blobs.Blobs()) {
-            auto const cas_digest =
-                blob.digest.IsTree()
-                    ? local_context_.storage->CAS().StoreTree(*blob.data)
-                    : local_context_.storage->CAS().StoreBlob(*blob.data,
-                                                              blob.is_exec);
-            if (not cas_digest or *cas_digest != blob.digest) {
-                return false;
-            }
-        }
-        return true;
+        auto const range = blobs.Blobs();
+        return std::all_of(
+            range.begin(),
+            range.end(),
+            [&cas = local_context_.storage->CAS()](ArtifactBlob const& blob) {
+                auto const cas_digest =
+                    blob.digest.IsTree()
+                        ? cas.StoreTree(*blob.data)
+                        : cas.StoreBlob(*blob.data, blob.is_exec);
+                return cas_digest and *cas_digest == blob.digest;
+            });
     }
 
     [[nodiscard]] auto UploadTree(

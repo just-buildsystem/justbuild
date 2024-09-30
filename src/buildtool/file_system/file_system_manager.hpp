@@ -52,7 +52,7 @@
 #include "src/utils/cpp/path.hpp"
 
 namespace detail {
-static inline consteval auto BitWidth(int max_val) -> int {
+static consteval auto BitWidth(int max_val) -> int {
     constexpr int kBitsPerByte = 8;
     int i = sizeof(max_val) * kBitsPerByte;
     while ((i-- > 0) and (((max_val >> i) & 0x01) == 0x00)) {  // NOLINT

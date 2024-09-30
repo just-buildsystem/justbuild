@@ -46,9 +46,13 @@ template <typename K, typename V>
         oss << fmt::format("Cycle detected in {}:", name) << std::endl;
         for (auto const& k : *cycle) {
             auto match = (k == cycle->back());
-            auto prefix{match   ? found ? "`-- "s : ".-> "s
-                        : found ? "|   "s
-                                : "    "s};
+            std::string prefix;
+            if (match) {
+                prefix = found ? "`-- "s : ".-> "s;
+            }
+            else {
+                prefix = found ? "|   "s : "    "s;
+            }
             oss << prefix << key_printer(k) << std::endl;
             found = found or match;
         }

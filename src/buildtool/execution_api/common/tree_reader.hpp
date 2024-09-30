@@ -111,7 +111,7 @@ class TreeReader final {
   private:
     TImpl impl_;
 
-    [[nodiscard]] static inline auto IsDirectoryEmpty(
+    [[nodiscard]] static auto IsDirectoryEmpty(
         bazel_re::Directory const& dir) noexcept -> bool {
         return dir.files().empty() and dir.directories().empty() and
                dir.symlinks().empty();

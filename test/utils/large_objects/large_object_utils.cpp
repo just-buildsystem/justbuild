@@ -30,7 +30,7 @@ class Randomizer final {
     Randomizer(std::uint64_t min, std::uint64_t max) noexcept
         : range_(std::random_device{}()), distribution_(min, max) {}
 
-    [[nodiscard]] inline auto Get() noexcept -> std::uint64_t {
+    [[nodiscard]] auto Get() noexcept -> std::uint64_t {
         return distribution_(range_);
     }
 

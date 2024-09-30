@@ -372,6 +372,8 @@ static auto inline FindDuplicates(gsl::not_null<T_Result*> const& dups,
         FindDuplicates</*kTriangular=*/false>(dups, first, rest...);
         if constexpr (kTriangular) {
             // do triangular compare of second with rest
+
+            // NOLINTNEXTLINE(readability-suspicious-call-argument)
             FindDuplicates</*kTriangular=*/true>(dups, second, rest...);
         }
     }

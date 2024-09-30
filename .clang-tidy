@@ -11,6 +11,6 @@ WarningsAsErrors: >-
   modernize-*,-modernize-return-braced-init-list,
   performance-*,-performance-avoid-endl,
   portability-*,
-  readability-redundant-member-init,
+  readability-*,-readability-function-cognitive-complexity,-readability-identifier-length,
 CheckOptions:
   - { key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic, value: '1' }

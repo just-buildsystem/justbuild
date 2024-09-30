@@ -65,21 +65,17 @@ class HashInfo final {
                                        bool is_tree) noexcept
         -> std::optional<std::pair<HashInfo, std::uintmax_t>>;
 
-    [[nodiscard]] inline auto Hash() const& noexcept -> std::string const& {
+    [[nodiscard]] auto Hash() const& noexcept -> std::string const& {
         return hash_;
     }
 
-    [[nodiscard]] inline auto Hash() && -> std::string {
-        return std::move(hash_);
-    }
+    [[nodiscard]] auto Hash() && -> std::string { return std::move(hash_); }
 
-    [[nodiscard]] inline auto HashType() const noexcept -> HashFunction::Type {
+    [[nodiscard]] auto HashType() const noexcept -> HashFunction::Type {
         return hash_type_;
     }
 
-    [[nodiscard]] inline auto IsTree() const noexcept -> bool {
-        return is_tree_;
-    }
+    [[nodiscard]] auto IsTree() const noexcept -> bool { return is_tree_; }
 
     [[nodiscard]] auto operator==(HashInfo const& other) const noexcept -> bool;
 

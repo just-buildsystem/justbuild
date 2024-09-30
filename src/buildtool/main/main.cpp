@@ -61,7 +61,6 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
-#include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 #include "src/utils/cpp/concepts.hpp"

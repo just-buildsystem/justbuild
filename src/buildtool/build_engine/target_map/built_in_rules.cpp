@@ -922,8 +922,8 @@ void InstallRule(
         std::vector<std::pair<BuildMaps::Base::EntityName, std::string>>{};
     dirs.reserve(dirs_value->List().size());
     for (auto const& entry : dirs_value->List()) {
-        if (not(entry->IsList() and entry->List().size() == 2 and
-                entry->List()[1]->IsString())) {
+        if (not entry->IsList() or entry->List().size() != 2 or
+            not entry->List()[1]->IsString()) {
             (*logger)(fmt::format("Expected dirs to evaluate to a list of "
                                   "target-path pairs, but found entry {}",
                                   entry->ToString()),

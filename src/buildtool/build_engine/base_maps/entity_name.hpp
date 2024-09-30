@@ -112,14 +112,19 @@ template <typename T>
     std::optional<std::function<void(std::string const&)>> logger =
         std::nullopt) noexcept -> std::optional<EntityName> {
     try {
-        bool const is_file = s0 == EntityName::kFileLocationMarker;
-        bool const is_glob = s0 == EntityName::kGlobMarker;
-        bool const is_symlink = s0 == EntityName::kSymlinkLocationMarker;
-        auto const ref_type =
-            is_file ? ReferenceType::kFile
-                    : (is_glob ? ReferenceType::kGlob
-                               : (is_symlink ? ReferenceType::kSymlink
-                                             : ReferenceType::kTree));
+        auto get_ref_type = [](std::string const& s) -> ReferenceType {
+            if (s == EntityName::kFileLocationMarker) {
+                return ReferenceType::kFile;
+            }
+            if (s == EntityName::kGlobMarker) {
+                return ReferenceType::kGlob;
+            }
+            if (s == EntityName::kSymlinkLocationMarker) {
+                return ReferenceType::kSymlink;
+            }
+            return ReferenceType::kTree;
+        };
+        auto const ref_type = get_ref_type(s0);
         if (list_size == 3) {
             if (IsString(list[2])) {
                 auto const& name = GetString(list[2]);

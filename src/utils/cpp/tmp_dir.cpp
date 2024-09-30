@@ -40,7 +40,7 @@ auto TmpDir::Create(std::filesystem::path const& prefix,
 
         // attempt to make the tmp dir
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
-        char* tmp_dir = mkdtemp(&c_tmpl[0]);
+        char* tmp_dir = mkdtemp(c_tmpl.data());
         if (tmp_dir == nullptr) {
             return nullptr;
         }
