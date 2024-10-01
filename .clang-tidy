@@ -6,6 +6,7 @@ WarningsAsErrors: >-
   clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks,
   clang-diagnostic-*,-clang-diagnostic-unused-command-line-argument,
   concurrency-*, -concurrency-mt-unsafe,
+  google-*,
   hicpp-*,
   modernize-*,-modernize-return-braced-init-list,
   performance-*,-performance-avoid-endl,

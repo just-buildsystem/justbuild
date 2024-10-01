@@ -60,7 +60,7 @@ auto main(int argc, char* argv[]) -> int {
                         argc);
             return 1;
         }
-        auto args = std::span(argv, size_t(argc));
+        auto args = std::span(argv, static_cast<std::size_t>(argc));
         std::string test_type{args[1]};  // type of test
         std::string test_url{args[2]};   // remote URL to test
 

@@ -45,14 +45,14 @@ namespace LargeTestUtils {
 template <bool IsExecutable>
 class Blob final {
   public:
-    static constexpr auto kLargeId = std::string_view("bl_8Mb");
-    static constexpr auto kLargeSize = std::uintmax_t(8UL * 1024 * 1024);
+    static constexpr auto kLargeId = "bl_8Mb";
+    static constexpr std::uintmax_t kLargeSize = 8UL * 1024 * 1024;
 
-    static constexpr auto kSmallId = std::string_view("bl_1kB");
-    static constexpr auto kSmallSize = std::uintmax_t(1024);
+    static constexpr auto kSmallId = "bl_1kB";
+    static constexpr std::uintmax_t kSmallSize = 1024;
 
-    static constexpr auto kEmptyId = std::string_view("bl_0");
-    static constexpr auto kEmptySize = std::uintmax_t(0);
+    static constexpr auto kEmptyId = "bl_0";
+    static constexpr std::uintmax_t kEmptySize = 0;
 
     [[nodiscard]] static auto Create(
         LocalCAS<kDefaultDoGlobalUplink> const& cas,
@@ -69,14 +69,14 @@ using File = Blob<false>;
 
 class Tree final {
   public:
-    static constexpr auto kLargeId = std::string_view("tree_4096");
-    static constexpr auto kLargeSize = std::uintmax_t(4096);
+    static constexpr auto kLargeId = "tree_4096";
+    static constexpr std::uintmax_t kLargeSize = 4096;
 
-    static constexpr auto kSmallId = std::string_view("tree_1");
-    static constexpr auto kSmallSize = std::uintmax_t(1);
+    static constexpr auto kSmallId = "tree_1";
+    static constexpr std::uintmax_t kSmallSize = 1;
 
-    static constexpr auto kEmptyId = std::string_view("tree_0");
-    static constexpr auto kEmptySize = std::uintmax_t(0);
+    static constexpr auto kEmptyId = "tree_0";
+    static constexpr std::uintmax_t kEmptySize = 0;
 
     [[nodiscard]] static auto Create(
         LocalCAS<kDefaultDoGlobalUplink> const& cas,
@@ -105,8 +105,7 @@ TEST_CASE("LargeObjectCAS: split a small tree", "[storage]") {
 
     // Create a small tree:
     using LargeTestUtils::Tree;
-    auto small =
-        Tree::Create(cas, std::string(Tree::kSmallId), Tree::kSmallSize);
+    auto small = Tree::Create(cas, Tree::kSmallId, Tree::kSmallSize);
     REQUIRE(small);
     auto const& [digest, path] = *small;
 
@@ -137,8 +136,8 @@ static void TestLarge(StorageConfig const& storage_config,
         auto const& cas = storage.CAS();
 
         // Create a large object:
-        auto object = TestType::Create(
-            cas, std::string(TestType::kLargeId), TestType::kLargeSize);
+        auto object =
+            TestType::Create(cas, TestType::kLargeId, TestType::kLargeSize);
         CHECK(object);
         auto const& [digest, path] = *object;
 
@@ -224,8 +223,8 @@ static void TestSmall(Storage const& storage) noexcept {
         auto const& cas = storage.CAS();
 
         // Create a small object:
-        auto object = TestType::Create(
-            cas, std::string(TestType::kSmallId), TestType::kSmallSize);
+        auto object =
+            TestType::Create(cas, TestType::kSmallId, TestType::kSmallSize);
         CHECK(object);
         auto const& [digest, path] = *object;
 
@@ -279,7 +278,7 @@ static void TestEmpty(Storage const& storage) noexcept {
 
         // Create an empty file:
         auto temp_path = LargeTestUtils::Blob</*kIsExec=*/false>::Generate(
-            std::string(TestType::kEmptyId), TestType::kEmptySize);
+            TestType::kEmptyId, TestType::kEmptySize);
         REQUIRE(temp_path);
 
         auto const& cas = storage.CAS();
@@ -336,8 +335,8 @@ static void TestExternal(StorageConfig const& storage_config,
         auto const& cas = storage.CAS();
 
         // Create a large object:
-        auto object = TestType::Create(
-            cas, std::string(TestType::kLargeId), TestType::kLargeSize);
+        auto object =
+            TestType::Create(cas, TestType::kLargeId, TestType::kLargeSize);
         CHECK(object);
         auto const& [digest, path] = *object;
 
@@ -383,8 +382,8 @@ static void TestExternal(StorageConfig const& storage_config,
             REQUIRE(*implicit_splice == path);
 
             // Randomize one more object to simulate invalidation:
-            auto small = TestType::Create(
-                cas, std::string(TestType::kSmallId), TestType::kSmallSize);
+            auto small =
+                TestType::Create(cas, TestType::kSmallId, TestType::kSmallSize);
             REQUIRE(small);
             auto const& [small_digest, small_path] = *small;
 
@@ -437,8 +436,8 @@ static void TestCompactification(StorageConfig const& storage_config,
         auto const& cas = storage.CAS();
 
         // Create a large object and split it:
-        auto object = TestType::Create(
-            cas, std::string(TestType::kLargeId), TestType::kLargeSize);
+        auto object =
+            TestType::Create(cas, TestType::kLargeId, TestType::kLargeSize);
         REQUIRE(object);
         auto& [digest, path] = *object;
         auto result = kIsTree ? cas.SplitTree(digest) : cas.SplitBlob(digest);
@@ -543,7 +542,7 @@ TEST_CASE("LargeObjectCAS: uplink nested large objects", "[storage]") {
 
     // Randomize a large directory:
     auto tree_path = LargeTestUtils::Tree::Generate(
-        std::string("nested_tree"), LargeTestUtils::Tree::kLargeSize);
+        "nested_tree", LargeTestUtils::Tree::kLargeSize);
     REQUIRE(tree_path);
 
     // Randomize a large nested tree:

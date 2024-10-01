@@ -467,7 +467,8 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                 std::exit(kExitFailure);
             }
             clargs->build.timeout =
-                std::size_t(timeout->Number()) * std::chrono::seconds{1};
+                static_cast<std::size_t>(timeout->Number()) *
+                std::chrono::seconds{1};
         }
         // read target-cache writing strategy
         auto strategy = build_args->Get("target-cache write strategy",
