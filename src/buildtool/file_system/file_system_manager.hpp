@@ -1185,14 +1185,14 @@ class FileSystemManager {
     /// Non-zero return values indicate errors, which can be decoded using
     /// \ref ErrorToString.
     class LowLevel {
-        static constexpr ssize_t kDefaultChunkSize = 1024 * 32;
+        static constexpr std::size_t kDefaultChunkSize = 1024 * 32;
         static constexpr int kWriteFlags =
             O_WRONLY | O_CREAT | O_TRUNC;           // NOLINT
         static constexpr int kWritePerms =          // 644
             S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;  // NOLINT
 
       public:
-        template <ssize_t kChunkSize = kDefaultChunkSize>
+        template <std::size_t kChunkSize = kDefaultChunkSize>
         [[nodiscard]] static auto CopyFile(char const* src,
                                            char const* dst,
                                            bool skip_existing) noexcept -> int {
@@ -1238,18 +1238,19 @@ class FileSystemManager {
             return 0;
         }
 
-        template <ssize_t kChunkSize = kDefaultChunkSize>
+        template <std::size_t kChunkSize = kDefaultChunkSize>
         [[nodiscard]] static auto WriteFile(char const* content,
-                                            ssize_t size,
+                                            std::size_t size,
                                             char const* file) noexcept -> int {
             auto out = FdOpener{file, kWriteFlags, kWritePerms};
             if (out.fd == -1) {
                 return PackError(ERROR_OPEN_OUTPUT, errno);
             }
-            ssize_t pos{};
+            std::size_t pos = 0;
             while (pos < size) {
                 auto const write_len = std::min(kChunkSize, size - pos);
-                auto len = write(out.fd, content + pos, write_len);  // NOLINT
+                auto const len =
+                    write(out.fd, content + pos, write_len);  // NOLINT
                 if (len < 0) {
                     return PackError(ERROR_WRITE_OUTPUT, errno);
                 }

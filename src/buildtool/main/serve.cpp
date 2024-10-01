@@ -423,7 +423,7 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                         jobs->ToString());
             std::exit(kExitFailure);
         }
-        clargs->common.jobs = jobs->Number();
+        clargs->common.jobs = static_cast<std::size_t>(jobs->Number());
     }
     // read build options
     auto build_args = serve_config["build"];
@@ -448,7 +448,8 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
                     build_jobs->ToString());
                 std::exit(kExitFailure);
             }
-            clargs->build.build_jobs = build_jobs->Number();
+            clargs->build.build_jobs =
+                static_cast<std::size_t>(build_jobs->Number());
         }
         else {
             clargs->build.build_jobs = clargs->common.jobs;

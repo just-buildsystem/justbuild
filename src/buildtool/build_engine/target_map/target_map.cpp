@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 
 #include <algorithm>
+#include <cstdint>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -352,8 +353,8 @@ void withDependencies(
                                                   std::size_t const b,
                                                   auto* deps) {
         std::transform(
-            dependency_values.begin() + a,
-            dependency_values.begin() + b,
+            dependency_values.begin() + static_cast<std::int64_t>(a),
+            dependency_values.begin() + static_cast<std::int64_t>(b),
             std::back_inserter(*deps),
             [](auto dep) { return (*(dep))->GraphInformation().Node(); });
     };

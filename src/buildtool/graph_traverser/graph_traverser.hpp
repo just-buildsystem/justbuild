@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
@@ -506,12 +507,13 @@ class GraphTraverser {
         }
 
         // split extra artifacts' nodes from artifact nodes
+        auto const itExtra =
+            std::next(artifact_nodes->begin(),
+                      static_cast<std::int64_t>(output_paths.size()));
         auto extra_nodes = std::vector<DependencyGraph::ArtifactNode const*>{
-            std::make_move_iterator(artifact_nodes->begin() +
-                                    output_paths.size()),
+            std::make_move_iterator(itExtra),
             std::make_move_iterator(artifact_nodes->end())};
-        artifact_nodes->erase(artifact_nodes->begin() + output_paths.size(),
-                              artifact_nodes->end());
+        artifact_nodes->erase(itExtra, artifact_nodes->end());
 
         return std::make_tuple(std::move(output_paths),
                                std::move(*artifact_nodes),

@@ -74,7 +74,8 @@ auto add_to_archive(HashFunction::Type hash_type,
             std::unique_ptr<archive_entry, decltype(&archive_entry_cleanup)>
                 entry{archive_entry_new(), archive_entry_cleanup};
             archive_entry_set_pathname(entry.get(), location.string().c_str());
-            archive_entry_set_size(entry.get(), payload->size());
+            archive_entry_set_size(entry.get(),
+                                   static_cast<la_int64_t>(payload->size()));
             archive_entry_set_filetype(entry.get(), AE_IFREG);
             archive_entry_set_perm(entry.get(),
                                    artifact.type == ObjectType::Executable
@@ -88,7 +89,8 @@ auto add_to_archive(HashFunction::Type hash_type,
             std::unique_ptr<archive_entry, decltype(&archive_entry_cleanup)>
                 entry{archive_entry_new(), archive_entry_cleanup};
             archive_entry_set_pathname(entry.get(), location.string().c_str());
-            archive_entry_set_size(entry.get(), payload->size());
+            archive_entry_set_size(entry.get(),
+                                   static_cast<la_int64_t>(payload->size()));
             archive_entry_set_filetype(entry.get(), AE_IFLNK);
             archive_entry_set_symlink(entry.get(), payload->c_str());
             archive_entry_set_perm(entry.get(), kDefaultPerm);

@@ -204,7 +204,7 @@ struct DirectoryNodeBundle final {
 
     auto duration = std::make_unique<google::protobuf::Duration>();
     duration->set_seconds(sec.count());
-    duration->set_nanos(nanos.count());
+    duration->set_nanos(static_cast<int>(nanos.count()));
 
     bazel_re::Action msg;
     msg.set_do_not_cache(request.skip_action_cache);

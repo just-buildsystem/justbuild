@@ -151,14 +151,16 @@ namespace {
                     transmitted_bytes += chunk_digest.size();
                 }
             }
-            double transmission_factor =
-                (total_size > 0) ? 100.0 * transmitted_bytes / total_size
-                                 : 100.0;
+            double transmission_factor = 0.;
+            if (total_size > 0) {
+                transmission_factor = static_cast<double>(transmitted_bytes) /
+                                      static_cast<double>(total_size);
+            }
             return fmt::format(
                 "Blob splitting saved {} bytes ({:.2f}%) of network traffic "
                 "when fetching {}.\n",
                 total_size - transmitted_bytes,
-                100.0 - transmission_factor,
+                transmission_factor,
                 artifact_info.ToString());
         });
 

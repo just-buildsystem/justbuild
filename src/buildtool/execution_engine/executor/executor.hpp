@@ -697,7 +697,8 @@ class ExecutorImpl {
     [[nodiscard]] static inline auto ScaleTime(std::chrono::milliseconds t,
                                                double f)
         -> std::chrono::milliseconds {
-        return std::chrono::milliseconds(std::lround(t.count() * f));
+        return std::chrono::milliseconds(
+            std::lround(static_cast<double>(t.count()) * f));
     }
 
     [[nodiscard]] static inline auto MergeProperties(
