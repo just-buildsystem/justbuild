@@ -30,7 +30,7 @@ template <typename T,
           T MAX_VALUE = std::numeric_limits<T>::max(),
           T SMALLEST_VALUE = std::numeric_limits<T>::min()>
 struct type_safe_arithmetic_tag {
-    static_assert(std::is_arithmetic<T>::value,
+    static_assert(std::is_arithmetic_v<T>,
                   "T must be an arithmetic type (integer or floating-point)");
 
     using value_t = T;

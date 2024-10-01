@@ -138,13 +138,13 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     if (log_args.log_limit and *log_args.log_limit != kDefaultLogLevel) {
         cmd.emplace_back("--log-limit");
         cmd.emplace_back(
-            std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
+            std::to_string(static_cast<std::underlying_type_t<LogLevel>>(
                 *log_args.log_limit)));
     }
     if (log_args.restrict_stderr_log_limit) {
         cmd.emplace_back("--restrict-stderr-log-limit");
         cmd.emplace_back(
-            std::to_string(static_cast<std::underlying_type<LogLevel>::type>(
+            std::to_string(static_cast<std::underlying_type_t<LogLevel>>(
                 *log_args.restrict_stderr_log_limit)));
     }
     if (log_args.plain_log) {

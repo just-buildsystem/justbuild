@@ -89,7 +89,8 @@ auto GarbageCollector::TriggerGarbageCollection(
 
         for (auto const& entry :
              std::filesystem::directory_iterator(storage_config.CacheRoot())) {
-            if (entry.path().filename().string().find(remove_me_prefix) == 0) {
+            if (entry.path().filename().string().starts_with(
+                    remove_me_prefix)) {
                 to_remove.emplace_back(entry.path());
             }
         }
@@ -120,7 +121,7 @@ auto GarbageCollector::TriggerGarbageCollection(
         std::vector<std::filesystem::path> left_over{};
         for (auto const& entry :
              std::filesystem::directory_iterator(storage_config.CacheRoot())) {
-            if (entry.path().filename().string().find(kRemoveMe) == 0) {
+            if (entry.path().filename().string().starts_with(kRemoveMe)) {
                 left_over.emplace_back(entry.path());
             }
         }

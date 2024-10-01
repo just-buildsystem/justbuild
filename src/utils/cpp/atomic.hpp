@@ -18,6 +18,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <shared_mutex>
+#include <type_traits>
 #include <utility>  // std::move
 
 // Atomic wrapper with notify/wait capabilities.
@@ -51,22 +52,26 @@ class atomic {
         return value_.load(order);
     }
 
-    template <class U = T, class = std::enable_if_t<std::is_integral_v<U>>>
+    template <class U = T>
+        requires(std::is_integral_v<U>)
     auto operator++() -> T {
         std::shared_lock lock(mutex_);
         return ++value_;
     }
-    template <class U = T, class = std::enable_if_t<std::is_integral_v<U>>>
+    template <class U = T>
+        requires(std::is_integral_v<U>)
     [[nodiscard]] auto operator++(int) -> T {
         std::shared_lock lock(mutex_);
         return value_++;
     }
-    template <class U = T, class = std::enable_if_t<std::is_integral_v<U>>>
+    template <class U = T>
+        requires(std::is_integral_v<U>)
     auto operator--() -> T {
         std::shared_lock lock(mutex_);
         return --value_;
     }
-    template <class U = T, class = std::enable_if_t<std::is_integral_v<U>>>
+    template <class U = T>
+        requires(std::is_integral_v<U>)
     [[nodiscard]] auto operator--(int) -> T {
         std::shared_lock lock(mutex_);
         return value_--;

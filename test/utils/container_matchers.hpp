@@ -43,7 +43,7 @@ class UniqueElementsUnorderedMatcher
     using value_type = typename LeftContainer::value_type;
     using T = value_type;
     static_assert(
-        std::is_constructible<T, typename RightContainer::value_type>::value,
+        std::is_constructible_v<T, typename RightContainer::value_type>,
         "Value type of container in the left hand side must be constructible "
         "from that of the right hand side.");
 

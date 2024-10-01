@@ -44,18 +44,20 @@ class Evaluator {
 
     class EvaluationError : public std::exception {
       public:
-        explicit EvaluationError(std::string const& msg,
+        explicit EvaluationError(std::string msg,
                                  bool while_eval = false,
                                  bool user_context = false,
                                  std::vector<ExpressionPtr> involved_objetcs =
                                      std::vector<ExpressionPtr>{}) noexcept
-            : msg_{(while_eval ? ""
-                               : (user_context ? "UserError: "
-                                               : "EvaluationError: ")) +
-                   msg},
+            : msg_{std::move(msg)},
               while_eval_{while_eval},
               user_context_{user_context},
-              involved_objects_{std::move(std::move(involved_objetcs))} {}
+              involved_objects_{std::move(std::move(involved_objetcs))} {
+            if (not while_eval_) {
+                msg_ = (user_context_ ? "UserError: " : "EvaluationError: ") +
+                       msg_;
+            }
+        }
         [[nodiscard]] auto what() const noexcept -> char const* final {
             return msg_.c_str();
         }
