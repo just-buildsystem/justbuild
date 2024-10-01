@@ -1185,7 +1185,7 @@ class FileSystemManager {
     /// Non-zero return values indicate errors, which can be decoded using
     /// \ref ErrorToString.
     class LowLevel {
-        static constexpr std::size_t kDefaultChunkSize = 1024 * 32;
+        static constexpr std::size_t kDefaultChunkSize = 1024UL * 32;
         static constexpr int kWriteFlags =
             O_WRONLY | O_CREAT | O_TRUNC;           // NOLINT
         static constexpr int kWritePerms =          // 644

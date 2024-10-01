@@ -31,7 +31,7 @@ class ByteStreamUtils final {
 
   public:
     // Chunk size for uploads (default size used by BuildBarn)
-    static constexpr std::size_t kChunkSize = 64 * 1024;
+    static constexpr std::size_t kChunkSize = 64UL * 1024;
 
     /// \brief Create a read request for the bytestream service to be
     /// transferred over the net. Handles serialization/deserialization on its

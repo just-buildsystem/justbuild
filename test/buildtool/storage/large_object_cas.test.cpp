@@ -46,7 +46,7 @@ template <bool IsExecutable>
 class Blob final {
   public:
     static constexpr auto kLargeId = std::string_view("bl_8Mb");
-    static constexpr auto kLargeSize = std::uintmax_t(8 * 1024 * 1024);
+    static constexpr auto kLargeSize = std::uintmax_t(8UL * 1024 * 1024);
 
     static constexpr auto kSmallId = std::string_view("bl_1kB");
     static constexpr auto kSmallSize = std::uintmax_t(1024);

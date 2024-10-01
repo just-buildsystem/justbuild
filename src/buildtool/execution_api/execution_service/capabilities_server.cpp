@@ -36,7 +36,7 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     cache.add_digest_functions(
         ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
-    static constexpr std::size_t kMaxBatchTransferSize = 1024 * 1024;
+    static constexpr std::size_t kMaxBatchTransferSize = 1024UL * 1024;
     cache.set_max_batch_total_size_bytes(kMaxBatchTransferSize);
     static_assert(kMaxBatchTransferSize < GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
                   "Max batch transfer size too large.");

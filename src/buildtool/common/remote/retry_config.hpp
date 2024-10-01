@@ -78,7 +78,7 @@ class RetryConfig final {
         static std::mutex mutex;
         static std::mt19937 rng{std::random_device{}()};
         try {
-            dist_type dist{0, backoff * 3};
+            dist_type dist{0, 3UL * backoff};
             std::unique_lock lock(mutex);
             return dist(rng);
         } catch (...) {
