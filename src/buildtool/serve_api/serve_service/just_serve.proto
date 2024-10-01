@@ -61,7 +61,7 @@ message ServeCommitTreeResponse {
 // A request message for
 // [SourceTree.ServeArchiveTree][justbuild.just_serve.SourceTree.ServeArchiveTree].
 message ServeArchiveTreeRequest {
-  // The git blob identifier of the archive.
+  // The Git blob identifier of the archive.
   string content = 1;
 
   enum ArchiveType {
@@ -136,7 +136,7 @@ message ServeDistdirTreeRequest {
     // The name of the distfile.
     string name = 1;
 
-    // The git blob identifier of the distfile content.
+    // The Git blob identifier of the distfile content.
     string content = 2;
 
     // Whether the blob should occur executable in the resulting
@@ -181,7 +181,7 @@ message ServeDistdirTreeResponse {
 // A request message for
 // [SourceTree.ServeContent][justbuild.just_serve.SourceTree.ServeContent].
 message ServeContentRequest {
-  // The content git blob identifier.
+  // The content Git blob identifier.
   string content = 1;
 }
 
@@ -209,7 +209,7 @@ message ServeContentResponse {
 // A request message for
 // [SourceTree.ServeTree][justbuild.just_serve.SourceTree.ServeTree].
 message ServeTreeRequest {
-  // The git tree identifier.
+  // The Git tree identifier.
   string tree = 1;
 }
 
@@ -237,7 +237,7 @@ message ServeTreeResponse {
 // A request message for
 // [SourceTree.CheckRootTree][justbuild.just_serve.SourceTree.CheckRootTree].
 message CheckRootTreeRequest {
-  // The git tree identifier.
+  // The Git tree identifier.
   string tree = 1;
 }
 
@@ -263,7 +263,7 @@ message CheckRootTreeResponse {
 // A request message for
 // [SourceTree.GetRemoteTree][justbuild.just_serve.SourceTree.GetRemoteTree].
 message GetRemoteTreeRequest {
-  // The git tree identifier.
+  // The Git tree identifier.
   string tree = 1;
 }
 
