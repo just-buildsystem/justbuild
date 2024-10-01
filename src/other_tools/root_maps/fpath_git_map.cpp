@@ -239,8 +239,8 @@ auto CreateFilePathGitMap(
     gsl::not_null<StorageConfig const*> const& storage_config,
     IExecutionApi const* remote_api,
     std::size_t jobs,
-    std::string multi_repo_tool_name,
-    std::string build_tool_name) -> FilePathGitMap {
+    std::string const& multi_repo_tool_name,
+    std::string const& build_tool_name) -> FilePathGitMap {
     auto dir_to_git = [current_subcmd,
                        critical_git_op_map,
                        import_to_git_map,

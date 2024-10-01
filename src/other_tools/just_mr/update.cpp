@@ -39,7 +39,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                      MultiRepoCommonArguments const& common_args,
                      MultiRepoUpdateArguments const& update_args,
                      StorageConfig const& storage_config,
-                     std::string multi_repo_tool_name) -> int {
+                     std::string const& multi_repo_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories update");
 

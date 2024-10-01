@@ -64,7 +64,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     StorageConfig const& storage_config,
                     Storage const& storage,
                     bool interactive,
-                    std::string multi_repo_tool_name)
+                    std::string const& multi_repo_tool_name)
     -> std::optional<std::filesystem::path> {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories setup");
@@ -104,6 +104,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     LogLevel::Error,
                     "Unsupported value {} for field \"main\" in configuration.",
                     main_from_config->ToString());
+                return std::nullopt;
             }
         }
     }
