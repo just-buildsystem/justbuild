@@ -38,7 +38,7 @@
 auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                      MultiRepoCommonArguments const& common_args,
                      MultiRepoUpdateArguments const& update_args,
-                     StorageConfig const& storage_config,
+                     StorageConfig const& native_storage_config,
                      std::string const& multi_repo_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories update");
@@ -193,7 +193,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
         }
     }
     // Create fake repo for the anonymous remotes
-    auto tmp_dir = storage_config.CreateTypedTmpDir("update");
+    auto tmp_dir = native_storage_config.CreateTypedTmpDir("update");
     if (not tmp_dir) {
         Logger::Log(LogLevel::Error, "Failed to create commit update tmp dir");
         return kExitUpdateError;
@@ -227,7 +227,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
     auto git_update_map = CreateGitUpdateMap(git_repo->GetGitCAS(),
                                              common_args.git_path->string(),
                                              *common_args.local_launcher,
-                                             &storage_config,
+                                             &native_storage_config,
                                              &stats,
                                              &progress,
                                              common_args.jobs);

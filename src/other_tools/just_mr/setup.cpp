@@ -61,8 +61,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                     MultiRepoJustSubCmdsArguments const& just_cmd_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
                     RetryArguments const& retry_args,
-                    StorageConfig const& storage_config,
-                    Storage const& storage,
+                    StorageConfig const& native_storage_config,
+                    Storage const& native_storage,
                     bool interactive,
                     std::string const& multi_repo_tool_name)
     -> std::optional<std::filesystem::path> {
@@ -135,9 +135,10 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     }
 
     // pack the local context instances to be passed to ApiBundle
-    LocalContext const local_context{.exec_config = &*local_exec_config,
-                                     .storage_config = &storage_config,
-                                     .storage = &storage};
+    LocalContext const native_local_context{
+        .exec_config = &*local_exec_config,
+        .storage_config = &native_storage_config,
+        .storage = &native_storage};
 
     // setup authentication config
     auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
@@ -163,7 +164,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                                        .retry_config = &*retry_config,
                                        .exec_config = &*remote_exec_config};
 
-    auto const apis = ApiBundle::Create(&local_context,
+    auto const apis = ApiBundle::Create(&native_local_context,
                                         &remote_context,
                                         /*repo_config=*/nullptr);
 
@@ -177,8 +178,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
 
-    auto serve =
-        ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
+    auto serve = ServeApi::Create(
+        *serve_config, &native_local_context, &remote_context, &apis);
 
     // check configuration of the serve endpoint provided
     if (serve) {
@@ -220,8 +221,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             common_args.ca_info,
                             &critical_git_op_map,
                             serve ? &*serve : nullptr,
-                            &storage_config,
-                            &storage,
+                            &native_storage_config,
+                            &native_storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
                             &progress,
@@ -231,7 +232,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         CreateImportToGitMap(&critical_git_op_map,
                              common_args.git_path->string(),
                              *common_args.local_launcher,
-                             &storage_config,
+                             &native_storage_config,
                              common_args.jobs);
 
     auto git_tree_fetch_map =
@@ -240,7 +241,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                               common_args.git_path->string(),
                               *common_args.local_launcher,
                               serve ? &*serve : nullptr,
-                              &storage_config,
+                              &native_storage_config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               false, /* backup_to_remote */
@@ -257,7 +258,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            common_args.git_path->string(),
                            *common_args.local_launcher,
                            serve ? &*serve : nullptr,
-                           &storage_config,
+                           &native_storage_config,
                            &(*apis.local),
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.fetch_absent,
@@ -273,8 +274,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &resolve_symlinks_map,
                             &critical_git_op_map,
                             serve ? &*serve : nullptr,
-                            &storage_config,
-                            &storage,
+                            &native_storage_config,
+                            &native_storage,
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.fetch_absent,
                             &progress,
@@ -284,8 +285,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         CreateForeignFileGitMap(&content_cas_map,
                                 &import_to_git_map,
                                 serve ? &*serve : nullptr,
-                                &storage_config,
-                                &storage,
+                                &native_storage_config,
+                                &native_storage,
                                 common_args.fetch_absent,
                                 common_args.jobs);
 
@@ -295,7 +296,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         &import_to_git_map,
         &resolve_symlinks_map,
         serve ? &*serve : nullptr,
-        &storage_config,
+        &native_storage_config,
         has_remote_api ? &*apis.remote : nullptr,
         common_args.jobs,
         multi_repo_tool_name,
@@ -307,8 +308,8 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             &import_to_git_map,
                             &critical_git_op_map,
                             serve ? &*serve : nullptr,
-                            &storage_config,
-                            &storage,
+                            &native_storage_config,
+                            &native_storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.jobs);
@@ -319,7 +320,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            &import_to_git_map,
                            common_args.fetch_absent,
                            serve ? &*serve : nullptr,
-                           &storage_config,
+                           &native_storage_config,
                            &(*apis.local),
                            has_remote_api ? &*apis.remote : nullptr,
                            common_args.jobs);
@@ -457,5 +458,5 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         return std::nullopt;
     }
     // if successful, return the output config
-    return StorageUtils::AddToCAS(storage, mr_config.dump(2));
+    return StorageUtils::AddToCAS(native_storage, mr_config.dump(2));
 }

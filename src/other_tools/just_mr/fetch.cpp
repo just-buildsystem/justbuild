@@ -54,8 +54,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     MultiRepoFetchArguments const& fetch_args,
                     MultiRepoRemoteAuthArguments const& auth_args,
                     RetryArguments const& retry_args,
-                    StorageConfig const& storage_config,
-                    Storage const& storage,
+                    StorageConfig const& native_storage_config,
+                    Storage const& native_storage,
                     std::string multi_repository_tool_name) -> int {
     // provide report
     Logger::Log(LogLevel::Info, "Performing repositories fetch");
@@ -322,10 +322,11 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    // pack the local context instances to be passed to ApiBundle
-    LocalContext const local_context{.exec_config = &*local_exec_config,
-                                     .storage_config = &storage_config,
-                                     .storage = &storage};
+    // set up the native local context
+    LocalContext const native_local_context{
+        .exec_config = &*local_exec_config,
+        .storage_config = &native_storage_config,
+        .storage = &native_storage};
 
     // setup authentication config
     auto auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
@@ -352,7 +353,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                        .exec_config = &*remote_exec_config};
 
     // setup the APIs for archive fetches; only happens if in native mode
-    auto const apis = ApiBundle::Create(&local_context,
+    auto const apis = ApiBundle::Create(&native_local_context,
                                         &remote_context,
                                         /*repo_config=*/nullptr);
 
@@ -366,8 +367,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         return kExitConfigError;
     }
 
-    auto serve =
-        ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
+    auto serve = ServeApi::Create(
+        *serve_config, &native_local_context, &remote_context, &apis);
     // check configuration of the serve endpoint provided
     if (serve) {
         // if we have a remote endpoint explicitly given by the user, it must
@@ -408,8 +409,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                             common_args.ca_info,
                             &critical_git_op_map,
                             serve ? &*serve : nullptr,
-                            &storage_config,
-                            &storage,
+                            &native_storage_config,
+                            &native_storage,
                             &(*apis.local),
                             has_remote_api ? &*apis.remote : nullptr,
                             &progress,
@@ -418,7 +419,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     auto archive_fetch_map = CreateArchiveFetchMap(
         &content_cas_map,
         *fetch_dir,
-        &storage,
+        &native_storage,
         &(*apis.local),
         (fetch_args.backup_to_remote and has_remote_api) ? &*apis.remote
                                                          : nullptr,
@@ -429,7 +430,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         CreateImportToGitMap(&critical_git_op_map,
                              common_args.git_path->string(),
                              *common_args.local_launcher,
-                             &storage_config,
+                             &native_storage_config,
                              common_args.jobs);
 
     auto git_tree_fetch_map =
@@ -438,7 +439,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                               common_args.git_path->string(),
                               *common_args.local_launcher,
                               serve ? &*serve : nullptr,
-                              &storage_config,
+                              &native_storage_config,
                               &(*apis.local),
                               has_remote_api ? &*apis.remote : nullptr,
                               fetch_args.backup_to_remote,

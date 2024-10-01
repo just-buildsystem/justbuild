@@ -34,8 +34,8 @@
     MultiRepoJustSubCmdsArguments const& just_cmd_args,
     MultiRepoRemoteAuthArguments const& auth_args,
     RetryArguments const& retry_args,
-    StorageConfig const& storage_config,
-    Storage const& storage,
+    StorageConfig const& native_storage_config,
+    Storage const& native_storage,
     bool interactive,
     std::string const& multi_repo_tool_name)
     -> std::optional<std::filesystem::path>;

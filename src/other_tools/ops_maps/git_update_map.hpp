@@ -60,7 +60,8 @@ struct hash<RepoDescriptionForUpdating> {
     GitCASPtr const& git_cas,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
-    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<StorageConfig const*> const&
+        storage_config,  // native storage config
     gsl::not_null<JustMRStatistics*> const& stats,
     gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitUpdateMap;
