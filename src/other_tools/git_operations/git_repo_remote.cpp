@@ -361,20 +361,16 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         fetch_opts.update_fetchhead = 0;
 
         // setup fetch refspecs array
-        git_strarray refspecs_array_obj{};
+        GitStrArray refspecs_array_obj;
         if (branch) {
             // make sure we check for tags as well
-            std::string tag = fmt::format("+refs/tags/{}", *branch);
-            std::string head = fmt::format("+refs/heads/{}", *branch);
-            PopulateStrarray(&refspecs_array_obj, {tag, head});
+            refspecs_array_obj.AddEntry(fmt::format("+refs/tags/{}", *branch));
+            refspecs_array_obj.AddEntry(fmt::format("+refs/heads/{}", *branch));
         }
-        auto refspecs_array =
-            std::unique_ptr<git_strarray, decltype(&strarray_deleter)>(
-                &refspecs_array_obj, strarray_deleter);
 
+        auto const refspecs_array = refspecs_array_obj.Get();
         if (git_remote_fetch(
-                remote.get(), refspecs_array.get(), &fetch_opts, nullptr) !=
-            0) {
+                remote.get(), &refspecs_array, &fetch_opts, nullptr) != 0) {
             (*logger)(
                 fmt::format("Fetching{} in git repository {} failed "
                             "with:\n{}",

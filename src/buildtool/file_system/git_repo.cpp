@@ -905,20 +905,16 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         fetch_opts.update_fetchhead = 0;
 
         // setup fetch refspecs array
-        git_strarray refspecs_array_obj{};
+        GitStrArray refspecs_array_obj;
         if (branch) {
             // make sure we check for tags as well
-            std::string tag = fmt::format("+refs/tags/{}", *branch);
-            std::string head = fmt::format("+refs/heads/{}", *branch);
-            PopulateStrarray(&refspecs_array_obj, {tag, head});
+            refspecs_array_obj.AddEntry(fmt::format("+refs/tags/{}", *branch));
+            refspecs_array_obj.AddEntry(fmt::format("+refs/heads/{}", *branch));
         }
-        auto refspecs_array =
-            std::unique_ptr<git_strarray, decltype(&strarray_deleter)>(
-                &refspecs_array_obj, strarray_deleter);
 
+        auto const refspecs_array = refspecs_array_obj.Get();
         if (git_remote_fetch(
-                remote.get(), refspecs_array.get(), &fetch_opts, nullptr) !=
-            0) {
+                remote.get(), &refspecs_array, &fetch_opts, nullptr) != 0) {
             (*logger)(fmt::format(
                           "Fetching {} in local repository {} failed with:\n{}",
                           branch ? fmt::format("branch {}", *branch) : "all",
@@ -2106,17 +2102,7 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-void GitRepo::PopulateStrarray(
-    git_strarray* array,
-    std::vector<std::string> const& string_list) noexcept {
-    array->count = string_list.size();
-    array->strings = gsl::owner<char**>(new char*[string_list.size()]);
-    for (auto const& elem : string_list) {
-        auto i =
-            static_cast<std::size_t>(&elem - &string_list[0]);  // get index
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        array->strings[i] = gsl::owner<char*>(new char[elem.size() + 1]);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-        strncpy(array->strings[i], elem.c_str(), elem.size() + 1);
-    }
+auto GitRepo::GitStrArray::Get() & noexcept -> git_strarray {
+    return git_strarray{.strings = entry_pointers_.data(),
+                        .count = entry_pointers_.size()};
 }

@@ -25,9 +25,6 @@ extern "C" {
 struct git_oid;
 struct git_odb;
 struct git_tree;
-struct git_treebuilder;
-struct git_index;
-struct git_strarray;
 struct git_signature;
 struct git_object;
 struct git_remote;
@@ -51,16 +48,6 @@ constexpr std::size_t kGitLockNumTries{10};
 void odb_closer(gsl::owner<git_odb*> odb);
 
 void tree_closer(gsl::owner<git_tree*> tree);
-
-void treebuilder_closer(gsl::owner<git_treebuilder*> builder);
-
-void index_closer(gsl::owner<git_index*> index);
-
-// to be used for strarrays allocated by libgit2
-void strarray_closer(gsl::owner<git_strarray*> strarray);
-
-// to be used for strarrays allocated manually
-void strarray_deleter(gsl::owner<git_strarray*> strarray);
 
 void signature_closer(gsl::owner<git_signature*> signature);
 

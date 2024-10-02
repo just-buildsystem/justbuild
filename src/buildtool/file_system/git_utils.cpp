@@ -82,38 +82,6 @@ void tree_closer(gsl::owner<git_tree*> tree) {
 #endif
 }
 
-void treebuilder_closer(gsl::owner<git_treebuilder*> builder) {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    git_treebuilder_free(builder);
-#endif
-}
-
-void index_closer(gsl::owner<git_index*> index) {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    git_index_free(index);
-#endif
-}
-
-void strarray_closer(gsl::owner<git_strarray*> strarray) {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    git_strarray_dispose(strarray);
-#endif
-}
-
-void strarray_deleter(gsl::owner<git_strarray*> strarray) {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    if (strarray->strings != nullptr) {
-        for (std::size_t i = 0; i < strarray->count; ++i) {
-            // NOLINTNEXTLINE(cppcoreguidelines-owning-memory,cppcoreguidelines-pro-bounds-pointer-arithmetic)
-            delete[] strarray->strings[i];
-        }
-        delete[] strarray->strings;
-        strarray->strings = nullptr;
-        strarray->count = 0;
-    }
-#endif
-}
-
 void signature_closer(gsl::owner<git_signature*> signature) {
 #ifndef BOOTSTRAP_BUILD_TOOL
     git_signature_free(signature);

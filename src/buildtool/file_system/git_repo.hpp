@@ -33,6 +33,7 @@
 extern "C" {
 struct git_repository;
 struct git_config;
+struct git_strarray;
 }
 
 /// \brief Git repository logic.
@@ -378,13 +379,19 @@ class GitRepo {
         std::filesystem::path const& dir,
         anon_logger_ptr const& logger) noexcept -> std::optional<std::string>;
 
-    /// \brief Helper function to allocate and populate the char** pointer of a
-    /// git_strarray from a vector of standard strings. User MUST use
-    /// git_strarray_dispose to deallocate the inner pointer when the strarray
-    /// is not needed anymore!
-    static void PopulateStrarray(
-        git_strarray* array,
-        std::vector<std::string> const& string_list) noexcept;
+    class GitStrArray final {
+      public:
+        void AddEntry(std::string entry) {
+            char* const entry_ptr =
+                entries_.emplace_back(std::move(entry)).data();
+            entry_pointers_.push_back(entry_ptr);
+        }
+        [[nodiscard]] auto Get() & noexcept -> git_strarray;
+
+      private:
+        std::vector<std::string> entries_;
+        std::vector<char*> entry_pointers_;
+    };
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_REPO_HPP
