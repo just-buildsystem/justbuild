@@ -104,16 +104,33 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                      action->hash());
     }
 
+    auto create_response = [](Logger const* logger,
+                              std::string const& action_hash,
+                              auto&&... args) -> IExecutionResponse::Ptr {
+        try {
+            return IExecutionResponse::Ptr{new LocalResponse{
+                action_hash, std::forward<decltype(args)>(args)...}};
+        } catch (...) {
+            if (logger != nullptr) {
+                logger->Emit(LogLevel::Error,
+                             "failed to create a response for {}",
+                             action_hash);
+            }
+        }
+        return nullptr;
+    };
+
     if (do_cache) {
         if (auto result =
                 local_context_.storage->ActionCache().CachedResult(*action)) {
             if (result->exit_code() == 0 and
                 ActionResultContainsExpectedOutputs(
                     *result, output_files_, output_dirs_)) {
-                return IExecutionResponse::Ptr{
-                    new LocalResponse{action->hash(),
-                                      {std::move(*result), /*is_cached=*/true},
-                                      local_context_.storage}};
+                return create_response(
+                    logger,
+                    action->hash(),
+                    LocalAction::Output{*std::move(result), /*is_cached=*/true},
+                    local_context_.storage);
             }
         }
     }
@@ -135,13 +152,15 @@ auto LocalAction::Execute(Logger const* logger) noexcept
                 }
 
                 output->is_cached = true;
-                return IExecutionResponse::Ptr{
-                    new LocalResponse{action_cached->hash(),
-                                      std::move(*output),
-                                      local_context_.storage}};
+                return create_response(logger,
+                                       action_cached->hash(),
+                                       *std::move(output),
+                                       local_context_.storage);
             }
-            return IExecutionResponse::Ptr{new LocalResponse{
-                action->hash(), std::move(*output), local_context_.storage}};
+            return create_response(logger,
+                                   action->hash(),
+                                   *std::move(output),
+                                   local_context_.storage);
         }
     }
 

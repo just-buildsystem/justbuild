@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -77,9 +78,10 @@ class TestResponse;
 
 /// \brief Mockup Response, stores only config and action result
 class TestResponse : public IExecutionResponse {
-    friend class TestAction;
-
   public:
+    explicit TestResponse(TestApiConfig config) noexcept
+        : config_{std::move(config)} {}
+
     [[nodiscard]] auto Status() const noexcept -> StatusCode final {
         return StatusCode::Success;
     }
@@ -116,9 +118,6 @@ class TestResponse : public IExecutionResponse {
     ArtifactInfos artifacts_;
     bool populated_ = false;
 
-    explicit TestResponse(TestApiConfig config) noexcept
-        : config_{std::move(config)} {}
-
     void Populate() noexcept {
         if (populated_) {
             return;
@@ -145,23 +144,22 @@ class TestResponse : public IExecutionResponse {
 
 /// \brief Mockup Action, stores only config
 class TestAction : public IExecutionAction {
-    friend class TestApi;
-
   public:
+    explicit TestAction(TestApiConfig config) noexcept
+        : config_{std::move(config)} {}
+
     auto Execute(Logger const* /*unused*/) noexcept
         -> IExecutionResponse::Ptr final {
         if (config_.execution.failed) {
             return nullptr;
         }
-        return IExecutionResponse::Ptr{new TestResponse{config_}};
+        return std::make_unique<TestResponse>(config_);
     }
     void SetCacheFlag(CacheFlag /*unused*/) noexcept final {}
     void SetTimeout(std::chrono::milliseconds /*unused*/) noexcept final {}
 
   private:
     TestApiConfig config_{};
-    explicit TestAction(TestApiConfig config) noexcept
-        : config_{std::move(config)} {}
 };
 
 /// \brief Mockup Api, use config to create action and handle artifact upload
@@ -179,7 +177,7 @@ class TestApi : public IExecutionApi {
         std::map<std::string, std::string> const& /*unused*/,
         std::map<std::string, std::string> const& /*unused*/) const noexcept
         -> IExecutionAction::Ptr final {
-        return IExecutionAction::Ptr{new TestAction(config_)};
+        return std::make_unique<TestAction>(config_);
     }
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& /*unused*/,
@@ -322,7 +320,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -340,7 +338,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if uploading local artifact failed") {
         config.artifacts[NamedDigest("local.cpp").hash()].uploads = false;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -358,7 +356,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if known artifact is not available") {
         config.artifacts[NamedDigest("known.cpp").hash()].available = false;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -405,7 +403,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -426,7 +424,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if result was is not cached") {
         config.response.cached = false;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -447,7 +445,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if output is not available in CAS") {
         config.artifacts[NamedDigest("output2.exe").hash()].available = false;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -471,7 +469,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if execution failed") {
         config.execution.failed = true;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -492,7 +490,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if exit code is non-zero") {
         config.response.exit_code = 1;
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);
@@ -516,7 +514,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if any output is missing") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
-        auto api = TestApi::Ptr{new TestApi{config}};
+        auto api = std::make_shared<TestApi>(config);
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(&hash_function, api);

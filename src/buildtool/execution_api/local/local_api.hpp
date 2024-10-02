@@ -19,6 +19,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <new>  // std::nothrow
 #include <optional>
 #include <sstream>
 #include <string>
@@ -67,7 +68,8 @@ class LocalApi final : public IExecutionApi {
         std::map<std::string, std::string> const& env_vars,
         std::map<std::string, std::string> const& properties) const noexcept
         -> IExecutionAction::Ptr final {
-        return IExecutionAction::Ptr{new LocalAction{&local_context_,
+        return IExecutionAction::Ptr{new (std::nothrow)
+                                         LocalAction{&local_context_,
                                                      root_digest,
                                                      command,
                                                      cwd,

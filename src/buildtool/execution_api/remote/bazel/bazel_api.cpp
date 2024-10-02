@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <iterator>
 #include <mutex>
+#include <new>
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
@@ -218,7 +219,8 @@ auto BazelApi::CreateAction(
     std::map<std::string, std::string> const& env_vars,
     std::map<std::string, std::string> const& properties) const noexcept
     -> IExecutionAction::Ptr {
-    return std::unique_ptr<BazelAction>{new BazelAction{network_,
+    return std::unique_ptr<BazelAction>{new (std::nothrow)
+                                            BazelAction{network_,
                                                         root_digest,
                                                         command,
                                                         cwd,
