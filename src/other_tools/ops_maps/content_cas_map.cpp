@@ -227,6 +227,7 @@ auto CreateContentCASMap(
                                                   "to local CAS",
                                                   key.content_hash.Hash()),
                                               /*fatal=*/true);
+                                    return;
                                 }
                                 // content stored in CAS
                                 (*setter)(nullptr);
