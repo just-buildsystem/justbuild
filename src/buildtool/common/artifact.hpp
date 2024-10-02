@@ -64,7 +64,7 @@ class Artifact {
 
         // Create JSON of the form '{"id": "hash", "size": x, "file_type": "f"}'
         // As the failed property is only internal to a run, discard it.
-        [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
+        [[nodiscard]] auto ToJson() const -> nlohmann::json {
             return {{"id", digest.hash()},
                     {"size", digest.size()},
                     {"file_type", std::string{ToChar(type)}}};

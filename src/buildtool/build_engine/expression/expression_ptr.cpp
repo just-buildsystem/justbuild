@@ -76,7 +76,7 @@ auto ExpressionPtr::ToIdentifier() const noexcept -> std::string {
     return ptr_ ? ptr_->ToIdentifier() : std::string{};
 }
 
-auto ExpressionPtr::ToJson() const noexcept -> nlohmann::json {
+auto ExpressionPtr::ToJson() const -> nlohmann::json {
     return ptr_ ? ptr_->ToJson() : nlohmann::json::object();
 }
 

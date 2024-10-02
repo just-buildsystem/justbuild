@@ -91,14 +91,16 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
 
     // add dispatch information to request, while ensuring blob is uploaded
     // to remote cas
-    auto dispatch_list = nlohmann::json::array();
+    std::optional<ArtifactDigest> dispatch_digest;
     try {
+        auto dispatch_list = nlohmann::json::array();
         for (auto const& [props, endpoint] : exec_config_.dispatch) {
             auto entry = nlohmann::json::array();
             entry.push_back(nlohmann::json(props));
             entry.push_back(endpoint.ToJson());
             dispatch_list.push_back(entry);
         }
+        dispatch_digest = storage_.CAS().StoreBlob(dispatch_list.dump(2));
     } catch (std::exception const& ex) {
         return serve_target_result_t{
             std::in_place_index<1>,
@@ -106,14 +108,12 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                         ex.what())};
     }
 
-    auto dispatch_dgst = storage_.CAS().StoreBlob(dispatch_list.dump(2));
-    if (not dispatch_dgst) {
+    if (not dispatch_digest) {
         return serve_target_result_t{
-            std::in_place_index<1>,
-            fmt::format("Failed to store blob {} to local cas",
-                        dispatch_list.dump(2))};
+            std::in_place_index<1>, "Failed to add dispatch info to local cas"};
     }
-    auto const dispatch_info = Artifact::ObjectInfo{.digest = *dispatch_dgst,
+
+    auto const dispatch_info = Artifact::ObjectInfo{.digest = *dispatch_digest,
                                                     .type = ObjectType::File};
     if (not apis_.local->RetrieveToCas({dispatch_info}, *apis_.remote)) {
         return serve_target_result_t{
@@ -122,7 +122,7 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                         dispatch_info.ToString())};
     }
     (*request.mutable_dispatch_info()) =
-        ArtifactDigestFactory::ToBazel(*dispatch_dgst);
+        ArtifactDigestFactory::ToBazel(*dispatch_digest);
 
     // call rpc
     grpc::ClientContext context;

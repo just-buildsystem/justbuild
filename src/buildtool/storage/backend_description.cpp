@@ -23,9 +23,18 @@ auto DescribeBackend(std::optional<ServerAddress> const& address,
                      ExecutionProperties const& properties,
                      std::vector<DispatchEndpoint> const& dispatch) noexcept
     -> expected<std::string, std::string> {
-    auto description = nlohmann::json{
-        {"remote_address", address ? address->ToJson() : nlohmann::json{}},
-        {"platform_properties", properties}};
+    nlohmann::json description;
+    try {
+        description["remote_address"] =
+            address ? address->ToJson() : nlohmann::json{};
+        description["platform_properties"] = properties;
+    } catch (std::exception const& e) {
+        return unexpected{
+            fmt::format("Failed to serialize remote address and "
+                        "platform_properties:\n{}",
+                        e.what())};
+    }
+
     if (not dispatch.empty()) {
         try {
             // only add the dispatch list, if not empty, so that keys remain

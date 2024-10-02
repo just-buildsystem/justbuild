@@ -70,7 +70,7 @@ class ArtifactDescription final {
                                        nlohmann::json const& json) noexcept
         -> std::optional<ArtifactDescription>;
 
-    [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json;
+    [[nodiscard]] auto ToJson() const -> nlohmann::json;
 
     [[nodiscard]] auto ToArtifact() const noexcept -> Artifact;
 

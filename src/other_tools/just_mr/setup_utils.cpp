@@ -126,7 +126,7 @@ void DefaultReachableRepositories(
 
 auto ReadConfiguration(
     std::optional<std::filesystem::path> const& config_file_opt,
-    std::optional<std::filesystem::path> const& absent_file_opt) noexcept
+    std::optional<std::filesystem::path> const& absent_file_opt)
     -> std::shared_ptr<Configuration> {
     if (not config_file_opt) {
         Logger::Log(LogLevel::Error, "Cannot find repository configuration.");

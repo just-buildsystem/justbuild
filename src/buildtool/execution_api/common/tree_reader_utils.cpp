@@ -64,7 +64,7 @@ namespace {
 }
 
 template <typename TTree>
-[[nodiscard]] auto TreeToString(TTree const& entries) noexcept
+[[nodiscard]] auto TreeToString(TTree const& entries)
     -> std::optional<std::string> {
     auto json = nlohmann::json::object();
     TreeReaderUtils::InfoStoreFunc store_infos =
@@ -78,14 +78,7 @@ template <typename TTree>
     };
 
     if (TreeReaderUtils::ReadObjectInfos(entries, store_infos)) {
-        try {
-            return json.dump(2) + "\n";
-        } catch (std::exception const& ex) {
-            Logger::Log(LogLevel::Error,
-                        "dumping Directory to string failed with:\n{}",
-                        ex.what());
-            return std::nullopt;
-        }
+        return json.dump(2) + "\n";
     }
     Logger::Log(LogLevel::Error, "reading object infos from Directory failed");
     return std::nullopt;
@@ -164,11 +157,25 @@ auto TreeReaderUtils::ReadObjectInfos(GitRepo::tree_entries_t const& entries,
 
 auto TreeReaderUtils::DirectoryToString(bazel_re::Directory const& dir) noexcept
     -> std::optional<std::string> {
-    return TreeToString(dir);
+    try {
+        return TreeToString(dir);
+    } catch (const std::exception& e) {
+        Logger::Log(LogLevel::Error,
+                    "An error occurred while reading bazel:re::Directory:\n",
+                    e.what());
+        return std::nullopt;
+    }
 }
 
 auto TreeReaderUtils::GitTreeToString(
     GitRepo::tree_entries_t const& entries) noexcept
     -> std::optional<std::string> {
-    return TreeToString(entries);
+    try {
+        return TreeToString(entries);
+    } catch (const std::exception& e) {
+        Logger::Log(LogLevel::Error,
+                    "An error occurred while reading git tree:\n{}",
+                    e.what());
+        return std::nullopt;
+    }
 }

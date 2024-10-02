@@ -44,7 +44,7 @@ class TargetGraphInformation {
 
     [[nodiscard]] auto NodeString() const noexcept
         -> std::optional<std::string>;
-    [[nodiscard]] auto DepsToJson() const noexcept -> nlohmann::json;
+    [[nodiscard]] auto DepsToJson() const -> nlohmann::json;
 
   private:
     BuildMaps::Target::ConfiguredTargetPtr node_;

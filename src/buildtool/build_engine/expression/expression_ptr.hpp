@@ -90,7 +90,7 @@ class ExpressionPtr {
 
     [[nodiscard]] auto IsCacheable() const noexcept -> bool;
     [[nodiscard]] auto ToIdentifier() const noexcept -> std::string;
-    [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json;
+    [[nodiscard]] auto ToJson() const -> nlohmann::json;
 
     using linked_map_t = LinkedMap<std::string, ExpressionPtr, ExpressionPtr>;
     [[nodiscard]] auto IsNotNull() const noexcept -> bool;

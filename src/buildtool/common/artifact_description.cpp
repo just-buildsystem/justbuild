@@ -24,19 +24,19 @@
 
 namespace {
 [[nodiscard]] auto DescribeLocalArtifact(std::filesystem::path const& src_path,
-                                         std::string const& repository) noexcept
+                                         std::string const& repository)
     -> nlohmann::json;
 
-[[nodiscard]] auto DescribeKnownArtifact(
-    std::string const& blob_id,
-    std::size_t size,
-    ObjectType type = ObjectType::File) noexcept -> nlohmann::json;
+[[nodiscard]] auto DescribeKnownArtifact(std::string const& blob_id,
+                                         std::size_t size,
+                                         ObjectType type = ObjectType::File)
+    -> nlohmann::json;
 
 [[nodiscard]] auto DescribeActionArtifact(std::string const& action_id,
-                                          std::string const& out_path) noexcept
+                                          std::string const& out_path)
     -> nlohmann::json;
 
-[[nodiscard]] auto DescribeTreeArtifact(std::string const& tree_id) noexcept
+[[nodiscard]] auto DescribeTreeArtifact(std::string const& tree_id)
     -> nlohmann::json;
 
 [[nodiscard]] auto CreateLocalArtifactDescription(nlohmann::json const& data)
@@ -129,30 +129,23 @@ auto ArtifactDescription::FromJson(HashFunction::Type hash_type,
     return std::nullopt;
 }
 
-auto ArtifactDescription::ToJson() const noexcept -> nlohmann::json {
-    try {
-        if (std::holds_alternative<Local>(data_)) {
-            auto const& [path, repo] = std::get<Local>(data_);
-            return DescribeLocalArtifact(path.string(), repo);
-        }
-        if (std::holds_alternative<Known>(data_)) {
-            auto const& [digest, file_type, _] = std::get<Known>(data_);
-            return DescribeKnownArtifact(
-                digest.hash(), digest.size(), file_type);
-        }
-        if (std::holds_alternative<Action>(data_)) {
-            auto const& [action_id, path] = std::get<Action>(data_);
-            return DescribeActionArtifact(action_id, path);
-        }
-        if (std::holds_alternative<Tree>(data_)) {
-            return DescribeTreeArtifact(std::get<Tree>(data_));
-        }
-        Logger::Log(LogLevel::Error, "Internal error, unknown artifact type");
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "Serializing to JSON failed with error:\n{}",
-                    ex.what());
+auto ArtifactDescription::ToJson() const -> nlohmann::json {
+    if (std::holds_alternative<Local>(data_)) {
+        auto const& [path, repo] = std::get<Local>(data_);
+        return DescribeLocalArtifact(path.string(), repo);
     }
+    if (std::holds_alternative<Known>(data_)) {
+        auto const& [digest, file_type, _] = std::get<Known>(data_);
+        return DescribeKnownArtifact(digest.hash(), digest.size(), file_type);
+    }
+    if (std::holds_alternative<Action>(data_)) {
+        auto const& [action_id, path] = std::get<Action>(data_);
+        return DescribeActionArtifact(action_id, path);
+    }
+    if (std::holds_alternative<Tree>(data_)) {
+        return DescribeTreeArtifact(std::get<Tree>(data_));
+    }
+    Logger::Log(LogLevel::Error, "Internal error, unknown artifact type");
     Ensures(false);  // unreachable
     return {};
 }
@@ -210,8 +203,7 @@ auto ArtifactDescription::ComputeId(nlohmann::json const& desc) noexcept
 
 namespace {
 auto DescribeLocalArtifact(std::filesystem::path const& src_path,
-                           std::string const& repository) noexcept
-    -> nlohmann::json {
+                           std::string const& repository) -> nlohmann::json {
     return {
         {"type", "LOCAL"},
         {"data", {{"path", src_path.string()}, {"repository", repository}}}};
@@ -219,7 +211,7 @@ auto DescribeLocalArtifact(std::filesystem::path const& src_path,
 
 auto DescribeKnownArtifact(std::string const& blob_id,
                            std::size_t size,
-                           ObjectType type) noexcept -> nlohmann::json {
+                           ObjectType type) -> nlohmann::json {
     std::string const typestr{ToChar(type)};
     return {
         {"type", "KNOWN"},
@@ -227,14 +219,12 @@ auto DescribeKnownArtifact(std::string const& blob_id,
 }
 
 auto DescribeActionArtifact(std::string const& action_id,
-                            std::string const& out_path) noexcept
-    -> nlohmann::json {
+                            std::string const& out_path) -> nlohmann::json {
     return {{"type", "ACTION"},
             {"data", {{"id", action_id}, {"path", out_path}}}};
 }
 
-auto DescribeTreeArtifact(std::string const& tree_id) noexcept
-    -> nlohmann::json {
+auto DescribeTreeArtifact(std::string const& tree_id) -> nlohmann::json {
     return {{"type", "TREE"}, {"data", {{"id", tree_id}}}};
 }
 

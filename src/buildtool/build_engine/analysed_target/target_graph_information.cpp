@@ -37,7 +37,7 @@ auto NodesToString(std::vector<BuildMaps::Target::ConfiguredTargetPtr> const&
 
 }  // namespace
 
-auto TargetGraphInformation::DepsToJson() const noexcept -> nlohmann::json {
+auto TargetGraphInformation::DepsToJson() const -> nlohmann::json {
     auto result = nlohmann::json::object();
     result["declared"] = NodesToString(direct_);
     result["implicit"] = NodesToString(implicit_);

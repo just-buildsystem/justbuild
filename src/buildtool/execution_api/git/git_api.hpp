@@ -115,8 +115,9 @@ class GitApi final : public IExecutionApi {
             return false;
         }
         for (std::size_t i{}; i < artifacts_info.size(); ++i) {
-            auto fd = fds[i];
             auto const& info = artifacts_info[i];
+
+            std::string content;
             if (IsTreeObject(info.type) and not raw_tree) {
                 auto tree =
                     repo_config_->ReadTreeFromGitCAS(info.digest.hash());
@@ -126,27 +127,22 @@ class GitApi final : public IExecutionApi {
                                 info.digest.hash());
                     return false;
                 }
-                auto json = nlohmann::json::object();
-                for (auto const& [path, entry] : *tree) {
-                    auto digest = ToArtifactDigest(*entry);
-                    if (not digest) {
-                        return false;
+
+                try {
+                    auto json = nlohmann::json::object();
+                    for (auto const& [path, entry] : *tree) {
+                        auto digest = ToArtifactDigest(*entry);
+                        if (not digest) {
+                            return false;
+                        }
+                        json[path] =
+                            Artifact::ObjectInfo{.digest = *std::move(digest),
+                                                 .type = entry->Type(),
+                                                 .failed = false}
+                                .ToString(/*size_unknown*/ true);
                     }
-                    json[path] =
-                        Artifact::ObjectInfo{.digest = *std::move(digest),
-                                             .type = entry->Type(),
-                                             .failed = false}
-                            .ToString(/*size_unknown*/ true);
-                }
-                auto msg = json.dump(2) + "\n";
-                if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
-                    std::fwrite(msg.data(), 1, msg.size(), out);
-                    std::fclose(out);
-                }
-                else {
-                    Logger::Log(LogLevel::Error,
-                                "dumping to file descriptor {} failed.",
-                                fd);
+                    content = json.dump(2) + "\n";
+                } catch (...) {
                     return false;
                 }
             }
@@ -159,17 +155,18 @@ class GitApi final : public IExecutionApi {
                                 info.digest.hash());
                     return false;
                 }
-                auto msg = *blob;
-                if (gsl::owner<FILE*> out = fdopen(fd, "wb")) {  // NOLINT
-                    std::fwrite(msg.data(), 1, msg.size(), out);
-                    std::fclose(out);
-                }
-                else {
-                    Logger::Log(LogLevel::Error,
-                                "dumping to file descriptor {} failed.",
-                                fd);
-                    return false;
-                }
+                content = *std::move(blob);
+            }
+
+            if (gsl::owner<FILE*> out = fdopen(fds[i], "wb")) {  // NOLINT
+                std::fwrite(content.data(), 1, content.size(), out);
+                std::fclose(out);
+            }
+            else {
+                Logger::Log(LogLevel::Error,
+                            "dumping to file descriptor {} failed.",
+                            fds[i]);
+                return false;
             }
         }
         return true;

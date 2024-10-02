@@ -131,8 +131,7 @@ class ResultTargetMap {
         return all_exports;
     }
 
-    [[nodiscard]] auto ConfiguredTargetsGraph() const noexcept
-        -> nlohmann::json {
+    [[nodiscard]] auto ConfiguredTargetsGraph() const -> nlohmann::json {
         auto result = nlohmann::json::object();
         for (auto const& i : targets_) {
             for (auto const& it : i) {

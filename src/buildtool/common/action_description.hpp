@@ -196,7 +196,7 @@ class ActionDescription {
         return action_.Id();
     }
 
-    [[nodiscard]] auto ToJson() const noexcept -> nlohmann::json {
+    [[nodiscard]] auto ToJson() const -> nlohmann::json {
         auto json = nlohmann::json{{"command", action_.Command()}};
         if (not output_files_.empty()) {
             json["output"] = output_files_;

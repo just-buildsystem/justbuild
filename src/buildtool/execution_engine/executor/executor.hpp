@@ -934,7 +934,7 @@ class Rebuilder {
             logger, artifact, context_.repo_config, *context_.apis);
     }
 
-    [[nodiscard]] auto DumpFlakyActions() const noexcept -> nlohmann::json {
+    [[nodiscard]] auto DumpFlakyActions() const -> nlohmann::json {
         std::unique_lock lock{m_};
         auto actions = nlohmann::json::object();
         for (auto const& [action_id, outputs] : flaky_actions_) {
