@@ -185,23 +185,14 @@ class FileRoot {
 
         [[nodiscard]] auto ContainsBlob(std::string const& name) const noexcept
             -> bool {
-            try {
-                if (std::holds_alternative<tree_t>(data_)) {
-                    auto const& data = std::get<tree_t>(data_);
-                    auto ptr = data->LookupEntryByName(name);
-                    if (static_cast<bool>(ptr)) {
-                        return IsBlobObject(ptr->Type());
-                    }
-                    return false;
-                }
-                if (std::holds_alternative<pairs_t>(data_)) {
-                    auto const& data = std::get<pairs_t>(data_);
-                    auto it = data.find(name);
-                    return (it != data.end() and IsBlobObject(it->second));
-                }
-            } catch (...) {
+            if (auto const* const data = std::get_if<tree_t>(&data_)) {
+                auto const ptr = (*data)->LookupEntryByName(name);
+                return ptr != nullptr and IsBlobObject(ptr->Type());
             }
-
+            if (auto const* const data = std::get_if<pairs_t>(&data_)) {
+                auto const it = data->find(name);
+                return it != data->end() and IsBlobObject(it->second);
+            }
             return false;
         }
 
@@ -339,18 +330,21 @@ class FileRoot {
                                       std::string const& git_tree_id,
                                       bool ignore_special = false) noexcept
         -> std::optional<FileRoot> {
-        if (auto cas = GitCAS::Open(repo_path)) {
-            if (auto tree = GitTree::Read(cas, git_tree_id, ignore_special)) {
-                try {
-                    return FileRoot{
-                        cas,
-                        std::make_shared<GitTree const>(std::move(*tree)),
-                        ignore_special};
-                } catch (...) {
-                }
-            }
+        auto cas = GitCAS::Open(repo_path);
+        if (not cas) {
+            return std::nullopt;
         }
-        return std::nullopt;
+        auto tree = GitTree::Read(cas, git_tree_id, ignore_special);
+        if (not tree) {
+            return std::nullopt;
+        }
+        try {
+            return FileRoot{cas,
+                            std::make_shared<GitTree const>(std::move(*tree)),
+                            ignore_special};
+        } catch (...) {
+            return std::nullopt;
+        }
     }
 
     /// \brief Return a complete description of the content of this root, if

@@ -2,7 +2,7 @@ FormatStyle: Google
 Checks: >-
   *,-abseil-*,-altera-*,-android-*,-boost-*,-cert-*,-darwin-*,-fuchsia-*,-linuxkernel-*,-llvm-*,-llvmlibc-*,-mpi-*,-objc-*,-zircon-*
 WarningsAsErrors: >-
-  bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-unchecked-optional-access,-bugprone-empty-catch,
+  bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-unchecked-optional-access,
   clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks,-clang-analyzer-cplusplus.StringChecker,
   clang-diagnostic-*,-clang-diagnostic-unused-command-line-argument,
   hicpp-*,

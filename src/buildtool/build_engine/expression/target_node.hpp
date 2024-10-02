@@ -62,21 +62,23 @@ class TargetNode {
 
     [[nodiscard]] auto operator==(TargetNode const& other) const noexcept
         -> bool {
-        if (data_.index() == other.data_.index()) {
-            try {
-                if (IsValue()) {
-                    return GetValue() == other.GetValue();
-                }
-                auto const& abs_l = GetAbstract();
-                auto const& abs_r = other.GetAbstract();
-                return abs_l.node_type == abs_r.node_type and
-                       abs_l.string_fields == abs_r.string_fields and
-                       abs_l.target_fields == abs_r.string_fields;
-            } catch (...) {
-                // should never happen
-            }
+        if (data_.index() != other.data_.index()) {
+            return false;
         }
-        return false;
+
+        try {
+            if (IsValue()) {
+                return GetValue() == other.GetValue();
+            }
+            auto const& abs_l = GetAbstract();
+            auto const& abs_r = other.GetAbstract();
+            return abs_l.node_type == abs_r.node_type and
+                   abs_l.string_fields == abs_r.string_fields and
+                   abs_l.target_fields == abs_r.string_fields;
+        } catch (...) {
+            // should never happen
+            return false;
+        }
     }
 
     [[nodiscard]] auto ToString() const noexcept -> std::string {
@@ -84,8 +86,8 @@ class TargetNode {
             return ToJson().dump();
         } catch (...) {
             // should never happen
+            return {};
         }
-        return {};
     }
 
     [[nodiscard]] auto ToJson() const -> nlohmann::json;

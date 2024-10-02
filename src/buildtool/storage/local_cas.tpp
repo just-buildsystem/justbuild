@@ -266,6 +266,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
             seen->emplace(digest);
             return true;
         } catch (...) {
+            return false;
         }
     }
     return false;

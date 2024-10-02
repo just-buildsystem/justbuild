@@ -504,13 +504,10 @@ GitRepo::GitRepo(GitRepo&& other) noexcept
 }
 
 auto GitRepo::operator=(GitRepo&& other) noexcept -> GitRepo& {
-    try {
-        git_cas_ = std::move(other.git_cas_);
-        repo_ = std::move(other.repo_);
-        is_repo_fake_ = other.is_repo_fake_;
-        other.git_cas_ = nullptr;
-    } catch (...) {
-    }
+    git_cas_ = std::move(other.git_cas_);
+    repo_ = std::move(other.repo_);
+    is_repo_fake_ = other.is_repo_fake_;
+    other.git_cas_ = nullptr;
     return *this;
 }
 

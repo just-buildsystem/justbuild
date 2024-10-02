@@ -1399,17 +1399,11 @@ auto Evaluator::EvaluateExpression(
             FunctionMap::MakePtr(kBuiltInFunctions, provider_functions));
     } catch (EvaluationError const& ex) {
         if (ex.UserContext()) {
-            try {
-                note_user_context();
-            } catch (...) {
-                // should not throw
-            }
+            note_user_context();
         }
-        else {
-            if (ex.WhileEvaluation()) {
-                ss << "Expression evaluation traceback (most recent call last):"
-                   << std::endl;
-            }
+        else if (ex.WhileEvaluation()) {
+            ss << "Expression evaluation traceback (most recent call last):"
+               << std::endl;
         }
         ss << ex.what();
         for (auto const& object : ex.InvolvedObjects()) {
@@ -1418,11 +1412,7 @@ auto Evaluator::EvaluateExpression(
     } catch (std::exception const& ex) {
         ss << ex.what();
     }
-    try {
-        logger(ss.str());
-    } catch (...) {
-        // should not throw
-    }
+    logger(ss.str());
     return ExpressionPtr{nullptr};
 }
 

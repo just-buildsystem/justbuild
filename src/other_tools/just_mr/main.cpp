@@ -237,6 +237,7 @@ auto main(int argc, char* argv[]) -> int {
             my_name = std::filesystem::path(argv[0]).filename().string();
         } catch (...) {
             // ignore, as my_name is only used for error messages
+            my_name.clear();
         }
     }
     try {

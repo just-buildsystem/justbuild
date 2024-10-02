@@ -134,9 +134,10 @@ class TestExecutor {
                 [[maybe_unused]] auto was_it_added =
                     build_info_->InsertIncorrectlyBuilt(node->Content().Id());
             }
+            return false;
         } catch (...) {
+            return false;
         }
-        return false;
     }
 
     [[nodiscard]] auto Process(

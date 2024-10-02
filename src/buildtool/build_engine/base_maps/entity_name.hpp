@@ -96,10 +96,10 @@ template <typename T>
                               GetString(list[0]),
                               GetString(list[1])};
         }
-
+        return std::nullopt;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 template <typename T>
@@ -141,9 +141,10 @@ template <typename T>
                 }
             }
         }
+        return std::nullopt;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 template <typename T>
 // IsList(list) == true
@@ -171,9 +172,10 @@ template <typename T>
                     relmodule));
             }
         }
+        return std::nullopt;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 template <typename T>
@@ -202,10 +204,10 @@ template <typename T>
                                       local_repo_name));
             }
         }
-
+        return std::nullopt;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 template <typename T>
@@ -243,9 +245,10 @@ template <typename T>
                     s0, list, list_size, current, logger);
             }
         }
+        return std::nullopt;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 template <typename T>
@@ -278,8 +281,8 @@ template <typename T>
         }
         return res;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 [[nodiscard]] inline auto ParseEntityNameFromJson(

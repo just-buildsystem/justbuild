@@ -102,10 +102,10 @@ class TreeReader final {
                     store, parent, digest, include_trees)) {
                 return result;
             }
+            return std::nullopt;
         } catch (...) {
-            // fallthrough
+            return std::nullopt;
         }
-        return std::nullopt;
     }
 
   private:

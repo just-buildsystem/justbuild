@@ -172,10 +172,7 @@ class RepositoryConfig {
                            std::function<T const*(RepositoryInfo const&)> const&
                                getter) const noexcept -> T const* {
         if (auto const* info = Info(repo)) {
-            try {  // satisfy clang-tidy's bugprone-exception-escape
-                return getter(*info);
-            } catch (...) {
-            }
+            return getter(*info);
         }
         return nullptr;
     }

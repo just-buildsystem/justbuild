@@ -42,8 +42,8 @@ template <class T>
                                  gsl::narrow<int>(content.size()));
         return content;
     } catch (...) {
+        return std::nullopt;
     }
-    return std::nullopt;
 }
 
 /// \brief Create protobuf message 'Platform'.
