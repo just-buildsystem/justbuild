@@ -111,7 +111,6 @@ auto RepositoryConfig::BuildGraphForRepository(std::string const& repo,
 // unique id if it and all its dependencies are content-fixed or return
 // std::nullopt otherwise. Recursion immediately aborts on traversing the first
 // non-content-fixed repository.
-// NOLINTNEXTLINE(misc-no-recursion)
 auto RepositoryConfig::AddToGraphAndGetId(
     gsl::not_null<nlohmann::json*> const& graph,
     gsl::not_null<int*> const& id_counter,

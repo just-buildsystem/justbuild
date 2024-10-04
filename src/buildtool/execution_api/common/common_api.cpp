@@ -81,7 +81,6 @@ auto CommonRetrieveToFds(
     return true;
 }
 
-/// NOLINTNEXTLINE(misc-no-recursion)
 auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
                           IExecutionApi const& api) noexcept -> bool {
     // Create digest list from blobs for batch availability check.

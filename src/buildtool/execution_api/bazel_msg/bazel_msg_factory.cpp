@@ -232,7 +232,6 @@ struct DirectoryNodeBundle final {
 }
 
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.
-/// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DirectoryTreeToBundle(
     std::string const& root_name,
     DirectoryTreePtr const& tree,

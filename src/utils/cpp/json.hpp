@@ -50,7 +50,6 @@ auto ExtractValueAs(
 
 namespace detail {
 
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] static inline auto IndentListsOnlyUntilDepth(
     nlohmann::json const& json,
     std::string const& indent,
@@ -89,7 +88,6 @@ namespace detail {
     return json.dump();
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] static inline auto IndentOnlyUntilDepth(
     nlohmann::json const& json,
     std::string const& indent,
@@ -164,7 +162,6 @@ namespace detail {
 }
 
 // \brief Dump json, replacing subexpressions at the given depths by "*".
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] static inline auto TruncateJson(nlohmann::json const& json,
                                               std::size_t depth)
     -> std::string {

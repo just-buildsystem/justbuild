@@ -53,7 +53,7 @@ class GitApi final : public IExecutionApi {
         return nullptr;
     }
 
-    // NOLINTNEXTLINE(misc-no-recursion,google-default-arguments)
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
@@ -172,7 +172,6 @@ class GitApi final : public IExecutionApi {
         return true;
     }
 
-    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         IExecutionApi const& api) const noexcept -> bool override {

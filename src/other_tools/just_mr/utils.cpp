@@ -19,7 +19,6 @@
 
 namespace JustMR::Utils {
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto ResolveRepo(ExpressionPtr const& repo_desc,
                  ExpressionPtr const& repos,
                  gsl::not_null<std::unordered_set<std::string>*> const& seen)

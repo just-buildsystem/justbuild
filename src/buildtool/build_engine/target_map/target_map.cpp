@@ -238,7 +238,6 @@ auto NameTransitionedDeps(
 
 // Check if an object is contained an expression; to avoid tree-unfolding
 // the expression, we need to cache the values already computed.
-// NOLINTNEXTLINE(misc-no-recursion)
 auto ExpressionContainsObject(std::unordered_map<ExpressionPtr, bool>* map,
                               const ExpressionPtr& object,
                               const ExpressionPtr& exp) {

@@ -353,7 +353,6 @@ namespace {
 }
 
 template <typename TNode>
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto IsValidNode(
     TNode const& node,
     gsl::not_null<std::unordered_set<std::uintptr_t>*> const& seen) -> bool {

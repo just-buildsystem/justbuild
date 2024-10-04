@@ -375,7 +375,6 @@ auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
 }
 
 template <bool kDisjoint = false>
-// NOLINTNEXTLINE(misc-no-recursion)
 auto Union(Expression::list_t const& dicts,
            std::size_t from,
            std::size_t to) -> ExpressionPtr {
@@ -540,7 +539,6 @@ auto ExpandQuasiQuote(const SubExprEvaluator& eval,
                       ExpressionPtr const& expr,
                       Configuration const& env) -> ExpressionPtr;
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto ExpandQuasiQuoteListEntry(const SubExprEvaluator& eval,
                                ExpressionPtr const& expr,
                                Configuration const& env) -> ExpressionPtr {
@@ -595,7 +593,6 @@ auto ExpandQuasiQuoteListEntry(const SubExprEvaluator& eval,
     return ExpressionPtr{Expression::list_t{expr}};
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto ExpandQuasiQuote(const SubExprEvaluator& eval,
                       ExpressionPtr const& expr,
                       Configuration const& env) -> ExpressionPtr {
@@ -1416,7 +1413,6 @@ auto Evaluator::EvaluateExpression(
     return ExpressionPtr{nullptr};
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto Evaluator::Evaluate(ExpressionPtr const& expr,
                          Configuration const& env,
                          FunctionMapPtr const& functions) -> ExpressionPtr {
@@ -1430,7 +1426,6 @@ auto Evaluator::Evaluate(ExpressionPtr const& expr,
                 expr->List().cbegin(),
                 expr->List().cend(),
                 std::back_inserter(list),
-                // NOLINTNEXTLINE(misc-no-recursion)
                 [&](auto const& e) { return Evaluate(e, env, functions); });
             return ExpressionPtr{list};
         }

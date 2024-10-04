@@ -8,7 +8,7 @@ WarningsAsErrors: >-
   concurrency-*, -concurrency-mt-unsafe,
   google-*,
   hicpp-*,
-  misc-*,-misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,
+  misc-*,-misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,-misc-no-recursion,
   modernize-*,-modernize-return-braced-init-list,
   performance-*,-performance-avoid-endl,
   portability-*,

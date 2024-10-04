@@ -384,7 +384,6 @@ class ResultTargetMap {
     std::vector<std::size_t> num_blobs_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_trees_{std::vector<std::size_t>(width_)};
 
-    // NOLINTNEXTLINE(misc-no-recursion)
     constexpr static auto ComputeWidth(std::size_t jobs) -> std::size_t {
         if (jobs <= 0) {
             // Non-positive indicates to use the default value

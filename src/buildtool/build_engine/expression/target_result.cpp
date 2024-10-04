@@ -65,7 +65,6 @@ auto SerializeTargetResultWithReplacement(
 // If replacements is set, replace any contained
 // non-known artifact by known artifact from replacement. Throws runtime_error
 // if no replacement is found.
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeExpression(
     gsl::not_null<std::unordered_map<std::string, nlohmann::json>*> const&
         nodes,
@@ -178,7 +177,6 @@ auto SerializeTargetResultWithReplacement(
     return id;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DeserializeExpression(
     HashFunction::Type hash_type,
     nlohmann::json const& entry,
@@ -327,7 +325,6 @@ auto SerializeTargetResultWithReplacement(
 // Serialize artifact map to JSON. If replacements is set, replace
 // non-known artifacts by known artifacts from replacement. Throws runtime_error
 // if no replacement is found.
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeArtifactMap(
     ExpressionPtr const& expr,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
@@ -365,7 +362,6 @@ auto SerializeTargetResultWithReplacement(
 // Serialize provides map to JSON. If replacements is set, replace
 // non-known artifacts by known artifacts from replacement. Throws runtime_error
 // if no replacement is found.
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeProvidesMap(
     ExpressionPtr const& expr,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
@@ -398,7 +394,6 @@ auto JsonSet(nlohmann::json const& j) -> std::unordered_set<std::string> {
     return result;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto DeserializeProvidesMap(HashFunction::Type hash_type,
                                           nlohmann::json const& json)
     -> ExpressionPtr {
@@ -415,7 +410,6 @@ auto JsonSet(nlohmann::json const& j) -> std::unordered_set<std::string> {
 // Serialize TargetResult to JSON. If replacements is set, replace non-known
 // artifacts by known artifacts from replacement. Throws runtime_error if no
 // replacement is found.
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto SerializeTargetResultWithReplacement(
     TargetResult const& result,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
@@ -446,7 +440,6 @@ auto TargetResult::ReplaceNonKnownAndToJson(
     return std::nullopt;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto TargetResult::FromJson(HashFunction::Type hash_type,
                             nlohmann::json const& json) noexcept
     -> std::optional<TargetResult> {

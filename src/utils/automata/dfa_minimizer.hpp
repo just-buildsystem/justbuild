@@ -196,7 +196,6 @@ class DFAMinimizer {
     }
 
     // Mark pair as distinguishable and recursively mark all parents.
-    // NOLINTNEXTLINE(misc-no-recursion)
     static void MarkPairValue(gsl::not_null<StatePairValue*> const& data) {
         data->marked = true;
         for (auto* parent : data->parents) {

@@ -263,7 +263,6 @@ auto BazelCasClient::BatchReadBlobs(
     return result;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto BazelCasClient::GetTree(std::string const& instance_name,
                              bazel_re::Digest const& root_digest,
                              std::int32_t page_size,
@@ -484,7 +483,6 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
     return result;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
     std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& begin,

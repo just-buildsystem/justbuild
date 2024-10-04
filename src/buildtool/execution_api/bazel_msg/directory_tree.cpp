@@ -51,7 +51,6 @@ auto DirectoryTree::FromNamedArtifacts(
     return dir_tree;
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto DirectoryTree::AddArtifact(std::filesystem::path::iterator* begin,
                                 std::filesystem::path::iterator const& end,
                                 Artifact const* artifact) -> bool {

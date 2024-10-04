@@ -51,7 +51,6 @@ void archive_entry_cleanup(archive_entry* entry) {
     }
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 auto add_to_archive(HashFunction::Type hash_type,
                     archive* archive,
                     IExecutionApi const& api,

@@ -230,7 +230,7 @@ auto BazelApi::CreateAction(
                                                         properties}};
 }
 
-// NOLINTNEXTLINE(misc-no-recursion, google-default-arguments)
+// NOLINTNEXTLINE(google-default-arguments)
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
@@ -323,7 +323,6 @@ auto BazelApi::CreateAction(
     );
 }
 
-// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::RetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     IExecutionApi const& api) const noexcept -> bool {
@@ -382,7 +381,6 @@ auto BazelApi::CreateAction(
         artifacts_info, api, jobs, use_blob_splitting, &done);
 }
 
-/// NOLINTNEXTLINE(misc-no-recursion)
 [[nodiscard]] auto BazelApi::ParallelRetrieveToCasWithCache(
     std::vector<Artifact::ObjectInfo> const& all_artifacts_info,
     IExecutionApi const& api,

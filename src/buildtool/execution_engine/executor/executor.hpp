@@ -271,7 +271,6 @@ class ExecutorImpl {
     /// \param[in] api      The remote execution API of the CAS.
     /// \param[in] tree     The git tree to be uploaded.
     /// \returns True if the upload was successful, False in case of any error.
-    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] static auto VerifyOrUploadTree(IExecutionApi const& api,
                                                  GitTree const& tree) noexcept
         -> bool {

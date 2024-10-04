@@ -25,7 +25,6 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
-/// NOLINTNEXTLINE(misc-no-recursion)
 auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                                  std::filesystem::path const& parent) noexcept
     -> std::optional<BlobTreePtr> {

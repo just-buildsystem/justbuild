@@ -79,7 +79,7 @@ class LocalApi final : public IExecutionApi {
                                                      properties}};
     }
 
-    // NOLINTNEXTLINE(misc-no-recursion,google-default-arguments)
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
@@ -154,7 +154,6 @@ class LocalApi final : public IExecutionApi {
             });
     }
 
-    // NOLINTNEXTLINE(misc-no-recursion)
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         IExecutionApi const& api) const noexcept -> bool final {

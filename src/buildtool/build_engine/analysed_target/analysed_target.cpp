@@ -18,7 +18,6 @@
 
 namespace {
 
-// NOLINTNEXTLINE(misc-no-recursion)
 void CollectNonKnownArtifacts(
     ExpressionPtr const& expr,
     gsl::not_null<std::vector<ArtifactDescription>*> const& artifacts,
