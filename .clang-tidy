@@ -1,18 +1,52 @@
+# Here is an explanation for why some of the checks are disabled:
+
+# bugprone-easily-swappable-parameters: This check would require significant 
+# refactoring effort.
+
+# bugprone-unchecked-optional-access: Too many false positives. For example, 
+# an explicit comparison with std::nullopt isn't considered a check.
+
+# cppcoreguidelines-avoid-const-or-ref-data-members: We believe, ref data 
+# members are a good way to express ownership, and const data members improve
+# readability.
+
+# cppcoreguidelines-rvalue-reference-param-not-moved: Too many false positives,
+# especially with partial moves from STL containers.
+
+# misc-const-correctness: Too many false positives, especially with STL 
+# containers.
+
+# misc-include-cleaner: There is no way for symbol mapping. For example, this
+# check requires to delete the "gsl/gsl" header, but at the same time asks to
+# include one for gsl::not_null.
+
+# misc-use-anonymous-namespace: This check would require significant refactoring
+# effort, but wouldn't improve readability equally.
+
+# misc-no-recursion: There are legitimate uses for us: we use recursion for
+# trees a lot.
+
+# modernize-return-braced-init-list: We think removing typenames and using only
+# braced-init can hurt readability.
+
+# performance-avoid-endl: There are too many legitimate uses of std::endl for
+# us.
+
+# readability-identifier-length: We would like to enable this check, but it
+# would require significant refactoring effort.
+
 FormatStyle: Google
 Checks: >-
-  *,-abseil-*,-altera-*,-android-*,-boost-*,-cert-*,-darwin-*,-fuchsia-*,-linuxkernel-*,-llvm-*,-llvmlibc-*,-mpi-*,-objc-*,-zircon-*
-WarningsAsErrors: >-
-  bugprone-*,-bugprone-easily-swappable-parameters,-bugprone-unchecked-optional-access,
-  clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks,
-  clang-diagnostic-*,-clang-diagnostic-unused-command-line-argument,
-  concurrency-*, -concurrency-mt-unsafe,
-  cppcoreguidelines-*,-cppcoreguidelines-avoid-const-or-ref-data-members,-cppcoreguidelines-rvalue-reference-param-not-moved,
-  google-*,
-  hicpp-*,
-  misc-*,-misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,-misc-no-recursion,
-  modernize-*,-modernize-return-braced-init-list,
-  performance-*,-performance-avoid-endl,
-  portability-*,
-  readability-*,-readability-function-cognitive-complexity,-readability-identifier-length,
+  *,-abseil-*,-altera-*,-android-*,-boost-*,-cert-*,-darwin-*,-fuchsia-*,-linuxkernel-*,-llvm-*,-llvmlibc-*,-mpi-*,-objc-*,-zircon-*,
+  -bugprone-easily-swappable-parameters,-bugprone-unchecked-optional-access,
+  -clang-analyzer-cplusplus.NewDeleteLeaks,
+  -clang-diagnostic-unused-command-line-argument,
+  -concurrency-mt-unsafe,
+  -cppcoreguidelines-avoid-const-or-ref-data-members,-cppcoreguidelines-rvalue-reference-param-not-moved,
+  -misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,-misc-no-recursion,
+  -modernize-return-braced-init-list,
+  -performance-avoid-endl,
+  -readability-function-cognitive-complexity,-readability-identifier-length
+WarningsAsErrors: '*'
 CheckOptions:
   - { key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic, value: '1' }
