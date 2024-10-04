@@ -61,7 +61,7 @@ class LogSinkTest : public ILogSink {
         return [] { return std::make_shared<LogSinkTest>(); };
     }
 
-    LogSinkTest() noexcept { id_ = TestPrints::GetId(); }
+    LogSinkTest() noexcept : id_{TestPrints::GetId()} {}
 
     void Emit(Logger const* logger,
               LogLevel level,

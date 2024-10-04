@@ -138,7 +138,7 @@ auto BytestreamServiceImpl::Write(
     auto tmp = tmp_dir->GetPath() / write_digest->hash();
     {
         std::ofstream stream{tmp, std::ios::binary};
-        do {
+        do {  // NOLINT(cppcoreguidelines-avoid-do-while)
             if (not stream.good()) {
                 auto const str = fmt::format("Failed to write data for {}",
                                              write_digest->hash());

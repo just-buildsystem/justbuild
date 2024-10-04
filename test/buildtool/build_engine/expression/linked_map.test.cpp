@@ -95,9 +95,8 @@ TEST_CASE("Lookup and iteration", "[linked_map]") {
 class CopyCounter {
   public:
     CopyCounter() : count_{std::make_shared<std::size_t>()} {}
-    CopyCounter(CopyCounter const& other) {
+    CopyCounter(CopyCounter const& other) : count_{other.count_} {
         ++(*other.count_);
-        count_ = other.count_;
     }
     CopyCounter(CopyCounter&&) = default;
     ~CopyCounter() = default;

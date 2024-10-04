@@ -114,16 +114,6 @@ class Artifact {
 
     explicit Artifact(ArtifactIdentifier id) noexcept : id_{std::move(id)} {}
 
-    Artifact(Artifact const& other) noexcept
-        : id_{other.id_}, file_path_{other.file_path_}, repo_{other.repo_} {
-        object_info_ = other.object_info_;
-    }
-
-    Artifact(Artifact&&) noexcept = default;
-    ~Artifact() noexcept = default;
-    auto operator=(Artifact const&) noexcept -> Artifact& = delete;
-    auto operator=(Artifact&&) noexcept -> Artifact& = default;
-
     [[nodiscard]] auto Id() const& noexcept -> ArtifactIdentifier const& {
         return id_;
     }

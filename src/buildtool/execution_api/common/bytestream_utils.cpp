@@ -33,14 +33,14 @@ namespace {
         for (std::size_t length = 0; shift + length < request.size();
              ++length) {
             if (request.at(shift + length) == '/') {
-                parts.emplace_back(request.data() + shift, length);
+                parts.emplace_back(&request.at(shift), length);
                 shift += length + 1;
                 length = 0;
             }
         }
 
         if (shift < request.size()) {
-            parts.emplace_back(request.data() + shift, request.size() - shift);
+            parts.emplace_back(&request.at(shift), request.size() - shift);
         }
     } catch (...) {
         return {};

@@ -703,7 +703,7 @@ class FileSystemManager {
             std::ifstream file_reader(file.string(), std::ios::binary);
             if (file_reader.is_open()) {
                 auto ssize = gsl::narrow<std::streamsize>(chunk.size());
-                do {
+                while (file_reader.good()) {
                     file_reader.read(chunk.data(), ssize);
                     auto count = file_reader.gcount();
                     if (count == ssize) {
@@ -713,7 +713,7 @@ class FileSystemManager {
                         content +=
                             chunk.substr(0, gsl::narrow<std::size_t>(count));
                     }
-                } while (file_reader.good());
+                }
                 file_reader.close();
                 return content;
             }

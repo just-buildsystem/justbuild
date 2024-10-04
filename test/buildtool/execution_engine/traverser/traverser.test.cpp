@@ -156,6 +156,7 @@ class TestExecutor {
     TestBuildInfo* build_info_;
 
     template <typename Container>
+    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
     [[nodiscard]] auto AllAvailable(Container&& c) const noexcept -> bool {
         return std::all_of(std::begin(c), std::end(c), [](auto node) {
             return node->TraversalState()->IsAvailable();

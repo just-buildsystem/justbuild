@@ -6,6 +6,7 @@ WarningsAsErrors: >-
   clang-analyzer-*,-clang-analyzer-cplusplus.NewDeleteLeaks,
   clang-diagnostic-*,-clang-diagnostic-unused-command-line-argument,
   concurrency-*, -concurrency-mt-unsafe,
+  cppcoreguidelines-*,-cppcoreguidelines-avoid-const-or-ref-data-members,-cppcoreguidelines-rvalue-reference-param-not-moved,
   google-*,
   hicpp-*,
   misc-*,-misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,-misc-no-recursion,

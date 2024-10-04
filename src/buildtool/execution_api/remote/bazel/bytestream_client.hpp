@@ -117,8 +117,8 @@ class ByteStreamClient {
             request.set_resource_name(std::move(write_request).ToString());
             request.mutable_data()->resize(ByteStreamUtils::kChunkSize, '\0');
 
-            std::size_t pos{};
-            do {
+            std::size_t pos = 0;
+            do {  // NOLINT(cppcoreguidelines-avoid-do-while)
                 auto const size =
                     std::min(data.size() - pos, ByteStreamUtils::kChunkSize);
                 request.mutable_data()->resize(size);

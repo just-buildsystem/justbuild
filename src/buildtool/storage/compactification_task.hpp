@@ -76,9 +76,11 @@ struct CompactificationTask final {
     CompactificationTask const& task) noexcept -> bool;
 
 template <typename... Args>
-void CompactificationTask::Log(LogLevel level,
-                               std::string const& message,
-                               Args&&... args) const noexcept {
+void CompactificationTask::Log(
+    LogLevel level,
+    std::string const& message,
+    // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+    Args&&... args) const noexcept {
     if (not logger) {
         ::Logger::Log(LogLevel::Error, "Logger is missing.");
         return;

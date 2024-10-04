@@ -24,6 +24,7 @@ extern "C" {
 
 GitContext::GitContext() noexcept {
 #ifndef BOOTSTRAP_BUILD_TOOL
+    // NOLINTNEXTLINE(cppcoreguidelines-prefer-member-initializer)
     initialized_ = git_libgit2_init() >= 0;
     if (not initialized_) {
         Logger::Log(LogLevel::Error, "initializing libgit2 failed");

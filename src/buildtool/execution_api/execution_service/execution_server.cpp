@@ -262,17 +262,17 @@ auto ExecutionServiceImpl::WaitExecution(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
     logger_.Emit(LogLevel::Trace, "WaitExecution: {}", hash);
-    std::optional<::google::longrunning::Operation> op;
-    do {
-        op = op_cache_.Query(hash);
-        if (not op) {
-            auto const str = fmt::format(
-                "Executing action {} not found in internal cache.", hash);
-            logger_.Emit(LogLevel::Error, "{}", str);
-            return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
-        }
+    auto op = op_cache_.Query(hash);
+    while (op and not op->done()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
-    } while (not op->done());
+        op = op_cache_.Query(hash);
+    }
+    if (not op) {
+        auto const str = fmt::format(
+            "Executing action {} not found in internal cache.", hash);
+        logger_.Emit(LogLevel::Error, "{}", str);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+    }
     writer->Write(*op);
     logger_.Emit(LogLevel::Trace, "Finished WaitExecution {}", hash);
     return ::grpc::Status::OK;

@@ -154,11 +154,13 @@ class Logger {
 
     /// \brief Format message and forward to sinks.
     template <class... T_Args>
-    static void FormatAndForward(Logger const* logger,
-                                 std::vector<ILogSink::Ptr> const& sinks,
-                                 LogLevel level,
-                                 std::string const& msg,
-                                 T_Args&&... args) noexcept {
+    static void FormatAndForward(
+        Logger const* logger,
+        std::vector<ILogSink::Ptr> const& sinks,
+        LogLevel level,
+        std::string const& msg,
+        // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+        T_Args&&... args) noexcept {
         if constexpr (sizeof...(T_Args) == 0) {
             // forward to sinks
             std::for_each(sinks.cbegin(), sinks.cend(), [&](auto& sink) {
