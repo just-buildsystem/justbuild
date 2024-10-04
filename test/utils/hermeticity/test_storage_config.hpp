@@ -41,9 +41,13 @@ class TestStorageConfig final {
          * there. Hence we set the storage root to a fixed location under
          * TEST_TMPDIR which is set by the test launcher.
          */
+        char const* const env_tmpdir = std::getenv("TEST_TMPDIR");
+        if (env_tmpdir == nullptr) {
+            Logger::Log(LogLevel::Debug, "missing TEST_TMPDIR env variable");
+            std::exit(EXIT_FAILURE);
+        }
         auto const test_tempdir =
-            std::filesystem::path{std::string{std::getenv("TEST_TMPDIR")}} /
-            ".test_build_root";
+            std::filesystem::path{std::string{env_tmpdir}} / ".test_build_root";
 
         auto temp_dir = TmpDir::Create(test_tempdir);
         if (temp_dir == nullptr) {
