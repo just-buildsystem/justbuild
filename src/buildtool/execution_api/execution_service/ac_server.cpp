@@ -34,9 +34,9 @@ auto ActionCacheServiceImpl::GetActionResult(
     logger_.Emit(LogLevel::Trace, "GetActionResult: {}", action_digest->hash());
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str = "Could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        static constexpr auto kStr = "Could not acquire SharedLock";
+        logger_.Emit(LogLevel::Error, kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
 
     auto action_result = storage_.ActionCache().CachedResult(*action_digest);
@@ -54,7 +54,7 @@ auto ActionCacheServiceImpl::UpdateActionResult(
     const ::bazel_re::UpdateActionResultRequest*
     /*request*/,
     ::bazel_re::ActionResult* /*response*/) -> ::grpc::Status {
-    static auto constexpr str = "UpdateActionResult not implemented";
-    logger_.Emit(LogLevel::Error, str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static auto constexpr kStr = "UpdateActionResult not implemented";
+    logger_.Emit(LogLevel::Error, kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }

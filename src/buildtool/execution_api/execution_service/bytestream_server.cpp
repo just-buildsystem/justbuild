@@ -54,9 +54,9 @@ auto BytestreamServiceImpl::Read(
 
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str = "Could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        static constexpr auto kStr = "Could not acquire SharedLock";
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
 
     auto const path =
@@ -125,9 +125,9 @@ auto BytestreamServiceImpl::Write(
                  request.finish_write());
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str = "Could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        static constexpr auto kStr = "Could not acquire SharedLock";
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
     auto const tmp_dir = storage_config_.CreateTypedTmpDir("execution-service");
     if (not tmp_dir) {
@@ -166,7 +166,7 @@ auto BytestreamServiceImpl::QueryWriteStatus(
     const ::google::bytestream::QueryWriteStatusRequest* /*request*/,
     ::google::bytestream::QueryWriteStatusResponse* /*response*/)
     -> ::grpc::Status {
-    static constexpr auto str = "QueryWriteStatus not implemented";
-    logger_.Emit(LogLevel::Error, "{}", str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static constexpr auto kStr = "QueryWriteStatus not implemented";
+    logger_.Emit(LogLevel::Error, "{}", kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }

@@ -55,10 +55,10 @@ auto CASServiceImpl::FindMissingBlobs(
     ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str =
+        static constexpr auto kStr =
             "FindMissingBlobs: could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
     for (auto const& x : request->blob_digests()) {
         auto const digest = ArtifactDigestFactory::FromBazel(
@@ -92,10 +92,10 @@ auto CASServiceImpl::BatchUpdateBlobs(
     ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str =
+        static constexpr auto kStr =
             "BatchUpdateBlobs: could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
     auto const hash_type = storage_config_.hash_function.GetType();
     for (auto const& x : request->requests()) {
@@ -130,10 +130,10 @@ auto CASServiceImpl::BatchReadBlobs(
     ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str =
+        static constexpr auto kStr =
             "BatchReadBlobs: Could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
     for (auto const& x : request->digests()) {
         auto* r = response->add_responses();
@@ -173,9 +173,9 @@ auto CASServiceImpl::GetTree(
     const ::bazel_re::GetTreeRequest* /*request*/,
     ::grpc::ServerWriter<::bazel_re::GetTreeResponse>* /*writer*/)
     -> ::grpc::Status {
-    static constexpr auto str = "GetTree not implemented";
-    logger_.Emit(LogLevel::Error, "{}", str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static constexpr auto kStr = "GetTree not implemented";
+    logger_.Emit(LogLevel::Error, "{}", kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }
 
 auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
@@ -183,9 +183,9 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
                                ::bazel_re::SplitBlobResponse* response)
     -> ::grpc::Status {
     if (not request->has_blob_digest()) {
-        static constexpr auto str = "SplitBlob: no blob digest provided";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+        static constexpr auto kStr = "SplitBlob: no blob digest provided";
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, kStr};
     }
 
     auto const blob_digest = ArtifactDigestFactory::FromBazel(
@@ -220,10 +220,10 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     // Acquire garbage collection lock.
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str =
+        static constexpr auto kStr =
             "SplitBlob: could not acquire garbage collection lock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
 
     // Split blob into chunks.
@@ -266,9 +266,9 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
                                 ::bazel_re::SpliceBlobResponse* response)
     -> ::grpc::Status {
     if (not request->has_blob_digest()) {
-        static constexpr auto str = "SpliceBlob: no blob digest provided";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+        static constexpr auto kStr = "SpliceBlob: no blob digest provided";
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, kStr};
     }
 
     auto const hash_type = storage_config_.hash_function.GetType();
@@ -302,10 +302,10 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
     // Acquire garbage collection lock.
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str =
+        static constexpr auto kStr =
             "SpliceBlob: could not acquire garbage collection lock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
 
     // Splice blob from chunks.

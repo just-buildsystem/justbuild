@@ -263,10 +263,10 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::LocalUplink(
 
     // Promoting the parts of the large entry:
     for (auto const& part : *parts) {
-        static constexpr bool is_executable = false;
-        static constexpr bool skip_sync = true;
+        static constexpr bool kIsExecutable = false;
+        static constexpr bool kSkipSync = true;
         if (not local_cas_.LocalUplinkBlob(
-                latest, part, is_executable, skip_sync)) {
+                latest, part, kIsExecutable, kSkipSync)) {
             return false;
         }
     }

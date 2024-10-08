@@ -176,9 +176,9 @@ auto ExecutionServiceImpl::Execute(
 
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
-        static constexpr auto str = "Could not acquire SharedLock";
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return grpc::Status{grpc::StatusCode::INTERNAL, str};
+        static constexpr auto kStr = "Could not acquire SharedLock";
+        logger_.Emit(LogLevel::Error, "{}", kStr);
+        return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
 
     auto action = ToBazelAction(*action_digest, storage_);

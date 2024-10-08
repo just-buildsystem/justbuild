@@ -46,25 +46,25 @@ auto OperationsServiceImpl::ListOperations(
     const ::google::longrunning::ListOperationsRequest* /*request*/,
     ::google::longrunning::ListOperationsResponse* /*response*/)
     -> ::grpc::Status {
-    static constexpr auto str = "ListOperations not implemented";
-    logger_.Emit(LogLevel::Error, str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static constexpr auto kStr = "ListOperations not implemented";
+    logger_.Emit(LogLevel::Error, kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }
 
 auto OperationsServiceImpl::DeleteOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::DeleteOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
-    static constexpr auto str = "DeleteOperation not implemented";
-    logger_.Emit(LogLevel::Error, str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static constexpr auto kStr = "DeleteOperation not implemented";
+    logger_.Emit(LogLevel::Error, kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }
 
 auto OperationsServiceImpl::CancelOperation(
     ::grpc::ServerContext* /*context*/,
     const ::google::longrunning::CancelOperationRequest* /*request*/,
     ::google::protobuf::Empty* /*response*/) -> ::grpc::Status {
-    static constexpr auto str = "CancelOperation not implemented";
-    logger_.Emit(LogLevel::Error, str);
-    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
+    static constexpr auto kStr = "CancelOperation not implemented";
+    logger_.Emit(LogLevel::Error, kStr);
+    return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, kStr};
 }

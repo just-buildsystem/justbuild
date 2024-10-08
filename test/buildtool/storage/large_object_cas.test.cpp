@@ -350,8 +350,8 @@ static void TestExternal(StorageConfig const& storage_config,
         // generation:
         REQUIRE(GarbageCollector::TriggerGarbageCollection(storage_config));
         for (auto const& part : *pack_1) {
-            static constexpr bool is_executable = false;
-            REQUIRE(cas.BlobPath(part, is_executable));
+            static constexpr bool kIsExecutable = false;
+            REQUIRE(cas.BlobPath(part, kIsExecutable));
         }
 
         auto const youngest = ::Generation::Create(&storage_config);
@@ -445,12 +445,12 @@ static void TestCompactification(StorageConfig const& storage_config,
 
         // For trees the size must be increased to exceed the internal
         // compactification threshold:
-        static constexpr auto ExceedThresholdSize =
+        static constexpr auto kExceedThresholdSize =
             kIsTree ? TestType::kLargeSize * 8 : TestType::kLargeSize;
 
         // Create a large object that is to be split during compactification:
         auto object_2 = TestType::Create(
-            cas, std::string(TestType::kLargeId) + "_2", ExceedThresholdSize);
+            cas, std::string(TestType::kLargeId) + "_2", kExceedThresholdSize);
         REQUIRE(object_2);
         auto& [digest_2, path_2] = *object_2;
 
@@ -458,7 +458,7 @@ static void TestCompactification(StorageConfig const& storage_config,
         // may be present in the storage. To ensure compactification deals with
         // them properly, a "unique" file is created:
         auto invalid_object = TestType::Create(
-            cas, std::string(TestType::kLargeId) + "_3", ExceedThresholdSize);
+            cas, std::string(TestType::kLargeId) + "_3", kExceedThresholdSize);
         REQUIRE(invalid_object);
         auto& [invalid_digest, invalid_path] = *invalid_object;
 

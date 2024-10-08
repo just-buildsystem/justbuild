@@ -1166,10 +1166,10 @@ class FileSystemManager {
         std::filesystem::file_status const& status) noexcept -> bool {
         try {
             namespace fs = std::filesystem;
-            static constexpr auto exec_flags = fs::perms::owner_exec bitor
+            static constexpr auto kExecFlags = fs::perms::owner_exec bitor
                                                fs::perms::group_exec bitor
                                                fs::perms::others_exec;
-            auto exec_perms = status.permissions() bitand exec_flags;
+            auto exec_perms = status.permissions() bitand kExecFlags;
             return exec_perms != fs::perms::none;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
