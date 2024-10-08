@@ -24,9 +24,6 @@
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "config"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/buildtool/storage", "repository_garbage_collector"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
@@ -41,6 +38,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/storage", "repository_garbage_collector"]
     , ["src/utils/archive", "archive_ops"]
     ]
   }
@@ -76,6 +74,8 @@
     , ["src/buildtool/execution_api/execution_service", "execution_server"]
     , ["src/buildtool/execution_api/execution_service", "operations_server"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "target_service":

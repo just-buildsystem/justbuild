@@ -200,7 +200,8 @@ auto SourceTreeService::ServeCommitTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ServeCommitTreeResponse* response) -> ::grpc::Status {
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
@@ -211,14 +212,14 @@ auto SourceTreeService::ServeCommitTree(
     auto const& subdir{request->subdir()};
     // try in local build root Git cache
     auto res = GetSubtreeFromCommit(
-        storage_config_.GitRoot(), commit, subdir, logger_);
+        native_context_->storage_config->GitRoot(), commit, subdir, logger_);
     if (res) {
         auto tree_id = *std::move(res);
         auto status = ServeCommitTreeResponse::OK;
         if (request->sync_tree()) {
             status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeCommitTreeResponse>(
-                    tree_id, storage_config_.GitRoot());
+                    tree_id, native_context_->storage_config->GitRoot());
         }
         *(response->mutable_tree()) = std::move(tree_id);
         response->set_status(status);
@@ -231,7 +232,7 @@ auto SourceTreeService::ServeCommitTree(
                       "repository {}",
                       subdir,
                       commit,
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -287,7 +288,8 @@ auto SourceTreeService::SyncGitEntryToCas(
     std::string const& object_hash,
     std::filesystem::path const& repo_path) const noexcept
     -> std::remove_cvref_t<decltype(TResponse::OK)> {
-    auto const hash_type = storage_config_.hash_function.GetType();
+    auto const hash_type =
+        native_context_->storage_config->hash_function.GetType();
     if (IsTreeObject(kType) and not ProtocolTraits::IsTreeAllowed(hash_type)) {
         logger_->Emit(LogLevel::Error,
                       "Cannot sync tree {} from repository {} with "
@@ -333,7 +335,7 @@ auto SourceTreeService::ResolveContentTree(
     if (resolve_special) {
         // get the resolved tree
         auto tree_id_file = StorageUtils::GetResolvedTreeIDFile(
-            storage_config_, tree_id, *resolve_special);
+            *native_context_->storage_config, tree_id, *resolve_special);
         if (FileSystemManager::Exists(tree_id_file)) {
             // read resolved tree id
             auto resolved_tree_id = FileSystemManager::ReadFile(tree_id_file);
@@ -348,11 +350,12 @@ auto SourceTreeService::ResolveContentTree(
                 *resolved_tree_id, repo_path, sync_tree, response);
         }
         // resolve tree; target repository is always the Git cache
-        auto target_cas = GitCAS::Open(storage_config_.GitRoot());
+        auto target_cas =
+            GitCAS::Open(native_context_->storage_config->GitRoot());
         if (not target_cas) {
             logger_->Emit(LogLevel::Error,
                           "Failed to open Git ODB at {}",
-                          storage_config_.GitRoot().string());
+                          native_context_->storage_config->GitRoot().string());
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -415,7 +418,7 @@ auto SourceTreeService::ResolveContentTree(
         // keep tree alive in the Git cache via a tagged commit
         auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
             [logger = logger_,
-             storage_config = &storage_config_,
+             storage_config = native_context_->storage_config,
              resolved_tree](auto const& msg, bool fatal) {
                 if (fatal) {
                     logger->Emit(LogLevel::Error,
@@ -429,11 +432,13 @@ auto SourceTreeService::ResolveContentTree(
             // this is a non-thread-safe Git operation, so it must be guarded!
             std::shared_lock slock{mutex_};
             // open real repository at Git CAS location
-            auto git_repo = GitRepo::Open(storage_config_.GitRoot());
+            auto git_repo =
+                GitRepo::Open(native_context_->storage_config->GitRoot());
             if (not git_repo) {
-                logger_->Emit(LogLevel::Error,
-                              "Failed to open Git CAS repository {}",
-                              storage_config_.GitRoot().string());
+                logger_->Emit(
+                    LogLevel::Error,
+                    "Failed to open Git CAS repository {}",
+                    native_context_->storage_config->GitRoot().string());
                 response->set_status(ServeArchiveTreeResponse::RESOLVE_ERROR);
                 return ::grpc::Status::OK;
             }
@@ -465,7 +470,8 @@ auto SourceTreeService::CommonImportToGit(
     std::string const& commit_message) -> expected<std::string, std::string> {
     // the repository path that imports the content must be separate from the
     // content path, to avoid polluting the entries
-    auto tmp_dir = storage_config_.CreateTypedTmpDir("import-repo");
+    auto tmp_dir =
+        native_context_->storage_config->CreateTypedTmpDir("import-repo");
     if (not tmp_dir) {
         return unexpected{
             std::string("Failed to create tmp path for import repository")};
@@ -497,20 +503,24 @@ auto SourceTreeService::CommonImportToGit(
         return unexpected{err};
     }
     // open the Git CAS repo
-    auto just_git_cas = GitCAS::Open(storage_config_.GitRoot());
+    auto just_git_cas =
+        GitCAS::Open(native_context_->storage_config->GitRoot());
     if (not just_git_cas) {
-        return unexpected{fmt::format("Failed to open Git ODB at {}",
-                                      storage_config_.GitRoot().string())};
+        return unexpected{
+            fmt::format("Failed to open Git ODB at {}",
+                        native_context_->storage_config->GitRoot().string())};
     }
     auto just_git_repo = GitRepo::Open(just_git_cas);
     if (not just_git_repo) {
-        return unexpected{fmt::format("Failed to open Git repository {}",
-                                      storage_config_.GitRoot().string())};
+        return unexpected{
+            fmt::format("Failed to open Git repository {}",
+                        native_context_->storage_config->GitRoot().string())};
     }
     // wrap logger for GitRepo call
     err.clear();
     wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [&err, storage_config = &storage_config_](auto const& msg, bool fatal) {
+        [&err, storage_config = native_context_->storage_config](
+            auto const& msg, bool fatal) {
             if (fatal) {
                 err = fmt::format("While fetching in repository {}:\n{}",
                                   storage_config->GitRoot().string(),
@@ -519,17 +529,18 @@ auto SourceTreeService::CommonImportToGit(
         });
     // fetch the new commit into the Git CAS via tmp directory; the call is
     // thread-safe, so it needs no guarding
-    if (not just_git_repo->LocalFetchViaTmpRepo(storage_config_,
-                                                repo_path.string(),
-                                                /*branch=*/std::nullopt,
-                                                wrapped_logger)) {
+    if (not just_git_repo->LocalFetchViaTmpRepo(
+            *native_context_->storage_config,
+            repo_path.string(),
+            /*branch=*/std::nullopt,
+            wrapped_logger)) {
         return unexpected{err};
     }
     // wrap logger for GitRepo call
     err.clear();
     wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [commit_hash, storage_config = &storage_config_, &err](auto const& msg,
-                                                               bool fatal) {
+        [commit_hash, storage_config = native_context_->storage_config, &err](
+            auto const& msg, bool fatal) {
             if (fatal) {
                 err =
                     fmt::format("While tagging commit {} in repository {}:\n{}",
@@ -543,11 +554,12 @@ auto SourceTreeService::CommonImportToGit(
         // this is a non-thread-safe Git operation, so it must be guarded!
         std::shared_lock slock{mutex_};
         // open real repository at Git CAS location
-        auto git_repo = GitRepo::Open(storage_config_.GitRoot());
+        auto git_repo =
+            GitRepo::Open(native_context_->storage_config->GitRoot());
         if (not git_repo) {
-            return unexpected{
-                fmt::format("Failed to open Git CAS repository {}",
-                            storage_config_.GitRoot().string())};
+            return unexpected{fmt::format(
+                "Failed to open Git CAS repository {}",
+                native_context_->storage_config->GitRoot().string())};
         }
         // Important: message must be consistent with just-mr!
         if (not git_repo->KeepTag(*commit_hash,
@@ -605,11 +617,12 @@ auto SourceTreeService::ArchiveImportToGit(
         return ::grpc::Status::OK;
     }
     // open the Git CAS repo
-    auto just_git_cas = GitCAS::Open(storage_config_.GitRoot());
+    auto just_git_cas =
+        GitCAS::Open(native_context_->storage_config->GitRoot());
     if (not just_git_cas) {
         logger_->Emit(LogLevel::Error,
                       "Failed to open Git ODB at {}",
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -617,7 +630,7 @@ auto SourceTreeService::ArchiveImportToGit(
     if (not just_git_repo) {
         logger_->Emit(LogLevel::Error,
                       "Failed to open Git repository {}",
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -641,7 +654,7 @@ auto SourceTreeService::ArchiveImportToGit(
         return ::grpc::Status::OK;
     }
     return ResolveContentTree(*subtree_id,
-                              storage_config_.GitRoot(),
+                              native_context_->storage_config->GitRoot(),
                               /*repo_is_git_cache=*/true,
                               resolve_special,
                               sync_tree,
@@ -679,7 +692,8 @@ auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
@@ -694,7 +708,7 @@ auto SourceTreeService::ServeArchiveTree(
 
     // check for archive_tree_id_file
     auto archive_tree_id_file = StorageUtils::GetArchiveTreeIDFile(
-        storage_config_, archive_type, content);
+        *native_context_->storage_config, archive_type, content);
     if (FileSystemManager::Exists(archive_tree_id_file)) {
         // read archive_tree_id from file tree_id_file
         auto archive_tree_id =
@@ -707,21 +721,25 @@ auto SourceTreeService::ServeArchiveTree(
             return ::grpc::Status::OK;
         }
         // check local build root Git cache
-        auto res = GetSubtreeFromTree(
-            storage_config_.GitRoot(), *archive_tree_id, subdir, logger_);
+        auto res =
+            GetSubtreeFromTree(native_context_->storage_config->GitRoot(),
+                               *archive_tree_id,
+                               subdir,
+                               logger_);
         if (res) {
-            return ResolveContentTree(*res,  // tree_id
-                                      storage_config_.GitRoot(),
-                                      /*repo_is_git_cache=*/true,
-                                      resolve_special,
-                                      request->sync_tree(),
-                                      response);
+            return ResolveContentTree(
+                *res,  // tree_id
+                native_context_->storage_config->GitRoot(),
+                /*repo_is_git_cache=*/true,
+                resolve_special,
+                request->sync_tree(),
+                response);
         }
         // check for fatal error
         if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(LogLevel::Error,
                           "Failed to open repository {}",
-                          storage_config_.GitRoot().string());
+                          native_context_->storage_config->GitRoot().string());
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -754,32 +772,38 @@ auto SourceTreeService::ServeArchiveTree(
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    // acquire lock for native CAS
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    // check if content is in local CAS already
+    // check if content is in native local CAS already
     auto const digest = ArtifactDigestFactory::Create(
-        storage_config_.hash_function.GetType(), content, 0, /*is_tree=*/false);
-    auto const& cas = storage_.CAS();
+        native_context_->storage_config->hash_function.GetType(),
+        content,
+        0,
+        /*is_tree=*/false);
+    auto const& native_cas = native_context_->storage->CAS();
     auto content_cas_path =
-        digest ? cas.BlobPath(*digest, /*is_executable=*/false) : std::nullopt;
+        digest ? native_cas.BlobPath(*digest, /*is_executable=*/false)
+               : std::nullopt;
     if (not content_cas_path) {
         // check if content blob is in Git cache
-        auto res = GetBlobFromRepo(storage_config_.GitRoot(), content, logger_);
+        auto res = GetBlobFromRepo(
+            native_context_->storage_config->GitRoot(), content, logger_);
         if (res) {
-            // add to CAS
-            content_cas_path = StorageUtils::AddToCAS(storage_, *res);
+            // add to native CAS
+            content_cas_path =
+                StorageUtils::AddToCAS(*native_context_->storage, *res);
         }
         if (res.error() == GitLookupError::Fatal) {
             logger_->Emit(
                 LogLevel::Error,
                 "Failed while trying to retrieve content {} from repository {}",
                 content,
-                storage_config_.GitRoot().string());
+                native_context_->storage_config->GitRoot().string());
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -789,8 +813,9 @@ auto SourceTreeService::ServeArchiveTree(
         for (auto const& path : serve_config_.known_repositories) {
             auto res = GetBlobFromRepo(path, content, logger_);
             if (res) {
-                // add to CAS
-                content_cas_path = StorageUtils::AddToCAS(storage_, *res);
+                // add to native CAS
+                content_cas_path =
+                    StorageUtils::AddToCAS(*native_context_->storage, *res);
                 if (content_cas_path) {
                     break;
                 }
@@ -817,18 +842,21 @@ auto SourceTreeService::ServeArchiveTree(
             response->set_status(ServeArchiveTreeResponse::NOT_FOUND);
             return ::grpc::Status::OK;
         }
-        // content should now be in CAS
-        content_cas_path = cas.BlobPath(*digest, /*is_executable=*/false);
+        // content should now be in native CAS
+        content_cas_path =
+            native_cas.BlobPath(*digest, /*is_executable=*/false);
         if (not content_cas_path) {
-            logger_->Emit(LogLevel::Error,
-                          "Retrieving content {} from CAS failed unexpectedly",
-                          content);
+            logger_->Emit(
+                LogLevel::Error,
+                "Retrieving content {} from native CAS failed unexpectedly",
+                content);
             response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
     }
     // extract archive
-    auto tmp_dir = storage_config_.CreateTypedTmpDir(archive_type);
+    auto tmp_dir =
+        native_context_->storage_config->CreateTypedTmpDir(archive_type);
     if (not tmp_dir) {
         logger_->Emit(
             LogLevel::Error,
@@ -842,7 +870,7 @@ auto SourceTreeService::ServeArchiveTree(
         ExtractArchive(*content_cas_path, archive_type, tmp_dir->GetPath());
     if (res != std::nullopt) {
         logger_->Emit(LogLevel::Error,
-                      "Failed to extract archive {} from CAS:\n{}",
+                      "Failed to extract archive {} from native CAS:\n{}",
                       content_cas_path->string(),
                       *res);
         response->set_status(ServeArchiveTreeResponse::UNPACK_ERROR);
@@ -866,7 +894,8 @@ auto SourceTreeService::DistdirImportToGit(
         content_list,
     bool sync_tree,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
@@ -874,7 +903,8 @@ auto SourceTreeService::DistdirImportToGit(
     }
 
     // create tmp directory for the distdir
-    auto distdir_tmp_dir = storage_config_.CreateTypedTmpDir("distdir");
+    auto distdir_tmp_dir =
+        native_context_->storage_config->CreateTypedTmpDir("distdir");
     if (not distdir_tmp_dir) {
         logger_->Emit(LogLevel::Error,
                       "Failed to create tmp path for distdir target {}",
@@ -883,21 +913,22 @@ auto SourceTreeService::DistdirImportToGit(
         return ::grpc::Status::OK;
     }
     auto const& tmp_path = distdir_tmp_dir->GetPath();
-    // link the CAS blobs into the tmp dir
-    auto const& cas = storage_.CAS();
+    // link the native CAS blobs into the tmp dir
+    auto const& native_cas = native_context_->storage->CAS();
     if (not std::all_of(
             content_list.begin(),
             content_list.end(),
-            [&cas, tmp_path](auto const& kv) {
+            [&native_cas, tmp_path](auto const& kv) {
                 auto const digest = ArtifactDigestFactory::Create(
-                    cas.GetHashFunction().GetType(),
+                    native_cas.GetHashFunction().GetType(),
                     kv.second.first,
                     0,
                     /*is_tree=*/false);
                 if (not digest) {
                     return false;
                 }
-                auto content_path = cas.BlobPath(*digest, kv.second.second);
+                auto content_path =
+                    native_cas.BlobPath(*digest, kv.second.second);
                 if (content_path) {
                     return FileSystemManager::CreateFileHardlink(
                                *content_path,  // from: cas_path/content_id
@@ -907,7 +938,7 @@ auto SourceTreeService::DistdirImportToGit(
                 return false;
             })) {
         logger_->Emit(LogLevel::Error,
-                      "Failed to create links to CAS content {}",
+                      "Failed to create links to native CAS content {}",
                       content_id);
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
@@ -937,7 +968,7 @@ auto SourceTreeService::DistdirImportToGit(
     auto status = ServeDistdirTreeResponse::OK;
     if (sync_tree) {
         status = SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
-            tree_id, storage_config_.GitRoot());
+            tree_id, native_context_->storage_config->GitRoot());
     }
     // set response on success
     *(response->mutable_tree()) = std::move(tree_id);
@@ -949,8 +980,8 @@ auto SourceTreeService::ServeDistdirTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
-    // acquire lock for CAS
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    // acquire lock for native CAS
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
@@ -960,47 +991,48 @@ auto SourceTreeService::ServeDistdirTree(
     GitRepo::tree_entries_t entries{};
     entries.reserve(request->distfiles().size());
 
-    auto const& cas = storage_.CAS();
+    auto const& native_cas = native_context_->storage->CAS();
     std::unordered_map<std::string, std::pair<std::string, bool>>
         content_list{};
     content_list.reserve(request->distfiles().size());
 
     bool const is_native =
-        ProtocolTraits::IsNative(storage_config_.hash_function.GetType());
+        ProtocolTraits::IsNative(apis_.hash_function.GetType());
     for (auto const& kv : request->distfiles()) {
         bool blob_found{};
         std::string blob_digest;  // The digest of the requested distfile, taken
                                   // by the hash applicable for our CAS; this
                                   // might be different from content, if our CAS
-                                  // ist not based on git blob identifiers
+                                  // is not based on git blob identifiers
                                   // (i.e., if we're not in native mode).
         auto const& content = kv.content();
         // check content blob is known
-        // first check the local CAS itself, provided it uses the same type
-        // of identifier
+        // first check the native local CAS itself, provided it uses the same
+        // type of identifier
         auto const digest = ArtifactDigestFactory::Create(
-            storage_config_.hash_function.GetType(),
+            native_context_->storage_config->hash_function.GetType(),
             content,
             0,
             /*is_tree=*/false);
 
         if (is_native) {
-            blob_found = digest and cas.BlobPath(*digest, kv.executable());
+            blob_found =
+                digest and native_cas.BlobPath(*digest, kv.executable());
         }
         if (blob_found) {
             blob_digest = content;
         }
         else {
             // check local Git cache
-            auto res =
-                GetBlobFromRepo(storage_config_.GitRoot(), content, logger_);
+            auto res = GetBlobFromRepo(
+                native_context_->storage_config->GitRoot(), content, logger_);
             if (res) {
-                // add content to local CAS
-                auto stored_blob = cas.StoreBlob(*res, kv.executable());
+                // add content to native local CAS
+                auto stored_blob = native_cas.StoreBlob(*res, kv.executable());
                 if (not stored_blob) {
                     logger_->Emit(LogLevel::Error,
                                   "Failed to store content {} from local Git "
-                                  "cache to local CAS",
+                                  "cache to native local CAS",
                                   content);
                     response->set_status(
                         ServeDistdirTreeResponse::INTERNAL_ERROR);
@@ -1011,11 +1043,12 @@ auto SourceTreeService::ServeDistdirTree(
             }
             else {
                 if (res.error() == GitLookupError::Fatal) {
-                    logger_->Emit(LogLevel::Error,
-                                  "Failed while trying to retrieve content {} "
-                                  "from repository {}",
-                                  content,
-                                  storage_config_.GitRoot().string());
+                    logger_->Emit(
+                        LogLevel::Error,
+                        "Failed while trying to retrieve content {} from "
+                        "repository {}",
+                        content,
+                        native_context_->storage_config->GitRoot().string());
                     response->set_status(
                         ServeDistdirTreeResponse::INTERNAL_ERROR);
                     return ::grpc::Status::OK;
@@ -1024,14 +1057,16 @@ auto SourceTreeService::ServeDistdirTree(
                 for (auto const& path : serve_config_.known_repositories) {
                     auto res = GetBlobFromRepo(path, content, logger_);
                     if (res) {
-                        // add content to local CAS
-                        auto stored_blob = cas.StoreBlob(*res, kv.executable());
+                        // add content to native local CAS
+                        auto stored_blob =
+                            native_cas.StoreBlob(*res, kv.executable());
                         if (not stored_blob) {
-                            logger_->Emit(LogLevel::Error,
-                                          "Failed to store content {} from "
-                                          "known repository {} to local CAS",
-                                          path.string(),
-                                          content);
+                            logger_->Emit(
+                                LogLevel::Error,
+                                "Failed to store content {} from known "
+                                "repository {} to native local CAS",
+                                path.string(),
+                                content);
                             response->set_status(
                                 ServeDistdirTreeResponse::INTERNAL_ERROR);
                             return ::grpc::Status::OK;
@@ -1056,7 +1091,7 @@ auto SourceTreeService::ServeDistdirTree(
                     // check remote CAS
                     if (is_native and digest and
                         apis_.remote->IsAvailable(*digest)) {
-                        // retrieve content to local CAS
+                        // retrieve content to native local CAS
                         if (not apis_.remote->RetrieveToCas(
                                 {Artifact::ObjectInfo{
                                     .digest = *digest,
@@ -1066,7 +1101,7 @@ auto SourceTreeService::ServeDistdirTree(
                                 *apis_.local)) {
                             logger_->Emit(LogLevel::Error,
                                           "Failed to retrieve content {} from "
-                                          "remote to local CAS",
+                                          "remote to native local CAS",
                                           content);
                             response->set_status(
                                 ServeDistdirTreeResponse::INTERNAL_ERROR);
@@ -1116,21 +1151,22 @@ auto SourceTreeService::ServeDistdirTree(
     }
     // get hash from raw_id
     auto tree_id = ToHexString(tree->first);
-    // add tree to local CAS
-    if (not cas.StoreTree(tree->second)) {
+    // add tree to native local CAS
+    if (not native_cas.StoreTree(tree->second)) {
         logger_->Emit(LogLevel::Error,
-                      "Failed to store distdir tree {} to local CAS",
+                      "Failed to store distdir tree {} to native local CAS",
                       tree_id);
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
     // check if tree is already in Git cache
-    auto has_tree = IsTreeInRepo(tree_id, storage_config_.GitRoot(), logger_);
+    auto has_tree = IsTreeInRepo(
+        tree_id, native_context_->storage_config->GitRoot(), logger_);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
                       "Failed while checking for tree {} in repository {}",
                       tree_id,
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1140,7 +1176,7 @@ auto SourceTreeService::ServeDistdirTree(
         if (request->sync_tree()) {
             status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
-                    tree_id, storage_config_.GitRoot());
+                    tree_id, native_context_->storage_config->GitRoot());
         }
         // set response on success
         *(response->mutable_tree()) = std::move(tree_id);
@@ -1172,7 +1208,7 @@ auto SourceTreeService::ServeDistdirTree(
             return ::grpc::Status::OK;
         }
     }
-    // otherwise, we import the tree from CAS ourselves
+    // otherwise, we import the tree from native local CAS ourselves
     return DistdirImportToGit(
         tree_id, content_id, content_list, request->sync_tree(), response);
 }
@@ -1183,14 +1219,15 @@ auto SourceTreeService::ServeContent(
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
     // acquire locks
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(ServeContentResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
 
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeContentResponse::INTERNAL_ERROR);
@@ -1198,11 +1235,12 @@ auto SourceTreeService::ServeContent(
     }
 
     // check if content blob is in Git cache
-    auto res = GetBlobFromRepo(storage_config_.GitRoot(), content, logger_);
+    auto res = GetBlobFromRepo(
+        native_context_->storage_config->GitRoot(), content, logger_);
     if (res) {
         auto const status =
             SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
-                content, storage_config_.GitRoot());
+                content, native_context_->storage_config->GitRoot());
         response->set_status(status);
         return ::grpc::Status::OK;
     }
@@ -1210,7 +1248,7 @@ auto SourceTreeService::ServeContent(
         logger_->Emit(LogLevel::Error,
                       "Failed while checking for content {} in repository {}",
                       content,
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeContentResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1238,7 +1276,10 @@ auto SourceTreeService::ServeContent(
 
     // check also in the local CAS
     auto const digest = ArtifactDigestFactory::Create(
-        storage_config_.hash_function.GetType(), content, 0, /*is_tree=*/false);
+        native_context_->storage_config->hash_function.GetType(),
+        content,
+        0,
+        /*is_tree=*/false);
     if (digest and apis_.local->IsAvailable(*digest)) {
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = *digest,
@@ -1265,14 +1306,15 @@ auto SourceTreeService::ServeTree(
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire locks
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
 
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
@@ -1280,19 +1322,20 @@ auto SourceTreeService::ServeTree(
     }
 
     // check if tree is in Git cache
-    auto has_tree = IsTreeInRepo(tree_id, storage_config_.GitRoot(), logger_);
+    auto has_tree = IsTreeInRepo(
+        tree_id, native_context_->storage_config->GitRoot(), logger_);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
                       "Failed while checking for tree {} in repository {}",
                       tree_id,
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
     if (*has_tree) {
         auto const status =
             SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(
-                tree_id, storage_config_.GitRoot());
+                tree_id, native_context_->storage_config->GitRoot());
         response->set_status(status);
         return ::grpc::Status::OK;
     }
@@ -1316,15 +1359,16 @@ auto SourceTreeService::ServeTree(
         }
     }
     // check also in the local CAS
-    auto const hash_type = storage_config_.hash_function.GetType();
+    auto const hash_type =
+        native_context_->storage_config->hash_function.GetType();
     auto const digest =
         ArtifactDigestFactory::Create(hash_type, tree_id, 0, /*is_tree=*/true);
     if (digest and apis_.local->IsAvailable(*digest)) {
         // upload tree to remote CAS; only possible in native mode
         if (not ProtocolTraits::IsNative(hash_type)) {
             logger_->Emit(LogLevel::Error,
-                          "Cannot sync tree {} from local CAS with the remote "
-                          "in compatible mode",
+                          "Cannot sync tree {} from native local CAS with the "
+                          "remote in compatible mode",
                           tree_id);
             response->set_status(ServeTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
@@ -1334,7 +1378,7 @@ auto SourceTreeService::ServeTree(
                                       .type = ObjectType::Tree}},
                 *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
-                          "Failed to sync tree {} from local CAS",
+                          "Failed to sync tree {} from native local CAS",
                           tree_id);
             response->set_status(ServeTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
@@ -1354,26 +1398,28 @@ auto SourceTreeService::CheckRootTree(
     CheckRootTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire locks
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(storage_config_);
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
     if (not repo_lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
 
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
     // check first in the Git cache
-    auto has_tree = IsTreeInRepo(tree_id, storage_config_.GitRoot(), logger_);
+    auto has_tree = IsTreeInRepo(
+        tree_id, native_context_->storage_config->GitRoot(), logger_);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
                       "Failed while checking for tree {} in repository {}",
                       tree_id,
-                      storage_config_.GitRoot().string());
+                      native_context_->storage_config->GitRoot().string());
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1399,14 +1445,17 @@ auto SourceTreeService::CheckRootTree(
             return ::grpc::Status::OK;
         }
     }
-    // now check in the local CAS
+    // now check in the native local CAS
     auto const digest = ArtifactDigestFactory::Create(
-        storage_config_.hash_function.GetType(), tree_id, 0, /*is_tree=*/true);
-    if (digest and storage_.CAS().TreePath(*digest)) {
+        native_context_->storage_config->hash_function.GetType(),
+        tree_id,
+        0,
+        /*is_tree=*/true);
+    if (digest and native_context_->storage->CAS().TreePath(*digest)) {
         // As we currently build only against roots in Git repositories, we need
         // to move the tree from CAS to local Git storage
-        auto tmp_dir =
-            storage_config_.CreateTypedTmpDir("source-tree-check-root-tree");
+        auto tmp_dir = native_context_->storage_config->CreateTypedTmpDir(
+            "source-tree-check-root-tree");
         if (not tmp_dir) {
             logger_->Emit(LogLevel::Error,
                           "Failed to create tmp directory for copying git-tree "
@@ -1463,7 +1512,7 @@ auto SourceTreeService::GetRemoteTree(
     GetRemoteTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
     // acquire locks
-    auto lock = GarbageCollector::SharedLock(storage_config_);
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
@@ -1472,7 +1521,10 @@ auto SourceTreeService::GetRemoteTree(
 
     // get tree from remote CAS into tmp dir
     auto const digest = ArtifactDigestFactory::Create(
-        storage_config_.hash_function.GetType(), tree_id, 0, /*is_tree=*/true);
+        native_context_->storage_config->hash_function.GetType(),
+        tree_id,
+        0,
+        /*is_tree=*/true);
     if (not digest or not apis_.remote->IsAvailable(*digest)) {
         logger_->Emit(LogLevel::Error,
                       "Remote CAS does not contain expected tree {}",
@@ -1480,8 +1532,8 @@ auto SourceTreeService::GetRemoteTree(
         response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
         return ::grpc::Status::OK;
     }
-    auto tmp_dir =
-        storage_config_.CreateTypedTmpDir("source-tree-get-remote-tree");
+    auto tmp_dir = native_context_->storage_config->CreateTypedTmpDir(
+        "source-tree-get-remote-tree");
     if (not tmp_dir) {
         logger_->Emit(LogLevel::Error,
                       "Failed to create tmp directory for copying git-tree {} "

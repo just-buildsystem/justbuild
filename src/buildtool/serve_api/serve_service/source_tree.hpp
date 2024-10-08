@@ -37,8 +37,6 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
-#include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 // Service for improved interaction with the target-level cache.
@@ -63,12 +61,13 @@ class SourceTreeService final
 
     explicit SourceTreeService(
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
-        gsl::not_null<LocalContext const*> const& local_context,
-        gsl::not_null<ApiBundle const*> const& apis) noexcept
+        gsl::not_null<ApiBundle const*> const& apis,
+        gsl::not_null<LocalContext const*> const& native_context,
+        LocalContext const* compat_context = nullptr) noexcept
         : serve_config_{*serve_config},
-          storage_{*local_context->storage},
-          storage_config_{*local_context->storage_config},
-          apis_{*apis} {}
+          apis_{*apis},
+          native_context_{native_context},
+          compat_context_{compat_context} {}
 
     // Retrieve the Git-subtree identifier from a given Git commit.
     //
@@ -135,9 +134,9 @@ class SourceTreeService final
 
   private:
     RemoteServeConfig const& serve_config_;
-    StorageConfig const& storage_config_;
-    Storage const& storage_;
     ApiBundle const& apis_;
+    gsl::not_null<LocalContext const*> native_context_;
+    LocalContext const* compat_context_;
     mutable std::shared_mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
     // symlinks resolver map

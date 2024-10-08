@@ -43,6 +43,8 @@
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 #include "src/buildtool/serve_api/serve_service/target.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 namespace {
 template <typename T>
@@ -114,7 +116,9 @@ auto ServeServerImpl::Run(
 
     auto const hash_type =
         local_context->storage_config->hash_function.GetType();
-    SourceTreeService sts{&serve_config, local_context, &apis};
+
+    // TargetService and ConfigurationService use the default apis, which know
+    // how to dispatch builds.
     TargetService ts{&serve_config,
                      local_context,
                      remote_context,
@@ -122,6 +126,42 @@ auto ServeServerImpl::Run(
                      serve ? &*serve : nullptr};
     ConfigurationService cs{hash_type, remote_context->exec_config};
 
+    // For the SourceTreeService we need to always have access to a native
+    // storage. In compatible mode, this requires creating a second local
+    // context, as the default one is compatible.
+    std::unique_ptr<StorageConfig> secondary_storage_config = nullptr;
+    std::unique_ptr<Storage> secondary_storage = nullptr;
+    std::unique_ptr<LocalContext> secondary_local_context = nullptr;
+    if (not ProtocolTraits::IsNative(hash_type)) {
+        auto config =
+            StorageConfig::Builder{}
+                .SetBuildRoot(local_context->storage_config->build_root)
+                .SetHashType(HashFunction::Type::GitSHA1)
+                .Build();
+        if (not config) {
+            Logger::Log(LogLevel::Error, config.error());
+            return false;
+        }
+        secondary_storage_config =
+            std::make_unique<StorageConfig>(*std::move(config));
+        secondary_storage = std::make_unique<Storage>(
+            Storage::Create(&*secondary_storage_config));
+        secondary_local_context = std::make_unique<LocalContext>(
+            LocalContext{.exec_config = local_context->exec_config,
+                         .storage_config = &*secondary_storage_config,
+                         .storage = &*secondary_storage});
+    }
+
+    SourceTreeService sts{&serve_config,
+                          &apis,
+                          /*native_context=*/secondary_local_context != nullptr
+                              ? &*secondary_local_context
+                              : local_context,
+                          /*compat_context=*/secondary_local_context != nullptr
+                              ? &*local_context
+                              : nullptr};
+
+    // set up the server
     grpc::ServerBuilder builder;
 
     builder.RegisterService(&sts);
