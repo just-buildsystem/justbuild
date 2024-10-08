@@ -358,12 +358,10 @@ void fetch_backend_free(git_odb_backend* /*_backend*/) {}
 auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
 
 // callback to remote fetch without an SSL certificate check
-const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
-                                           int /*valid*/,
-                                           const char* /*host*/,
-                                           void* /*payload*/) -> int {
-    return 0;
-};
+const auto kCertificatePassthrough = [](git_cert* /*cert*/,
+                                        int /*valid*/,
+                                        const char* /*host*/,
+                                        void* /*payload*/) -> int { return 0; };
 
 }  // namespace
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -897,7 +895,7 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         // no proxy
         fetch_opts.proxy_opts.type = GIT_PROXY_NONE;
         // no SSL verification
-        fetch_opts.callbacks.certificate_check = certificate_passthrough_cb;
+        fetch_opts.callbacks.certificate_check = kCertificatePassthrough;
         // disable update of the FETCH_HEAD pointer
         fetch_opts.update_fetchhead = 0;
 

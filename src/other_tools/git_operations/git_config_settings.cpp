@@ -30,18 +30,16 @@ void config_iter_closer(gsl::owner<git_config_iterator*> iter) {
 }
 
 // callback to enable SSL certificate check for remote fetch
-const auto certificate_check_cb = [](git_cert* /*cert*/,
-                                     int /*valid*/,
-                                     const char* /*host*/,
-                                     void* /*payload*/) -> int { return 1; };
+const auto kCertificateCheck = [](git_cert* /*cert*/,
+                                  int /*valid*/,
+                                  const char* /*host*/,
+                                  void* /*payload*/) -> int { return 1; };
 
 // callback to remote fetch without an SSL certificate check
-const auto certificate_passthrough_cb = [](git_cert* /*cert*/,
-                                           int /*valid*/,
-                                           const char* /*host*/,
-                                           void* /*payload*/) -> int {
-    return 0;
-};
+const auto kCertificatePassthrough = [](git_cert* /*cert*/,
+                                        int /*valid*/,
+                                        const char* /*host*/,
+                                        void* /*payload*/) -> int { return 0; };
 
 /// \brief Custom comparison of matching degrees. Return true if left argument's
 /// degree of matching is better that the right argument's. When both are
@@ -187,8 +185,8 @@ auto GitConfigSettings::GetSSLCallback(std::shared_ptr<git_config> const& cfg,
             }
         }
         // set callback: passthrough only if check_cert is false
-        return (check_cert and not *check_cert) ? certificate_passthrough_cb
-                                                : certificate_check_cb;
+        return (check_cert and not *check_cert) ? kCertificatePassthrough
+                                                : kCertificateCheck;
     } catch (std::exception const& ex) {
         (*logger)(
             fmt::format("Getting SSL callback failed with:\n{}", ex.what()),

@@ -15,7 +15,7 @@
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 
 // define the mapping to actual operations being called
-GitOpKeyMap const GitOpKey::map_ = {
+GitOpKeyMap const GitOpKey::kMap = {
     {GitOpType::INITIAL_COMMIT, CriticalGitOps::GitInitialCommit},
     {GitOpType::ENSURE_INIT, CriticalGitOps::GitEnsureInit},
     {GitOpType::KEEP_TAG, CriticalGitOps::GitKeepTag},

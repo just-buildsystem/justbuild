@@ -40,7 +40,7 @@ struct GitOpKey {
     [[nodiscard]] auto operation(GitOpParams const& params,
                                  AsyncMapConsumerLoggerPtr const& logger) const
         -> GitOpValue {
-        return map_.at(op_type)(params, logger);
+        return kMap.at(op_type)(params, logger);
     }
 
     [[nodiscard]] auto operator==(GitOpKey const& other) const -> bool {
@@ -48,7 +48,7 @@ struct GitOpKey {
     }
 
   private:
-    static GitOpKeyMap const map_;
+    static GitOpKeyMap const kMap;
 };
 
 class CriticalGitOpGuard;
