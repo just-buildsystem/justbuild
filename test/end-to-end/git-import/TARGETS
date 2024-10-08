@@ -8,18 +8,12 @@
     , ["end-to-end", "git-import-under-test"]
     ]
   }
-, "check-action-equality":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "files": {"bin/actions-graph-equal": "check-action-equality.py"}
-  }
 , "deduplicate":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["deduplicate"]
   , "test": ["deduplicate.sh"]
   , "deps":
-    [ "check-action-equality"
-    , ["", "mr-tool-under-test"]
+    [ ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
     , ["end-to-end", "deduplicate-tool-under-test"]
     , ["end-to-end", "git-import-under-test"]
