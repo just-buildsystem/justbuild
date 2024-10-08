@@ -26,9 +26,9 @@
 /// struct my_type_tag : TypeSafeArithmeticTag<int, -2, +3> {};
 /// using my_type_t = TypeSafeArithmetic<my_type_tag>;
 template <typename T,
-          T MIN_VALUE = std::numeric_limits<T>::lowest(),
-          T MAX_VALUE = std::numeric_limits<T>::max(),
-          T SMALLEST_VALUE = std::numeric_limits<T>::min()>
+          T kMin = std::numeric_limits<T>::lowest(),
+          T kMax = std::numeric_limits<T>::max(),
+          T kSmallest = std::numeric_limits<T>::min()>
 struct TypeSafeArithmeticTag {
     static_assert(std::is_arithmetic_v<T>,
                   "T must be an arithmetic type (integer or floating-point)");
@@ -39,9 +39,9 @@ struct TypeSafeArithmeticTag {
     using pointer_t = T*;
     using const_pointer_t = T const*;
 
-    static constexpr value_t kMaxValue = MAX_VALUE;
-    static constexpr value_t kMinValue = MIN_VALUE;
-    static constexpr value_t kSmallestValue = SMALLEST_VALUE;
+    static constexpr value_t kMaxValue = kMax;
+    static constexpr value_t kMinValue = kMin;
+    static constexpr value_t kSmallestValue = kSmallest;
 };
 
 /// \class TypeSafeArithmetic

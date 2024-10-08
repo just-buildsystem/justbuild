@@ -40,7 +40,7 @@ using RootGetter = auto (RepositoryConfig::*)(std::string const&) const
 using FileNameGetter = auto (RepositoryConfig::*)(std::string const&) const
     -> std::string const*;
 
-template <RootGetter get_root, FileNameGetter get_name, bool kMandatory = true>
+template <RootGetter kGetRoot, FileNameGetter kGetName, bool kMandatory = true>
 auto CreateJsonFileMap(
     gsl::not_null<const RepositoryConfig*> const& repo_config,
     std::size_t jobs) -> JsonFileMap {
@@ -49,9 +49,9 @@ auto CreateJsonFileMap(
                                           auto logger,
                                           auto /* unused */,
                                           auto const& key) {
-        auto const* root = ((*repo_config).*get_root)(key.repository);
+        auto const* root = ((*repo_config).*kGetRoot)(key.repository);
 
-        auto const* json_file_name = ((*repo_config).*get_name)(key.repository);
+        auto const* json_file_name = ((*repo_config).*kGetName)(key.repository);
         if (root == nullptr or json_file_name == nullptr) {
             (*logger)(fmt::format("Cannot determine root or JSON file name for "
                                   "repository {}.",

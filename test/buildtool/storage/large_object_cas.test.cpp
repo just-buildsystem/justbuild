@@ -42,7 +42,7 @@
 namespace {
 namespace LargeTestUtils {
 
-template <bool IsExecutable>
+template <bool kIsExecutable>
 class Blob final {
   public:
     static constexpr auto kLargeId = "bl_8Mb";
@@ -648,24 +648,24 @@ class TestFilesDirectory final {
 };
 
 namespace LargeTestUtils {
-template <bool IsExecutable>
-auto Blob<IsExecutable>::Create(LocalCAS<kDefaultDoGlobalUplink> const& cas,
-                                std::string const& id,
-                                std::uintmax_t size) noexcept
+template <bool kIsExecutable>
+auto Blob<kIsExecutable>::Create(LocalCAS<kDefaultDoGlobalUplink> const& cas,
+                                 std::string const& id,
+                                 std::uintmax_t size) noexcept
     -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>> {
     auto path = Generate(id, size);
-    auto digest = path ? cas.StoreBlob(*path, IsExecutable) : std::nullopt;
+    auto digest = path ? cas.StoreBlob(*path, kIsExecutable) : std::nullopt;
     auto blob_path =
-        digest ? cas.BlobPath(*digest, IsExecutable) : std::nullopt;
+        digest ? cas.BlobPath(*digest, kIsExecutable) : std::nullopt;
     if (digest and blob_path) {
         return std::make_pair(std::move(*digest), std::move(*blob_path));
     }
     return std::nullopt;
 }
 
-template <bool IsExecutable>
-auto Blob<IsExecutable>::Generate(std::string const& id,
-                                  std::uintmax_t size) noexcept
+template <bool kIsExecutable>
+auto Blob<kIsExecutable>::Generate(std::string const& id,
+                                   std::uintmax_t size) noexcept
     -> std::optional<std::filesystem::path> {
     std::string const path_id = "blob" + id;
     auto path = TestFilesDirectory::Instance().GetPath() / path_id;

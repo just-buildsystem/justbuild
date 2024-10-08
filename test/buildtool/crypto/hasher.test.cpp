@@ -19,9 +19,9 @@
 
 #include "catch2/catch_test_macros.hpp"
 
-template <Hasher::HashType type>
+template <Hasher::HashType kType>
 void test_increment_hash(std::string const& bytes, std::string const& result) {
-    auto hasher = Hasher::Create(type);
+    auto hasher = Hasher::Create(kType);
     REQUIRE(hasher.has_value());
     hasher->Update(bytes.substr(0, bytes.size() / 2));
     hasher->Update(bytes.substr(bytes.size() / 2));

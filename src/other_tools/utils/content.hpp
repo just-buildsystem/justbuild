@@ -86,10 +86,10 @@
     return *data;
 }
 
-template <Hasher::HashType type>
+template <Hasher::HashType kType>
 [[nodiscard]] static auto GetContentHash(std::string const& data) noexcept
     -> std::string {
-    auto hasher = Hasher::Create(type);
+    auto hasher = Hasher::Create(kType);
     hasher->Update(data);
     auto digest = std::move(*hasher).Finalize();
     return digest.HexString();
