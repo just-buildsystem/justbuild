@@ -68,13 +68,13 @@ auto GarbageCollector::LockFilePath(
 auto GarbageCollector::TriggerGarbageCollection(
     StorageConfig const& storage_config,
     bool no_rotation) noexcept -> bool {
-    auto const kRemoveMe = std::string{"remove-me"};
+    std::string const remove_me = "remove-me";
 
     auto pid = CreateProcessUniqueId();
     if (not pid) {
         return false;
     }
-    auto remove_me_prefix = kRemoveMe + *pid + std::string{"-"};
+    auto remove_me_prefix = remove_me + *pid + std::string{"-"};
     std::vector<std::filesystem::path> to_remove{};
 
     // With a shared lock, we can remove all directories with the given prefix,
@@ -121,7 +121,7 @@ auto GarbageCollector::TriggerGarbageCollection(
         std::vector<std::filesystem::path> left_over{};
         for (auto const& entry :
              std::filesystem::directory_iterator(storage_config.CacheRoot())) {
-            if (entry.path().filename().string().starts_with(kRemoveMe)) {
+            if (entry.path().filename().string().starts_with(remove_me)) {
                 left_over.emplace_back(entry.path());
             }
         }

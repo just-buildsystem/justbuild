@@ -507,13 +507,13 @@ class GraphTraverser {
         }
 
         // split extra artifacts' nodes from artifact nodes
-        auto const itExtra =
+        auto const it_extra =
             std::next(artifact_nodes->begin(),
                       static_cast<std::int64_t>(output_paths.size()));
         auto extra_nodes = std::vector<DependencyGraph::ArtifactNode const*>{
-            std::make_move_iterator(itExtra),
+            std::make_move_iterator(it_extra),
             std::make_move_iterator(artifact_nodes->end())};
-        artifact_nodes->erase(itExtra, artifact_nodes->end());
+        artifact_nodes->erase(it_extra, artifact_nodes->end());
 
         return std::make_tuple(std::move(output_paths),
                                std::move(*artifact_nodes),

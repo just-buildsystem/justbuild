@@ -214,12 +214,12 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
     }
 
     SECTION("Get head commit") {
-        auto repo_wHead_path = TestUtils::CreateTestRepoWithCheckout();
-        REQUIRE(repo_wHead_path);
-        auto repo_wHead = GitRepo::Open(*repo_wHead_path);
-        REQUIRE(repo_wHead);
+        auto repo_head_path = TestUtils::CreateTestRepoWithCheckout();
+        REQUIRE(repo_head_path);
+        auto repo_head = GitRepo::Open(*repo_head_path);
+        REQUIRE(repo_head);
 
-        auto head_commit = repo_wHead->GetHeadCommit(logger);
+        auto head_commit = repo_head->GetHeadCommit(logger);
         REQUIRE(head_commit);
         CHECK(*head_commit == kRootCommit);
     }

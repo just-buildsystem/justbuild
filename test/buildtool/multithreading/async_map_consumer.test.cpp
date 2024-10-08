@@ -248,7 +248,7 @@ TEST_CASE("Failure detection", "[async_map_consumer]") {
     bool failed{};
 
     SECTION("Unfinished pending keys") {
-        int const kStep{3};
+        static constexpr int kStep = 3;
         REQUIRE(std::lcm(kMaxVal, kStep) > kMaxVal);
         auto map = CountToMaxConsumer(kMaxVal, kStep);
         {

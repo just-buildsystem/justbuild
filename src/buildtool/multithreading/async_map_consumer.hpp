@@ -223,7 +223,7 @@ class AsyncMapConsumer {
                                       std::move(logger),
                                       FailureFunctionPtr{failptr});
             });
-        auto wrappedLogger =
+        auto wrapped_logger =
             std::make_shared<Logger>([logger, node, ts](auto msg, auto fatal) {
                 if (fatal) {
                     node->Fail(ts);
@@ -236,9 +236,9 @@ class AsyncMapConsumer {
              ts,
              key,
              setterptr = std::move(setterptr),
-             wrappedLogger = std::move(wrappedLogger),
+             wrapped_logger = std::move(wrapped_logger),
              subcallerptr = std::move(subcallerptr)]() {
-                (*vc)(ts, setterptr, wrappedLogger, subcallerptr, key);
+                (*vc)(ts, setterptr, wrapped_logger, subcallerptr, key);
             });
         return node;
     }

@@ -46,11 +46,11 @@ auto CreateExpressionMap(
              logger,
              subcaller = std::move(subcaller),
              id](auto json_values) {
-                auto const& target_ = id.GetNamedTarget();
-                auto func_it = json_values[0]->find(target_.name);
+                auto const& target = id.GetNamedTarget();
+                auto func_it = json_values[0]->find(target.name);
                 if (func_it == json_values[0]->end()) {
                     (*logger)(fmt::format("Cannot find expression {}",
-                                          EntityName(target_).ToString()),
+                                          EntityName(target).ToString()),
                               true);
                     return;
                 }

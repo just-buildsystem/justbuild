@@ -108,18 +108,18 @@ void ReportArtifactWithDependencyOrigin(
 
 void ReportStagingConflict(
     const std::string& location,
-    const ExpressionPtr& stage_A,
-    const ExpressionPtr& stage_B,
+    const ExpressionPtr& stage_a,
+    const ExpressionPtr& stage_b,
     const std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>&
         deps_by_target,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger) {
     std::stringstream msg{};
-    auto artifact_A = stage_A->Get(location, Expression::kNone);
-    auto artifact_B = stage_B->Get(location, Expression::kNone);
+    auto artifact_a = stage_a->Get(location, Expression::kNone);
+    auto artifact_b = stage_b->Get(location, Expression::kNone);
     msg << "Staging conflict on path " << nlohmann::json(location).dump()
         << " between\n";
-    ReportArtifactWithDependencyOrigin(artifact_A, deps_by_target, &msg);
-    ReportArtifactWithDependencyOrigin(artifact_B, deps_by_target, &msg);
+    ReportArtifactWithDependencyOrigin(artifact_a, deps_by_target, &msg);
+    ReportArtifactWithDependencyOrigin(artifact_b, deps_by_target, &msg);
     (*logger)(msg.str(), true);
 }
 
@@ -868,12 +868,11 @@ void InstallRule(
     auto files = std::unordered_map<std::string, BuildMaps::Base::EntityName>{};
     files.reserve(files_exp->Map().size());
     for (auto const& [path, dep_exp] : files_exp->Map()) {
-        std::string path_ = path;  // Have a variable to capture
         auto dep_name = dep_exp.Evaluate(
-            param_config, {}, [&logger, &path_](auto const& msg) {
+            param_config, {}, [&logger, &path = path](auto const& msg) {
                 (*logger)(
                     fmt::format(
-                        "While evaluating files entry for {}:\n{}", path_, msg),
+                        "While evaluating files entry for {}:\n{}", path, msg),
                     true);
             });
         if (not dep_name) {

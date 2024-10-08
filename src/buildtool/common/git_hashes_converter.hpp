@@ -45,7 +45,7 @@ class GitHashesConverter final {
                                         std::string const& repo)
         -> compat_hash {
         {
-            std::shared_lock lock_{mutex_};
+            std::shared_lock lock{mutex_};
             auto it = git_to_compatible_.find(git_hash);
             if (it != git_to_compatible_.end()) {
                 return it->second;
@@ -54,7 +54,7 @@ class GitHashesConverter final {
         // This is only used in compatible mode.
         HashFunction const hash_function{HashFunction::Type::PlainSHA256};
         auto compatible_hash = hash_function.PlainHashData(data).HexString();
-        std::unique_lock lock_{mutex_};
+        std::unique_lock lock{mutex_};
         git_to_compatible_[git_hash] = compatible_hash;
         compatible_to_git_[compatible_hash] = {git_hash, repo};
         return compatible_hash;
@@ -62,7 +62,7 @@ class GitHashesConverter final {
 
     [[nodiscard]] auto GetGitEntry(std::string const& compatible_hash)
         -> std::optional<std::pair<git_hash const&, git_repo const&>> {
-        std::shared_lock lock_{mutex_};
+        std::shared_lock lock{mutex_};
         auto it = compatible_to_git_.find(compatible_hash);
         if (it != compatible_to_git_.end()) {
             return it->second;

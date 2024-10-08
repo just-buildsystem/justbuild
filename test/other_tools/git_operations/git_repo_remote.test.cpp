@@ -269,26 +269,26 @@ TEST_CASE("Single-threaded fake repository operations", "[git_repo_remote]") {
 
         SECTION("Fetch with refspec into repository") {
             // set repo to fetch into
-            auto path_fetch_wRefspec = TestUtils::GetRepoPath();
-            auto repo_fetch_wRefspec = GitRepoRemote::InitAndOpen(
-                path_fetch_wRefspec, /*is_bare=*/true);
-            REQUIRE(repo_fetch_wRefspec);
+            auto path_fetch_refspec = TestUtils::GetRepoPath();
+            auto repo_fetch_refspec = GitRepoRemote::InitAndOpen(
+                path_fetch_refspec, /*is_bare=*/true);
+            REQUIRE(repo_fetch_refspec);
 
             // check commit is not there before fetch
             CHECK_FALSE(
-                *repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
+                *repo_fetch_refspec->CheckCommitExists(kRootCommit, logger));
 
             // fetch all
-            REQUIRE(repo_fetch_wRefspec->FetchViaTmpRepo(storage_config.Get(),
-                                                         *repo_path,
-                                                         "master",
-                                                         {},
-                                                         "git",
-                                                         {},
-                                                         logger));
+            REQUIRE(repo_fetch_refspec->FetchViaTmpRepo(storage_config.Get(),
+                                                        *repo_path,
+                                                        "master",
+                                                        {},
+                                                        "git",
+                                                        {},
+                                                        logger));
 
             // check commit is there after fetch
-            CHECK(*repo_fetch_wRefspec->CheckCommitExists(kRootCommit, logger));
+            CHECK(*repo_fetch_refspec->CheckCommitExists(kRootCommit, logger));
         }
     }
 

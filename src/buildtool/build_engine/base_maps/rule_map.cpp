@@ -260,14 +260,13 @@ auto CreateRuleMap(gsl::not_null<RuleFileMap*> const& rule_file_map,
             {id.ToModule()},
             [ts, expr_map, repo_config, setter = std::move(setter), logger, id](
                 auto json_values) {
-                const auto& target_ = id.GetNamedTarget();
-                auto rule_it = json_values[0]->find(target_.name);
+                const auto& target = id.GetNamedTarget();
+                auto rule_it = json_values[0]->find(target.name);
                 if (rule_it == json_values[0]->end()) {
-                    (*logger)(
-                        fmt::format("Cannot find rule {} in {}",
-                                    nlohmann::json(target_.name).dump(),
-                                    nlohmann::json(target_.module).dump()),
-                        true);
+                    (*logger)(fmt::format("Cannot find rule {} in {}",
+                                          nlohmann::json(target.name).dump(),
+                                          nlohmann::json(target.module).dump()),
+                              true);
                     return;
                 }
 

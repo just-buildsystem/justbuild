@@ -44,7 +44,7 @@
 [[nodiscard]] static inline auto FromHexString(std::string const& hexstring)
     -> std::optional<std::string> {
     try {
-        const std::size_t kHexBase = 16;
+        static constexpr std::size_t kHexBase = 16;
         std::stringstream ss{};
         for (std::size_t i = 0; i < hexstring.length(); i += 2) {
             unsigned char c =

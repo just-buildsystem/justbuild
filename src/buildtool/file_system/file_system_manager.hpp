@@ -79,9 +79,9 @@ class FileSystemManager {
         auto operator=(DirectoryAnchor const&) -> DirectoryAnchor& = delete;
         auto operator=(DirectoryAnchor&&) -> DirectoryAnchor& = delete;
         ~DirectoryAnchor() noexcept {
-            if (not kRestorePath.empty()) {
+            if (not restore_path_.empty()) {
                 try {
-                    std::filesystem::current_path(kRestorePath);
+                    std::filesystem::current_path(restore_path_);
                 } catch (std::exception const& e) {
                     Logger::Log(LogLevel::Error, e.what());
                 }
@@ -89,14 +89,14 @@ class FileSystemManager {
         }
         [[nodiscard]] auto GetRestorePath() const noexcept
             -> std::filesystem::path const& {
-            return kRestorePath;
+            return restore_path_;
         }
 
       private:
-        std::filesystem::path const kRestorePath;
+        std::filesystem::path const restore_path_;
 
         DirectoryAnchor()
-            : kRestorePath{FileSystemManager::GetCurrentDirectory()} {}
+            : restore_path_{FileSystemManager::GetCurrentDirectory()} {}
         DirectoryAnchor(DirectoryAnchor&&) = default;
     };
 

@@ -49,7 +49,7 @@ struct TypeSafeArithmeticTag {
 /// \tparam TAG The actual \ref TypeSafeArithmeticTag
 template <typename TAG>
 class TypeSafeArithmetic {
-    typename TAG::value_t m_value{};
+    typename TAG::value_t value_{};
 
   public:
     using tag_t = TAG;
@@ -81,17 +81,17 @@ class TypeSafeArithmetic {
     }
 
     // NOLINTNEXTLINE
-    constexpr /*explicit*/ operator value_t() const { return m_value; }
+    constexpr /*explicit*/ operator value_t() const { return value_; }
 
-    constexpr auto get() const -> value_t { return m_value; }
+    constexpr auto get() const -> value_t { return value_; }
 
     constexpr void set(value_t value) {
         Expects(value >= kMinValue and value <= kMaxValue and
                 "value output of range");
-        m_value = value;
+        value_ = value;
     }
 
-    auto pointer() const -> const_pointer_t { return &m_value; }
+    auto pointer() const -> const_pointer_t { return &value_; }
 };
 
 // template <typename TAG>

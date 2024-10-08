@@ -1632,11 +1632,12 @@ void TreeTarget(
         directory_entries) {
     const auto& target = key.target.GetNamedTarget();
     const auto dir_name = std::filesystem::path{target.module} / target.name;
-    auto module_ = BuildMaps::Base::ModuleName{target.repository, dir_name};
+    auto target_module =
+        BuildMaps::Base::ModuleName{target.repository, dir_name};
 
     directory_entries->ConsumeAfterKeysReady(
         ts,
-        {module_},
+        {target_module},
         [context, setter, subcaller, target, key, result_map, logger, dir_name](
             auto values) {
             // expected values.size() == 1

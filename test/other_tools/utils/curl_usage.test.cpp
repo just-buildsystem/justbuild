@@ -38,27 +38,27 @@ TEST_CASE("Curl context", "[curl_context]") {
 }
 
 TEST_CASE("Curl easy handle", "[curl_easy_handle]") {
-    auto kServerUrl = std::string("http://127.0.0.1:") + getPort() +
-                      std::string("/test_file.txt");
-    auto kTargetDir =
+    auto const serve_url = std::string("http://127.0.0.1:") + getPort() +
+                           std::string("/test_file.txt");
+    auto const target_dir =
         std::filesystem::path(std::getenv("TEST_TMPDIR")) / "target_dir";
 
     // make target dir
-    CHECK(FileSystemManager::CreateDirectory(kTargetDir));
+    CHECK(FileSystemManager::CreateDirectory(target_dir));
     // create handle
     auto curl_handle = CurlEasyHandle::Create();
     REQUIRE(curl_handle);
 
     SECTION("Curl download to file") {
         // download test file from local HTTP server into new location
-        auto file_path = kTargetDir / "test_file.txt";
-        REQUIRE(curl_handle->DownloadToFile(kServerUrl, file_path) == 0);
+        auto file_path = target_dir / "test_file.txt";
+        REQUIRE(curl_handle->DownloadToFile(serve_url, file_path) == 0);
         REQUIRE(FileSystemManager::IsFile(file_path));
     }
 
     SECTION("Curl download to string") {
         // download test file from local HTTP server into string
-        auto content = curl_handle->DownloadToString(kServerUrl);
+        auto content = curl_handle->DownloadToString(serve_url);
         REQUIRE(content);
         REQUIRE(*content == "test\n");
     }

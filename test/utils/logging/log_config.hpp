@@ -24,8 +24,8 @@
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
 
 static auto ReadLogLevelFromEnv() -> LogLevel {
-    LogLevel const kDefaultTestLogLevel{LogLevel::Error};
-    LogLevel const kMaximumTestLogLevel{LogLevel::Trace};
+    static constexpr LogLevel kDefaultTestLogLevel = LogLevel::Error;
+    static constexpr LogLevel kMaximumTestLogLevel = LogLevel::Trace;
 
     auto log_level{kDefaultTestLogLevel};
 

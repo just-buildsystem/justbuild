@@ -39,21 +39,21 @@ namespace {
 class BuildCleanupAnchor {
   public:
     explicit BuildCleanupAnchor(std::filesystem::path build_path) noexcept
-        : build_path{std::move(build_path)} {}
+        : build_path_{std::move(build_path)} {}
     BuildCleanupAnchor(BuildCleanupAnchor const&) = delete;
     BuildCleanupAnchor(BuildCleanupAnchor&&) = delete;
     auto operator=(BuildCleanupAnchor const&) -> BuildCleanupAnchor& = delete;
     auto operator=(BuildCleanupAnchor&&) -> BuildCleanupAnchor& = delete;
     ~BuildCleanupAnchor() {
-        if (not FileSystemManager::RemoveDirectory(build_path, true)) {
+        if (not FileSystemManager::RemoveDirectory(build_path_, true)) {
             Logger::Log(LogLevel::Error,
                         "Could not cleanup build directory {}",
-                        build_path.string());
+                        build_path_.string());
         }
     }
 
   private:
-    std::filesystem::path const build_path;
+    std::filesystem::path const build_path_;
 };
 
 [[nodiscard]] auto CreateDigestFromLocalOwnedTree(

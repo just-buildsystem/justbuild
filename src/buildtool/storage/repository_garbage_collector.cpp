@@ -36,13 +36,14 @@ auto RepositoryGarbageCollector::LockFilePath(
 
 auto RepositoryGarbageCollector::TriggerGarbageCollection(
     StorageConfig const& storage_config) noexcept -> bool {
-    auto const kRemoveMe = std::string{"remove-me"};
+    auto const remove_me_prefix = std::string{"remove-me"};
 
     auto pid = CreateProcessUniqueId();
     if (not pid) {
         return false;
     }
-    auto remove_me = storage_config.RepositoryRoot() / (kRemoveMe + *pid);
+    auto remove_me =
+        storage_config.RepositoryRoot() / (remove_me_prefix + *pid);
 
     // With a shared lock, we can remove that directory, if it exists,
     // as we own the process id.

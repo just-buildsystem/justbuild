@@ -157,10 +157,10 @@ template <ObjectType kType>
     }
 
     // Calculate reference hash size:
-    auto const kHashSize =
+    auto const hash_size =
         task.cas.GetHashFunction().MakeHasher().GetHashLength();
-    auto const kFileNameSize =
-        kHashSize - FileStorageData::kDirectoryNameLength;
+    auto const file_name_size =
+        hash_size - FileStorageData::kDirectoryNameLength;
 
     // Check the directory itself is valid:
     std::string const d_name = directory.filename();
@@ -178,8 +178,8 @@ template <ObjectType kType>
     }
 
     FileSystemManager::ReadDirEntryFunc callback =
-        [&task, &directory, kFileNameSize](std::filesystem::path const& file,
-                                           ObjectType type) -> bool {
+        [&task, &directory, file_name_size](std::filesystem::path const& file,
+                                            ObjectType type) -> bool {
         // Directories are unexpected in storage subdirectories
         if (IsTreeObject(type)) {
             task.Log(LogLevel::Error,
@@ -188,9 +188,9 @@ template <ObjectType kType>
             return false;
         }
 
-        // Check file has a hexadecimal name of length kFileNameSize:
+        // Check file has a hexadecimal name of length file_name_size:
         std::string const f_name = file.filename();
-        if (f_name.size() == kFileNameSize and FromHexString(f_name)) {
+        if (f_name.size() == file_name_size and FromHexString(f_name)) {
             return true;
         }
         auto const path = directory / file;

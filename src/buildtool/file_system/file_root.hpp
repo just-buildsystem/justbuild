@@ -61,19 +61,19 @@ class FilteredIterator {
     FilteredIterator(I first, I last, predicate_t p) noexcept
         : iterator_{std::find_if(first, last, p)},
           end_{std::move(last)},
-          p{std::move(p)} {}
+          p_{std::move(p)} {}
 
     auto operator*() const noexcept -> reference { return iterator_->first; }
 
     auto operator++() noexcept -> FilteredIterator& {
         ++iterator_;
-        iterator_ = std::find_if(iterator_, end_, p);
+        iterator_ = std::find_if(iterator_, end_, p_);
         return *this;
     }
 
     [[nodiscard]] auto begin() noexcept -> FilteredIterator& { return *this; }
     [[nodiscard]] auto end() const noexcept -> FilteredIterator {
-        return FilteredIterator{end_, end_, p};
+        return FilteredIterator{end_, end_, p_};
     }
 
     [[nodiscard]] friend auto operator==(FilteredIterator const& x,
@@ -91,7 +91,7 @@ class FilteredIterator {
   private:
     I iterator_{};
     const I end_{};
-    predicate_t p{};
+    predicate_t p_{};
 };
 
 class FileRoot {
