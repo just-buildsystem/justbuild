@@ -1148,6 +1148,12 @@ auto main(int argc, char* argv[]) -> int {
                     result_map.ToFile(
                         *arguments.analysis.graph_file, &stats, &progress);
                 }
+                if (arguments.analysis.graph_file_plain) {
+                    result_map.ToFile</*kIncludeOrigins=*/false>(
+                        *arguments.analysis.graph_file_plain,
+                        &stats,
+                        &progress);
+                }
                 auto const [artifacts, runfiles] =
                     ReadOutputArtifacts(result->target);
                 if (arguments.analysis.artifacts_to_build_file) {

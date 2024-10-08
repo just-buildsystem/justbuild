@@ -71,6 +71,7 @@ struct AnalysisArguments {
     std::optional<std::filesystem::path> rule_root;
     std::optional<std::filesystem::path> expression_root;
     std::optional<std::filesystem::path> graph_file;
+    std::optional<std::filesystem::path> graph_file_plain;
     std::optional<std::filesystem::path> artifacts_to_build_file;
     std::optional<std::filesystem::path> serve_errors_file;
 };
@@ -342,6 +343,11 @@ static inline auto SetupAnalysisArguments(
                "--dump-graph",
                clargs->graph_file,
                "File path for writing the action graph description to.")
+            ->type_name("PATH");
+        app->add_option("--dump-plain-graph",
+                        clargs->graph_file_plain,
+                        "File path for writing the action graph description "
+                        "(without origins) to.")
             ->type_name("PATH");
         app->add_option("--dump-artifacts-to-build",
                         clargs->artifacts_to_build_file,

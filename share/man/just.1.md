@@ -439,6 +439,11 @@ File path for writing the action graph description to. See
 **`just-graph-file`**(5) for more details.  
 Supported by: analyse|build|install|rebuild.
 
+**`--dump-plain-graph`** *`PATH`*  
+File path for writing the action graph description to, however without
+the additional `"origins"` key. See **`just-graph-file`**(5) for more details.  
+Supported by: analyse|build|install|rebuild.
+
 **`-f`**, **`--log-file`** *`PATH`*  
 Path to local log file. **`just`** will store the information printed on
 stderr in the log file along with the thread id and timestamp when the
