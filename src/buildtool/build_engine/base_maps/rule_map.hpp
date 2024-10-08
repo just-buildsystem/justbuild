@@ -33,10 +33,13 @@ namespace BuildMaps::Base {
 
 using RuleFileMap = AsyncMapConsumer<ModuleName, nlohmann::json>;
 
-constexpr auto CreateRuleFileMap =
-    CreateJsonFileMap<&RepositoryConfig::RuleRoot,
-                      &RepositoryConfig::RuleFileName,
-                      /*kMandatory=*/true>;
+[[nodiscard]] static inline auto CreateRuleFileMap(
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::size_t jobs) -> JsonFileMap {
+    return CreateJsonFileMap<&RepositoryConfig::RuleRoot,
+                             &RepositoryConfig::RuleFileName,
+                             /*kMandatory=*/true>(repo_config, jobs);
+}
 
 using UserRuleMap = AsyncMapConsumer<EntityName, UserRulePtr>;
 

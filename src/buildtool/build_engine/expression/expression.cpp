@@ -216,11 +216,11 @@ auto Expression::TypeStringForIndex() const noexcept -> std::string {
     if (kIndex == data_.index()) {
         return TypeToString<std::variant_alternative_t<kIndex, var_t>>();
     }
-    constexpr auto size = std::variant_size_v<var_t>;
-    if constexpr (kIndex < size - 1) {
+    constexpr auto kSize = std::variant_size_v<var_t>;
+    if constexpr (kIndex < kSize - 1) {
         return TypeStringForIndex<kIndex + 1>();
     }
-    return TypeToString<std::variant_alternative_t<size - 1, var_t>>();
+    return TypeToString<std::variant_alternative_t<kSize - 1, var_t>>();
 }
 
 auto Expression::TypeString() const noexcept -> std::string {

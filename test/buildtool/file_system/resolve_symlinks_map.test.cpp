@@ -120,7 +120,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
     SECTION("Source repo is target repo") {
-        constexpr auto NUM_CASES = 3;
+        constexpr auto kNumCases = 3;
         std::vector<ResolvedGitObject> expected = {
             {kFooId, ObjectType::File, "baz/foo"},
             {kBazBarLinkId, ObjectType::Symlink, "bar_l"},
@@ -151,7 +151,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
                                     source_cas,
                                     source_cas)},
                 [&expected, &source_cas](auto const& values) {
-                    for (auto i = 0; i < NUM_CASES; ++i) {
+                    for (auto i = 0; i < kNumCases; ++i) {
                         auto const& res = ResolvedGitObject{*values[i]};
                         CHECK(res.id == expected[i].id);
                         CHECK(res.type == expected[i].type);
@@ -176,7 +176,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
         auto target_cas = GitCAS::Open(*target_repo_path);
         REQUIRE(target_cas);
 
-        constexpr auto NUM_CASES = 3;
+        constexpr auto kNumCases = 3;
         std::vector<ResolvedGitObject> expected = {
             {kFooId, ObjectType::File, "baz/foo"},
             {kBazBarLinkId, ObjectType::Symlink, "bar_l"},
@@ -207,7 +207,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
                                     source_cas,
                                     target_cas)},
                 [&expected, &target_cas](auto const& values) {
-                    for (auto i = 0; i < NUM_CASES; ++i) {
+                    for (auto i = 0; i < kNumCases; ++i) {
                         auto const& res = ResolvedGitObject{*values[i]};
                         CHECK(res.id == expected[i].id);
                         CHECK(res.type == expected[i].type);

@@ -33,10 +33,13 @@ namespace BuildMaps::Base {
 
 using ExpressionFileMap = AsyncMapConsumer<ModuleName, nlohmann::json>;
 
-constexpr auto CreateExpressionFileMap =
-    CreateJsonFileMap<&RepositoryConfig::ExpressionRoot,
-                      &RepositoryConfig::ExpressionFileName,
-                      /*kMandatory=*/true>;
+[[nodiscard]] static inline auto CreateExpressionFileMap(
+    gsl::not_null<const RepositoryConfig*> const& repo_config,
+    std::size_t jobs) -> JsonFileMap {
+    return CreateJsonFileMap<&RepositoryConfig::ExpressionRoot,
+                             &RepositoryConfig::ExpressionFileName,
+                             /*kMandatory=*/true>(repo_config, jobs);
+}
 
 using ExpressionFunctionMap =
     AsyncMapConsumer<EntityName, ExpressionFunctionPtr>;

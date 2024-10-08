@@ -152,21 +152,21 @@ TEST_CASE("Critical git operations", "[critical_git_op_map]") {
     // Add ops to the map. None should throw, as repeating the same operation
     // should retrieve the value from the map, not call the operation again.
     // helper lists
-    constexpr auto NUM_METHODS = 6;
-    std::vector<std::size_t> ops_all(NUM_METHODS);  // indices of all ops tested
+    constexpr auto kNumMethods = 6;
+    std::vector<std::size_t> ops_all(kNumMethods);  // indices of all ops tested
     std::iota(ops_all.begin(), ops_all.end(), 0);
 
     const std::vector<std::size_t> ops_with_result{
         0, 4};  // indices of ops that return a non-empty string
 
     // Add to the map all ops multiple times
-    constexpr auto REPEATS = 3;
-    for ([[maybe_unused]] auto k = REPEATS; k > 0; --k) {
+    constexpr auto kRepeats = 3;
+    for ([[maybe_unused]] auto k = kRepeats; k > 0; --k) {
         auto error = false;
         auto error_msg = std::string("NONE");
         {
             TaskSystem ts;
-            for ([[maybe_unused]] auto j = REPEATS; j > 0; --j) {
+            for ([[maybe_unused]] auto j = kRepeats; j > 0; --j) {
                 crit_op_map.ConsumeAfterKeysReady(
                     &ts,
                     {GitOpKey{.params =

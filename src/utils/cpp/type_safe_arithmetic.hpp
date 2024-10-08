@@ -39,9 +39,9 @@ struct TypeSafeArithmeticTag {
     using pointer_t = T*;
     using const_pointer_t = T const*;
 
-    static constexpr value_t max_value = MAX_VALUE;
-    static constexpr value_t min_value = MIN_VALUE;
-    static constexpr value_t smallest_value = SMALLEST_VALUE;
+    static constexpr value_t kMaxValue = MAX_VALUE;
+    static constexpr value_t kMinValue = MIN_VALUE;
+    static constexpr value_t kSmallestValue = SMALLEST_VALUE;
 };
 
 /// \class TypeSafeArithmetic
@@ -59,9 +59,9 @@ class TypeSafeArithmetic {
     using pointer_t = typename tag_t::pointer_t;
     using const_pointer_t = typename tag_t::const_pointer_t;
 
-    static constexpr value_t max_value = tag_t::max_value;
-    static constexpr value_t min_value = tag_t::min_value;
-    static constexpr value_t smallest_value = tag_t::smallest_value;
+    static constexpr value_t kMaxValue = tag_t::kMaxValue;
+    static constexpr value_t kMinValue = tag_t::kMinValue;
+    static constexpr value_t kSmallestValue = tag_t::kSmallestValue;
 
     constexpr TypeSafeArithmetic() = default;
 
@@ -86,7 +86,7 @@ class TypeSafeArithmetic {
     constexpr auto get() const -> value_t { return m_value; }
 
     constexpr void set(value_t value) {
-        Expects(value >= min_value and value <= max_value and
+        Expects(value >= kMinValue and value <= kMaxValue and
                 "value output of range");
         m_value = value;
     }

@@ -345,7 +345,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
     REQUIRE(target_repo);
 
     SECTION("Fetching into same repository from remote") {
-        constexpr int NUM_CASES = 4;
+        constexpr int kNumCases = 4;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
                 [&storage_config,
@@ -355,7 +355,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo_remote]") {
                  &starting_signal](int tid) {
                     starting_signal.wait(false);
                     // cases based on thread number
-                    switch (tid % NUM_CASES) {
+                    switch (tid % kNumCases) {
                         case 0: {
                             auto result_containing =
                                 target_repo->CheckCommitExists(kRootCommit,

@@ -54,5 +54,7 @@ CheckOptions:
   - { key: readability-identifier-naming.EnumCase,                      value: CamelCase  }
   - { key: readability-identifier-naming.StructCase,                    value: CamelCase  }
   - { key: readability-identifier-naming.TypeTemplateParameterCase,     value: CamelCase  }
+  - { key: readability-identifier-naming.ConstexprVariableCase,         value: CamelCase  }
+  - { key: readability-identifier-naming.ConstexprVariablePrefix,       value: k          }
   - { key: readability-identifier-naming.StaticConstantCase,            value: CamelCase  }
   - { key: readability-identifier-naming.StaticConstantPrefix,          value: k          }

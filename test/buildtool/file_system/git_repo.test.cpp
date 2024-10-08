@@ -611,7 +611,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
     threads.reserve(kNumThreads);
 
     SECTION("Lookups in the same ODB") {
-        constexpr int NUM_CASES = 10;
+        constexpr int kNumCases = 10;
         for (int id{}; id < kNumThreads; ++id) {
             threads.emplace_back(
                 [&storage_config,
@@ -621,7 +621,7 @@ TEST_CASE("Multi-threaded fake repository operations", "[git_repo]") {
                  &starting_signal](int tid) {
                     starting_signal.wait(false);
                     // cases based on thread number
-                    switch (tid % NUM_CASES) {
+                    switch (tid % kNumCases) {
                         case 0: {
                             auto remote_repo = GitRepo::Open(remote_cas);
                             REQUIRE(remote_repo);
