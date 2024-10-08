@@ -421,15 +421,15 @@ TEST_CASE("Create Git Trees", "[git_cas]") {
     SECTION("entry order") {
         auto foo_bar = GitRepo::tree_entries_t{
             {HexToRaw(kFooId),
-             {GitRepo::tree_entry_t{"foo", ObjectType::File},
-              GitRepo::tree_entry_t{"bar", ObjectType::Executable}}}};
+             {GitRepo::TreeEntry{"foo", ObjectType::File},
+              GitRepo::TreeEntry{"bar", ObjectType::Executable}}}};
         auto foo_bar_id = repo->CreateTree(foo_bar);
         REQUIRE(foo_bar_id);
 
         auto bar_foo = GitRepo::tree_entries_t{
             {HexToRaw(kFooId),
-             {GitRepo::tree_entry_t{"bar", ObjectType::Executable},
-              GitRepo::tree_entry_t{"foo", ObjectType::File}}}};
+             {GitRepo::TreeEntry{"bar", ObjectType::Executable},
+              GitRepo::TreeEntry{"foo", ObjectType::File}}}};
         auto bar_foo_id = repo->CreateTree(bar_foo);
         REQUIRE(bar_foo_id);
 

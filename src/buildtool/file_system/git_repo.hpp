@@ -44,12 +44,11 @@ class GitRepo {
   public:
     // Stores the data for defining a single Git tree entry, which consists of
     // a name (flat basename) and an object type (file/executable/tree).
-    struct tree_entry_t {
-        tree_entry_t(std::string n, ObjectType t)
-            : name{std::move(n)}, type{t} {}
+    struct TreeEntry {
+        TreeEntry(std::string n, ObjectType t) : name{std::move(n)}, type{t} {}
         std::string name;
         ObjectType type;
-        [[nodiscard]] auto operator==(tree_entry_t const& other) const noexcept
+        [[nodiscard]] auto operator==(TreeEntry const& other) const noexcept
             -> bool {
             return name == other.name and type == other.type;
         }
@@ -59,7 +58,7 @@ class GitRepo {
     // Note that sharding by id is used as this format enables a more efficient
     // internal implementation for creating trees.
     using tree_entries_t =
-        std::unordered_map<std::string, std::vector<tree_entry_t>>;
+        std::unordered_map<std::string, std::vector<TreeEntry>>;
 
     // Stores the info of an object read by its path.
     struct TreeEntryInfo {

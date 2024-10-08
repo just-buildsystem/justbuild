@@ -278,7 +278,7 @@ namespace {
 }
 }  // namespace
 
-BazelNetworkReader::IncrementalReader::iterator::iterator(
+BazelNetworkReader::IncrementalReader::Iterator::Iterator(
     BazelNetworkReader const& owner,
     std::vector<bazel_re::Digest>::const_iterator begin,
     std::vector<bazel_re::Digest>::const_iterator end) noexcept
@@ -286,7 +286,7 @@ BazelNetworkReader::IncrementalReader::iterator::iterator(
     current_ = FindCurrentIterator(begin_, end_);
 }
 
-auto BazelNetworkReader::IncrementalReader::iterator::operator*() const noexcept
+auto BazelNetworkReader::IncrementalReader::Iterator::operator*() const noexcept
     -> value_type {
     if (begin_ != current_) {
         if (std::distance(begin_, current_) > 1) {
@@ -300,8 +300,8 @@ auto BazelNetworkReader::IncrementalReader::iterator::operator*() const noexcept
     return {};
 }
 
-auto BazelNetworkReader::IncrementalReader::iterator::operator++() noexcept
-    -> iterator& {
+auto BazelNetworkReader::IncrementalReader::Iterator::operator++() noexcept
+    -> Iterator& {
     begin_ = current_;
     current_ = FindCurrentIterator(begin_, end_);
     return *this;

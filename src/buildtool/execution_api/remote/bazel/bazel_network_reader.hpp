@@ -106,7 +106,7 @@ class BazelNetworkReader::IncrementalReader final {
                       std::vector<bazel_re::Digest> digests) noexcept
         : owner_(owner), digests_(std::move(digests)) {}
 
-    class iterator final {
+    class Iterator final {
       public:
         using value_type = std::vector<ArtifactBlob>;
         using pointer = value_type*;
@@ -114,22 +114,22 @@ class BazelNetworkReader::IncrementalReader final {
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 
-        iterator(BazelNetworkReader const& owner,
+        Iterator(BazelNetworkReader const& owner,
                  std::vector<bazel_re::Digest>::const_iterator begin,
                  std::vector<bazel_re::Digest>::const_iterator end) noexcept;
 
         auto operator*() const noexcept -> value_type;
-        auto operator++() noexcept -> iterator&;
+        auto operator++() noexcept -> Iterator&;
 
-        [[nodiscard]] friend auto operator==(iterator const& lhs,
-                                             iterator const& rhs) noexcept
+        [[nodiscard]] friend auto operator==(Iterator const& lhs,
+                                             Iterator const& rhs) noexcept
             -> bool {
             return lhs.begin_ == rhs.begin_ and lhs.end_ == rhs.end_ and
                    lhs.current_ == rhs.current_;
         }
 
-        [[nodiscard]] friend auto operator!=(iterator const& lhs,
-                                             iterator const& rhs) noexcept
+        [[nodiscard]] friend auto operator!=(Iterator const& lhs,
+                                             Iterator const& rhs) noexcept
             -> bool {
             return not(lhs == rhs);
         }
@@ -142,11 +142,11 @@ class BazelNetworkReader::IncrementalReader final {
     };
 
     [[nodiscard]] auto begin() const noexcept {
-        return iterator{owner_, digests_.begin(), digests_.end()};
+        return Iterator{owner_, digests_.begin(), digests_.end()};
     }
 
     [[nodiscard]] auto end() const noexcept {
-        return iterator{owner_, digests_.end(), digests_.end()};
+        return Iterator{owner_, digests_.end(), digests_.end()};
     }
 
   private:

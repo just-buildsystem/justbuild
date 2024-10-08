@@ -26,7 +26,7 @@
 // libcxx adds support for notify_*() and wait().
 // [https://libcxx.llvm.org/docs/Cxx2aStatus.html]
 template <class T>
-class atomic {
+class atomic {  // NOLINT(readability-identifier-naming)
   public:
     atomic() = default;
     explicit atomic(T value) : value_{std::move(value)} {}
@@ -97,7 +97,7 @@ class atomic {
 // std::atomic<std::shared_ptr<T>>, once libcxx adds support for it.
 // [https://libcxx.llvm.org/docs/Cxx2aStatus.html]
 template <class T>
-class atomic_shared_ptr {
+class atomic_shared_ptr {  // NOLINT(readability-identifier-naming)
     using ptr_t = std::shared_ptr<T>;
 
   public:

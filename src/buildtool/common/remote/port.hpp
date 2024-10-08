@@ -27,8 +27,8 @@
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
 
 // Port
-struct PortTag : type_safe_arithmetic_tag<std::uint16_t> {};
-using Port = type_safe_arithmetic<PortTag>;
+struct PortTag : TypeSafeArithmeticTag<std::uint16_t> {};
+using Port = TypeSafeArithmetic<PortTag>;
 
 [[nodiscard]] static auto ParsePort(int const port_num) noexcept
     -> std::optional<Port> {

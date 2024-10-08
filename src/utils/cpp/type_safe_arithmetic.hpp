@@ -20,16 +20,16 @@
 
 #include "gsl/gsl"
 
-/// \struct type_safe_arithmetic_tag
+/// \struct TypeSafeArithmeticTag
 /// \brief Abstract tag defining types and limits for custom arithmetic types.
 /// Usage example:
-/// struct my_type_tag : type_safe_arithmetic_tag<int, -2, +3> {};
-/// using my_type_t = type_safe_arithmetic<my_type_tag>;
+/// struct my_type_tag : TypeSafeArithmeticTag<int, -2, +3> {};
+/// using my_type_t = TypeSafeArithmetic<my_type_tag>;
 template <typename T,
           T MIN_VALUE = std::numeric_limits<T>::lowest(),
           T MAX_VALUE = std::numeric_limits<T>::max(),
           T SMALLEST_VALUE = std::numeric_limits<T>::min()>
-struct type_safe_arithmetic_tag {
+struct TypeSafeArithmeticTag {
     static_assert(std::is_arithmetic_v<T>,
                   "T must be an arithmetic type (integer or floating-point)");
 
@@ -44,11 +44,11 @@ struct type_safe_arithmetic_tag {
     static constexpr value_t smallest_value = SMALLEST_VALUE;
 };
 
-/// \class type_safe_arithmetic
+/// \class TypeSafeArithmetic
 /// \brief Abstract class for defining custom arithmetic types.
-/// \tparam TAG The actual \ref type_safe_arithmetic_tag
+/// \tparam TAG The actual \ref TypeSafeArithmeticTag
 template <typename TAG>
-class type_safe_arithmetic {
+class TypeSafeArithmetic {
     typename TAG::value_t m_value{};
 
   public:
@@ -63,20 +63,19 @@ class type_safe_arithmetic {
     static constexpr value_t min_value = tag_t::min_value;
     static constexpr value_t smallest_value = tag_t::smallest_value;
 
-    constexpr type_safe_arithmetic() = default;
+    constexpr TypeSafeArithmetic() = default;
 
     // NOLINTNEXTLINE
-    constexpr /*explicit*/ type_safe_arithmetic(value_t value) { set(value); }
+    constexpr /*explicit*/ TypeSafeArithmetic(value_t value) { set(value); }
 
-    type_safe_arithmetic(type_safe_arithmetic const&) = default;
-    type_safe_arithmetic(type_safe_arithmetic&&) noexcept = default;
-    auto operator=(type_safe_arithmetic const&) -> type_safe_arithmetic& =
-                                                       default;
-    auto operator=(type_safe_arithmetic&&) noexcept -> type_safe_arithmetic& =
-                                                           default;
-    ~type_safe_arithmetic() = default;
+    TypeSafeArithmetic(TypeSafeArithmetic const&) = default;
+    TypeSafeArithmetic(TypeSafeArithmetic&&) noexcept = default;
+    auto operator=(TypeSafeArithmetic const&) -> TypeSafeArithmetic& = default;
+    auto operator=(TypeSafeArithmetic&&) noexcept -> TypeSafeArithmetic& =
+                                                         default;
+    ~TypeSafeArithmetic() = default;
 
-    auto operator=(value_t value) -> type_safe_arithmetic& {
+    auto operator=(value_t value) -> TypeSafeArithmetic& {
         set(value);
         return *this;
     }
@@ -96,115 +95,114 @@ class type_safe_arithmetic {
 };
 
 // template <typename TAG>
-// bool operator==(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator==(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return lhs.get() == rhs.get();
 // }
 //
 // template <typename TAG>
-// bool operator!=(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator!=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return !(lhs == rhs);
 // }
 //
 // template <typename TAG>
-// bool operator>(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator>(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return lhs.get() > rhs.get();
 // }
 //
 // template <typename TAG>
-// bool operator>=(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator>=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return lhs.get() >= rhs.get();
 // }
 //
 // template <typename TAG>
-// bool operator<(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator<(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return lhs.get() < rhs.get();
 // }
 //
 // template <typename TAG>
-// bool operator<=(type_safe_arithmetic<TAG> lhs, type_safe_arithmetic<TAG> rhs)
+// bool operator<=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
 // {
 //     return lhs.get() <= rhs.get();
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG> operator+(type_safe_arithmetic<TAG> lhs,
-//                                     type_safe_arithmetic<TAG> rhs) {
-//     return type_safe_arithmetic<TAG>{lhs.get() + rhs.get()};
+// TypeSafeArithmetic<TAG> operator+(TypeSafeArithmetic<TAG> lhs,
+//                                     TypeSafeArithmetic<TAG> rhs) {
+//     return TypeSafeArithmetic<TAG>{lhs.get() + rhs.get()};
 // }
 
 template <typename TAG>
-auto operator+=(type_safe_arithmetic<TAG>& lhs,
-                type_safe_arithmetic<TAG> rhs) -> type_safe_arithmetic<TAG>& {
+auto operator+=(TypeSafeArithmetic<TAG>& lhs,
+                TypeSafeArithmetic<TAG> rhs) -> TypeSafeArithmetic<TAG>& {
     lhs.set(lhs.get() + rhs.get());
     return lhs;
 }
 
 // template <typename TAG>
-// type_safe_arithmetic<TAG> operator-(type_safe_arithmetic<TAG> lhs,
-//                                     type_safe_arithmetic<TAG> rhs) {
-//     return type_safe_arithmetic<TAG>{lhs.get() - rhs.get()};
+// TypeSafeArithmetic<TAG> operator-(TypeSafeArithmetic<TAG> lhs,
+//                                     TypeSafeArithmetic<TAG> rhs) {
+//     return TypeSafeArithmetic<TAG>{lhs.get() - rhs.get()};
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG>& operator-=(type_safe_arithmetic<TAG>& lhs,
-//                                       type_safe_arithmetic<TAG> rhs) {
+// TypeSafeArithmetic<TAG>& operator-=(TypeSafeArithmetic<TAG>& lhs,
+//                                       TypeSafeArithmetic<TAG> rhs) {
 //     lhs.set(lhs.get() - rhs.get());
 //     return lhs;
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG> operator*(type_safe_arithmetic<TAG> lhs,
+// TypeSafeArithmetic<TAG> operator*(TypeSafeArithmetic<TAG> lhs,
 //                                     typename TAG::value_t rhs) {
-//     return type_safe_arithmetic<TAG>{lhs.get() - rhs};
+//     return TypeSafeArithmetic<TAG>{lhs.get() - rhs};
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG>& operator*=(type_safe_arithmetic<TAG>& lhs,
+// TypeSafeArithmetic<TAG>& operator*=(TypeSafeArithmetic<TAG>& lhs,
 //                                       typename TAG::value_t rhs) {
 //     lhs.set(lhs.get() * rhs);
 //     return lhs;
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG> operator/(type_safe_arithmetic<TAG> lhs,
+// TypeSafeArithmetic<TAG> operator/(TypeSafeArithmetic<TAG> lhs,
 //                                     typename TAG::value_t rhs) {
-//     return type_safe_arithmetic<TAG>{lhs.get() / rhs};
+//     return TypeSafeArithmetic<TAG>{lhs.get() / rhs};
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG>& operator/=(type_safe_arithmetic<TAG>& lhs,
+// TypeSafeArithmetic<TAG>& operator/=(TypeSafeArithmetic<TAG>& lhs,
 //                                       typename TAG::value_t rhs) {
 //     lhs.set(lhs.get() / rhs);
 //     return lhs;
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG>& operator++(type_safe_arithmetic<TAG>& a) {
-//     return a += type_safe_arithmetic<TAG>{1};
+// TypeSafeArithmetic<TAG>& operator++(TypeSafeArithmetic<TAG>& a) {
+//     return a += TypeSafeArithmetic<TAG>{1};
 // }
 
 template <typename TAG>
-auto operator++(type_safe_arithmetic<TAG>& a,
-                int) -> type_safe_arithmetic<TAG> {
+auto operator++(TypeSafeArithmetic<TAG>& a, int) -> TypeSafeArithmetic<TAG> {
     auto r = a;
-    a += type_safe_arithmetic<TAG>{1};
+    a += TypeSafeArithmetic<TAG>{1};
     return r;
 }
 
 // template <typename TAG>
-// type_safe_arithmetic<TAG>& operator--(type_safe_arithmetic<TAG>& a) {
-//     return a -= type_safe_arithmetic<TAG>{1};
+// TypeSafeArithmetic<TAG>& operator--(TypeSafeArithmetic<TAG>& a) {
+//     return a -= TypeSafeArithmetic<TAG>{1};
 // }
 //
 // template <typename TAG>
-// type_safe_arithmetic<TAG> operator--(type_safe_arithmetic<TAG>& a, int) {
+// TypeSafeArithmetic<TAG> operator--(TypeSafeArithmetic<TAG>& a, int) {
 //     auto r = a;
-//     a += type_safe_arithmetic<TAG>{1};
+//     a += TypeSafeArithmetic<TAG>{1};
 //     return r;
 // }
 

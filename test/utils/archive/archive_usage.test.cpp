@@ -50,7 +50,7 @@ auto const kExpected = filetree_t{{"foo", {"foo", AE_IFREG}},
                                   {"bar/", {"", AE_IFDIR}},
                                   {"bar/baz", {"baz", AE_IFREG}}};
 
-struct archive_test_info_t {
+struct ArchiveTestInfo {
     std::string test_name;
     ArchiveType type;
     std::string test_dir;
@@ -59,7 +59,7 @@ struct archive_test_info_t {
     std::string cmd;
 };
 
-std::vector<archive_test_info_t> const kTestScenarios = {
+std::vector<ArchiveTestInfo> const kTestScenarios = {
     {.test_name = "tar",
      .type = ArchiveType::Tar,
      .test_dir = "test_tar",

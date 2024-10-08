@@ -20,7 +20,7 @@
 
 // TODO(modernize): replace this by std::unexpected once we switched to C++23
 template <class E>
-class unexpected {
+class unexpected {  // NOLINT(readability-identifier-naming)
   public:
     explicit unexpected(E error) : error_{std::move(error)} {}
     [[nodiscard]] auto error() && -> E { return std::move(error_); }
@@ -31,7 +31,7 @@ class unexpected {
 
 // TODO(modernize): replace this by std::expected once we switched to C++23
 template <class T, class E>
-class expected {
+class expected {  // NOLINT(readability-identifier-naming)
   public:
     expected(T value) noexcept  // NOLINT
         : value_{std::in_place_index<0>, std::move(value)} {}

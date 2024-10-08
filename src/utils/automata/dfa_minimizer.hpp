@@ -51,7 +51,7 @@ class DFAMinimizer {
     // Key used for state pairs. Reordering names will result in the same key.
     class StatePairKey {
       public:
-        struct hash_t {
+        struct Hash {
             [[nodiscard]] auto operator()(StatePairKey const& p) const
                 -> std::size_t {
                 std::size_t hash{};
@@ -91,7 +91,7 @@ class DFAMinimizer {
     };
 
     using state_pairs_t =
-        std::unordered_map<StatePairKey, StatePairValue, StatePairKey::hash_t>;
+        std::unordered_map<StatePairKey, StatePairValue, StatePairKey::Hash>;
 
   public:
     using bisimulation_t = std::unordered_map<std::string, std::string>;

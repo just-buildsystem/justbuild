@@ -96,13 +96,13 @@ class FilteredIterator {
 
 class FileRoot {
     using fs_root_t = std::filesystem::path;
-    struct git_root_t {
+    struct RootGit {
         gsl::not_null<GitCASPtr> cas;
         gsl::not_null<GitTreePtr> tree;
     };
     // absent roots are defined by a tree hash with no witnessing repository
     using absent_root_t = std::string;
-    using root_t = std::variant<fs_root_t, git_root_t, absent_root_t>;
+    using root_t = std::variant<fs_root_t, RootGit, absent_root_t>;
 
   public:
     static constexpr auto kGitTreeMarker = "git tree";
@@ -324,7 +324,7 @@ class FileRoot {
     FileRoot(gsl::not_null<GitCASPtr> const& cas,
              gsl::not_null<GitTreePtr> const& tree,
              bool ignore_special = false) noexcept
-        : root_{git_root_t{cas, tree}}, ignore_special_{ignore_special} {}
+        : root_{RootGit{cas, tree}}, ignore_special_{ignore_special} {}
 
     [[nodiscard]] static auto FromGit(std::filesystem::path const& repo_path,
                                       std::string const& git_tree_id,
@@ -353,12 +353,12 @@ class FileRoot {
     [[nodiscard]] auto ContentDescription() const noexcept
         -> std::optional<nlohmann::json> {
         try {
-            if (std::holds_alternative<git_root_t>(root_)) {
+            if (std::holds_alternative<RootGit>(root_)) {
                 nlohmann::json j;
                 j.push_back(ignore_special_ ? kGitTreeIgnoreSpecialMarker
                                             : kGitTreeMarker);
                 // we need the root tree id, irrespective of ignore_special flag
-                j.push_back(std::get<git_root_t>(root_).tree->FileRootHash());
+                j.push_back(std::get<RootGit>(root_).tree->FileRootHash());
                 return j;
             }
             if (std::holds_alternative<absent_root_t>(root_)) {
@@ -381,17 +381,17 @@ class FileRoot {
     // `IsDirectory()`, and `BlobType()` on contents of the same directory will
     // be served without any additional file system lookups.
     [[nodiscard]] auto HasFastDirectoryLookup() const noexcept -> bool {
-        return std::holds_alternative<git_root_t>(root_);
+        return std::holds_alternative<RootGit>(root_);
     }
 
     [[nodiscard]] auto Exists(std::filesystem::path const& path) const noexcept
         -> bool {
-        if (std::holds_alternative<git_root_t>(root_)) {
+        if (std::holds_alternative<RootGit>(root_)) {
             if (path == ".") {
                 return true;
             }
             return static_cast<bool>(
-                std::get<git_root_t>(root_).tree->LookupEntryByPath(path));
+                std::get<RootGit>(root_).tree->LookupEntryByPath(path));
         }
         if (std::holds_alternative<fs_root_t>(root_)) {
             auto root_path = std::get<fs_root_t>(root_) / path;
@@ -407,10 +407,9 @@ class FileRoot {
 
     [[nodiscard]] auto IsFile(
         std::filesystem::path const& file_path) const noexcept -> bool {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        file_path)) {
+        if (std::holds_alternative<RootGit>(root_)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    file_path)) {
                 return IsFileObject(entry->Type());
             }
         }
@@ -423,10 +422,9 @@ class FileRoot {
 
     [[nodiscard]] auto IsSymlink(
         std::filesystem::path const& file_path) const noexcept -> bool {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        file_path)) {
+        if (std::holds_alternative<RootGit>(root_)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    file_path)) {
                 return IsSymlinkObject(entry->Type());
             }
         }
@@ -444,13 +442,12 @@ class FileRoot {
 
     [[nodiscard]] auto IsDirectory(
         std::filesystem::path const& dir_path) const noexcept -> bool {
-        if (std::holds_alternative<git_root_t>(root_)) {
+        if (std::holds_alternative<RootGit>(root_)) {
             if (dir_path == ".") {
                 return true;
             }
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        dir_path)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    dir_path)) {
                 return entry->IsTree();
             }
         }
@@ -464,10 +461,9 @@ class FileRoot {
     /// \brief Read content of file or symlink.
     [[nodiscard]] auto ReadContent(std::filesystem::path const& file_path)
         const noexcept -> std::optional<std::string> {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        file_path)) {
+        if (std::holds_alternative<RootGit>(root_)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    file_path)) {
                 if (IsBlobObject(entry->Type())) {
                     return entry->Blob();
                 }
@@ -488,8 +484,8 @@ class FileRoot {
     [[nodiscard]] auto ReadDirectory(std::filesystem::path const& dir_path)
         const noexcept -> DirectoryEntries {
         try {
-            if (std::holds_alternative<git_root_t>(root_)) {
-                auto const& tree = std::get<git_root_t>(root_).tree;
+            if (std::holds_alternative<RootGit>(root_)) {
+                auto const& tree = std::get<RootGit>(root_).tree;
                 if (dir_path == ".") {
                     return DirectoryEntries{&(*tree)};
                 }
@@ -523,10 +519,9 @@ class FileRoot {
 
     [[nodiscard]] auto BlobType(std::filesystem::path const& file_path)
         const noexcept -> std::optional<ObjectType> {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        file_path)) {
+        if (std::holds_alternative<RootGit>(root_)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    file_path)) {
                 if (IsBlobObject(entry->Type())) {
                     return entry->Type();
                 }
@@ -546,9 +541,9 @@ class FileRoot {
     /// \brief Read a blob from the root based on its ID.
     [[nodiscard]] auto ReadBlob(std::string const& blob_id) const noexcept
         -> std::optional<std::string> {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            return std::get<git_root_t>(root_).cas->ReadObject(
-                blob_id, /*is_hex_id=*/true);
+        if (std::holds_alternative<RootGit>(root_)) {
+            return std::get<RootGit>(root_).cas->ReadObject(blob_id,
+                                                            /*is_hex_id=*/true);
         }
         return std::nullopt;
     }
@@ -557,9 +552,9 @@ class FileRoot {
     /// This should include all valid entry types.
     [[nodiscard]] auto ReadTree(std::string const& tree_id) const noexcept
         -> std::optional<GitTree> {
-        if (std::holds_alternative<git_root_t>(root_)) {
+        if (std::holds_alternative<RootGit>(root_)) {
             try {
-                auto const& cas = std::get<git_root_t>(root_).cas;
+                auto const& cas = std::get<RootGit>(root_).cas;
                 return GitTree::Read(cas, tree_id);
             } catch (...) {
                 return std::nullopt;
@@ -575,10 +570,9 @@ class FileRoot {
         std::filesystem::path const& file_path,
         std::string const& repository) const noexcept
         -> std::optional<ArtifactDescription> {
-        if (std::holds_alternative<git_root_t>(root_)) {
-            if (auto entry =
-                    std::get<git_root_t>(root_).tree->LookupEntryByPath(
-                        file_path)) {
+        if (std::holds_alternative<RootGit>(root_)) {
+            if (auto entry = std::get<RootGit>(root_).tree->LookupEntryByPath(
+                    file_path)) {
                 if (entry->IsBlob()) {
                     if (not ProtocolTraits::IsNative(hash_type)) {
                         auto compatible_hash =

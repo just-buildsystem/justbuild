@@ -1841,7 +1841,7 @@ auto GitRepo::ReadTree(std::string const& id,
             for (auto const& entry : entries) {
                 if (std::any_of(entry.second.begin(),
                                 entry.second.end(),
-                                [](tree_entry_t const& item) {
+                                [](TreeEntry const& item) {
                                     return IsSymlinkObject(item.type);
                                 })) {
                     auto digest = ArtifactDigestFactory::Create(

@@ -178,13 +178,13 @@ class DependencyGraph : DirectedAcyclicGraph {
     class ArtifactNode;
 
     // Node identifier for actions
-    struct ActionNodeIdentifierTag : type_safe_arithmetic_tag<std::size_t> {};
-    using ActionNodeIdentifier = type_safe_arithmetic<ActionNodeIdentifierTag>;
+    struct ActionNodeIdentifierTag : TypeSafeArithmeticTag<std::size_t> {};
+    using ActionNodeIdentifier = TypeSafeArithmetic<ActionNodeIdentifierTag>;
 
     // Node identifier for artifacts
-    struct ArtifactNodeIdentifierTag : type_safe_arithmetic_tag<std::size_t> {};
+    struct ArtifactNodeIdentifierTag : TypeSafeArithmeticTag<std::size_t> {};
     using ArtifactNodeIdentifier =
-        type_safe_arithmetic<ArtifactNodeIdentifierTag>;
+        TypeSafeArithmetic<ArtifactNodeIdentifierTag>;
 
     /// \brief Class for traversal state data specific for ActionNode's
     /// Provides the following atomic operations (listed on the public methods):

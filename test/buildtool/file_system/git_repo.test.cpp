@@ -263,9 +263,9 @@ TEST_CASE("Single-threaded real repository local operations", "[git_repo]") {
         // tag uncommitted tree
         auto foo_bar = GitRepo::tree_entries_t{
             {FromHexString(kFooId).value_or<std::string>({}),
-             {GitRepo::tree_entry_t{"foo", ObjectType::File}}},
+             {GitRepo::TreeEntry{"foo", ObjectType::File}}},
             {FromHexString(kBarId).value_or<std::string>({}),
-             {GitRepo::tree_entry_t{"bar", ObjectType::Executable}}}};
+             {GitRepo::TreeEntry{"bar", ObjectType::Executable}}}};
         auto foo_bar_id = repo_tag->CreateTree(foo_bar);
         REQUIRE(foo_bar_id);
         auto tree_id = ToHexString(*foo_bar_id);
