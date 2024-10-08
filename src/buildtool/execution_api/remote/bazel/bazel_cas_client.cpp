@@ -421,10 +421,10 @@ auto BazelCasClient::BlobSpliceSupport(
         hash_function, instance_name, stub_, &logger_);
 }
 
-template <class T_ForwardIter>
+template <class TForwardIter>
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
-                                      T_ForwardIter const& start,
-                                      T_ForwardIter const& end) const noexcept
+                                      TForwardIter const& start,
+                                      TForwardIter const& end) const noexcept
     -> std::vector<bazel_re::Digest> {
     std::vector<bazel_re::Digest> result;
     if (start == end) {
@@ -606,9 +606,9 @@ auto BazelCasClient::BatchUpdateBlobs(
 namespace detail {
 
 // Getter for response contents (needs specialization, never implemented)
-template <class T_Content, class T_Response>
-static auto GetResponseContents(T_Response const&) noexcept
-    -> pb::RepeatedPtrField<T_Content> const&;
+template <class TContent, class TResponse>
+static auto GetResponseContents(TResponse const&) noexcept
+    -> pb::RepeatedPtrField<TContent> const&;
 
 // Specialization of GetResponseContents for 'FindMissingBlobsResponse'
 template <>
@@ -636,26 +636,26 @@ auto GetResponseContents<bazel_re::Digest, bazel_re::SplitBlobResponse>(
 
 }  // namespace detail
 
-template <typename T_Request, typename T_ForwardIter>
+template <typename TRequest, typename TForwardIter>
 auto BazelCasClient::CreateBatchRequestsMaxSize(
     std::string const& instance_name,
-    T_ForwardIter const& first,
-    T_ForwardIter const& last,
+    TForwardIter const& first,
+    TForwardIter const& last,
     std::string const& heading,
-    std::function<void(T_Request*,
-                       typename T_ForwardIter::value_type const&)> const&
-        request_builder) const noexcept -> std::vector<T_Request> {
+    std::function<void(TRequest*,
+                       typename TForwardIter::value_type const&)> const&
+        request_builder) const noexcept -> std::vector<TRequest> {
     if (first == last) {
         return {};
     }
-    std::vector<T_Request> result;
-    T_Request accumulating_request;
+    std::vector<TRequest> result;
+    TRequest accumulating_request;
     std::for_each(
         first,
         last,
         [&instance_name, &accumulating_request, &result, &request_builder](
             auto const& blob) {
-            T_Request request;
+            TRequest request;
             request.set_instance_name(instance_name);
             request_builder(&request, blob);
             if (accumulating_request.ByteSizeLong() + request.ByteSizeLong() >
@@ -704,11 +704,11 @@ auto BazelCasClient::CreateGetTreeRequest(
     return request;
 }
 
-template <class T_Content, class T_Response>
+template <class TContent, class TResponse>
 auto BazelCasClient::ProcessResponseContents(
-    T_Response const& response) const noexcept -> std::vector<T_Content> {
-    std::vector<T_Content> output;
-    auto const& contents = detail::GetResponseContents<T_Content>(response);
+    TResponse const& response) const noexcept -> std::vector<TContent> {
+    std::vector<TContent> output;
+    auto const& contents = detail::GetResponseContents<TContent>(response);
     std::copy(contents.begin(), contents.end(), std::back_inserter(output));
     return output;
 }

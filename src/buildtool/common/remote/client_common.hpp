@@ -72,11 +72,11 @@
                        s.message());
 }
 
-template <typename T_Status>
+template <typename TStatus>
 [[maybe_unused]] static inline void LogStatus(
     Logger const* logger,
     LogLevel level,
-    T_Status const& s,
+    TStatus const& s,
     std::optional<std::string> const& prefix = std::nullopt) noexcept {
     auto msg = [&s, &prefix]() { return StatusString(s, prefix); };
     if (logger == nullptr) {

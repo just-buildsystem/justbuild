@@ -157,21 +157,21 @@ class BazelCasClient {
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 
-    template <class T_OutputIter>
+    template <class TOutputIter>
     [[nodiscard]] auto FindMissingBlobs(std::string const& instance_name,
-                                        T_OutputIter const& start,
-                                        T_OutputIter const& end) const noexcept
+                                        TOutputIter const& start,
+                                        TOutputIter const& end) const noexcept
         -> std::vector<bazel_re::Digest>;
 
-    template <typename T_Request, typename T_ForwardIter>
+    template <typename TRequest, typename TForwardIter>
     [[nodiscard]] auto CreateBatchRequestsMaxSize(
         std::string const& instance_name,
-        T_ForwardIter const& first,
-        T_ForwardIter const& last,
+        TForwardIter const& first,
+        TForwardIter const& last,
         std::string const& heading,
-        std::function<void(T_Request*,
-                           typename T_ForwardIter::value_type const&)> const&
-            request_builder) const noexcept -> std::vector<T_Request>;
+        std::function<void(TRequest*,
+                           typename TForwardIter::value_type const&)> const&
+            request_builder) const noexcept -> std::vector<TRequest>;
 
     [[nodiscard]] static auto CreateUpdateBlobsSingleRequest(
         BazelBlob const& b) noexcept
@@ -185,22 +185,22 @@ class BazelCasClient {
 
     /// \brief Utility class for supporting the Retry strategy while parsing a
     /// BatchResponse
-    template <typename T_Content>
+    template <typename TContent>
     struct RetryProcessBatchResponse {
         bool ok{false};
-        std::vector<T_Content> result;
+        std::vector<TContent> result;
         bool exit_retry_loop{false};
         std::optional<std::string> error_msg;
     };
 
     // If this function is defined in the .cpp file, clang raises an error
     // while linking
-    template <class T_Content, class T_Inner, class T_Response>
+    template <class TContent, class TInner, class TResponse>
     [[nodiscard]] auto ProcessBatchResponse(
-        T_Response const& response,
-        std::function<void(std::vector<T_Content>*, T_Inner const&)> const&
-            inserter) const noexcept -> RetryProcessBatchResponse<T_Content> {
-        std::vector<T_Content> output;
+        TResponse const& response,
+        std::function<void(std::vector<TContent>*, TInner const&)> const&
+            inserter) const noexcept -> RetryProcessBatchResponse<TContent> {
+        std::vector<TContent> output;
         for (auto const& res : response.responses()) {
             auto const& res_status = res.status();
             if (res_status.code() == static_cast<int>(grpc::StatusCode::OK)) {
@@ -220,9 +220,9 @@ class BazelCasClient {
         return {.ok = true, .result = std::move(output)};
     }
 
-    template <class T_Content, class T_Response>
-    auto ProcessResponseContents(T_Response const& response) const noexcept
-        -> std::vector<T_Content>;
+    template <class TContent, class TResponse>
+    auto ProcessResponseContents(TResponse const& response) const noexcept
+        -> std::vector<TContent>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CAS_CLIENT_HPP

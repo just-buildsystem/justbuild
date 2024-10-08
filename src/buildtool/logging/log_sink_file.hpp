@@ -40,12 +40,12 @@
 #include "src/buildtool/logging/logger.hpp"
 
 /// \brief Thread-safe map of mutexes.
-template <class T_Key>
+template <class TKey>
 class MutexMap {
   public:
     /// \brief Create mutex for key and run callback if successfully created.
     /// Callback is executed while the internal map is still held exclusively.
-    void Create(T_Key const& key, std::function<void()> const& callback) {
+    void Create(TKey const& key, std::function<void()> const& callback) {
         std::lock_guard lock(mutex_);
         if (not map_.contains(key)) {
             [[maybe_unused]] auto& mutex = map_[key];
@@ -53,14 +53,14 @@ class MutexMap {
         }
     }
     /// \brief Get mutex for key, creates mutex if key does not exist.
-    [[nodiscard]] auto Get(T_Key const& key) noexcept -> std::mutex& {
+    [[nodiscard]] auto Get(TKey const& key) noexcept -> std::mutex& {
         std::lock_guard lock(mutex_);
         return map_[key];
     }
 
   private:
     std::mutex mutex_;
-    std::unordered_map<T_Key, std::mutex> map_;
+    std::unordered_map<TKey, std::mutex> map_;
 };
 
 class LogSinkFile final : public ILogSink {

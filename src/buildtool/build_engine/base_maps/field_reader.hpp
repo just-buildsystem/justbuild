@@ -58,10 +58,10 @@ class FieldReader {
             names_.reserve(size);
             ids_.reserve(size);
         }
-        template <class T_Name, class T_Id>
-        auto emplace_back(T_Name&& name, T_Id&& id) -> void {
-            names_.emplace_back(std::forward<T_Name>(name));
-            ids_.emplace_back(std::forward<T_Id>(id));
+        template <class TName, class TId>
+        auto emplace_back(TName&& name, TId&& id) -> void {
+            names_.emplace_back(std::forward<TName>(name));
+            ids_.emplace_back(std::forward<TId>(id));
         }
 
       private:

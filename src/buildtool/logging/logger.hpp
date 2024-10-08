@@ -67,13 +67,13 @@ class Logger {
     void SetLogLimit(LogLevel level) noexcept { log_limit_ = level; }
 
     /// \brief Emit log message from string via this logger instance.
-    template <class... T_Args>
+    template <class... TArgs>
     void Emit(LogLevel level,
               std::string const& msg,
-              T_Args&&... args) const noexcept {
+              TArgs&&... args) const noexcept {
         if (static_cast<int>(level) <= static_cast<int>(log_limit_)) {
             FormatAndForward(
-                this, sinks_, level, msg, std::forward<T_Args>(args)...);
+                this, sinks_, level, msg, std::forward<TArgs>(args)...);
         }
     }
 
@@ -86,17 +86,17 @@ class Logger {
     }
 
     /// \brief Log message from string via LogConfig's sinks and log limit.
-    template <class... T_Args>
+    template <class... TArgs>
     static void Log(LogLevel level,
                     std::string const& msg,
-                    T_Args&&... args) noexcept {
+                    TArgs&&... args) noexcept {
         if (static_cast<int>(level) <=
             static_cast<int>(LogConfig::LogLimit())) {
             FormatAndForward(nullptr,
                              LogConfig::Sinks(),
                              level,
                              msg,
-                             std::forward<T_Args>(args)...);
+                             std::forward<TArgs>(args)...);
         }
     }
 
@@ -112,11 +112,11 @@ class Logger {
     /// \brief Generic logging method. Provides a common interface between the
     /// global logger and named instances, hidden from the outside caller.
     /// For named instances no global configuration is used.
-    template <class... T_Args>
+    template <class... TArgs>
     static void Log(Logger const* logger,
                     LogLevel level,
                     std::string const& msg,
-                    T_Args&&... args) noexcept {
+                    TArgs&&... args) noexcept {
         if (static_cast<int>(level) <=
             static_cast<int>(logger != nullptr ? logger->log_limit_
                                                : LogConfig::LogLimit())) {
@@ -125,7 +125,7 @@ class Logger {
                 logger != nullptr ? logger->sinks_ : LogConfig::Sinks(),
                 level,
                 msg,
-                std::forward<T_Args>(args)...);
+                std::forward<TArgs>(args)...);
         }
     }
 
@@ -153,15 +153,15 @@ class Logger {
     std::vector<ILogSink::Ptr> sinks_;
 
     /// \brief Format message and forward to sinks.
-    template <class... T_Args>
+    template <class... TArgs>
     static void FormatAndForward(
         Logger const* logger,
         std::vector<ILogSink::Ptr> const& sinks,
         LogLevel level,
         std::string const& msg,
         // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
-        T_Args&&... args) noexcept {
-        if constexpr (sizeof...(T_Args) == 0) {
+        TArgs&&... args) noexcept {
+        if constexpr (sizeof...(TArgs) == 0) {
             // forward to sinks
             std::for_each(sinks.cbegin(), sinks.cend(), [&](auto& sink) {
                 sink->Emit(logger, level, msg);

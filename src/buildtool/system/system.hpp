@@ -26,19 +26,19 @@ void ExitWithoutCleanup(int exit_code);
 /// \brief Obtain POSIX epoch time for a given clock.
 /// Clocks may have different epoch times. To obtain the POSIX epoch time
 /// (1970-01-01 00:00:00 UTC) for a given clock, it must be converted.
-template <class T_Clock>
-static auto GetPosixEpoch() -> std::chrono::time_point<T_Clock> {
+template <class TClock>
+static auto GetPosixEpoch() -> std::chrono::time_point<TClock> {
     // Since C++20, the system clock's default value is the POSIX epoch time.
     std::chrono::time_point<std::chrono::system_clock> sys_epoch{};
-    if constexpr (std::is_same_v<T_Clock, std::chrono::system_clock>) {
+    if constexpr (std::is_same_v<TClock, std::chrono::system_clock>) {
         // No conversion necessary for the system clock.
         return sys_epoch;
     }
-    else if constexpr (ClockHasFromSys<T_Clock>) {
+    else if constexpr (ClockHasFromSys<TClock>) {
         // The correct C++20 way to perform the time point conversion.
-        return T_Clock::from_sys(sys_epoch);
+        return TClock::from_sys(sys_epoch);
     }
-    else if constexpr (ClockHasFromTime<T_Clock>) {
+    else if constexpr (ClockHasFromTime<TClock>) {
         // Older releases of libcxx did not implement the standard conversion
         // function from_sys() for std::chrono::file_clock. Instead the
         // non-standard function file_clock::from_time_t() must be used. Since
@@ -46,11 +46,11 @@ static auto GetPosixEpoch() -> std::chrono::time_point<T_Clock> {
         //  - https://reviews.llvm.org/D113027
         //  - https://reviews.llvm.org/D113430
         // TODO(modernize): remove this once we require clang version >= 14.0.0
-        return T_Clock::from_time_t(
+        return TClock::from_time_t(
             std::chrono::system_clock::to_time_t(sys_epoch));
     }
-    static_assert(std::is_same_v<T_Clock, std::chrono::system_clock> or
-                      ClockHasFromSys<T_Clock> or ClockHasFromTime<T_Clock>,
+    static_assert(std::is_same_v<TClock, std::chrono::system_clock> or
+                      ClockHasFromSys<TClock> or ClockHasFromTime<TClock>,
                   "Time point conversion function unavailable.");
     return {};
 }

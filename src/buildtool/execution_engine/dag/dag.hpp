@@ -47,23 +47,23 @@
 class DirectedAcyclicGraph {
   public:
     /// \brief Abstract class for DAG nodes.
-    /// \tparam T_Content  Type of content.
-    /// \tparam T_Other    Type of neighboring nodes.
+    /// \tparam TContent  Type of content.
+    /// \tparam TOther    Type of neighboring nodes.
     /// TODO: once we have hashes, require sub classes to implement generating
     /// IDs depending on its unique content.
-    template <typename T_Content, typename T_Other>
+    template <typename TContent, typename TOther>
     class Node {
       public:
-        using OtherNode = T_Other;
+        using OtherNode = TOther;
         using OtherNodePtr = gsl::not_null<OtherNode*>;
 
-        explicit Node(T_Content&& content) noexcept
+        explicit Node(TContent&& content) noexcept
             : content_{std::move(content)} {}
 
         // NOLINTNEXTLINE(modernize-pass-by-value)
-        explicit Node(T_Content const& content) noexcept : content_{content} {}
+        explicit Node(TContent const& content) noexcept : content_{content} {}
 
-        Node(T_Content const& content,
+        Node(TContent const& content,
              std::vector<OtherNodePtr> const& parents,
              std::vector<OtherNodePtr> const& children) noexcept
             : content_{content}, parents_{parents}, children_{children} {}
@@ -76,11 +76,11 @@ class DirectedAcyclicGraph {
         auto operator=(Node&&) -> Node& = delete;
         ~Node() = default;
 
-        [[nodiscard]] auto Content() const& noexcept -> T_Content const& {
+        [[nodiscard]] auto Content() const& noexcept -> TContent const& {
             return content_;
         }
 
-        [[nodiscard]] auto Content() && noexcept -> T_Content {
+        [[nodiscard]] auto Content() && noexcept -> TContent {
             return std::move(content_);
         }
 
@@ -115,7 +115,7 @@ class DirectedAcyclicGraph {
         }
 
       private:
-        T_Content content_{};
+        TContent content_{};
         std::vector<OtherNodePtr> parents_{};
         std::vector<OtherNodePtr> children_{};
     };

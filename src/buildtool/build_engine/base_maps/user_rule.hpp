@@ -41,16 +41,15 @@ namespace BuildMaps::Base {
 // kTriangular=true  Performs triangular compare, everyone with everyone.
 // kTriangular=false Performs linear compare, first with each of the rest.
 template <bool kTriangular,
-          InputIterableContainer T_Container,
-          InputIterableContainer... T_Rest,
-          OutputIterableContainer T_Result =
-              std::unordered_set<typename T_Container::value_type>>
-[[nodiscard]] static inline auto GetDuplicates(T_Container const& first,
-                                               T_Rest const&... rest)
-    -> T_Result;
+          InputIterableContainer TContainer,
+          InputIterableContainer... TRest,
+          OutputIterableContainer TResult =
+              std::unordered_set<typename TContainer::value_type>>
+[[nodiscard]] static inline auto GetDuplicates(TContainer const& first,
+                                               TRest const&... rest) -> TResult;
 
-template <InputIterableStringContainer T_Container>
-[[nodiscard]] static inline auto JoinContainer(T_Container const& c,
+template <InputIterableStringContainer TContainer>
+[[nodiscard]] static inline auto JoinContainer(TContainer const& c,
                                                std::string const& sep)
     -> std::string;
 
@@ -342,9 +341,9 @@ using UserRulePtr = UserRule::Ptr;
 
 namespace detail {
 
-template <HasSize T_Container, HasSize... T_Rest>
-[[nodiscard]] static inline auto MaxSize(T_Container const& first,
-                                         T_Rest const&... rest) -> std::size_t {
+template <HasSize TContainer, HasSize... TRest>
+[[nodiscard]] static inline auto MaxSize(TContainer const& first,
+                                         TRest const&... rest) -> std::size_t {
     if constexpr (sizeof...(rest) > 0) {
         return std::max(first.size(), MaxSize(rest...));
     }
@@ -352,14 +351,14 @@ template <HasSize T_Container, HasSize... T_Rest>
 }
 
 template <bool kTriangular,
-          OutputIterableContainer T_Result,
-          InputIterableContainer T_First,
-          InputIterableContainer T_Second,
-          InputIterableContainer... T_Rest>
-static auto inline FindDuplicates(gsl::not_null<T_Result*> const& dups,
-                                  T_First const& first,
-                                  T_Second const& second,
-                                  T_Rest const&... rest) -> void {
+          OutputIterableContainer TResult,
+          InputIterableContainer TFirst,
+          InputIterableContainer TSecond,
+          InputIterableContainer... TRest>
+static auto inline FindDuplicates(gsl::not_null<TResult*> const& dups,
+                                  TFirst const& first,
+                                  TSecond const& second,
+                                  TRest const&... rest) -> void {
     ExpectsAudit(std::is_sorted(first.begin(), first.end()) and
                  std::is_sorted(second.begin(), second.end()));
     std::set_intersection(first.begin(),
@@ -382,13 +381,13 @@ static auto inline FindDuplicates(gsl::not_null<T_Result*> const& dups,
 }  // namespace detail
 
 template <bool kTriangular,
-          InputIterableContainer T_Container,
-          InputIterableContainer... T_Rest,
-          OutputIterableContainer T_Result>
-[[nodiscard]] static inline auto GetDuplicates(T_Container const& first,
-                                               T_Rest const&... rest)
-    -> T_Result {
-    auto dups = T_Result{};
+          InputIterableContainer TContainer,
+          InputIterableContainer... TRest,
+          OutputIterableContainer TResult>
+[[nodiscard]] static inline auto GetDuplicates(TContainer const& first,
+                                               TRest const&... rest)
+    -> TResult {
+    auto dups = TResult{};
     constexpr auto kNumContainers = 1 + sizeof...(rest);
     if constexpr (kNumContainers > 1) {
         std::size_t size{};
@@ -400,13 +399,13 @@ template <bool kTriangular,
             size = std::min(first.size(), detail::MaxSize(rest...));
         }
         dups.reserve(size);
-        detail::FindDuplicates<kTriangular, T_Result>(&dups, first, rest...);
+        detail::FindDuplicates<kTriangular, TResult>(&dups, first, rest...);
     }
     return dups;
 }
 
-template <InputIterableStringContainer T_Container>
-[[nodiscard]] static inline auto JoinContainer(T_Container const& c,
+template <InputIterableStringContainer TContainer>
+[[nodiscard]] static inline auto JoinContainer(TContainer const& c,
                                                std::string const& sep)
     -> std::string {
     std::ostringstream oss{};

@@ -73,9 +73,9 @@ auto BazelNetwork::BlobSpliceSupport() const noexcept -> bool {
     return cas_->BlobSpliceSupport(hash_function_, instance_name_);
 }
 
-template <class T_Iter>
-auto BazelNetwork::DoUploadBlobs(T_Iter const& first,
-                                 T_Iter const& last) noexcept -> bool {
+template <class TIter>
+auto BazelNetwork::DoUploadBlobs(TIter const& first,
+                                 TIter const& last) noexcept -> bool {
     try {
         // Partition the blobs according to their size. The first group collects
         // all the blobs that can be uploaded in batch, the second group gathers

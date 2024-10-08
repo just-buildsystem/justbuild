@@ -99,9 +99,9 @@ class BazelNetwork {
     ExecutionConfiguration exec_config_{};
     HashFunction const& hash_function_;
 
-    template <class T_Iter>
-    [[nodiscard]] auto DoUploadBlobs(T_Iter const& first,
-                                     T_Iter const& last) noexcept -> bool;
+    template <class TIter>
+    [[nodiscard]] auto DoUploadBlobs(TIter const& first,
+                                     TIter const& last) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_NETWORK_HPP
