@@ -16,6 +16,7 @@
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional, cast
@@ -79,12 +80,14 @@ def build_tree(desc: Json, *, config: Json, root: str, graph: Json) -> str:
     tree_dir = os.path.normpath(os.path.join(root, "TREE", tree_id))
     if os.path.isdir(tree_dir):
         return tree_dir
+    tree_dir_tmp = tree_dir + ".tmp"
     tree_desc = graph["trees"][tree_id]
     for location, desc in tree_desc.items():
         link(cast(str, build(desc, config=config, root=root, graph=graph)),
-             os.path.join(tree_dir, location))
+             os.path.join(tree_dir_tmp, location))
     # correctly handle the empty tree
-    os.makedirs(tree_dir, exist_ok=True)
+    os.makedirs(tree_dir_tmp, exist_ok=True)
+    shutil.copytree(tree_dir_tmp, tree_dir)
     return tree_dir
 
 

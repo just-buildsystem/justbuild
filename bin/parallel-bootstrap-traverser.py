@@ -17,6 +17,7 @@ import hashlib
 import json
 import multiprocessing
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -254,6 +255,7 @@ def build_tree(desc: Json, *, config: Json, root: str, graph: Json,
         if state != AtomicListMap.Entry.INSERTED:  # tree ready, run callback
             callback(tree_dir)
         return
+    tree_dir_tmp = tree_dir + ".tmp"
     tree_desc: Json = graph["trees"][tree_id]
 
     num_entries = AtomicInt(len(tree_desc.items()))
@@ -261,7 +263,8 @@ def build_tree(desc: Json, *, config: Json, root: str, graph: Json,
     def run_callbacks() -> None:
         if num_entries.fetch_dec() <= 1:
             # correctly handle the empty tree
-            os.makedirs(tree_dir, exist_ok=True)
+            os.makedirs(tree_dir_tmp, exist_ok=True)
+            shutil.copytree(tree_dir_tmp, tree_dir)
             vals = g_CALLBACKS_PER_ID.fetch_clear(f"TREE/{tree_id}")
             if vals:
                 for cb in vals:  # mark ready
@@ -274,7 +277,7 @@ def build_tree(desc: Json, *, config: Json, root: str, graph: Json,
 
         def create_link(location: str) -> Callable[..., None]:
             def do_link(path: str) -> None:
-                link(path, os.path.join(tree_dir, location))
+                link(path, os.path.join(tree_dir_tmp, location))
                 run_callbacks()
 
             return do_link
