@@ -44,7 +44,7 @@ cp distdir/v4.0.0.tar.gz "${DISTDIR}"
 # - fmt
 rm -rf "${LOCALBASE}/include/fmt*"
 rm -rf "${LOCALBASE}/lib/libfmt*"
-cp distdir/fmt-10.2.1.zip "${DISTDIR}"
+cp distdir/fmt-11.0.2.zip "${DISTDIR}"
 
 # bootstrap command
 
