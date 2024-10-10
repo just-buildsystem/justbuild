@@ -16,7 +16,6 @@
   , "stage": ["src", "buildtool", "file_system", "symlinks_map"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "gsl"]
     ]

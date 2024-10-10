@@ -17,8 +17,7 @@
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [ "operation_cache"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
@@ -168,8 +167,7 @@
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "private-deps":
-    [ "operation_cache"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "hex_string"]
     ]

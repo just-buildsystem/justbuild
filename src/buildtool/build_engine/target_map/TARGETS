@@ -70,7 +70,6 @@
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/serve_api/remote", "config"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "json"]

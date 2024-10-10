@@ -164,7 +164,6 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "config"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]

@@ -131,8 +131,6 @@
     , ["src/buildtool/system", "system_command"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
-    , ["src/other_tools/ops_maps", "critical_git_op_map"]
-    , ["src/other_tools/ops_maps", "import_to_git_map"]
     ]
   }
 }

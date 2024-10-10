@@ -50,9 +50,7 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]
   , "private-deps":
-    [ ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/utils", "outputscheck"]
-    , ["src/buildtool/file_system", "file_system_manager"]
+    [ ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/system", "system_command"]
     ]

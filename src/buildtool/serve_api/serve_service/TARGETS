@@ -42,7 +42,6 @@
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/utils/archive", "archive_ops"]
-    , ["src/utils/cpp", "expected"]
     ]
   }
 , "serve_server_implementation":
@@ -111,7 +110,6 @@
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_engine/executor", "context"]
