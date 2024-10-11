@@ -10,28 +10,20 @@
       ["@", "src", "", "bin/just-deduplicate-repos.py"]
     }
   }
-, "TESTS":
+, "remote tests (unconfigured)":
   { "type": ["@", "rules", "test", "suite"]
-  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "stage": ["end-to-end"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE", "TEST_BOOTSTRAP_JUST_MR"]
+  , "stage":
+    [ { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+      , "then": "compatible"
+      , "else": "native"
+      }
+    ]
   , "deps":
     { "type": "++"
     , "$1":
-      [ [ ["./", "actions", "TESTS"]
-        , ["./", "cli", "TESTS"]
-        , ["./", "generated-binary", "TESTS"]
-        , ["./", "target-tests", "TESTS"]
-        , ["./", "user-errors", "TESTS"]
-        , ["./", "built-in-rules", "TESTS"]
-        , ["./", "build-fails", "TESTS"]
-        , ["./", "remote-execution", "TESTS"]
-        , ["./", "target-cache", "TESTS"]
-        , ["./", "just-mr", "TESTS"]
-        , ["./", "git-import", "TESTS"]
-        , ["./", "gc", "TESTS"]
-        , ["./", "execution-service", "TESTS"]
-        , ["./", "symlinks", "TESTS"]
-        ]
+      [ [["./", "remote-execution", "TESTS"], ["./", "just-mr", "TESTS"]]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
@@ -39,5 +31,44 @@
         }
       ]
     }
+  }
+, "remote tests, compatible":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "remote tests (unconfigured)"
+  , "config":
+    {"type": "singleton_map", "key": "TEST_COMPATIBLE_REMOTE", "value": true}
+  }
+, "remote tests, native":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "remote tests (unconfigured)"
+  , "config":
+    {"type": "singleton_map", "key": "TEST_COMPATIBLE_REMOTE", "value": false}
+  }
+, "remote tests":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["using-remote"]
+  , "deps": ["remote tests, compatible", "remote tests, native"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": []
+  , "stage": ["end-to-end"]
+  , "deps":
+    [ "remote tests"
+    , ["./", "actions", "TESTS"]
+    , ["./", "build-fails", "TESTS"]
+    , ["./", "built-in-rules", "TESTS"]
+    , ["./", "cli", "TESTS"]
+    , ["./", "execution-service", "TESTS"]
+    , ["./", "gc", "TESTS"]
+    , ["./", "generated-binary", "TESTS"]
+    , ["./", "git-import", "TESTS"]
+    , ["./", "symlinks", "TESTS"]
+    , ["./", "target-cache", "TESTS"]
+    , ["./", "target-tests", "TESTS"]
+    , ["./", "user-errors", "TESTS"]
+    ]
   }
 }
