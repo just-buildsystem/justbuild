@@ -341,7 +341,7 @@ auto CreateDistdirGitMap(
             auto const tree_id = ToHexString(tree->first);
             // get digest object
             auto const digest = ArtifactDigestFactory::Create(
-                HashFunction::Type::GitSHA1, tree_id, 0, /*is_tree=*/false);
+                HashFunction::Type::GitSHA1, tree_id, 0, /*is_tree=*/true);
 
             // use this knowledge of the resulting tree identifier to try to set
             // up the absent root without actually checking the local status of
