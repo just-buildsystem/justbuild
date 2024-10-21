@@ -137,14 +137,24 @@
           }
         ]
       , [ "bin dirs"
-        , { "type": "++"
+        , { "type": "reverse"
           , "$1":
-            [ {"type": "FIELD", "name": "bin dirs"}
-            , { "type": "let*"
-              , "bindings": [["provider", "bin dirs"]]
-              , "body": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+            { "type": "nub_right"
+            , "$1":
+              { "type": "reverse"
+              , "$1":
+                { "type": "++"
+                , "$1":
+                  [ {"type": "FIELD", "name": "bin dirs"}
+                  , { "type": "let*"
+                    , "bindings": [["provider", "bin dirs"]]
+                    , "body":
+                      {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+                    }
+                  ]
+                }
               }
-            ]
+            }
           }
         ]
       ]
