@@ -1,6 +1,7 @@
 { "headers":
   { "type": ["@", "rules", "CC", "library"]
-  , "arguments_config": ["ENABLE_THREADS", "ENCODERS", "DECODERS"]
+  , "arguments_config":
+    ["ENABLE_THREADS", "ENCODERS", "DECODERS", "LZIP_DECODER"]
   , "hdrs":
     { "type": "++"
     , "$1":
@@ -14,6 +15,10 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "ENABLE_THREADS"}
         , "then": ["outqueue.h"]
+        }
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "LZIP_DECODER"}
+        , "then": ["lzip_decoder.h"]
         }
       ]
     }
@@ -50,20 +55,12 @@
   { "type": ["@", "rules", "CC", "library"]
   , "arguments_config": ["LZIP_DECODER"]
   , "hdrs":
-    { "type": "++"
-    , "$1":
-      [ [ "alone_decoder.h"
-        , "block_decoder.h"
-        , "filter_decoder.h"
-        , "index_decoder.h"
-        , "stream_decoder.h"
-        ]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "LZIP_DECODER"}
-        , "then": ["lzip_decoder.h"]
-        }
-      ]
-    }
+    [ "alone_decoder.h"
+    , "block_decoder.h"
+    , "filter_decoder.h"
+    , "index_decoder.h"
+    , "stream_decoder.h"
+    ]
   , "deps":
     [ ["src/liblzma/delta", "headers"]
     , ["src/liblzma/lzma", "lzma1_headers"]

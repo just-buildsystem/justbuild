@@ -350,11 +350,11 @@
   , "lzma":
     { "repository":
       { "type": "archive"
-      , "content": "6dae9322046ff66b7074c33b24be9a98f5cee42a"
-      , "fetch": "https://github.com/xz-mirror/xz/archive/refs/tags/v5.4.0.tar.gz"
-      , "sha256": "26ec069c41e5dfae221825b9f28a4934cb6ce3bedd3f55bc0a08073f7c2e42fd"
-      , "sha512": "60aba20197d329a1e0d86b32de8a9727a98e5ff6f1eda6111c5ddf85086edeefcf9e2cc3998d237e248bf4af7cf746923b45d236e6b47d88f63cf3d57cae9e8f"
-      , "subdir": "xz-5.4.0"
+      , "content": "80e67abd2e08a54ec21f195b3e9e4abfc64ba7e1"
+      , "fetch": "https://github.com/tukaani-project/xz/releases/download/v5.6.3/xz-5.6.3.tar.gz"
+      , "sha256": "b1d45295d3f71f25a4c9101bd7c8d16cb56348bbef3bbc738da0351e17c73317"
+      , "sha512": "b07b45e18615d1946e9d12157af99b54700d757832a638fccab70549574dcd7f28e69e71cc4c0b9c808959f818e79b668a5ccf108429ea0f40b6125bfd55d274"
+      , "subdir": "xz-5.6.3"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.lzma"
