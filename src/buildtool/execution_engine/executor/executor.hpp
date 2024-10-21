@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/git_hashes_converter.hpp"
@@ -688,7 +689,8 @@ class ExecutorImpl {
             msg << "\nrequested by";
             for (auto const& origin : origins->second) {
                 msg << "\n - ";
-                msg << origin.first.ToShortString();
+                msg << origin.first.ToShortString(
+                    Evaluator::GetExpressionLogLimit());
                 msg << "#";
                 msg << origin.second;
             }

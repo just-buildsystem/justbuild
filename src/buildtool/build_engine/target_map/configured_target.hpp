@@ -30,8 +30,6 @@ struct ConfiguredTarget {
     BuildMaps::Base::EntityName target;
     Configuration config;
 
-    static constexpr std::size_t kConfigLength = 320;
-
     [[nodiscard]] auto operator==(BuildMaps::Target::ConfiguredTarget const&
                                       other) const noexcept -> bool {
         return target == other.target and config == other.config;
@@ -41,11 +39,12 @@ struct ConfiguredTarget {
         return fmt::format("[{},{}]", target.ToString(), config.ToString());
     }
 
-    [[nodiscard]] auto ToShortString() const noexcept -> std::string {
+    [[nodiscard]] auto ToShortString(std::size_t config_length) const noexcept
+        -> std::string {
         return fmt::format(
             "[{},{}]",
             target.ToString(),
-            AbbreviateJson(PruneJson(config.ToJson()), kConfigLength));
+            AbbreviateJson(PruneJson(config.ToJson()), config_length));
     }
 };
 

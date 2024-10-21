@@ -28,6 +28,7 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
+#include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/export.hpp"
@@ -1679,10 +1680,11 @@ auto HandleBuiltin(const gsl::not_null<AnalyseContext*>& context,
     }
     auto target_logger = std::make_shared<BuildMaps::Target::TargetMap::Logger>(
         [logger, rule_name, key](auto msg, auto fatal) {
-            (*logger)(fmt::format("While evaluating {} target {}:\n{}",
-                                  rule_name,
-                                  key.ToShortString(),
-                                  msg),
+            (*logger)(fmt::format(
+                          "While evaluating {} target {}:\n{}",
+                          rule_name,
+                          key.ToShortString(Evaluator::GetExpressionLogLimit()),
+                          msg),
                       fatal);
         });
     (it->second)(

@@ -1125,7 +1125,8 @@ auto main(int argc, char* argv[]) -> int {
             if (result) {
                 Logger::Log(LogLevel::Info,
                             "Analysed target {}",
-                            result->id.ToShortString());
+                            result->id.ToShortString(
+                                Evaluator::GetExpressionLogLimit()));
 
                 {
                     auto cached = stats.ExportsCachedCounter();
@@ -1194,7 +1195,8 @@ auto main(int argc, char* argv[]) -> int {
                     result->modified ? fmt::format(" input of action {} of",
                                                    *(result->modified))
                                      : "",
-                    result->id.ToShortString());
+                    result->id.ToShortString(
+                        Evaluator::GetExpressionLogLimit()));
 
                 auto build_result =
                     traverser.BuildAndStage(artifacts,

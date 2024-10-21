@@ -233,7 +233,7 @@ auto NameTransitionedDeps(
     auto conf = effective_conf.Update(transitioned_target.config.Expr())
                     .Prune(analysis->Vars());
     return BuildMaps::Target::ConfiguredTarget{transitioned_target.target, conf}
-        .ToShortString();
+        .ToShortString(Evaluator::GetExpressionLogLimit());
 }
 
 // Check if an object is contained an expression; to avoid tree-unfolding
@@ -1511,10 +1511,12 @@ void withTargetsFile(
                     std::make_shared<AsyncMapConsumerLogger>(
                         [logger, key, rn](auto const& msg, auto fatal) {
                             (*logger)(
-                                fmt::format("While analysing {} target {}:\n{}",
-                                            rn.ToString(),
-                                            key.ToShortString(),
-                                            msg),
+                                fmt::format(
+                                    "While analysing {} target {}:\n{}",
+                                    rn.ToString(),
+                                    key.ToShortString(
+                                        Evaluator::GetExpressionLogLimit()),
+                                    msg),
                                 fatal);
                         }),
                     result_map);
@@ -1970,7 +1972,8 @@ auto CreateTargetMap(
                 [logger, key](auto msg, auto fatal) {
                     (*logger)(
                         fmt::format("While processing absent target {}:\n{}",
-                                    key.ToShortString(),
+                                    key.ToShortString(
+                                        Evaluator::GetExpressionLogLimit()),
                                     msg),
                         fatal);
                 });
