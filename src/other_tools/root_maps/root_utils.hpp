@@ -22,6 +22,8 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 /// \brief Calls the ServeApi to check whether the serve endpoint has the given
 /// tree available to build against.
@@ -43,9 +45,16 @@
 /// used by given remote execution endpoint!
 /// \param tree_id The Git-tree identifier.
 /// \param repo_path Local witnessing Git repository for the tree.
-/// \param remote_api Optional API of the remote-execution endpoint. If nullopt,
-/// skip the upload to the remote CAS; this assumes prior knowledge which
-/// guarantees the tree given by tree_id exists in the remote CAS for the
+/// \param native_storage_config Configuration of the native local storage.
+/// \param compat_storage_config Optional configuration of the compatible local
+/// storage, if it was set up.
+/// \param compat_storage Optional compatible local storage, if it was set up.
+/// \param local_api Optional API that knows how to communicate with the
+/// remote-execution endpoint specified by parameter remote_api, if given. In
+/// particular, it is expected to be provided if the remote is compatible.
+/// \param remote_api Optional API of the remote-execution endpoint.
+/// If nullopt, skip the upload to the remote CAS; this assumes prior knowledge
+/// which guarantees the tree given by tree_id exists in the remote CAS for the
 /// duration of the subsequent serve API call; this option should be used
 /// carefully, but does result in less remote communication.
 /// \param logger An AsyncMapConsumer logger instance.
@@ -58,6 +67,10 @@
     ServeApi const& serve,
     std::string const& tree_id,
     std::filesystem::path const& repo_path,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
+    IExecutionApi const* local_api,
     IExecutionApi const* remote_api,
     AsyncMapConsumerLoggerPtr const& logger,
     bool no_sync_is_fatal) -> bool;

@@ -49,23 +49,29 @@ namespace {
 }
 
 [[nodiscard]] auto IsCacheGitRoot(
-    StorageConfig const& storage_config,
+    StorageConfig const& native_storage_config,
     std::filesystem::path const& repo_root) noexcept -> bool {
     return std::filesystem::absolute(ToNormalPath(repo_root)) ==
-           std::filesystem::absolute(ToNormalPath(storage_config.GitRoot()));
+           std::filesystem::absolute(
+               ToNormalPath(native_storage_config.GitRoot()));
 }
 
 /// \brief Helper function for ensuring the serve endpoint, if given, has the
 /// root if it was marked absent.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureRootAsAbsent(std::string const& tree_id,
-                        std::filesystem::path const& repo_root,
-                        GitRepoInfo const& repo_info,
-                        ServeApi const* serve,
-                        IExecutionApi const* remote_api,
-                        CommitGitMap::SetterPtr const& ws_setter,
-                        CommitGitMap::LoggerPtr const& logger) {
+void EnsureRootAsAbsent(
+    std::string const& tree_id,
+    std::filesystem::path const& repo_root,
+    GitRepoInfo const& repo_info,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    IExecutionApi const* remote_api,
+    CommitGitMap::SetterPtr const& ws_setter,
+    CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
     if (serve != nullptr) {
         // check if the serve endpoint has this root
@@ -116,6 +122,10 @@ void EnsureRootAsAbsent(std::string const& tree_id,
                 if (not EnsureAbsentRootOnServe(*serve,
                                                 tree_id,
                                                 repo_root,
+                                                native_storage_config,
+                                                compat_storage_config,
+                                                compat_storage,
+                                                &*local_api,
                                                 remote_api,
                                                 logger,
                                                 true /*no_sync_is_fatal*/)) {
@@ -146,7 +156,7 @@ void EnsureRootAsAbsent(std::string const& tree_id,
 void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
                              std::string const& subdir,
                              bool ignore_special,
-                             StorageConfig const& storage_config,
+                             StorageConfig const& native_storage_config,
                              GitCASPtr const& git_cas,
                              std::filesystem::path const& tree_id_file,
                              CommitGitMap::SetterPtr const& ws_setter,
@@ -163,7 +173,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
     auto git_repo = GitRepoRemote::Open(git_cas);  // link fake repo to odb
     if (not git_repo) {
         (*logger)(fmt::format("Could not open cache object database {}",
-                              storage_config.GitRoot().string()),
+                              native_storage_config.GitRoot().string()),
                   /*fatal=*/true);
         return;
     }
@@ -186,7 +196,7 @@ void WriteIdFileAndSetWSRoot(std::string const& root_tree_id,
                                    ? FileRoot::kGitTreeIgnoreSpecialMarker
                                    : FileRoot::kGitTreeMarker,
                                *tree_id,
-                               storage_config.GitRoot().string()}),
+                               native_storage_config.GitRoot().string()}),
         false));
 }
 
@@ -269,7 +279,7 @@ void TagAndSetRoot(std::filesystem::path const& repo_root,
 
 void TakeCommitFromOlderGeneration(
     std::filesystem::path const& source,
-    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
     std::filesystem::path const& repo_root,
     GitRepoInfo const& repo_info,
     GitCASPtr const& git_cas,
@@ -291,7 +301,7 @@ void TakeCommitFromOlderGeneration(
         [logger,
          git_cas,
          repo_root,
-         storage_config,
+         native_storage_config,
          source,
          repo_info,
          critical_git_op_map,
@@ -321,7 +331,7 @@ void TakeCommitFromOlderGeneration(
                               fatal);
                 });
             if (not git_repo->LocalFetchViaTmpRepo(
-                    *storage_config, source, tag, fetch_logger)) {
+                    *native_storage_config, source, tag, fetch_logger)) {
                 return;
             }
             TagAndSetRoot(repo_root,
@@ -349,7 +359,7 @@ void NetworkFetchAndSetPresentRoot(
     std::string const& fetch_repo,
     MirrorsPtr const& additional_mirrors,
     GitCASPtr const& git_cas,
-    StorageConfig const& storage_config,
+    StorageConfig const& native_storage_config,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
@@ -410,7 +420,7 @@ void NetworkFetchAndSetPresentRoot(
                 err_messages += fmt::format(
                     "While attempting fetch from URL {}:\n{}\n", mirror, msg);
             });
-        if (git_repo->FetchViaTmpRepo(storage_config,
+        if (git_repo->FetchViaTmpRepo(native_storage_config,
                                       mirror,
                                       repo_info.branch,
                                       repo_info.inherit_env,
@@ -456,7 +466,7 @@ void NetworkFetchAndSetPresentRoot(
         return;
     }
     // if witnessing repository is the Git cache, then also tag the commit
-    if (IsCacheGitRoot(storage_config, repo_root)) {
+    if (IsCacheGitRoot(native_storage_config, repo_root)) {
         TagAndSetRoot(repo_root,
                       repo_info,
                       true,
@@ -505,24 +515,27 @@ void NetworkFetchAndSetPresentRoot(
 /// the root.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureCommit(GitRepoInfo const& repo_info,
-                  std::filesystem::path const& repo_root,
-                  std::string const& fetch_repo,
-                  MirrorsPtr const& additional_mirrors,
-                  GitCASPtr const& git_cas,
-                  gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
-                  gsl::not_null<ImportToGitMap*> const& import_to_git_map,
-                  std::string const& git_bin,
-                  std::vector<std::string> const& launcher,
-                  ServeApi const* serve,
-                  gsl::not_null<StorageConfig const*> const& storage_config,
-                  gsl::not_null<IExecutionApi const*> const& local_api,
-                  IExecutionApi const* remote_api,
-                  bool fetch_absent,
-                  gsl::not_null<JustMRProgress*> const& progress,
-                  gsl::not_null<TaskSystem*> const& ts,
-                  CommitGitMap::SetterPtr const& ws_setter,
-                  CommitGitMap::LoggerPtr const& logger) {
+void EnsureCommit(
+    GitRepoInfo const& repo_info,
+    std::filesystem::path const& repo_root,
+    std::string const& fetch_repo,
+    MirrorsPtr const& additional_mirrors,
+    GitCASPtr const& git_cas,
+    gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
+    gsl::not_null<ImportToGitMap*> const& import_to_git_map,
+    std::string const& git_bin,
+    std::vector<std::string> const& launcher,
+    ServeApi const* serve,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
+    gsl::not_null<IExecutionApi const*> const& local_api,
+    IExecutionApi const* remote_api,
+    bool fetch_absent,
+    gsl::not_null<JustMRProgress*> const& progress,
+    gsl::not_null<TaskSystem*> const& ts,
+    CommitGitMap::SetterPtr const& ws_setter,
+    CommitGitMap::LoggerPtr const& logger) {
     // link fake repo to odb
     auto git_repo = GitRepoRemote::Open(git_cas);
     if (not git_repo) {
@@ -543,8 +556,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
         return;
     }
     if (not is_commit_present.value()) {
-        auto tree_id_file =
-            StorageUtils::GetCommitTreeIDFile(*storage_config, repo_info.hash);
+        auto tree_id_file = StorageUtils::GetCommitTreeIDFile(
+            *native_storage_config, repo_info.hash);
         // Check if we have stored a file association between commit and tree;
         // if an association file exists, the respective tree MUST be in the
         // Git cache
@@ -557,18 +570,20 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                           /*fatal=*/true);
                 return;
             }
-            auto just_git_cas = GitCAS::Open(storage_config->GitRoot());
+            auto just_git_cas = GitCAS::Open(native_storage_config->GitRoot());
             if (not just_git_cas) {
-                (*logger)(fmt::format("Could not open Git cache database {}",
-                                      storage_config->GitRoot().string()),
-                          /*fatal=*/true);
+                (*logger)(
+                    fmt::format("Could not open Git cache database {}",
+                                native_storage_config->GitRoot().string()),
+                    /*fatal=*/true);
                 return;
             }
             auto just_git_repo = GitRepo::Open(just_git_cas);
             if (not just_git_repo) {
-                (*logger)(fmt::format("Could not open Git cache repository {}",
-                                      storage_config->GitRoot().string()),
-                          /*fatal=*/true);
+                (*logger)(
+                    fmt::format("Could not open Git cache repository {}",
+                                native_storage_config->GitRoot().string()),
+                    /*fatal=*/true);
                 return;
             }
             // extract the subdir tree
@@ -590,13 +605,18 @@ void EnsureCommit(GitRepoInfo const& repo_info,
             // set the workspace root
             if (repo_info.absent and not fetch_absent) {
                 // try by all available means to generate & set the absent root
-                EnsureRootAsAbsent(*tree_id,
-                                   storage_config->GitRoot(),
-                                   repo_info,
-                                   serve,
-                                   remote_api,
-                                   ws_setter,
-                                   logger);
+                EnsureRootAsAbsent(
+                    *tree_id,
+                    native_storage_config->GitRoot(), /*repo_root*/
+                    repo_info,
+                    serve,
+                    native_storage_config,
+                    compat_storage_config,
+                    compat_storage,
+                    local_api,
+                    remote_api,
+                    ws_setter,
+                    logger);
             }
             else {
                 // this root is present
@@ -606,7 +626,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                        ? FileRoot::kGitTreeIgnoreSpecialMarker
                                        : FileRoot::kGitTreeMarker,
                                    *tree_id,
-                                   storage_config->GitRoot().string()}),
+                                   native_storage_config->GitRoot().string()}),
                               /*is_cache_hit=*/false));
             }
             // done!
@@ -615,9 +635,9 @@ void EnsureCommit(GitRepoInfo const& repo_info,
 
         // Check older generations for presence of the commit
         for (std::size_t generation = 1;
-             generation < storage_config->num_generations;
+             generation < native_storage_config->num_generations;
              generation++) {
-            auto old = storage_config->GitGenerationRoot(generation);
+            auto old = native_storage_config->GitGenerationRoot(generation);
             if (FileSystemManager::IsDirectory(old)) {
                 auto old_repo = GitRepo::Open(old);
                 auto no_logging = std::make_shared<AsyncMapConsumerLogger>(
@@ -627,7 +647,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                         old_repo->CheckCommitExists(repo_info.hash, no_logging);
                     if (check_result and *check_result) {
                         TakeCommitFromOlderGeneration(old,
-                                                      storage_config,
+                                                      native_storage_config,
                                                       repo_root,
                                                       repo_info,
                                                       git_cas,
@@ -687,16 +707,16 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                 if (serve_result) {
                     auto const& root_tree_id = *serve_result;
                     // verify if we know the tree already in the local Git cache
-                    GitOpKey op_key = {
-                        .params =
-                            {
-                                storage_config->GitRoot(),  // target_path
-                                "",                         // git_hash
-                                std::nullopt,               // message
-                                std::nullopt,               // source_path
-                                true                        // init_bare
-                            },
-                        .op_type = GitOpType::ENSURE_INIT};
+                    GitOpKey op_key = {.params =
+                                           {
+                                               native_storage_config
+                                                   ->GitRoot(),  // target_path
+                                               "",               // git_hash
+                                               std::nullopt,     // message
+                                               std::nullopt,     // source_path
+                                               true              // init_bare
+                                           },
+                                       .op_type = GitOpType::ENSURE_INIT};
                     critical_git_op_map->ConsumeAfterKeysReady(
                         ts,
                         {std::move(op_key)},
@@ -706,7 +726,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                          repo_root,
                          fetch_repo,
                          additional_mirrors,
-                         storage_config,
+                         native_storage_config,
                          git_cas,
                          critical_git_op_map,
                          import_to_git_map,
@@ -730,28 +750,31 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 GitRepoRemote::Open(op_result.git_cas);
                             if (not just_git_repo) {
                                 (*logger)(
-                                    fmt::format(
-                                        "Could not open Git "
-                                        "cache repository "
-                                        "{}",
-                                        storage_config->GitRoot().string()),
+                                    fmt::format("Could not open Git "
+                                                "cache repository "
+                                                "{}",
+                                                native_storage_config->GitRoot()
+                                                    .string()),
                                     /*fatal=*/true);
                                 return;
                             }
                             // check tree existence
-                            auto wrapped_logger = std::make_shared<
-                                AsyncMapConsumerLogger>(
-                                [logger, storage_config, tree = root_tree_id](
-                                    auto const& msg, bool fatal) {
-                                    (*logger)(
-                                        fmt::format(
-                                            "While verifying presence of "
-                                            "tree {} in repository {}:\n{}",
-                                            tree,
-                                            storage_config->GitRoot().string(),
-                                            msg),
-                                        fatal);
-                                });
+                            auto wrapped_logger =
+                                std::make_shared<AsyncMapConsumerLogger>(
+                                    [logger,
+                                     native_storage_config,
+                                     tree = root_tree_id](auto const& msg,
+                                                          bool fatal) {
+                                        (*logger)(
+                                            fmt::format(
+                                                "While verifying presence of "
+                                                "tree {} in repository {}:\n{}",
+                                                tree,
+                                                native_storage_config->GitRoot()
+                                                    .string(),
+                                                msg),
+                                            fatal);
+                                    });
                             auto tree_present = just_git_repo->CheckTreeExists(
                                 root_tree_id, wrapped_logger);
                             if (not tree_present) {
@@ -765,7 +788,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                     root_tree_id,
                                     repo_info.subdir,
                                     repo_info.ignore_special,
-                                    *storage_config,
+                                    *native_storage_config,
                                     op_result.git_cas,
                                     tree_id_file,
                                     ws_setter,
@@ -776,7 +799,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             // now check if the tree is in the local checkout,
                             // if this checkout is not our Git cache; this can
                             // save an unnecessary remote CAS call
-                            if (not IsCacheGitRoot(*storage_config,
+                            if (not IsCacheGitRoot(*native_storage_config,
                                                    repo_root)) {
                                 auto git_repo = GitRepoRemote::Open(git_cas);
                                 if (not git_repo) {
@@ -855,7 +878,8 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                             // try to get root tree from remote CAS
                             auto const root_digest =
                                 ArtifactDigestFactory::Create(
-                                    storage_config->hash_function.GetType(),
+                                    native_storage_config->hash_function
+                                        .GetType(),
                                     root_tree_id,
                                     0,
                                     /*is_tree=*/true);
@@ -868,7 +892,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                 progress->TaskTracker().Stop(repo_info.origin);
                                 // Move tree from local CAS to local Git storage
                                 auto tmp_dir =
-                                    storage_config->CreateTypedTmpDir(
+                                    native_storage_config->CreateTypedTmpDir(
                                         "fetch-absent-root");
                                 if (not tmp_dir) {
                                     (*logger)(
@@ -901,7 +925,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                     {std::move(c_info)},
                                     [tmp_dir,  // keep tmp_dir alive
                                      root_tree_id,
-                                     storage_config,
+                                     native_storage_config,
                                      subdir = repo_info.subdir,
                                      ignore_special = repo_info.ignore_special,
                                      just_git_cas = op_result.git_cas,
@@ -930,14 +954,15 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                         // write association to id file, get
                                         // subdir tree, and set the workspace
                                         // root as present
-                                        WriteIdFileAndSetWSRoot(root_tree_id,
-                                                                subdir,
-                                                                ignore_special,
-                                                                *storage_config,
-                                                                just_git_cas,
-                                                                tree_id_file,
-                                                                ws_setter,
-                                                                logger);
+                                        WriteIdFileAndSetWSRoot(
+                                            root_tree_id,
+                                            subdir,
+                                            ignore_special,
+                                            *native_storage_config,
+                                            just_git_cas,
+                                            tree_id_file,
+                                            ws_setter,
+                                            logger);
                                     },
                                     [logger, tmp_dir, root_tree_id](
                                         auto const& msg, bool fatal) {
@@ -961,22 +986,24 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                                   root_tree_id),
                                       /*fatal=*/false);
 
-                            NetworkFetchAndSetPresentRoot(repo_info,
-                                                          repo_root,
-                                                          fetch_repo,
-                                                          additional_mirrors,
-                                                          git_cas,
-                                                          *storage_config,
-                                                          critical_git_op_map,
-                                                          git_bin,
-                                                          launcher,
-                                                          fetch_absent,
-                                                          progress,
-                                                          ts,
-                                                          ws_setter,
-                                                          logger);
+                            NetworkFetchAndSetPresentRoot(
+                                repo_info,
+                                repo_root,
+                                fetch_repo,
+                                additional_mirrors,
+                                git_cas,
+                                *native_storage_config,
+                                critical_git_op_map,
+                                git_bin,
+                                launcher,
+                                fetch_absent,
+                                progress,
+                                ts,
+                                ws_setter,
+                                logger);
                         },
-                        [logger, target_path = storage_config->GitRoot()](
+                        [logger,
+                         target_path = native_storage_config->GitRoot()](
                             auto const& msg, bool fatal) {
                             (*logger)(fmt::format("While running critical Git "
                                                   "op ENSURE_INIT bare for "
@@ -1007,7 +1034,7 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                       fetch_repo,
                                       additional_mirrors,
                                       git_cas,
-                                      *storage_config,
+                                      *native_storage_config,
                                       critical_git_op_map,
                                       git_bin,
                                       launcher,
@@ -1041,6 +1068,10 @@ void EnsureCommit(GitRepoInfo const& repo_info,
                                repo_root,
                                repo_info,
                                serve,
+                               native_storage_config,
+                               compat_storage_config,
+                               compat_storage,
+                               local_api,
                                remote_api,
                                ws_setter,
                                logger);
@@ -1070,7 +1101,9 @@ auto CreateCommitGitMap(
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
     ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,
@@ -1083,7 +1116,9 @@ auto CreateCommitGitMap(
                           git_bin,
                           launcher,
                           serve,
-                          storage_config,
+                          native_storage_config,
+                          compat_storage_config,
+                          compat_storage,
                           local_api,
                           remote_api,
                           fetch_absent,
@@ -1100,7 +1135,7 @@ auto CreateCommitGitMap(
             fetch_repo = std::filesystem::absolute(*fetch_repo_path).string();
         }
         std::filesystem::path repo_root = StorageUtils::GetGitRoot(
-            *storage_config, just_mr_paths, fetch_repo);
+            *native_storage_config, just_mr_paths, fetch_repo);
         // ensure git repo
         // define Git operation to be done
         GitOpKey op_key = {
@@ -1126,7 +1161,9 @@ auto CreateCommitGitMap(
              git_bin,
              launcher,
              serve,
-             storage_config,
+             native_storage_config,
+             compat_storage_config,
+             compat_storage,
              local_api,
              remote_api,
              fetch_absent,
@@ -1161,7 +1198,9 @@ auto CreateCommitGitMap(
                              git_bin,
                              launcher,
                              serve,
-                             storage_config,
+                             native_storage_config,
+                             compat_storage_config,
+                             compat_storage,
                              local_api,
                              remote_api,
                              fetch_absent,

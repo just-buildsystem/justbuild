@@ -491,18 +491,20 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                              &native_storage_config,
                              common_args.jobs);
 
-    auto git_tree_fetch_map =
-        CreateGitTreeFetchMap(&critical_git_op_map,
-                              &import_to_git_map,
-                              common_args.git_path->string(),
-                              *common_args.local_launcher,
-                              serve ? &*serve : nullptr,
-                              &native_storage_config,
-                              &(*apis.local),
-                              has_remote_api ? &*apis.remote : nullptr,
-                              fetch_args.backup_to_remote,
-                              &progress,
-                              common_args.jobs);
+    auto git_tree_fetch_map = CreateGitTreeFetchMap(
+        &critical_git_op_map,
+        &import_to_git_map,
+        common_args.git_path->string(),
+        *common_args.local_launcher,
+        serve ? &*serve : nullptr,
+        &native_storage_config,
+        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
+        compat_storage != nullptr ? &*compat_storage : nullptr,
+        &(*apis.local),
+        has_remote_api ? &*apis.remote : nullptr,
+        fetch_args.backup_to_remote,
+        &progress,
+        common_args.jobs);
 
     // set up progress observer
     std::atomic<bool> done{false};

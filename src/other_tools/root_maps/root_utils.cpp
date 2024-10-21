@@ -20,7 +20,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/git/git_api.hpp"
+#include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 auto CheckServeHasAbsentRoot(ServeApi const& serve,
@@ -37,12 +37,17 @@ auto CheckServeHasAbsentRoot(ServeApi const& serve,
     return std::nullopt;
 }
 
-auto EnsureAbsentRootOnServe(ServeApi const& serve,
-                             std::string const& tree_id,
-                             std::filesystem::path const& repo_path,
-                             IExecutionApi const* remote_api,
-                             AsyncMapConsumerLoggerPtr const& logger,
-                             bool no_sync_is_fatal) -> bool {
+auto EnsureAbsentRootOnServe(
+    ServeApi const& serve,
+    std::string const& tree_id,
+    std::filesystem::path const& repo_path,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
+    IExecutionApi const* local_api,
+    IExecutionApi const* remote_api,
+    AsyncMapConsumerLoggerPtr const& logger,
+    bool no_sync_is_fatal) -> bool {
     if (remote_api != nullptr) {
         // upload tree to remote CAS
         auto repo = RepositoryConfig{};
@@ -55,7 +60,11 @@ auto EnsureAbsentRootOnServe(ServeApi const& serve,
         auto const digest = ArtifactDigestFactory::Create(
             HashFunction::Type::GitSHA1, tree_id, 0, /*is_tree=*/true);
 
-        auto git_api = GitApi{&repo};
+        auto git_api = MRGitApi{&repo,
+                                native_storage_config,
+                                compat_storage_config,
+                                compat_storage,
+                                local_api};
         if (not digest or not git_api.RetrieveToCas(
                               {Artifact::ObjectInfo{.digest = *digest,
                                                     .type = ObjectType::Tree}},

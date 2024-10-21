@@ -26,7 +26,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/git/git_api.hpp"
+#include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -288,6 +288,23 @@ auto SourceTreeService::SyncGitEntryToCas(
     std::string const& object_hash,
     std::filesystem::path const& repo_path) const noexcept
     -> std::remove_cvref_t<decltype(TResponse::OK)> {
+    // get gc locks for the local storages
+    auto native_lock =
+        GarbageCollector::SharedLock(*native_context_->storage_config);
+    if (not native_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
+        return TResponse::INTERNAL_ERROR;
+    }
+    std::optional<LockFile> compat_lock = std::nullopt;
+    if (compat_context_ != nullptr) {
+        compat_lock =
+            GarbageCollector::SharedLock(*compat_context_->storage_config);
+        if (not compat_lock) {
+            logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
+            return TResponse::INTERNAL_ERROR;
+        }
+    }
+
     auto const hash_type =
         native_context_->storage_config->hash_function.GetType();
     if (IsTreeObject(kType) and not ProtocolTraits::IsTreeAllowed(hash_type)) {
@@ -308,11 +325,17 @@ auto SourceTreeService::SyncGitEntryToCas(
     auto const digest = ArtifactDigestFactory::Create(
         hash_type, object_hash, 0, IsTreeObject(kType));
     if (not digest) {
-        logger_->Emit(LogLevel::Error, "{}", digest.error());
+        logger_->Emit(LogLevel::Error, "SyncGitEntryToCas: {}", digest.error());
         return TResponse::INTERNAL_ERROR;
     }
 
-    auto git_api = GitApi{&repo};
+    auto const is_compat = compat_context_ != nullptr;
+    auto git_api =
+        MRGitApi{&repo,
+                 native_context_->storage_config,
+                 is_compat ? &*compat_context_->storage_config : nullptr,
+                 is_compat ? &*compat_context_->storage : nullptr,
+                 is_compat ? &*apis_.local : nullptr};
     if (not git_api.RetrieveToCas(
             {Artifact::ObjectInfo{.digest = *digest, .type = kType}},
             *apis_.remote)) {

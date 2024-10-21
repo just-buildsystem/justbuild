@@ -27,6 +27,7 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -56,7 +57,10 @@ using FilePathGitMap = AsyncMapConsumer<FpathInfo, nlohmann::json>;
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    Storage const* compat_storage,
+    IExecutionApi const* local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs,
     std::string const& multi_repo_tool_name,
