@@ -37,6 +37,8 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/serve/mr_local_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -132,7 +134,9 @@ auto ServeServerImpl::Run(
     std::unique_ptr<StorageConfig> secondary_storage_config = nullptr;
     std::unique_ptr<Storage> secondary_storage = nullptr;
     std::unique_ptr<LocalContext> secondary_local_context = nullptr;
-    if (not ProtocolTraits::IsNative(hash_type)) {
+    IExecutionApi::Ptr secondary_local_api = nullptr;
+    auto const is_compat = not ProtocolTraits::IsNative(hash_type);
+    if (is_compat) {
         auto config =
             StorageConfig::Builder{}
                 .SetBuildRoot(local_context->storage_config->build_root)
@@ -150,16 +154,28 @@ auto ServeServerImpl::Run(
             LocalContext{.exec_config = local_context->exec_config,
                          .storage_config = &*secondary_storage_config,
                          .storage = &*secondary_storage});
+        secondary_local_api =
+            std::make_shared<LocalApi>(&*secondary_local_context);
     }
 
-    SourceTreeService sts{&serve_config,
-                          &apis,
-                          /*native_context=*/secondary_local_context != nullptr
-                              ? &*secondary_local_context
-                              : local_context,
-                          /*compat_context=*/secondary_local_context != nullptr
-                              ? &*local_context
-                              : nullptr};
+    // setup the overall local api, aware of compatibility
+    IExecutionApi::Ptr mr_local_api = std::make_shared<MRLocalApi>(
+        is_compat ? &*secondary_local_context : local_context,
+        is_compat ? &*secondary_local_api : &*apis.local,
+        is_compat ? &*local_context : nullptr,
+        is_compat ? &*apis.local : nullptr);
+    // setup the apis to pass to SourceTreeService
+    auto const mr_apis = ApiBundle{.hash_function = apis.hash_function,
+                                   .local = mr_local_api,
+                                   .remote = apis.remote};
+
+    SourceTreeService sts{
+        &serve_config,
+        &mr_apis,
+        is_compat ? &*secondary_local_context
+                  : local_context,             // native_context
+        is_compat ? &*local_context : nullptr  // compat_context
+    };
 
     // set up the server
     grpc::ServerBuilder builder;

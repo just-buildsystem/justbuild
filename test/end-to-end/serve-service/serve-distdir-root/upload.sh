@@ -17,7 +17,6 @@
 ###
 # This test checks that an absent distdir root can be successfully computed
 # locally and then uploaded to a serve endpoint that does not know the root.
-# The upload can only happen in native mode.
 ##
 
 set -eu
@@ -108,35 +107,17 @@ rm -rf "${DISTDIR}"
 # While keeping the file association, ask serve endpoint to provide the root as
 # absent. For a serve endpoint that does not have the archive blob available,
 # this will require uploading the locally-known root tree to remote CAS, from
-# where the serve endpoint will pick it up. This can only happen in native mode.
-if [ -z "${COMPAT}" ]; then
+# where the serve endpoint will pick it up.
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup absent)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup absent 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup absent)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE}"
 
 echo OK

@@ -21,13 +21,7 @@
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
-  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
   , "stage": ["serve_api"]
-  , "deps":
-    { "type": "if"
-    , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
-    , "then": []
-    , "else": ["source_tree_client"]
-    }
+  , "deps": ["source_tree_client"]
   }
 }

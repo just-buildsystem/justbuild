@@ -61,70 +61,54 @@ EOF
 # Run the checks
 ##
 
-# Compute present root by asking the serve endpoint to set it up for us. This
-# requires remotes in native mode.
-if [ -z "${COMPAT}" ]; then
+# Compute present root by asking the serve endpoint to set it up for us.
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
 
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
+# Compute present root locally from now populated Git cache
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  # Compute present root locally from now populated Git cache
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
 
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
+# Check that the subdir is also working correctly
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  # Check that the subdir is also working correctly
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  cat > repos.json <<EOF
+cat > repos.json <<EOF
 { "repositories":
-  { "main":
-    { "repository":
-      { "type": "git"
-      , "commit": "$COMMIT_0"
-      , "repository": "http://non-existent.example.org/data.git"
-      , "branch": "master"
-      , "subdir": "repo"
-      }
+{ "main":
+  { "repository":
+    { "type": "git"
+    , "commit": "$COMMIT_0"
+    , "repository": "http://non-existent.example.org/data.git"
+    , "branch": "master"
+    , "subdir": "repo"
     }
   }
 }
+}
 EOF
 
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      setup main)
-  cat "${CONF}"
-  echo
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup main 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    setup main)
+cat "${CONF}"
+echo
 
 echo OK

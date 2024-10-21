@@ -17,7 +17,7 @@
 ###
 # This test checks 3 of the options to make a present root for a distidr
 # repository, where:
-# - archives are in local distfile;
+# - archives are in a local distfile;
 # - there is already a file association to the distdir root tree;
 # - we receive the distdir root from serve endpoint via the remote CAS.
 ##
@@ -113,48 +113,31 @@ cat "${CONF}"
 echo
 test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE}"
 
-# We now test if the serve endpoint can provide us the present root. This can
-# only happen in we're in native mode.
-if [ -z "${COMPAT}" ]; then
+# We now test if the serve endpoint can provide us the present root.
+# In a clean build root, ask serve to set up the root for us, from scratch
+rm -rf "${LBR}"
 
-  # In a clean build root, ask serve to set up the root for us, from scratch
-  rm -rf "${LBR}"
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE}"
 
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE}"
+# Double-check the file association was created and root remains available
+# without the remote endpoints
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  # Double-check the file association was created and root remains available
-  # without the remote endpoints
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  rm -rf "${LBR}"
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup main 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE}"
 
 echo OK

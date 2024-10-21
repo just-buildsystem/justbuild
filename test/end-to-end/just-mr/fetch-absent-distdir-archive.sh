@@ -26,6 +26,11 @@ readonly OUT="${TEST_TMPDIR}/out"
 readonly OUT2="${TEST_TMPDIR}/out2"
 readonly OUT_NON_ABSENT="${TEST_TMPDIR}/out3"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 ARCHIVE_CONTENT=$(git hash-object src/data.tar)
 echo "Archive has content $ARCHIVE_CONTENT"
 
@@ -74,13 +79,13 @@ echo
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     -L '["env", "PATH='"${PATH}"'"]' \
                     --remote-serve-address ${SERVE} \
-                    -r ${REMOTE_EXECUTION_ADDRESS} \
+                    -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
                     --fetch-absent setup)
 cat $CONF
 echo
 "${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
           -L '["env", "PATH='"${PATH}"'"]' \
-          -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
+          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} -o "${OUT}" 2>&1
 grep 42 "${OUT}/out.txt"
 
 # As the last call of just-mr had --fetch-absent, all relevent information
@@ -121,7 +126,7 @@ echo
 "${JUST_MR}" --norc --local-build-root "${LBR_NON_ABSENT}" \
              -L '["env", "PATH='"${PATH}"'"]' \
              --remote-serve-address ${SERVE} \
-             -r ${REMOTE_EXECUTION_ADDRESS} \
+             -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
              --just "${JUST}" \
              install -o "${OUT_NON_ABSENT}" 2>&1
 grep 42 "${OUT_NON_ABSENT}/out.txt"

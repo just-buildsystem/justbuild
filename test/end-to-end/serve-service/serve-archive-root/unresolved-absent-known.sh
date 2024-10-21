@@ -94,8 +94,8 @@ TREE=$(jq -r '.repositories.present.workspace_root[1]' "${CONF}")
 rm -rf "${DISTDIR}"
 
 # While keeping the file association, ask serve endpoint to provide the root as
-# absent. This serve endpoint known already the archive, so it should be able to
-# set it up even if in compatible mode.
+# absent. This serve endpoint knows already the archive, so it should be able to
+# set it up.
 ${JUST} gc --local-build-root ${LBR} 2>&1
 ${JUST} gc --local-build-root ${LBR} 2>&1
 

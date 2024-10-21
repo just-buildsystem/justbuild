@@ -86,8 +86,6 @@ EOF
 # Setup an absent root from local path. Even if root is present, if a serve
 # endpoint is given then we try to set it up there as well. As this serve
 # endpoint does not know the tree, it will try to upload through the remote CAS.
-# The upload succeeds if remote in native mode, but fails (non-fatally) in
-# compatible mode.
 CONF=$("${JUST_MR}" --norc -C repos.json \
                     --just "${JUST}" \
                     --local-build-root "${LBR}" \
@@ -98,31 +96,15 @@ echo
 test $(jq -r '.repositories.present_file.workspace_root[1]' "${CONF}") = "${TREE}"
 
 # Check in a clean local build root that the serve endpoint now has the root
-# tree. This can only work in native mode, where the root was actually uploaded.
-if [ -z "${COMPAT}" ]; then
+# tree.
+rm -rf "${LBR}"
 
-  rm -rf "${LBR}"
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup absent_git_tree)
-  cat "${CONF}"
-  echo
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  rm -rf "${LBR}"
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup absent_git_tree 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup absent_git_tree)
+cat "${CONF}"
+echo
 
 echo OK

@@ -29,11 +29,6 @@ readonly EMPTY="${TEST_TMPDIR}/empty-directory"
 readonly SERVER="${PWD}/utils/null-server"
 readonly SERVER_STATE="${TEST_TMPDIR}/server"
 
-COMPAT=""
-if [ "${COMPATIBLE:-}" = "YES" ]; then
-  COMPAT="--compatible"
-fi
-
 ARCHIVE_CONTENT=$(git hash-object src/data.tar)
 echo "Archive has content $ARCHIVE_CONTENT"
 
@@ -84,7 +79,7 @@ cat repos.json
 echo
 mkdir -p "${LOG}"
 "${JUST_MR}" --norc --local-build-root "${LBR}" \
-                    -r "127.0.0.1:${port}" ${COMPAT} \
+                    -r "127.0.0.1:${port}" \
                     --log-limit 5 -f "${LOG}/log" \
                     --distdir ../src \
                     setup  > conf.json
@@ -96,14 +91,14 @@ echo
 cat $(cat conf.json)
 echo
 # As a distdir (local directory!) was provided with all needed files,
-# no attempty should be made to contact the remote-execution endpoint
+# no attempt should be made to contact the remote-execution endpoint
 echo
 [ -f "${SERVER_STATE}/access" ] && cat "${SERVER_STATE}/access" && exit 1 || :
 
 # The obtained configuraiton should be suitable for building, also remotely
 "${JUST}" install -C "$(cat conf.json)" -o "${OUT}" \
           --local-build-root "${LBR}" \
-          -r "${REMOTE_EXECUTION_ADDRESS}" $COMPAT 2>&1
+          -r "${REMOTE_EXECUTION_ADDRESS}" 2>&1
 echo
 cat "${OUT}/archive_id"
 [ $(cat "${OUT}/archive_id") = "${ARCHIVE_CONTENT}" ]
@@ -114,7 +109,7 @@ echo
 # distdir is empty
 mkdir -p "${EMPTY}"
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR2}" \
-             -r "${REMOTE_EXECUTION_ADDRESS}" $COMPAT \
+             -r "${REMOTE_EXECUTION_ADDRESS}" \
              --distdir ${EMPTY} \
              install -o "${OUT2}" 2>&1
 cat "${OUT2}/archive_id"

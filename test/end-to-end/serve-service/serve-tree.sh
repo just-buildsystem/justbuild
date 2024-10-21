@@ -32,7 +32,12 @@ mkdir -p "${DISTDIR}"
 cp src.tar "${DISTDIR}"
 HASH=$(git hash-object src.tar)
 
-REMOTE="-r ${REMOTE_EXECUTION_ADDRESS}"
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
+REMOTE="-r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT}"
 
 mkdir work
 cd work
@@ -70,7 +75,7 @@ echo
 echo
 echo Local build
 "${JUST_MR}" --norc --local-build-root "${LBR_A}" --just "${JUST}" \
-             --distdir "${DISTDIR}" build \
+             --distdir "${DISTDIR}" ${COMPAT} build \
              --log-limit 4 \
              --dump-artifacts local.json 2>&1
 

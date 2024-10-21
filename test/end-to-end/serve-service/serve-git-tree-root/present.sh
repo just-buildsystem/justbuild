@@ -16,7 +16,7 @@
 
 ###
 # This test checks if we can make a present root for a Git-tree repository
-# using the serve endpoint. This can only succeed in native mode.
+# using the serve endpoint.
 ##
 
 set -eu
@@ -59,43 +59,27 @@ EOF
 # Run the checks
 ##
 
-# Compute present root by asking the serve endpoint to set it up for us. This
-# requires remotes in native mode.
-if [ -z "${COMPAT}" ]; then
+# Compute present root by asking the serve endpoint to set it up for us.
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
 
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
+# Compute present root locally from now populated Git cache
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  # Compute present root locally from now populated Git cache
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup main 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${TREE_0}"
 
 echo OK

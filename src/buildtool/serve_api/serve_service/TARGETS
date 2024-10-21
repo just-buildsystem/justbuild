@@ -74,6 +74,8 @@
     , ["src/buildtool/execution_api/execution_service", "cas_server"]
     , ["src/buildtool/execution_api/execution_service", "execution_server"]
     , ["src/buildtool/execution_api/execution_service", "operations_server"]
+    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/serve", "mr_local_api"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]

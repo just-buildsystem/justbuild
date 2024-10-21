@@ -32,6 +32,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/execution_api/serve/mr_local_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
@@ -341,6 +342,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     std::unique_ptr<Storage> compat_storage = nullptr;
     std::unique_ptr<LocalContext> compat_local_context = nullptr;
     std::optional<LockFile> compat_lock = std::nullopt;
+    IExecutionApi::Ptr compat_local_api = nullptr;
     if (common_args.compatible) {
         auto config = StorageConfig::Builder{}
                           .SetBuildRoot(native_storage_config.build_root)
@@ -366,7 +368,15 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                         "Failed to acquire compatible storage gc lock");
             return kExitConfigError;
         }
+        compat_local_api = std::make_shared<LocalApi>(&*compat_local_context);
     }
+
+    // setup the overall local api, aware of compatibility
+    IExecutionApi::Ptr mr_local_api = std::make_shared<MRLocalApi>(
+        &native_local_context,
+        &*native_local_api,
+        common_args.compatible ? &*compat_local_context : nullptr,
+        common_args.compatible ? &*compat_local_api : nullptr);
 
     // setup authentication config
     auto const auth_config = JustMR::Utils::CreateAuthConfig(auth_args);
@@ -404,8 +414,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                                 config,
                                                 &hash_fct);
     }
-    bool const has_remote_api =
-        remote_api != nullptr and not common_args.compatible;
+    bool const has_remote_api = remote_api != nullptr;
 
     // pack the remote context
     RemoteContext const remote_context{.auth = &*auth_config,
@@ -420,8 +429,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     }
     auto const apis =
         ApiBundle{.hash_function = hash_fct,
-                  .local = native_local_api,
-                  .remote = has_remote_api ? remote_api : native_local_api};
+                  .local = mr_local_api,
+                  .remote = has_remote_api ? remote_api : mr_local_api};
     auto serve = ServeApi::Create(
         *serve_config,
         compat_local_context != nullptr

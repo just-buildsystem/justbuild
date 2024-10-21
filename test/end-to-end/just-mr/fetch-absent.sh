@@ -27,6 +27,11 @@ readonly OUT2="${TEST_TMPDIR}/out2"
 readonly OUT3="${TEST_TMPDIR}/out3"
 readonly OUT_NON_ABSENT="${TEST_TMPDIR}/out4"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 mkdir work
 cd work
 touch ROOT
@@ -64,13 +69,13 @@ echo
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     -L '["env", "PATH='"${PATH}"'"]' \
                     --remote-serve-address ${SERVE} \
-                    -r ${REMOTE_EXECUTION_ADDRESS} \
+                    -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
                     --fetch-absent setup)
 cat $CONF
 echo
 "${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
           -L '["env", "PATH='"${PATH}"'"]' \
-          -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
+          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} -o "${OUT}" 2>&1
 grep 42 "${OUT}/out.txt"
 
 # As the last call of just-mr had --fetch-absent, all relevent information
@@ -110,7 +115,7 @@ cat > targets/TARGETS <<'EOF'
 EOF
 "${JUST_MR}" --norc --local-build-root "${LBR}" \
              --remote-serve-address ${SERVE} \
-             -r ${REMOTE_EXECUTION_ADDRESS} \
+             -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
              -L '["env", "PATH='"${PATH}"'"]' \
              --just "${JUST}" \
              --fetch-absent install -o "${OUT3}" 2>&1
@@ -150,7 +155,7 @@ cat repos.json
 echo
 "${JUST_MR}" --norc --local-build-root "${LBR_NON_ABSENT}" \
              --remote-serve-address ${SERVE} \
-             -r ${REMOTE_EXECUTION_ADDRESS} \
+             -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
              -L '["env", "PATH='"${PATH}"'"]' \
              --just "${JUST}" \
              install -o "${OUT_NON_ABSENT}" 2>&1

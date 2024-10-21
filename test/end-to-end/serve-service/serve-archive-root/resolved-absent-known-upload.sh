@@ -18,7 +18,7 @@
 # This test checks that an absent root can successfully be made in the presence
 # of the serve endpoint in the situation where we already have the file
 # association (i.e., we know the unresolved root tree) and the serve endpoint
-# does not know the archive. The upload can only happen in native mode.
+# does not know the archive.
 #
 # The test archive contains symlinks to be resolved, which tests also the
 # resolved tree file association.
@@ -98,35 +98,17 @@ rm -rf "${DISTDIR}"
 # While keeping the file association, ask serve endpoint to provide the root as
 # absent. For a serve endpoint that does not have the archive blob available,
 # this will require uploading the locally-known root tree to remote CAS, from
-# where the serve endpoint will pick it up. This can only happen in native mode.
-if [ -z "${COMPAT}" ]; then
+# where the serve endpoint will pick it up.
+${JUST} gc --local-build-root ${LBR} 2>&1
+${JUST} gc --local-build-root ${LBR} 2>&1
 
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup absent)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-  ${JUST} gc --local-build-root ${LBR} 2>&1
-
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup absent 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup absent)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE}"
 
 echo OK

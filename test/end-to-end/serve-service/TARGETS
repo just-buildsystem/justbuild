@@ -173,7 +173,7 @@
   }
 , "TESTS (unconfigured)":
   { "type": ["@", "rules", "test", "suite"]
-  , "arguments_config": ["TEST_COMPATIBLE_REMOTE", "TEST_STANDALONE_SERVE"]
+  , "arguments_config": ["TEST_STANDALONE_SERVE"]
   , "stage":
     [ { "type": "if"
       , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
@@ -196,12 +196,8 @@
         , "describe"
         , "deduplication-of-serve-requests"
         , "failure-report"
+        , "serve-tree"
         ]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
-        , "then": []
-        , "else": ["serve-tree"]
-        }
       , [ ["./", "serve-archive-root", "TESTS"]
         , ["./", "serve-git-root", "TESTS"]
         , ["./", "serve-file-root", "TESTS"]

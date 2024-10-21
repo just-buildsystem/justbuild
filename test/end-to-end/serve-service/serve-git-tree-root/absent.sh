@@ -60,8 +60,7 @@ EOF
 # Run the checks
 ##
 
-# Compute absent root by asking serve to set it up from scratch. This works also
-# in compatible mode.
+# Compute absent root by asking serve to set it up from scratch.
 rm -rf "${LBR}"
 
 CONF=$("${JUST_MR}" --norc -C repos.json \

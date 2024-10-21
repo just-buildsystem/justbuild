@@ -16,8 +16,7 @@
 
 ###
 # This test checks that an absent root known in a local checkout can be
-# successfully uploaded to a serve endpoint. This can only succeed in native
-# mode.
+# successfully uploaded to a serve endpoint.
 ##
 
 set -eu
@@ -79,30 +78,14 @@ EOF
 
 # Setup an absent root from a local checkout. For a serve endpoint that does
 # not have the commit available, this will upload the locally-known root tree
-# to remote CAS, from where the serve endpoint will pick it up. This requires
-# that the remotes are in native mode.
-if [ -z "${COMPAT}" ]; then
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup main)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${SUBTREE}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup main 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+# to remote CAS, from where the serve endpoint will pick it up.
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup main)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.main.workspace_root[1]' "${CONF}") = "${SUBTREE}"
 
 echo OK

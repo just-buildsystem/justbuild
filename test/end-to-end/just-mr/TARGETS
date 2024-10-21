@@ -243,18 +243,15 @@
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
               , "then": []
-              , "else":
-                [ "fetch-remote"
-                , "fetch-remote-git-tree"
-                , "fetch-absent"
-                , "fetch-absent-git-tree"
-                , "absent-config"
-                , "fetch-absent-archives"
-                , "fetch-absent-archives-symlinks"
-                , "fetch-absent-distdir-archive"
-                , "stay-local"
-                ]
+              , "else": ["fetch-remote", "fetch-remote-git-tree", "stay-local"]
               }
+            , [ "fetch-absent"
+              , "fetch-absent-git-tree"
+              , "absent-config"
+              , "fetch-absent-archives"
+              , "fetch-absent-archives-symlinks"
+              , "fetch-absent-distdir-archive"
+              ]
             ]
           }
         }

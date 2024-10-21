@@ -71,8 +71,7 @@ EOF
 # Run the checks
 ##
 
-# Compute absent root by asking serve to set it up from scratch. This works also
-# in compatible mode.
+# Compute absent root by asking serve to set it up from scratch.
 rm -rf "${LBR}"
 
 CONF=$("${JUST_MR}" --norc -C repos.json \
@@ -85,31 +84,15 @@ echo
 test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE_0}"
 
 # Check that serve can provide also a subtree of this tree as present in a clean
-# build root. This can only happen if remotes are in native mode.
-if [ -z "${COMPAT}" ]; then
+# build root.
+rm -rf "${LBR}"
 
-  rm -rf "${LBR}"
-
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup present)
-  cat "${CONF}"
-  echo
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  rm -rf "${LBR}"
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup present 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup present)
+cat "${CONF}"
+echo
 
 echo OK

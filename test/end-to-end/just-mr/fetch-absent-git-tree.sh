@@ -26,6 +26,11 @@ readonly OUT="${TEST_TMPDIR}/out"
 readonly OUT2="${TEST_TMPDIR}/out2"
 readonly OUT_NON_ABSENT="${TEST_TMPDIR}/out4"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 mkdir work
 cd work
 touch ROOT
@@ -61,12 +66,12 @@ echo
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" \
                     -L '["env", "PATH='"${PATH}"'"]' \
                     --remote-serve-address ${SERVE} \
-                    -r ${REMOTE_EXECUTION_ADDRESS} \
+                    -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
                     --fetch-absent setup)
 cat $CONF
 echo
 "${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
-          -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
+          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} -o "${OUT}" 2>&1
 grep 42 "${OUT}/out.txt"
 
 
@@ -103,7 +108,7 @@ echo
 "${JUST_MR}" --norc --local-build-root "${LBR_NON_ABSENT}" \
              -L '["env", "PATH='"${PATH}"'"]' \
              --remote-serve-address ${SERVE} \
-             -r ${REMOTE_EXECUTION_ADDRESS} \
+             -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
              --just "${JUST}" \
              install -o "${OUT_NON_ABSENT}" 2>&1
 grep 42 "${OUT_NON_ABSENT}/out.txt"

@@ -78,7 +78,7 @@ mkdir -p "${OUT}"
 
 grep 'HELLO WORLD' "${OUT}/out.txt"
 
-# also verify that the repo config has the repository abent
+# also verify that the repo config has the repository absent
 
 CONF=$("${JUST_MR}" --norc --local-build-root "${LBR}" ${ENDPOINT_ARGS} setup)
 echo

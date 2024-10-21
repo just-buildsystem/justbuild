@@ -26,6 +26,11 @@ readonly RCFILE="${TEST_TMPDIR}/mrrc.json"
 readonly OUT="${TEST_TMPDIR}/out"
 readonly LOCAL_REPO="${TEST_TMPDIR}/local-repository"
 
+COMPAT=""
+if [ "${COMPATIBLE:-}" = "YES" ]; then
+  COMPAT="--compatible"
+fi
+
 mkdir -p "${LOCAL_REPO}"
 cd "${LOCAL_REPO}"
 mkdir src
@@ -116,12 +121,12 @@ echo
 CONF=$("${JUST_MR}" --local-build-root "${LBR}" \
                     --rc "${RCFILE}" \
                     --remote-serve-address ${SERVE} \
-                    -r ${REMOTE_EXECUTION_ADDRESS} \
+                    -r ${REMOTE_EXECUTION_ADDRESS} ${COMPAT} \
                     --fetch-absent setup)
 cat $CONF
 echo
 "${JUST}" install --local-build-root "${LBR}" -C "${CONF}" \
-          -r "${REMOTE_EXECUTION_ADDRESS}" -o "${OUT}" 2>&1
+          -r "${REMOTE_EXECUTION_ADDRESS}" ${COMPAT} -o "${OUT}" 2>&1
 grep 42 "${OUT}/out.txt"
 grep eg "${OUT}/out.txt"
 

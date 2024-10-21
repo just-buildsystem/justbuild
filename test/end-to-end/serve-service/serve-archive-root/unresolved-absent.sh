@@ -104,32 +104,15 @@ cat "${CONF}"
 echo
 test $(jq -r '.repositories.absent.workspace_root[1]' "${CONF}") = "${TREE}"
 
-# Check that serve can provide this tree as present in a clean build root. This
-# can happen however only in native mode.
-if [ -z "${COMPAT}" ]; then
-
-  rm -rf "${LBR}"
-  CONF=$("${JUST_MR}" --norc -C repos.json \
-                      --just "${JUST}" \
-                      --local-build-root "${LBR}" \
-                      --log-limit 6 \
-                      ${ENDPOINT_ARGS} setup present)
-  cat "${CONF}"
-  echo
-  test $(jq -r '.repositories.present.workspace_root[1]' "${CONF}") = "${TREE}"
-
-else
-
-  echo ---
-  echo Checking expected failures
-
-  rm -rf "${LBR}"
-  "${JUST_MR}" --norc -C repos.json \
-               --just "${JUST}" \
-               --local-build-root "${LBR}" \
-               --log-limit 6 \
-               ${ENDPOINT_ARGS} setup present 2>&1 && exit 1 || :
-  echo Failed as expected
-fi
+# Check that serve can provide this tree as present in a clean build root.
+rm -rf "${LBR}"
+CONF=$("${JUST_MR}" --norc -C repos.json \
+                    --just "${JUST}" \
+                    --local-build-root "${LBR}" \
+                    --log-limit 6 \
+                    ${ENDPOINT_ARGS} setup present)
+cat "${CONF}"
+echo
+test $(jq -r '.repositories.present.workspace_root[1]' "${CONF}") = "${TREE}"
 
 echo OK
