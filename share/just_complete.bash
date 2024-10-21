@@ -78,7 +78,7 @@ EOF
 }
 
 _just_completion(){
-    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild gc execute -h --help version)
+    local readonly SUBCOMMANDS=(build analyse describe install-cas install rebuild gc execute -h --help version add-to-cas serve)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=${COMP_WORDS[1]}
@@ -111,7 +111,7 @@ _just_completion(){
         done
         # if $conf is empty and this function is invoked by just-mr
         # we use the auto-generated conf file
-        if [ -z "$conf" ]; then conf="${justmrconf}"; 
+        if [ -z "$conf" ]; then conf="${justmrconf}";
         fi
         local _targets=($(_just_targets "$conf" "$main" "$prev" 2>/dev/null))
         COMPREPLY=($(compgen -f -W "${_opts[*]} ${_targets[*]}" -- $word ))
@@ -162,7 +162,7 @@ EOF
 }
 
 _just-mr_completion(){
-    local readonly SUBCOMMANDS=(setup setup-env fetch update "do" version build analyse describe install-cas install rebuild gc execute)
+    local readonly SUBCOMMANDS=(mrversion setup setup-env fetch update "do" gc-repo add-to-cas analyse build describe gc install install-cas rebuild version -h --help)
     local word=${COMP_WORDS[$COMP_CWORD]}
     local prev=${COMP_WORDS[$((COMP_CWORD-1))]}
     local cmd=$(_just-mr_parse_subcommand "${COMP_WORDS[@]}")
