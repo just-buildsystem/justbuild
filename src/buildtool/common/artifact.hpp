@@ -25,6 +25,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/identifier.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -99,8 +100,14 @@ class Artifact {
             }
 
             auto const object_type = FromChar(*type.c_str());
+            // TODO(design): The logic of ArtifactDigestFactory::Create is
+            // duplicated here to avoid a cyclic dependency. A better solution
+            // is advisable.
             auto hash_info =
-                HashInfo::Create(hash_type, id, IsTreeObject(object_type));
+                HashInfo::Create(hash_type,
+                                 id,
+                                 ProtocolTraits::IsTreeAllowed(hash_type) and
+                                     IsTreeObject(object_type));
             if (not hash_info) {
                 Logger::Log(
                     LogLevel::Debug, "{}", std::move(hash_info).error());

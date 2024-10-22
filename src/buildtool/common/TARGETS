@@ -87,6 +87,7 @@
     ]
   , "deps":
     [ "bazel_types"
+    , "protocol_traits"
     , ["@", "json", "", "json"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
