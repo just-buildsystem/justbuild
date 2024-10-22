@@ -347,14 +347,16 @@ auto ShellQuote(std::string arg) -> std::string {
     return fmt::format("'{}'", arg);
 }
 
-template <bool kDoQuote = false>
+template <bool kDoQuote = false, bool kAllowString = false>
 auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
-    if (expr->IsString()) {
-        auto string = expr->String();
-        if constexpr (kDoQuote) {
-            string = ShellQuote(std::move(string));
+    if constexpr (kAllowString) {
+        if (expr->IsString()) {
+            auto string = expr->String();
+            if constexpr (kDoQuote) {
+                string = ShellQuote(std::move(string));
+            }
+            return ExpressionPtr{std::move(string)};
         }
-        return ExpressionPtr{std::move(string)};
     }
     if (expr->IsList()) {
         auto const& list = expr->List();
@@ -370,8 +372,10 @@ auto Join(ExpressionPtr const& expr, std::string const& sep) -> ExpressionPtr {
         });
         return ExpressionPtr{ss.str()};
     }
-    throw Evaluator::EvaluationError{fmt::format(
-        "Join expects string or list but got: {}.", expr->ToString())};
+    throw Evaluator::EvaluationError{
+        fmt::format("Join expects a list of strings{}, but got: {}.",
+                    kAllowString ? " or a single string" : "",
+                    expr->ToString())};
 }
 
 template <bool kDisjoint = false>
@@ -787,7 +791,7 @@ auto JoinCmdExpr(SubExprEvaluator&& eval,
                  ExpressionPtr const& expr,
                  Configuration const& env) -> ExpressionPtr {
     auto const& list = eval(expr->Get("$1", list_t{}), env);
-    return Join</*kDoQuote=*/true>(list, " ");
+    return Join</*kDoQuote=*/true, /*kAllowString=*/false>(list, " ");
 }
 
 auto JsonEncodeExpr(SubExprEvaluator&& eval,
@@ -1120,7 +1124,8 @@ auto ConcatTargetNameExpr(SubExprEvaluator&& eval,
                           Configuration const& env) -> ExpressionPtr {
     auto p1 = eval(expr->Get("$1", ""s), env);
     auto p2 = eval(expr->Get("$2", ""s), env);
-    return ConcatTargetName(p1, Join(p2, ""));
+    return ConcatTargetName(
+        p1, Join</*kDoQuote=*/false, /*kAllowString=*/true>(p2, ""));
 }
 
 auto ContextExpr(SubExprEvaluator&& eval,

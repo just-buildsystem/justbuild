@@ -33,6 +33,10 @@ local build root on upgrade.
 - The built-in rule `"generic"` now properly enforces that the
   obtained outputs form a well-formed artifact stage; a conflicting
   arrangement of artifacts was possilbe beforehand.
+- The built-in expression functions `"join"` and `"join_cmd"`
+  now properly enforce that the argument is a list of strings.
+  So far, they used to accept a single string, treating it as a
+  singleton list.
 - A bug was fixed that cased `just serve` to fail with an internal
   error when building against ignore-special roots.
 - `just` now accurately reports internal errors that occurred on

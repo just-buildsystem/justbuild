@@ -1042,14 +1042,11 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         REQUIRE(multi->IsString());
         CHECK(multi == Expression::FromJson(R"("foo;bar;baz")"_json));
 
+        // only list of strings are allowed
         expr = Replace(expr, "$1", foo);
         REQUIRE(expr);
-        auto string = expr.Evaluate(env, fcts);
-        REQUIRE(string);
-        REQUIRE(string->IsString());
-        CHECK(string == Expression::FromJson(R"("foo")"_json));
+        CHECK_FALSE(expr.Evaluate(env, fcts));
 
-        // only list of strings or string is allowed
         expr = Replace(expr, "$1", list_t{foo, ExpressionPtr{number_t{}}});
         REQUIRE(expr);
         CHECK_FALSE(expr.Evaluate(env, fcts));
@@ -1070,6 +1067,14 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         REQUIRE(result->IsString());
         CHECK(result ==
               Expression::FromJson(R"("'foo' 'bar'\\''s' 'baz'")"_json));
+
+        expr = Expression::FromJson(R"(
+          {"type": "join_cmd"
+          , "$1": "not a list"
+          }
+        )"_json);
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
     }
 
     SECTION("escape_chars expression") {
