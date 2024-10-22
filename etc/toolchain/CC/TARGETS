@@ -168,7 +168,7 @@
   }
 , "clang":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH"]
+  , "arguments_config": ["OS", "ARCH", "TARGET_ARCH", "DEBUG"]
   , "CC": ["clang"]
   , "CXX": ["clang++"]
   , "AR":
@@ -270,6 +270,11 @@
           ]
         }
       }
+    }
+  , "ADD_COMPILE_FLAGS":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "DEBUG"}
+    , "then": ["-fdebug-compilation-dir=."]
     }
   , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
   }
