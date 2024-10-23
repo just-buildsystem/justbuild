@@ -140,7 +140,7 @@ additional binding `"format"` for it:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
+      , "commit": "b8ae7e38c0c51467ead55361362a0fd0da3666d5"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -273,7 +273,7 @@ be set for them in `repos.json`:
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
+      , "commit": "b8ae7e38c0c51467ead55361362a0fd0da3666d5"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
@@ -396,7 +396,7 @@ example, the following `repos.json` defines the overlay
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "22777343f1cfdda9880c61516be22fdfa595a569"
+      , "commit": "b8ae7e38c0c51467ead55361362a0fd0da3666d5"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
