@@ -107,7 +107,7 @@
                       ]
                     , [">"]
                     , [ { "type": "join_cmd"
-                        , "$1": {"type": "var", "name": "cflags-filename"}
+                        , "$1": [{"type": "var", "name": "cflags-filename"}]
                         }
                       ]
                     ]
@@ -189,7 +189,7 @@
                   [ "./add_rpath $(cat ldflags.raw)"
                   , ">"
                   , { "type": "join_cmd"
-                    , "$1": {"type": "var", "name": "ldflags-filename"}
+                    , "$1": [{"type": "var", "name": "ldflags-filename"}]
                     }
                   ]
                 }
