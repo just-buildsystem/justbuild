@@ -182,6 +182,18 @@ class SourceTreeService final
                                          std::filesystem::path const& repo_path)
         const noexcept -> std::remove_cvref_t<decltype(TResponse::OK)>;
 
+    /// \brief Set the digest field of a serve response.
+    /// In compatible mode, this handles also the interaction with the storages
+    /// to recover the corresponding compatible digest from a native digest, as
+    /// stored in file mappings.
+    template <typename TResponse>
+    [[nodiscard]] auto SetDigestInResponse(
+        gsl::not_null<TResponse*> const& response,
+        std::string const& object_hash,
+        bool is_tree,
+        bool from_git) const noexcept
+        -> std::remove_cvref_t<decltype(TResponse::OK)>;
+
     /// \brief Resolves a tree from given repository with respect to symlinks.
     /// The resolved tree will always be placed in the Git cache.
     [[nodiscard]] auto ResolveContentTree(

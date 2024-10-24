@@ -27,6 +27,7 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
+#include "src/buildtool/execution_api/serve/utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -221,20 +222,8 @@ auto SourceTreeService::ServeCommitTree(
                 SyncGitEntryToCas<ObjectType::Tree, ServeCommitTreeResponse>(
                     tree_id, native_context_->storage_config->GitRoot());
             if (status == ServeCommitTreeResponse::OK) {
-                // set digest in response
-                auto digest = ArtifactDigestFactory::Create(
-                    native_context_->storage_config->hash_function.GetType(),
-                    tree_id,
-                    /*size is unknown*/ 0,
-                    /*is_tree=*/true);
-                if (not digest) {
-                    logger_->Emit(LogLevel::Error, std::move(digest).error());
-                    response->set_status(
-                        ServeCommitTreeResponse::INTERNAL_ERROR);
-                    return ::grpc::Status::OK;
-                }
-                *(response->mutable_digest()) =
-                    ArtifactDigestFactory::ToBazel(*std::move(digest));
+                status = SetDigestInResponse<ServeCommitTreeResponse>(
+                    response, tree_id, /*is_tree=*/true, /*from_git=*/true);
             }
         }
         *(response->mutable_tree()) = tree_id;
@@ -263,22 +252,8 @@ auto SourceTreeService::ServeCommitTree(
                     SyncGitEntryToCas<ObjectType::Tree,
                                       ServeCommitTreeResponse>(tree_id, path);
                 if (status == ServeCommitTreeResponse::OK) {
-                    // set digest in response
-                    auto digest = ArtifactDigestFactory::Create(
-                        native_context_->storage_config->hash_function
-                            .GetType(),
-                        tree_id,
-                        /*size is unknown*/ 0,
-                        /*is_tree=*/true);
-                    if (not digest) {
-                        logger_->Emit(LogLevel::Error,
-                                      std::move(digest).error());
-                        response->set_status(
-                            ServeCommitTreeResponse::INTERNAL_ERROR);
-                        return ::grpc::Status::OK;
-                    }
-                    *(response->mutable_digest()) =
-                        ArtifactDigestFactory::ToBazel(*std::move(digest));
+                    status = SetDigestInResponse<ServeCommitTreeResponse>(
+                        response, tree_id, /*is_tree=*/true, /*from_git=*/true);
                 }
             }
             *(response->mutable_tree()) = tree_id;
@@ -312,19 +287,8 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
         status = SyncGitEntryToCas<ObjectType::Tree, ServeArchiveTreeResponse>(
             tree_id, repo_path);
         if (status == ServeArchiveTreeResponse::OK) {
-            // set digest in response
-            auto digest = ArtifactDigestFactory::Create(
-                native_context_->storage_config->hash_function.GetType(),
-                tree_id,
-                /*size is unknown*/ 0,
-                /*is_tree=*/true);
-            if (not digest) {
-                logger_->Emit(LogLevel::Error, std::move(digest).error());
-                response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
-                return ::grpc::Status::OK;
-            }
-            *(response->mutable_digest()) =
-                ArtifactDigestFactory::ToBazel(*std::move(digest));
+            status = SetDigestInResponse<ServeArchiveTreeResponse>(
+                response, tree_id, /*is_tree=*/true, /*from_git=*/true);
         }
     }
     *(response->mutable_tree()) = tree_id;
@@ -393,6 +357,79 @@ auto SourceTreeService::SyncGitEntryToCas(
                       object_hash,
                       repo_path.string());
         return TResponse::SYNC_ERROR;
+    }
+    return TResponse::OK;
+}
+
+template <typename TResponse>
+auto SourceTreeService::SetDigestInResponse(
+    gsl::not_null<TResponse*> const& response,
+    std::string const& object_hash,
+    bool is_tree,
+    bool from_git) const noexcept
+    -> std::remove_cvref_t<decltype(TResponse::OK)> {
+    // set digest in response
+    auto native_digest = ArtifactDigestFactory::Create(
+        native_context_->storage_config->hash_function.GetType(),
+        object_hash,
+        /*size is unknown*/ 0,
+        is_tree);
+    if (not native_digest) {
+        logger_->Emit(LogLevel::Error,
+                      "SetDigestInResponse: {}",
+                      std::move(native_digest).error());
+        return TResponse::INTERNAL_ERROR;
+    }
+    // in native mode, set the native digest in response
+    if (ProtocolTraits::IsNative(apis_.hash_function.GetType())) {
+        *(response->mutable_digest()) =
+            ArtifactDigestFactory::ToBazel(*std::move(native_digest));
+    }
+    else {
+        // in compatible mode, we need to respond with a compatible digest
+        if (compat_context_ == nullptr) {
+            // sanity check
+            logger_->Emit(LogLevel::Error,
+                          "Compatible storage not available as required");
+            return TResponse::INTERNAL_ERROR;
+        }
+
+        // get gc locks for the local storages
+        auto native_lock =
+            GarbageCollector::SharedLock(*native_context_->storage_config);
+        if (not native_lock) {
+            logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
+            return TResponse::INTERNAL_ERROR;
+        }
+        auto compat_lock =
+            GarbageCollector::SharedLock(*compat_context_->storage_config);
+        if (not compat_lock) {
+            logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
+            return TResponse::INTERNAL_ERROR;
+        }
+
+        // get the compatible digest from the mapping that was created during
+        // upload from Git cache
+        auto const cached_obj =
+            MRApiUtils::ReadRehashedDigest(*native_digest,
+                                           *native_context_->storage_config,
+                                           *compat_context_->storage_config,
+                                           from_git);
+        if (not cached_obj) {
+            logger_->Emit(
+                LogLevel::Error, "SetDigestInResponse: {}", cached_obj.error());
+            return TResponse::INTERNAL_ERROR;
+        }
+        if (not *cached_obj) {
+            logger_->Emit(
+                LogLevel::Error,
+                "Cached compatible object for native digest {} not found",
+                native_digest->hash());
+            return TResponse::INTERNAL_ERROR;
+        }
+        // set compatible digest in response
+        *(response->mutable_digest()) =
+            ArtifactDigestFactory::ToBazel(cached_obj->value().digest);
     }
     return TResponse::OK;
 }
@@ -1042,19 +1079,8 @@ auto SourceTreeService::DistdirImportToGit(
         status = SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
             tree_id, native_context_->storage_config->GitRoot());
         if (status == ServeDistdirTreeResponse::OK) {
-            // set digest in response
-            auto digest = ArtifactDigestFactory::Create(
-                native_context_->storage_config->hash_function.GetType(),
-                tree_id,
-                /*size is unknown*/ 0,
-                /*is_tree=*/true);
-            if (not digest) {
-                logger_->Emit(LogLevel::Error, std::move(digest).error());
-                response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
-                return ::grpc::Status::OK;
-            }
-            *(response->mutable_digest()) =
-                ArtifactDigestFactory::ToBazel(*std::move(digest));
+            status = SetDigestInResponse<ServeDistdirTreeResponse>(
+                response, tree_id, /*is_tree=*/true, /*from_git=*/true);
         }
     }
     // set response on success
@@ -1265,20 +1291,8 @@ auto SourceTreeService::ServeDistdirTree(
                 SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
                     tree_id, native_context_->storage_config->GitRoot());
             if (status == ServeDistdirTreeResponse::OK) {
-                // set digest in response
-                auto digest = ArtifactDigestFactory::Create(
-                    native_context_->storage_config->hash_function.GetType(),
-                    tree_id,
-                    /*size is unknown*/ 0,
-                    /*is_tree=*/true);
-                if (not digest) {
-                    logger_->Emit(LogLevel::Error, std::move(digest).error());
-                    response->set_status(
-                        ServeDistdirTreeResponse::INTERNAL_ERROR);
-                    return ::grpc::Status::OK;
-                }
-                *(response->mutable_digest()) =
-                    ArtifactDigestFactory::ToBazel(*std::move(digest));
+                status = SetDigestInResponse<ServeDistdirTreeResponse>(
+                    response, tree_id, /*is_tree=*/true, /*from_git=*/true);
             }
         }
         // set response on success
@@ -1305,22 +1319,8 @@ auto SourceTreeService::ServeDistdirTree(
                     SyncGitEntryToCas<ObjectType::Tree,
                                       ServeDistdirTreeResponse>(tree_id, path);
                 if (status == ServeDistdirTreeResponse::OK) {
-                    // set digest in response
-                    auto digest = ArtifactDigestFactory::Create(
-                        native_context_->storage_config->hash_function
-                            .GetType(),
-                        tree_id,
-                        /*size is unknown*/ 0,
-                        /*is_tree=*/true);
-                    if (not digest) {
-                        logger_->Emit(LogLevel::Error,
-                                      std::move(digest).error());
-                        response->set_status(
-                            ServeDistdirTreeResponse::INTERNAL_ERROR);
-                        return ::grpc::Status::OK;
-                    }
-                    *(response->mutable_digest()) =
-                        ArtifactDigestFactory::ToBazel(*std::move(digest));
+                    status = SetDigestInResponse<ServeDistdirTreeResponse>(
+                        response, tree_id, /*is_tree=*/true, /*from_git=*/true);
                 }
             }
             // set response on success
@@ -1339,16 +1339,6 @@ auto SourceTreeService::ServeContent(
     const ::justbuild::just_serve::ServeContentRequest* request,
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
-    auto const digest = ArtifactDigestFactory::Create(
-        native_context_->storage_config->hash_function.GetType(),
-        content,
-        /*size is unknown*/ 0,
-        /*is_tree=*/false);
-    if (not digest) {
-        logger_->Emit(LogLevel::Error, "Failed to create digest object");
-        response->set_status(ServeContentResponse::INTERNAL_ERROR);
-        return ::grpc::Status::OK;
-    }
 
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
@@ -1370,12 +1360,11 @@ auto SourceTreeService::ServeContent(
     auto res = GetBlobFromRepo(
         native_context_->storage_config->GitRoot(), content, logger_);
     if (res) {
-        auto const status =
-            SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
-                content, native_context_->storage_config->GitRoot());
+        auto status = SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
+            content, native_context_->storage_config->GitRoot());
         if (status == ServeContentResponse::OK) {
-            *(response->mutable_digest()) =
-                ArtifactDigestFactory::ToBazel(*digest);
+            status = SetDigestInResponse<ServeContentResponse>(
+                response, content, /*is_tree=*/false, /*from_git=*/true);
         }
         response->set_status(status);
         return ::grpc::Status::OK;
@@ -1393,12 +1382,12 @@ auto SourceTreeService::ServeContent(
         auto res = GetBlobFromRepo(path, content, logger_);
         if (res) {
             // upload blob to remote CAS
-            auto const status =
+            auto status =
                 SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
                     content, path);
             if (status == ServeContentResponse::OK) {
-                *(response->mutable_digest()) =
-                    ArtifactDigestFactory::ToBazel(*digest);
+                status = SetDigestInResponse<ServeContentResponse>(
+                    response, content, /*is_tree=*/false, /*from_git=*/true);
             }
             response->set_status(status);
             return ::grpc::Status::OK;
@@ -1414,21 +1403,32 @@ auto SourceTreeService::ServeContent(
         }
     }
 
-    // check also in the local CAS
-    if (digest and apis_.local->IsAvailable(*digest)) {
+    // check also in the native local CAS
+    auto const native_digest = ArtifactDigestFactory::Create(
+        native_context_->storage_config->hash_function.GetType(),
+        content,
+        /*size is unknown*/ 0,
+        /*is_tree=*/false);
+    if (not native_digest) {
+        logger_->Emit(LogLevel::Error, "Failed to create digest object");
+        response->set_status(ServeContentResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    if (apis_.local->IsAvailable(*native_digest)) {
+        // upload blob to remote CAS
         if (not apis_.local->RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = *digest,
+                {Artifact::ObjectInfo{.digest = *native_digest,
                                       .type = ObjectType::File}},
                 *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
-                          "Failed to sync content {} from local CAS",
+                          "Failed to sync content {} from local native CAS",
                           content);
             response->set_status(ServeContentResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
         }
-        // success!
-        *(response->mutable_digest()) = ArtifactDigestFactory::ToBazel(*digest);
-        response->set_status(ServeContentResponse::OK);
+        auto const status = SetDigestInResponse<ServeContentResponse>(
+            response, content, /*is_tree=*/false, /*from_git=*/false);
+        response->set_status(status);
         return ::grpc::Status::OK;
     }
     // content blob not known
@@ -1441,17 +1441,6 @@ auto SourceTreeService::ServeTree(
     const ::justbuild::just_serve::ServeTreeRequest* request,
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
-    auto const hash_type =
-        native_context_->storage_config->hash_function.GetType();
-    auto const digest = ArtifactDigestFactory::Create(hash_type,
-                                                      tree_id,
-                                                      /*size is unknown*/ 0,
-                                                      /*is_tree=*/true);
-    if (not digest) {
-        logger_->Emit(LogLevel::Error, "Failed to create digest object");
-        response->set_status(ServeTreeResponse::INTERNAL_ERROR);
-        return ::grpc::Status::OK;
-    }
 
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
@@ -1482,12 +1471,11 @@ auto SourceTreeService::ServeTree(
     }
     if (*has_tree) {
         // upload tree to remote CAS
-        auto const status =
-            SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(
-                tree_id, native_context_->storage_config->GitRoot());
+        auto status = SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(
+            tree_id, native_context_->storage_config->GitRoot());
         if (status == ServeTreeResponse::OK) {
-            *(response->mutable_digest()) =
-                ArtifactDigestFactory::ToBazel(*digest);
+            status = SetDigestInResponse<ServeTreeResponse>(
+                response, tree_id, /*is_tree=*/true, /*from_git=*/true);
         }
         response->set_status(status);
         return ::grpc::Status::OK;
@@ -1505,30 +1493,33 @@ auto SourceTreeService::ServeTree(
         }
         if (*has_tree) {
             // upload blob to remote CAS
-            auto const status =
+            auto status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(tree_id,
                                                                        path);
             if (status == ServeTreeResponse::OK) {
-                *(response->mutable_digest()) =
-                    ArtifactDigestFactory::ToBazel(*digest);
+                status = SetDigestInResponse<ServeTreeResponse>(
+                    response, tree_id, /*is_tree=*/true, /*from_git=*/true);
             }
             response->set_status(status);
             return ::grpc::Status::OK;
         }
     }
-    // check also in the local CAS
-    if (digest and apis_.local->IsAvailable(*digest)) {
-        // upload tree to remote CAS; only possible in native mode
-        if (not ProtocolTraits::IsNative(hash_type)) {
-            logger_->Emit(LogLevel::Error,
-                          "Cannot sync tree {} from native local CAS with the "
-                          "remote in compatible mode",
-                          tree_id);
-            response->set_status(ServeTreeResponse::SYNC_ERROR);
-            return ::grpc::Status::OK;
-        }
+
+    // check also in the native local CAS
+    auto const native_digest = ArtifactDigestFactory::Create(
+        native_context_->storage_config->hash_function.GetType(),
+        tree_id,
+        /*size is unknown*/ 0,
+        /*is_tree=*/true);
+    if (not native_digest) {
+        logger_->Emit(LogLevel::Error, "Failed to create digest object");
+        response->set_status(ServeTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    if (apis_.local->IsAvailable(*native_digest)) {
+        // upload tree to remote CAS
         if (not apis_.local->RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = *digest,
+                {Artifact::ObjectInfo{.digest = *native_digest,
                                       .type = ObjectType::Tree}},
                 *apis_.remote)) {
             logger_->Emit(LogLevel::Error,
@@ -1537,9 +1528,9 @@ auto SourceTreeService::ServeTree(
             response->set_status(ServeTreeResponse::SYNC_ERROR);
             return ::grpc::Status::OK;
         }
-        // success!
-        *(response->mutable_digest()) = ArtifactDigestFactory::ToBazel(*digest);
-        response->set_status(ServeTreeResponse::OK);
+        auto const status = SetDigestInResponse<ServeTreeResponse>(
+            response, tree_id, /*is_tree=*/true, /*from_git=*/false);
+        response->set_status(status);
         return ::grpc::Status::OK;
     }
     // tree not known
@@ -1567,6 +1558,7 @@ auto SourceTreeService::CheckRootTree(
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
+
     // check first in the Git cache
     auto has_tree = IsTreeInRepo(
         tree_id, native_context_->storage_config->GitRoot(), logger_);
@@ -1600,13 +1592,19 @@ auto SourceTreeService::CheckRootTree(
             return ::grpc::Status::OK;
         }
     }
+
     // now check in the native local CAS
-    auto const digest = ArtifactDigestFactory::Create(
+    auto const native_digest = ArtifactDigestFactory::Create(
         native_context_->storage_config->hash_function.GetType(),
         tree_id,
         0,
         /*is_tree=*/true);
-    if (digest and native_context_->storage->CAS().TreePath(*digest)) {
+    if (not native_digest) {
+        logger_->Emit(LogLevel::Error, "Failed to create digest object");
+        response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    if (native_context_->storage->CAS().TreePath(*native_digest)) {
         // As we currently build only against roots in Git repositories, we need
         // to move the tree from CAS to local Git storage
         auto tmp_dir = native_context_->storage_config->CreateTypedTmpDir(
@@ -1615,12 +1613,12 @@ auto SourceTreeService::CheckRootTree(
             logger_->Emit(LogLevel::Error,
                           "Failed to create tmp directory for copying git-tree "
                           "{} from remote CAS",
-                          digest->hash());
+                          tree_id);
             response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
         if (not apis_.local->RetrieveToPaths(
-                {Artifact::ObjectInfo{.digest = *digest,
+                {Artifact::ObjectInfo{.digest = *native_digest,
                                       .type = ObjectType::Tree}},
                 {tmp_dir->GetPath()})) {
             logger_->Emit(LogLevel::Error,
@@ -1679,7 +1677,7 @@ auto SourceTreeService::GetRemoteTree(
     if (not remote_digest or not apis_.remote->IsAvailable(*remote_digest)) {
         logger_->Emit(LogLevel::Error,
                       "Remote CAS does not contain expected tree {}",
-                      remote_digest->hash());
+                      request->digest().hash());
         response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
         return ::grpc::Status::OK;
     }
