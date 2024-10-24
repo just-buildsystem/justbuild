@@ -422,10 +422,13 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
         ApiBundle{.hash_function = hash_fct,
                   .local = native_local_api,
                   .remote = has_remote_api ? remote_api : native_local_api};
-    auto serve = ServeApi::Create(*serve_config,
-                                  &native_local_context, /*unused*/
-                                  &remote_context,
-                                  &apis /*unused*/);
+    auto serve = ServeApi::Create(
+        *serve_config,
+        compat_local_context != nullptr
+            ? &*compat_local_context
+            : &native_local_context,  // defines the client's hash_function
+        &remote_context,
+        &apis /*unused*/);
 
     // check configuration of the serve endpoint provided
     if (serve) {

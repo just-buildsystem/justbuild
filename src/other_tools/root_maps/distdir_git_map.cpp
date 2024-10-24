@@ -224,21 +224,20 @@ auto CreateDistdirGitMap(
                             if (not *has_tree) {
                                 // try to see if serve endpoint has the
                                 // information to prepare the root itself
-                                auto serve_result =
+                                auto const serve_result =
                                     serve->RetrieveTreeFromDistdir(
                                         key.content_list,
                                         /*sync_tree=*/false);
                                 if (serve_result) {
                                     // if serve has set up the tree, it must
                                     // match what we expect
-                                    auto const& served_tree_id = *serve_result;
-                                    if (distdir_tree_id != served_tree_id) {
+                                    if (distdir_tree_id != serve_result->tree) {
                                         (*logger)(
                                             fmt::format(
                                                 "Mismatch in served root tree "
                                                 "id:\nexpected {}, but got {}",
                                                 distdir_tree_id,
-                                                served_tree_id),
+                                                serve_result->tree),
                                             /*fatal=*/true);
                                         return;
                                     }
@@ -376,19 +375,18 @@ auto CreateDistdirGitMap(
                     }
                     // try to see if serve endpoint has the information to
                     // prepare the root itself
-                    auto serve_result =
+                    auto const serve_result =
                         serve->RetrieveTreeFromDistdir(key.content_list,
                                                        /*sync_tree=*/false);
                     if (serve_result) {
                         // if serve has set up the tree, it must match what we
                         // expect
-                        auto const& served_tree_id = *serve_result;
-                        if (tree_id != served_tree_id) {
+                        if (tree_id != serve_result->tree) {
                             (*logger)(
                                 fmt::format("Mismatch in served root tree "
                                             "id:\nexpected {}, but got {}",
                                             tree_id,
-                                            served_tree_id),
+                                            serve_result->tree),
                                 /*fatal=*/true);
                             return;
                         }
@@ -520,18 +518,17 @@ auto CreateDistdirGitMap(
             // now ask serve endpoint if it can set up the root; as this is for
             // a present root, a corresponding remote endpoint is needed
             if (serve != nullptr and remote_api != nullptr) {
-                auto serve_result =
+                auto const serve_result =
                     serve->RetrieveTreeFromDistdir(key.content_list,
                                                    /*sync_tree=*/true);
                 if (serve_result) {
                     // if serve has set up the tree, it must match what we
                     // expect
-                    auto const& served_tree_id = *serve_result;
-                    if (tree_id != served_tree_id) {
+                    if (tree_id != serve_result->tree) {
                         (*logger)(fmt::format("Mismatch in served root tree "
                                               "id:\nexpected {}, but got {}",
                                               tree_id,
-                                              served_tree_id),
+                                              serve_result->tree),
                                   /*fatal=*/true);
                         return;
                     }

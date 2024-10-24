@@ -156,17 +156,15 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                 /*is_cache_hit=*/false));
             return;
         }
-        auto serve_result = serve->RetrieveTreeFromForeignFile(
+        auto const serve_result = serve->RetrieveTreeFromForeignFile(
             key.archive.content_hash.Hash(), key.name, key.executable);
         if (serve_result) {
-            // if serve has set up the tree, it must match what we
-            // expect
-            auto const& served_tree_id = *serve_result;
-            if (tree_id != served_tree_id) {
+            // if serve has set up the tree, it must match what we expect
+            if (tree_id != serve_result->tree) {
                 (*logger)(fmt::format("Mismatch in served root tree "
                                       "id: expected {}, but got {}",
                                       tree_id,
-                                      served_tree_id),
+                                      serve_result->tree),
                           /*fatal=*/true);
                 return;
             }

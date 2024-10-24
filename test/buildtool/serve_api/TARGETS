@@ -6,19 +6,28 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "source_tree_client"]
     , ["utils", "catch-main-serve"]
+    , ["utils", "test_hash_function_type"]
     , ["utils", "test_serve_config"]
     ]
   , "stage": ["test", "buildtool", "serve_api"]
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
   , "stage": ["serve_api"]
-  , "deps": ["source_tree_client"]
+  , "deps":
+    { "type": "if"
+    , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+    , "then": []
+    , "else": ["source_tree_client"]
+    }
   }
 }

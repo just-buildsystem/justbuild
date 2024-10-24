@@ -71,7 +71,7 @@ void EnsureRootAsAbsent(
             // try to see if serve endpoint has the information to prepare the
             // root itself; this is redundant if root is not already cached
             if (is_cache_hit) {
-                auto serve_result = serve->RetrieveTreeFromArchive(
+                auto const serve_result = serve->RetrieveTreeFromArchive(
                     key.archive.content_hash.Hash(),
                     key.repo_type,
                     key.subdir,
@@ -80,12 +80,11 @@ void EnsureRootAsAbsent(
                 if (serve_result) {
                     // if serve has set up the tree, it must match what we
                     // expect
-                    auto const& served_tree_id = *serve_result;
-                    if (tree_id != served_tree_id) {
+                    if (tree_id != serve_result->tree) {
                         (*logger)(fmt::format("Mismatch in served root tree "
                                               "id:\nexpected {}, but got {}",
                                               tree_id,
-                                              served_tree_id),
+                                              serve_result->tree),
                                   /*fatal=*/true);
                         return;
                     }
@@ -1047,7 +1046,7 @@ auto CreateContentGitMap(
                 // request the resolved subdir tree from the serve endpoint, if
                 // given
                 if (serve != nullptr) {
-                    auto serve_result = serve->RetrieveTreeFromArchive(
+                    auto const serve_result = serve->RetrieveTreeFromArchive(
                         key.archive.content_hash.Hash(),
                         key.repo_type,
                         key.subdir,
@@ -1058,7 +1057,7 @@ auto CreateContentGitMap(
                         progress->TaskTracker().Stop(key.archive.origin);
                         (*setter)(std::pair(
                             nlohmann::json::array(
-                                {FileRoot::kGitTreeMarker, *serve_result}),
+                                {FileRoot::kGitTreeMarker, serve_result->tree}),
                             /*is_cache_hit = */ false));
                         return;
                     }

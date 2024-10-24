@@ -17,16 +17,20 @@
   , "srcs": ["source_tree_client.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/file_system", "git_types"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
-    [ ["src/buildtool/common/remote", "client_common"]
+    [ ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/logging", "log_level"]
     ]
   }

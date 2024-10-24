@@ -19,10 +19,13 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 
 auto const kRootCommit =
@@ -36,9 +39,11 @@ auto const kRootSymId = std::string{"18770dacfe14c15d88450c21c16668e13ab0e7f9"};
 auto const kBazSymId = std::string{"1868f82682c290f0b1db3cacd092727eef1fa57f"};
 
 TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
-    auto config = TestServeConfig::ReadFromEnvironment();
+    auto const config = TestServeConfig::ReadFromEnvironment();
     REQUIRE(config);
     REQUIRE(config->remote_address);
+    auto const hash_function =
+        HashFunction{TestHashType::ReadFromEnvironment()};
 
     // Create TLC client
     Auth auth{};
@@ -48,26 +53,39 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
                                        .retry_config = &retry_config,
                                        .exec_config = &exec_config};
 
-    SourceTreeClient st_client(*config->remote_address, &remote_context);
+    SourceTreeClient st_client(
+        *config->remote_address, &hash_function, &remote_context);
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);
         REQUIRE(root_id);
-        CHECK(*root_id == kRootId);
+        CHECK_FALSE(root_id->digest);  // digest is not provided if not syncing
+        if (ProtocolTraits::IsNative(hash_function.GetType())) {
+            CHECK(root_id->tree == kRootId);
+        }
 
         auto baz_id = st_client.ServeCommitTree(kRootCommit, "baz", false);
         REQUIRE(baz_id);
-        CHECK(*baz_id == kBazId);
+        CHECK_FALSE(baz_id->digest);  // digest is not provided if not syncing
+        if (ProtocolTraits::IsNative(hash_function.GetType())) {
+            CHECK(baz_id->tree == kBazId);
+        }
     }
 
     SECTION("Commit in non-bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootSymCommit, ".", false);
         REQUIRE(root_id);
-        CHECK(*root_id == kRootSymId);
+        CHECK_FALSE(root_id->digest);  // digest is not provided if not syncing
+        if (ProtocolTraits::IsNative(hash_function.GetType())) {
+            CHECK(root_id->tree == kRootSymId);
+        }
 
         auto baz_id = st_client.ServeCommitTree(kRootSymCommit, "baz", false);
         REQUIRE(baz_id);
-        CHECK(*baz_id == kBazSymId);
+        CHECK_FALSE(baz_id->digest);  // digest is not provided if not syncing
+        if (ProtocolTraits::IsNative(hash_function.GetType())) {
+            CHECK(baz_id->tree == kBazSymId);
+        }
     }
 
     SECTION("Subdir not found") {
@@ -81,7 +99,7 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
         auto root_id = st_client.ServeCommitTree(
             "0123456789abcdef0123456789abcdef01234567", ".", false);
         REQUIRE_FALSE(root_id);
-        CHECK_FALSE(root_id.error() ==
-                    GitLookupError::Fatal);  // non-fatal failure
+        CHECK(root_id.error() ==
+              GitLookupError::NotFound);  // non-fatal failure
     }
 }

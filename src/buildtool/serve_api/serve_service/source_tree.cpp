@@ -214,14 +214,30 @@ auto SourceTreeService::ServeCommitTree(
     auto res = GetSubtreeFromCommit(
         native_context_->storage_config->GitRoot(), commit, subdir, logger_);
     if (res) {
-        auto tree_id = *std::move(res);
+        auto const tree_id = *std::move(res);
         auto status = ServeCommitTreeResponse::OK;
         if (request->sync_tree()) {
             status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeCommitTreeResponse>(
                     tree_id, native_context_->storage_config->GitRoot());
+            if (status == ServeCommitTreeResponse::OK) {
+                // set digest in response
+                auto digest = ArtifactDigestFactory::Create(
+                    native_context_->storage_config->hash_function.GetType(),
+                    tree_id,
+                    /*size is unknown*/ 0,
+                    /*is_tree=*/true);
+                if (not digest) {
+                    logger_->Emit(LogLevel::Error, std::move(digest).error());
+                    response->set_status(
+                        ServeCommitTreeResponse::INTERNAL_ERROR);
+                    return ::grpc::Status::OK;
+                }
+                *(response->mutable_digest()) =
+                    ArtifactDigestFactory::ToBazel(*std::move(digest));
+            }
         }
-        *(response->mutable_tree()) = std::move(tree_id);
+        *(response->mutable_tree()) = tree_id;
         response->set_status(status);
         return ::grpc::Status::OK;
     }
@@ -240,14 +256,32 @@ auto SourceTreeService::ServeCommitTree(
     for (auto const& path : serve_config_.known_repositories) {
         auto res = GetSubtreeFromCommit(path, commit, subdir, logger_);
         if (res) {
-            auto tree_id = *std::move(res);
+            auto const tree_id = *std::move(res);
             auto status = ServeCommitTreeResponse::OK;
             if (request->sync_tree()) {
                 status =
                     SyncGitEntryToCas<ObjectType::Tree,
                                       ServeCommitTreeResponse>(tree_id, path);
+                if (status == ServeCommitTreeResponse::OK) {
+                    // set digest in response
+                    auto digest = ArtifactDigestFactory::Create(
+                        native_context_->storage_config->hash_function
+                            .GetType(),
+                        tree_id,
+                        /*size is unknown*/ 0,
+                        /*is_tree=*/true);
+                    if (not digest) {
+                        logger_->Emit(LogLevel::Error,
+                                      std::move(digest).error());
+                        response->set_status(
+                            ServeCommitTreeResponse::INTERNAL_ERROR);
+                        return ::grpc::Status::OK;
+                    }
+                    *(response->mutable_digest()) =
+                        ArtifactDigestFactory::ToBazel(*std::move(digest));
+                }
             }
-            *(response->mutable_tree()) = std::move(tree_id);
+            *(response->mutable_tree()) = tree_id;
             response->set_status(status);
             return ::grpc::Status::OK;
         }
@@ -277,6 +311,21 @@ auto SourceTreeService::SyncArchive(std::string const& tree_id,
     if (sync_tree) {
         status = SyncGitEntryToCas<ObjectType::Tree, ServeArchiveTreeResponse>(
             tree_id, repo_path);
+        if (status == ServeArchiveTreeResponse::OK) {
+            // set digest in response
+            auto digest = ArtifactDigestFactory::Create(
+                native_context_->storage_config->hash_function.GetType(),
+                tree_id,
+                /*size is unknown*/ 0,
+                /*is_tree=*/true);
+            if (not digest) {
+                logger_->Emit(LogLevel::Error, std::move(digest).error());
+                response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
+                return ::grpc::Status::OK;
+            }
+            *(response->mutable_digest()) =
+                ArtifactDigestFactory::ToBazel(*std::move(digest));
+        }
     }
     *(response->mutable_tree()) = tree_id;
     response->set_status(status);
@@ -992,6 +1041,21 @@ auto SourceTreeService::DistdirImportToGit(
     if (sync_tree) {
         status = SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
             tree_id, native_context_->storage_config->GitRoot());
+        if (status == ServeDistdirTreeResponse::OK) {
+            // set digest in response
+            auto digest = ArtifactDigestFactory::Create(
+                native_context_->storage_config->hash_function.GetType(),
+                tree_id,
+                /*size is unknown*/ 0,
+                /*is_tree=*/true);
+            if (not digest) {
+                logger_->Emit(LogLevel::Error, std::move(digest).error());
+                response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+                return ::grpc::Status::OK;
+            }
+            *(response->mutable_digest()) =
+                ArtifactDigestFactory::ToBazel(*std::move(digest));
+        }
     }
     // set response on success
     *(response->mutable_tree()) = std::move(tree_id);
@@ -1200,6 +1264,22 @@ auto SourceTreeService::ServeDistdirTree(
             status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeDistdirTreeResponse>(
                     tree_id, native_context_->storage_config->GitRoot());
+            if (status == ServeDistdirTreeResponse::OK) {
+                // set digest in response
+                auto digest = ArtifactDigestFactory::Create(
+                    native_context_->storage_config->hash_function.GetType(),
+                    tree_id,
+                    /*size is unknown*/ 0,
+                    /*is_tree=*/true);
+                if (not digest) {
+                    logger_->Emit(LogLevel::Error, std::move(digest).error());
+                    response->set_status(
+                        ServeDistdirTreeResponse::INTERNAL_ERROR);
+                    return ::grpc::Status::OK;
+                }
+                *(response->mutable_digest()) =
+                    ArtifactDigestFactory::ToBazel(*std::move(digest));
+            }
         }
         // set response on success
         *(response->mutable_tree()) = std::move(tree_id);
@@ -1224,6 +1304,24 @@ auto SourceTreeService::ServeDistdirTree(
                 status =
                     SyncGitEntryToCas<ObjectType::Tree,
                                       ServeDistdirTreeResponse>(tree_id, path);
+                if (status == ServeDistdirTreeResponse::OK) {
+                    // set digest in response
+                    auto digest = ArtifactDigestFactory::Create(
+                        native_context_->storage_config->hash_function
+                            .GetType(),
+                        tree_id,
+                        /*size is unknown*/ 0,
+                        /*is_tree=*/true);
+                    if (not digest) {
+                        logger_->Emit(LogLevel::Error,
+                                      std::move(digest).error());
+                        response->set_status(
+                            ServeDistdirTreeResponse::INTERNAL_ERROR);
+                        return ::grpc::Status::OK;
+                    }
+                    *(response->mutable_digest()) =
+                        ArtifactDigestFactory::ToBazel(*std::move(digest));
+                }
             }
             // set response on success
             *(response->mutable_tree()) = std::move(tree_id);

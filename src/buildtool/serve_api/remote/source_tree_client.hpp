@@ -16,12 +16,15 @@
 #define INCLUDED_SRC_BUILDTOOL_SERVE_API_SOURCE_TREE_CLIENT_HPP
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
@@ -34,19 +37,23 @@ class SourceTreeClient {
   public:
     explicit SourceTreeClient(
         ServerAddress const& address,
+        gsl::not_null<HashFunction const*> const& hash_function,
         gsl::not_null<RemoteContext const*> const& remote_context) noexcept;
 
-    // An error + data union type
-    using result_t = expected<std::string, GitLookupError>;
+    struct TreeResult {
+        std::string tree;
+        std::optional<ArtifactDigest> digest;
+    };
+    using result_t = expected<TreeResult, GitLookupError>;
 
     /// \brief Retrieve the Git tree of a given commit, if known by the
     /// endpoint. It is a fatal error if the commit is known to the endpoint but
-    /// no tree is able to be returned.
+    /// no result is able to be returned.
     /// \param[in] commit_id Hash of the Git commit to look up.
     /// \param[in] subdir Relative path of the tree inside commit.
     /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
-    /// \returns The tree identifier on success or an unexpected error (fatal or
-    /// commit or subtree not found).
+    /// \returns The optional tree digest on success or an unexpected error
+    /// (fatal or commit or subtree not found).
     [[nodiscard]] auto ServeCommitTree(std::string const& commit_id,
                                        std::string const& subdir,
                                        bool sync_tree) const noexcept
@@ -54,15 +61,15 @@ class SourceTreeClient {
 
     /// \brief Retrieve the Git tree of an archive content, if known by the
     /// endpoint. It is a fatal error if the content blob is known to the
-    /// endpoint but no tree is able to be returned.
+    /// endpoint but no result is able to be returned.
     /// \param[in] content Hash of the archive content to look up.
     /// \param[in] archive_type Type of archive ("archive"|"zip").
     /// \param[in] subdir Relative path of the tree inside archive.
     /// \param[in] resolve_symlinks Optional enum to state how symlinks in the
     /// archive should be handled if the tree has to be actually computed.
     /// \param[in] sync_tree Sync tree to the remote-execution endpoint.
-    /// \returns The tree identifier on success or an unexpected error (fatal or
-    /// content blob not found).
+    /// \returns The optional tree digest on success or an unexpected error
+    /// (fatal or content blob not found).
     [[nodiscard]] auto ServeArchiveTree(
         std::string const& content,
         std::string const& archive_type,
@@ -72,20 +79,25 @@ class SourceTreeClient {
 
     /// \brief Retrieve the Git tree of a directory of distfiles, if all the
     /// content blobs are known by the endpoint. It is a fatal error if all
-    /// content blobs are known but no tree is able to be returned.
+    /// content blobs are known but no result is able to be returned.
     /// \param[in] distfiles Mapping from distfile names to content blob ids.
-    /// \param[in] sync_tree Sync tree and all ditfile blobs to the
+    /// \param[in] sync_tree Sync tree and all distfile blobs to the
     /// remote-execution endpoint.
-    /// \returns The tree identifier on success or an unexpected error (fatal or
-    /// at least one distfile blob missing).
+    /// \returns The optional tree digest on success or an unexpected error
+    /// (fatal or at least one distfile blob missing).
     [[nodiscard]] auto ServeDistdirTree(
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,
         bool sync_tree) const noexcept -> result_t;
 
     /// \brief Retrieve the Git tree of a foreign-file directory, if all content
-    /// blobs are known to the end point and, as a side effect, make that tree
+    /// blobs are known to the endpoint and, as a side-effect, make that tree
     /// known to the serve endpoint.
+    /// \param[in] content Hash of the foreign-file content.
+    /// \param[in] name Name of the foreign-file.
+    /// \param[in] executable Executable flag of foreign-file.
+    /// \returns The optional tree digest on success or an unexpected error
+    /// (fatal or content not found).
     [[nodiscard]] auto ServeForeignFileTree(const std::string& content,
                                             const std::string& name,
                                             bool executable) const noexcept
@@ -122,6 +134,7 @@ class SourceTreeClient {
         -> bool;
 
   private:
+    HashFunction const& hash_function_;  // hash function of the remote
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteSourceTreeClient"};
 };

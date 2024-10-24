@@ -82,13 +82,13 @@ void EnsureRootAsAbsent(
         if (not *has_tree) {
             // try to see if serve endpoint has the information to prepare the
             // root itself
-            auto serve_result =
+            auto const serve_result =
                 serve->RetrieveTreeFromCommit(repo_info.hash,
                                               repo_info.subdir,
                                               /*sync_tree = */ false);
             if (serve_result) {
                 // if serve has set up the tree, it must match what we expect
-                auto const& served_tree_id = *serve_result;
+                auto const& served_tree_id = serve_result->tree;
                 if (tree_id != served_tree_id) {
                     (*logger)(fmt::format("Mismatch in served root tree "
                                           "id:\nexpected {}, but got {}",
@@ -671,7 +671,7 @@ void EnsureCommit(
         if (serve != nullptr) {
             // if root purely absent, request only the subdir tree
             if (repo_info.absent and not fetch_absent) {
-                auto serve_result =
+                auto const serve_result =
                     serve->RetrieveTreeFromCommit(repo_info.hash,
                                                   repo_info.subdir,
                                                   /*sync_tree = */ false);
@@ -683,7 +683,7 @@ void EnsureCommit(
                             {repo_info.ignore_special
                                  ? FileRoot::kGitTreeIgnoreSpecialMarker
                                  : FileRoot::kGitTreeMarker,
-                             *std::move(serve_result)}),
+                             serve_result->tree}),
                         /*is_cache_hit=*/false));
                     return;
                 }
@@ -700,12 +700,13 @@ void EnsureCommit(
             // otherwise, request (and sync) the whole commit tree, to ensure
             // we maintain the id file association
             else {
-                auto serve_result =
+                auto const serve_result =
                     serve->RetrieveTreeFromCommit(repo_info.hash,
                                                   /*subdir = */ ".",
                                                   /*sync_tree = */ true);
                 if (serve_result) {
-                    auto const& root_tree_id = *serve_result;
+                    auto const root_tree_id = serve_result->tree;
+                    auto const remote_digest = serve_result->digest;
                     // verify if we know the tree already in the local Git cache
                     GitOpKey op_key = {.params =
                                            {
@@ -721,6 +722,7 @@ void EnsureCommit(
                         ts,
                         {std::move(op_key)},
                         [root_tree_id,
+                         remote_digest,
                          tree_id_file,
                          repo_info,
                          repo_root,
@@ -875,18 +877,13 @@ void EnsureCommit(
                                 }
                             }
 
-                            // try to get root tree from remote CAS
-                            auto const root_digest =
-                                ArtifactDigestFactory::Create(
-                                    native_storage_config->hash_function
-                                        .GetType(),
-                                    root_tree_id,
-                                    0,
-                                    /*is_tree=*/true);
-                            if (remote_api != nullptr and root_digest and
+                            // try to get root tree from remote CAS; use the
+                            // digest received from serve; whether native or
+                            // compatible, it will either way be imported to Git
+                            if (remote_api != nullptr and remote_digest and
                                 remote_api->RetrieveToCas(
                                     {Artifact::ObjectInfo{
-                                        .digest = *root_digest,
+                                        .digest = *remote_digest,
                                         .type = ObjectType::Tree}},
                                     *local_api)) {
                                 progress->TaskTracker().Stop(repo_info.origin);
@@ -907,7 +904,7 @@ void EnsureCommit(
                                 }
                                 if (not local_api->RetrieveToPaths(
                                         {Artifact::ObjectInfo{
-                                            .digest = *root_digest,
+                                            .digest = *remote_digest,
                                             .type = ObjectType::Tree}},
                                         {tmp_dir->GetPath()})) {
                                     (*logger)(fmt::format(

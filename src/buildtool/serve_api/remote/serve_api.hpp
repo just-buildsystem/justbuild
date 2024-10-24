@@ -46,7 +46,9 @@ class ServeApi final {
                       gsl::not_null<LocalContext const*> const& local_context,
                       gsl::not_null<RemoteContext const*> const& remote_context,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
-        : stc_{address, remote_context},
+        : stc_{address,
+               &local_context->storage_config->hash_function,
+               remote_context},
           tc_{address, local_context->storage, remote_context, apis},
           cc_{address, remote_context} {}
 
@@ -71,10 +73,10 @@ class ServeApi final {
         return std::nullopt;
     }
 
-    [[nodiscard]] auto RetrieveTreeFromCommit(std::string const& commit,
-                                              std::string const& subdir = ".",
-                                              bool sync_tree = false)
-        const noexcept -> expected<std::string, GitLookupError> {
+    [[nodiscard]] auto RetrieveTreeFromCommit(
+        std::string const& commit,
+        std::string const& subdir = ".",
+        bool sync_tree = false) const noexcept -> SourceTreeClient::result_t {
         return stc_.ServeCommitTree(commit, subdir, sync_tree);
     }
 
@@ -83,8 +85,7 @@ class ServeApi final {
         std::string const& archive_type = "archive",
         std::string const& subdir = ".",
         std::optional<PragmaSpecial> const& resolve_symlinks = std::nullopt,
-        bool sync_tree = false) const noexcept
-        -> expected<std::string, GitLookupError> {
+        bool sync_tree = false) const noexcept -> SourceTreeClient::result_t {
         return stc_.ServeArchiveTree(
             content, archive_type, subdir, resolve_symlinks, sync_tree);
     }
@@ -92,15 +93,14 @@ class ServeApi final {
     [[nodiscard]] auto RetrieveTreeFromDistdir(
         std::shared_ptr<std::unordered_map<std::string, std::string>> const&
             distfiles,
-        bool sync_tree = false) const noexcept
-        -> expected<std::string, GitLookupError> {
+        bool sync_tree = false) const noexcept -> SourceTreeClient::result_t {
         return stc_.ServeDistdirTree(distfiles, sync_tree);
     }
 
-    [[nodiscard]] auto RetrieveTreeFromForeignFile(const std::string& content,
-                                                   const std::string& name,
-                                                   bool executable)
-        const noexcept -> expected<std::string, GitLookupError> {
+    [[nodiscard]] auto RetrieveTreeFromForeignFile(
+        const std::string& content,
+        const std::string& name,
+        bool executable) const noexcept -> SourceTreeClient::result_t {
         return stc_.ServeForeignFileTree(content, name, executable);
     }
 
