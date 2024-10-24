@@ -23,6 +23,7 @@ echo "${RESULT}" > result
 export OUT="$(pwd)/out"
 mkdir -p config
 export CONFIG="$(pwd)/config"
+export META="$(pwd)/meta.json"
 
 cd work
 

@@ -63,6 +63,10 @@
       , "  by the field \"config\", and"
       , "- OUT pointing to a directory to which files with the lint result"
       , "  can be written."
+      , "- META pointing to a json file contaning"
+      , "  - at key \"direct deps artifact names\" a list of all input"
+      , "    artifacts that come from the target itself or are runfiles of a"
+      , "    direct dependency."
       , "It is supposed to indicate by the exit code whether the file to lint"
       , "complies with the given linting policy, with 0 meaning"
       , "compliant."
@@ -152,6 +156,12 @@
                   , "dep": {"type": "var", "name": "_"}
                   }
                 ]
+              , [ "direct deps artifact names"
+                , { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "_"}
+                  , "provider": "direct deps artifact names"
+                  }
+                ]
               ]
             , "body":
               { "type": "TREE"
@@ -169,6 +179,19 @@
                     , { "type": "to_subdir"
                       , "subdir": "config"
                       , "$1": {"type": "var", "name": "config"}
+                      }
+                    , { "type": "singleton_map"
+                      , "key": "meta.json"
+                      , "value":
+                        { "type": "BLOB"
+                        , "data":
+                          { "type": "json_encode"
+                          , "$1":
+                            { "type": "env"
+                            , "vars": ["direct deps artifact names"]
+                            }
+                          }
+                        }
                       }
                     ]
                   }
