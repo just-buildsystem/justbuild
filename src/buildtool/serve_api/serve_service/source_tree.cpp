@@ -1339,6 +1339,17 @@ auto SourceTreeService::ServeContent(
     const ::justbuild::just_serve::ServeContentRequest* request,
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
+    auto const digest = ArtifactDigestFactory::Create(
+        native_context_->storage_config->hash_function.GetType(),
+        content,
+        /*size is unknown*/ 0,
+        /*is_tree=*/false);
+    if (not digest) {
+        logger_->Emit(LogLevel::Error, "Failed to create digest object");
+        response->set_status(ServeContentResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1362,6 +1373,10 @@ auto SourceTreeService::ServeContent(
         auto const status =
             SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
                 content, native_context_->storage_config->GitRoot());
+        if (status == ServeContentResponse::OK) {
+            *(response->mutable_digest()) =
+                ArtifactDigestFactory::ToBazel(*digest);
+        }
         response->set_status(status);
         return ::grpc::Status::OK;
     }
@@ -1381,6 +1396,10 @@ auto SourceTreeService::ServeContent(
             auto const status =
                 SyncGitEntryToCas<ObjectType::File, ServeContentResponse>(
                     content, path);
+            if (status == ServeContentResponse::OK) {
+                *(response->mutable_digest()) =
+                    ArtifactDigestFactory::ToBazel(*digest);
+            }
             response->set_status(status);
             return ::grpc::Status::OK;
         }
@@ -1396,11 +1415,6 @@ auto SourceTreeService::ServeContent(
     }
 
     // check also in the local CAS
-    auto const digest = ArtifactDigestFactory::Create(
-        native_context_->storage_config->hash_function.GetType(),
-        content,
-        0,
-        /*is_tree=*/false);
     if (digest and apis_.local->IsAvailable(*digest)) {
         if (not apis_.local->RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = *digest,
@@ -1413,6 +1427,7 @@ auto SourceTreeService::ServeContent(
             return ::grpc::Status::OK;
         }
         // success!
+        *(response->mutable_digest()) = ArtifactDigestFactory::ToBazel(*digest);
         response->set_status(ServeContentResponse::OK);
         return ::grpc::Status::OK;
     }
@@ -1426,6 +1441,18 @@ auto SourceTreeService::ServeTree(
     const ::justbuild::just_serve::ServeTreeRequest* request,
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
+    auto const hash_type =
+        native_context_->storage_config->hash_function.GetType();
+    auto const digest = ArtifactDigestFactory::Create(hash_type,
+                                                      tree_id,
+                                                      /*size is unknown*/ 0,
+                                                      /*is_tree=*/true);
+    if (not digest) {
+        logger_->Emit(LogLevel::Error, "Failed to create digest object");
+        response->set_status(ServeTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1454,9 +1481,14 @@ auto SourceTreeService::ServeTree(
         return ::grpc::Status::OK;
     }
     if (*has_tree) {
+        // upload tree to remote CAS
         auto const status =
             SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(
                 tree_id, native_context_->storage_config->GitRoot());
+        if (status == ServeTreeResponse::OK) {
+            *(response->mutable_digest()) =
+                ArtifactDigestFactory::ToBazel(*digest);
+        }
         response->set_status(status);
         return ::grpc::Status::OK;
     }
@@ -1472,18 +1504,19 @@ auto SourceTreeService::ServeTree(
             return ::grpc::Status::OK;
         }
         if (*has_tree) {
+            // upload blob to remote CAS
             auto const status =
                 SyncGitEntryToCas<ObjectType::Tree, ServeTreeResponse>(tree_id,
                                                                        path);
+            if (status == ServeTreeResponse::OK) {
+                *(response->mutable_digest()) =
+                    ArtifactDigestFactory::ToBazel(*digest);
+            }
             response->set_status(status);
             return ::grpc::Status::OK;
         }
     }
     // check also in the local CAS
-    auto const hash_type =
-        native_context_->storage_config->hash_function.GetType();
-    auto const digest =
-        ArtifactDigestFactory::Create(hash_type, tree_id, 0, /*is_tree=*/true);
     if (digest and apis_.local->IsAvailable(*digest)) {
         // upload tree to remote CAS; only possible in native mode
         if (not ProtocolTraits::IsNative(hash_type)) {
@@ -1505,6 +1538,7 @@ auto SourceTreeService::ServeTree(
             return ::grpc::Status::OK;
         }
         // success!
+        *(response->mutable_digest()) = ArtifactDigestFactory::ToBazel(*digest);
         response->set_status(ServeTreeResponse::OK);
         return ::grpc::Status::OK;
     }

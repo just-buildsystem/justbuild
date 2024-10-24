@@ -77,6 +77,7 @@
   , "stage": ["src", "other_tools", "ops_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/execution_api/serve", "utils"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
@@ -127,6 +128,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/execution_api/serve", "mr_git_api"]
+    , ["src/buildtool/execution_api/serve", "utils"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/system", "system_command"]

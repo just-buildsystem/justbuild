@@ -239,7 +239,7 @@ auto SourceTreeClient::ServeForeignFileTree(const std::string& content,
 }
 
 auto SourceTreeClient::ServeContent(std::string const& content) const noexcept
-    -> bool {
+    -> expected<ArtifactDigest, GitLookupError> {
     justbuild::just_serve::ServeContentRequest request{};
     request.set_content(content);
 
@@ -249,20 +249,30 @@ auto SourceTreeClient::ServeContent(std::string const& content) const noexcept
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return false;
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() !=
         ::justbuild::just_serve::ServeContentResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeContent response returned with {}",
                      static_cast<int>(response.status()));
-        return false;
+        return unexpected{
+            response.status() !=
+                    ::justbuild::just_serve::ServeContentResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
-    return true;
+    auto digest = ArtifactDigestFactory::FromBazel(hash_function_.GetType(),
+                                                   response.digest());
+    if (not digest) {
+        logger_.Emit(LogLevel::Debug, std::move(digest).error());
+        return unexpected{GitLookupError::Fatal};
+    }
+    return *std::move(digest);  // success
 }
 
 auto SourceTreeClient::ServeTree(std::string const& tree_id) const noexcept
-    -> bool {
+    -> expected<ArtifactDigest, GitLookupError> {
     justbuild::just_serve::ServeTreeRequest request{};
     request.set_tree(tree_id);
 
@@ -272,15 +282,25 @@ auto SourceTreeClient::ServeTree(std::string const& tree_id) const noexcept
 
     if (not status.ok()) {
         LogStatus(&logger_, LogLevel::Debug, status);
-        return false;
+        return unexpected{GitLookupError::Fatal};
     }
     if (response.status() != ::justbuild::just_serve::ServeTreeResponse::OK) {
         logger_.Emit(LogLevel::Debug,
                      "ServeTree response returned with {}",
                      static_cast<int>(response.status()));
-        return false;
+        return unexpected{
+            response.status() !=
+                    ::justbuild::just_serve::ServeTreeResponse::NOT_FOUND
+                ? GitLookupError::Fatal
+                : GitLookupError::NotFound};
     }
-    return true;
+    auto digest = ArtifactDigestFactory::FromBazel(hash_function_.GetType(),
+                                                   response.digest());
+    if (not digest) {
+        logger_.Emit(LogLevel::Debug, std::move(digest).error());
+        return unexpected{GitLookupError::Fatal};
+    }
+    return *std::move(digest);  // success
 }
 
 auto SourceTreeClient::CheckRootTree(std::string const& tree_id) const noexcept

@@ -24,6 +24,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
+#include "src/buildtool/execution_api/serve/utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/system/system_command.hpp"
@@ -69,7 +70,8 @@ void BackupToRemote(ArtifactDigest const& digest,
 /// \brief Moves the root tree from local CAS to the Git cache and sets the
 /// root.
 void MoveCASTreeToGit(
-    ArtifactDigest const& digest,
+    HashInfo const& tree_hash,
+    ArtifactDigest const& digest,  // native or compatible
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,
@@ -86,7 +88,7 @@ void MoveCASTreeToGit(
     if (not tmp_dir) {
         (*logger)(fmt::format("Failed to create tmp directory for copying "
                               "git-tree {} from remote CAS",
-                              digest.hash()),
+                              tree_hash.Hash()),
                   true);
         return;
     }
@@ -94,17 +96,17 @@ void MoveCASTreeToGit(
             {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
             {tmp_dir->GetPath()})) {
         (*logger)(fmt::format("Failed to copy git-tree {} to {}",
-                              digest.hash(),
+                              tree_hash.Hash(),
                               tmp_dir->GetPath().string()),
                   true);
         return;
     }
-    CommitInfo c_info{tmp_dir->GetPath(), "tree", digest.hash()};
+    CommitInfo c_info{tmp_dir->GetPath(), "tree", tree_hash.Hash()};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
         [tmp_dir,  // keep tmp_dir alive
-         digest,
+         tree_hash,
          native_storage_config,
          compat_storage_config,
          compat_storage,
@@ -120,7 +122,9 @@ void MoveCASTreeToGit(
             }
             // backup to remote if needed and in compatibility mode
             if (backup_to_remote and remote_api != nullptr) {
-                BackupToRemote(digest,
+                // back up only native digests, as that is what Git stores
+                auto const native_digest = ArtifactDigest{tree_hash, 0};
+                BackupToRemote(native_digest,
                                *native_storage_config,
                                compat_storage_config,
                                compat_storage,
@@ -130,10 +134,10 @@ void MoveCASTreeToGit(
             }
             (*setter)(false /*no cache hit*/);
         },
-        [logger, tmp_dir, digest](auto const& msg, bool fatal) {
+        [logger, tmp_dir, tree_hash](auto const& msg, bool fatal) {
             (*logger)(fmt::format(
                           "While moving git-tree {} from {} to local git:\n{}",
-                          digest.hash(),
+                          tree_hash.Hash(),
                           tmp_dir->GetPath().string(),
                           msg),
                       fatal);
@@ -191,12 +195,12 @@ void TagAndSetRoot(
             (*setter)(false /*no cache hit*/);
         },
         [logger, repo, digest](auto const& msg, bool fatal) {
-            (*logger)(
-                fmt::format("While tagging tree {} in {} to keep it alive:\n{}",
-                            digest.hash(),
-                            repo.string(),
-                            msg),
-                fatal);
+            (*logger)(fmt::format("While tagging tree {} in {} to keep it "
+                                  "alive:\n{}",
+                                  digest.hash(),
+                                  repo.string(),
+                                  msg),
+                      fatal);
         });
 }
 
@@ -246,7 +250,8 @@ void TakeTreeFromOlderGeneration(
             auto tag = *op_result.result;
             auto git_repo = GitRepoRemote::Open(git_cas);
             if (not git_repo) {
-                (*logger)("Could not open main git repository", /*fatal=*/true);
+                (*logger)("Could not open main git repository",
+                          /*fatal=*/true);
                 return;
             }
             auto fetch_logger = std::make_shared<AsyncMapConsumerLogger>(
@@ -379,7 +384,7 @@ auto CreateGitTreeFetchMap(
                     return;
                 }
                 if (*tree_found) {
-                    // backup to remote if needed and in native mode
+                    // backup to remote if needed
                     if (backup_to_remote and remote_api != nullptr) {
                         BackupToRemote(ArtifactDigest{key.tree_hash, 0},
                                        *native_storage_config,
@@ -429,11 +434,12 @@ auto CreateGitTreeFetchMap(
                     }
                 }
 
-                // check if tree is known to local CAS
-                auto const digest = ArtifactDigest{key.tree_hash, 0};
-                if (local_api->IsAvailable(digest)) {
+                // check if tree is known to native local CAS
+                auto const native_digest = ArtifactDigest{key.tree_hash, 0};
+                if (local_api->IsAvailable(native_digest)) {
                     // import tree to Git cache
-                    MoveCASTreeToGit(digest,
+                    MoveCASTreeToGit(key.tree_hash,
+                                     native_digest,
                                      import_to_git_map,
                                      native_storage_config,
                                      compat_storage_config,
@@ -449,32 +455,57 @@ auto CreateGitTreeFetchMap(
                 }
                 progress->TaskTracker().Start(key.origin);
                 // check if tree is known to remote serve service and can be
-                // made available in remote CAS
+                // provided via the remote CAS
                 if (serve != nullptr and remote_api != nullptr) {
-                    // as we anyway interrogate the remote execution endpoint,
-                    // we're only interested here in the serve endpoint making
-                    // an attempt to upload the tree, if known, to remote CAS
-                    std::ignore = serve->TreeInRemoteCAS(key.tree_hash.Hash());
+                    auto const remote_digest =
+                        serve->TreeInRemoteCAS(key.tree_hash.Hash());
+                    // try to get content from remote CAS into local CAS;
+                    // whether it is retrieved locally in native or
+                    // compatible CAS, it will be imported to Git either way
+                    if (remote_digest and
+                        remote_api->RetrieveToCas(
+                            {Artifact::ObjectInfo{.digest = *remote_digest,
+                                                  .type = ObjectType::Tree}},
+                            *local_api)) {
+                        progress->TaskTracker().Stop(key.origin);
+                        MoveCASTreeToGit(key.tree_hash,
+                                         *remote_digest,
+                                         import_to_git_map,
+                                         native_storage_config,
+                                         compat_storage_config,
+                                         compat_storage,
+                                         local_api,
+                                         remote_api,
+                                         false,  // tree already on remote,
+                                                 // so ignore backing up
+                                         ts,
+                                         setter,
+                                         logger);
+                        // done!
+                        return;
+                    }
                 }
-                // check if tree is in remote CAS, if a remote is given
-                if (remote_api != nullptr and
+                // check if tree is on remote, if given and native
+                if (compat_storage_config == nullptr and
+                    remote_api != nullptr and
                     remote_api->RetrieveToCas(
-                        {Artifact::ObjectInfo{.digest = digest,
+                        {Artifact::ObjectInfo{.digest = native_digest,
                                               .type = ObjectType::Tree}},
                         *local_api)) {
                     progress->TaskTracker().Stop(key.origin);
-                    MoveCASTreeToGit(
-                        digest,
-                        import_to_git_map,
-                        native_storage_config,
-                        compat_storage_config,
-                        compat_storage,
-                        local_api,
-                        remote_api,
-                        false,  // tree already in remote, so ignore backing up
-                        ts,
-                        setter,
-                        logger);
+                    MoveCASTreeToGit(key.tree_hash,
+                                     native_digest,
+                                     import_to_git_map,
+                                     native_storage_config,
+                                     compat_storage_config,
+                                     compat_storage,
+                                     local_api,
+                                     remote_api,
+                                     false,  // tree already on remote,
+                                             // so ignore backing up
+                                     ts,
+                                     setter,
+                                     logger);
                     // done!
                     return;
                 }

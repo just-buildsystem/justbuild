@@ -108,14 +108,14 @@ class SourceTreeClient {
     /// \param[in] content Hash of the archive content to look up.
     /// \returns Flag to state whether content is in remote CAS.
     [[nodiscard]] auto ServeContent(std::string const& content) const noexcept
-        -> bool;
+        -> expected<ArtifactDigest, GitLookupError>;
 
     /// \brief Make a given tree available in remote CAS, if known by serve
     /// remote.
     /// \param[in] tree_id Identifier of the Git tree to look up.
     /// \returns Flag to state whether tree is in remote CAS.
     [[nodiscard]] auto ServeTree(std::string const& tree_id) const noexcept
-        -> bool;
+        -> expected<ArtifactDigest, GitLookupError>;
 
     /// \brief Checks if the serve endpoint has a given tree locally available
     /// and makes it available for a serve-orchestrated build.

@@ -219,6 +219,10 @@ message ServeContentResponse {
 
   // If the status has a code `OK`, the content blob is in the remote CAS.
   ServeContentStatus status = 1;
+
+  // The digest of the requested blob, which can be used to retrieve it from
+  // the associated remote-execution endpoint CAS.
+  build.bazel.remote.execution.v2.Digest digest = 2;
 }
 
 // A request message for
@@ -247,6 +251,10 @@ message ServeTreeResponse {
 
   // If the status has a code `OK`, the tree is in the remote CAS.
   ServeTreeStatus status = 1;
+
+  // The digest of the requested tree, which can be used to retrieve it from
+  // the associated remote-execution endpoint CAS.
+  build.bazel.remote.execution.v2.Digest digest = 2;
 }
 
 // A request message for

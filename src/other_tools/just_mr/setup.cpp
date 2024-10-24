@@ -276,18 +276,20 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
     auto crit_git_op_ptr = std::make_shared<CriticalGitOpGuard>();
     auto critical_git_op_map = CreateCriticalGitOpMap(crit_git_op_ptr);
 
-    auto content_cas_map =
-        CreateContentCASMap(common_args.just_mr_paths,
-                            common_args.alternative_mirrors,
-                            common_args.ca_info,
-                            &critical_git_op_map,
-                            serve ? &*serve : nullptr,
-                            &native_storage_config,
-                            &native_storage,
-                            &(*apis.local),
-                            has_remote_api ? &*apis.remote : nullptr,
-                            &progress,
-                            common_args.jobs);
+    auto content_cas_map = CreateContentCASMap(
+        common_args.just_mr_paths,
+        common_args.alternative_mirrors,
+        common_args.ca_info,
+        &critical_git_op_map,
+        serve ? &*serve : nullptr,
+        &native_storage_config,
+        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
+        &native_storage,
+        compat_storage != nullptr ? &*compat_storage : nullptr,
+        &(*apis.local),
+        has_remote_api ? &*apis.remote : nullptr,
+        &progress,
+        common_args.jobs);
 
     auto import_to_git_map =
         CreateImportToGitMap(&critical_git_op_map,

@@ -104,13 +104,13 @@ class ServeApi final {
         return stc_.ServeForeignFileTree(content, name, executable);
     }
 
-    [[nodiscard]] auto ContentInRemoteCAS(
-        std::string const& content) const noexcept -> bool {
+    [[nodiscard]] auto ContentInRemoteCAS(std::string const& content)
+        const noexcept -> expected<ArtifactDigest, GitLookupError> {
         return stc_.ServeContent(content);
     }
 
-    [[nodiscard]] auto TreeInRemoteCAS(
-        std::string const& tree_id) const noexcept -> bool {
+    [[nodiscard]] auto TreeInRemoteCAS(std::string const& tree_id)
+        const noexcept -> expected<ArtifactDigest, GitLookupError> {
         return stc_.ServeTree(tree_id);
     }
 

@@ -17,6 +17,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/execution_api/serve/utils.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
@@ -28,7 +29,7 @@ namespace {
 void FetchFromNetwork(ArchiveContent const& key,
                       MirrorsPtr const& additional_mirrors,
                       CAInfoPtr const& ca_info,
-                      Storage const& storage,
+                      Storage const& native_storage,
                       gsl::not_null<JustMRProgress*> const& progress,
                       ContentCASMap::SetterPtr const& setter,
                       ContentCASMap::LoggerPtr const& logger) {
@@ -72,9 +73,9 @@ void FetchFromNetwork(ArchiveContent const& key,
             return;
         }
     }
-    // add the fetched data to CAS
-    auto path = StorageUtils::AddToCAS(storage, *data);
-    // check one last time if content is in CAS now
+    // add the fetched data to native CAS
+    auto path = StorageUtils::AddToCAS(native_storage, *data);
+    // check one last time if content is in native CAS now
     if (not path) {
         (*logger)(fmt::format("Failed to store fetched content from {}",
                               key.fetch_url),
@@ -82,9 +83,9 @@ void FetchFromNetwork(ArchiveContent const& key,
         return;
     }
     // check that the data we stored actually produces the requested digest
-    auto const& cas = storage.CAS();
-    if (not cas.BlobPath(ArtifactDigest{key.content_hash, 0},
-                         /*is_executable=*/false)) {
+    auto const& native_cas = native_storage.CAS();
+    if (not native_cas.BlobPath(ArtifactDigest{key.content_hash, 0},
+                                /*is_executable=*/false)) {
         (*logger)(
             fmt::format("Content {} was not found at given fetch location {}",
                         key.content_hash.Hash(),
@@ -105,8 +106,10 @@ auto CreateContentCASMap(
     CAInfoPtr const& ca_info,
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& storage_config,
-    gsl::not_null<Storage const*> const& storage,
+    gsl::not_null<StorageConfig const*> const& native_storage_config,
+    StorageConfig const* compat_storage_config,
+    gsl::not_null<Storage const*> const& native_storage,
+    Storage const* compat_storage,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     gsl::not_null<JustMRProgress*> const& progress,
@@ -116,8 +119,10 @@ auto CreateContentCASMap(
                           ca_info,
                           critical_git_op_map,
                           serve,
-                          storage,
-                          storage_config,
+                          native_storage_config,
+                          compat_storage_config,
+                          native_storage,
+                          compat_storage,
                           local_api,
                           remote_api,
                           progress](auto ts,
@@ -125,34 +130,37 @@ auto CreateContentCASMap(
                                     auto logger,
                                     auto /*unused*/,
                                     auto const& key) {
-        auto const digest = ArtifactDigest{key.content_hash, 0};
-        // check local CAS
-        if (local_api->IsAvailable(digest)) {
+        auto const native_digest = ArtifactDigest{key.content_hash, 0};
+        // check native local CAS
+        if (local_api->IsAvailable(native_digest)) {
             (*setter)(nullptr);
             return;
         }
         // check if content is in Git cache;
         // ensure Git cache
-        GitOpKey op_key = {.params =
-                               {
-                                   storage_config->GitRoot(),  // target_path
-                                   "",                         // git_hash
-                                   std::nullopt,               // message
-                                   std::nullopt,               // source_path
-                                   true                        // init_bare
-                               },
-                           .op_type = GitOpType::ENSURE_INIT};
+        GitOpKey op_key = {
+            .params =
+                {
+                    native_storage_config->GitRoot(),  // target_path
+                    "",                                // git_hash
+                    std::nullopt,                      // message
+                    std::nullopt,                      // source_path
+                    true                               // init_bare
+                },
+            .op_type = GitOpType::ENSURE_INIT};
         critical_git_op_map->ConsumeAfterKeysReady(
             ts,
             {std::move(op_key)},
             [key,
-             digest,
+             native_digest,
              just_mr_paths,
              additional_mirrors,
              ca_info,
              serve,
-             storage,
-             storage_config,
+             native_storage_config,
+             compat_storage_config,
+             native_storage,
+             compat_storage,
              local_api,
              remote_api,
              progress,
@@ -189,26 +197,27 @@ auto CreateContentCASMap(
                     // blob check failed
                     return;
                 }
-                auto const& cas = storage->CAS();
+                auto const& native_cas = native_storage->CAS();
                 if (res.second) {
-                    // blob found; add it to CAS
-                    if (not cas.StoreBlob(*res.second,
-                                          /*is_executable=*/false)) {
+                    // blob found; add it to native CAS
+                    if (not native_cas.StoreBlob(*res.second,
+                                                 /*is_executable=*/false)) {
                         (*logger)(fmt::format("Failed to store content {} "
-                                              "to local CAS",
+                                              "to native local CAS",
                                               key.content_hash.Hash()),
                                   /*fatal=*/true);
                         return;
                     }
-                    // content stored to CAS
+                    // content stored to native CAS
                     (*setter)(nullptr);
                     return;
                 }
                 // check for blob in older generations
                 for (std::size_t generation = 1;
-                     generation < storage_config->num_generations;
+                     generation < native_storage_config->num_generations;
                      generation++) {
-                    auto old = storage_config->GitGenerationRoot(generation);
+                    auto old =
+                        native_storage_config->GitGenerationRoot(generation);
                     if (FileSystemManager::IsDirectory(old)) {
                         auto old_repo = GitRepo::Open(old);
                         auto no_logging =
@@ -219,17 +228,16 @@ auto CreateContentCASMap(
                                 key.content_hash.Hash(), no_logging);
                             if (res.first and res.second) {
                                 // read blob from older generation
-                                auto const& cas = storage->CAS();
-                                if (not cas.StoreBlob(
+                                if (not native_cas.StoreBlob(
                                         *res.second, /*is_executable=*/false)) {
                                     (*logger)(fmt::format(
                                                   "Failed to store content {} "
-                                                  "to local CAS",
+                                                  "to native local CAS",
                                                   key.content_hash.Hash()),
                                               /*fatal=*/true);
                                     return;
                                 }
-                                // content stored in CAS
+                                // content stored in native CAS
                                 (*setter)(nullptr);
                                 return;
                             }
@@ -239,37 +247,91 @@ auto CreateContentCASMap(
 
                 // blob not found in Git cache
                 progress->TaskTracker().Start(key.origin);
-                // add distfile to CAS
+                // add distfile to native CAS
                 auto repo_distfile =
                     (key.distfile ? key.distfile.value()
                                   : std::filesystem::path(key.fetch_url)
                                         .filename()
                                         .string());
                 StorageUtils::AddDistfileToCAS(
-                    *storage, repo_distfile, just_mr_paths);
-                // check if content is in CAS now
-                if (cas.BlobPath(digest, /*is_executable=*/false)) {
+                    *native_storage, repo_distfile, just_mr_paths);
+                // check if content is in native CAS now
+                if (native_cas.BlobPath(native_digest,
+                                        /*is_executable=*/false)) {
                     progress->TaskTracker().Stop(key.origin);
                     (*setter)(nullptr);
                     return;
                 }
                 // check if content is known to remote serve service
-                if (serve != nullptr and remote_api != nullptr and
-                    serve->ContentInRemoteCAS(key.content_hash.Hash())) {
+                if (serve != nullptr and remote_api != nullptr) {
+                    auto const remote_digest =
+                        serve->ContentInRemoteCAS(key.content_hash.Hash());
                     // try to get content from remote CAS
-                    if (remote_api->RetrieveToCas(
-                            {Artifact::ObjectInfo{.digest = digest,
+                    if (remote_digest and
+                        remote_api->RetrieveToCas(
+                            {Artifact::ObjectInfo{.digest = *remote_digest,
                                                   .type = ObjectType::File}},
                             *local_api)) {
                         progress->TaskTracker().Stop(key.origin);
+                        if (remote_digest->hash() == key.content_hash.Hash()) {
+                            // content is in native local CAS, so all done
+                            (*setter)(nullptr);
+                            return;
+                        }
+                        // if content is in compatible local CAS, rehash it
+                        if (compat_storage_config == nullptr or
+                            compat_storage == nullptr) {
+                            // sanity check
+                            (*logger)("No compatible local storage set up!",
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        auto const& compat_cas = compat_storage->CAS();
+                        auto const cas_path = compat_cas.BlobPath(
+                            *remote_digest, /*is_executable=*/false);
+                        if (not cas_path) {
+                            (*logger)(fmt::format("Expected content {} not "
+                                                  "found in "
+                                                  "compatible local CAS",
+                                                  remote_digest->hash()),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        auto rehashed_digest = native_cas.StoreBlob(
+                            *cas_path, /*is_executable=*/false);
+                        if (not rehashed_digest or
+                            rehashed_digest->hash() !=
+                                key.content_hash.Hash()) {
+                            (*logger)(fmt::format("Failed to rehash content {} "
+                                                  "into native local CAS",
+                                                  remote_digest->hash()),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        // cache association between digests
+                        auto error_msg = MRApiUtils::StoreRehashedDigest(
+                            native_digest,
+                            *rehashed_digest,
+                            ObjectType::File,
+                            *native_storage_config,
+                            *compat_storage_config);
+                        if (error_msg) {
+                            (*logger)(fmt::format("Failed to cache digests "
+                                                  "mapping with:\n{}",
+                                                  *error_msg),
+                                      /*fatal=*/true);
+                            return;
+                        }
+                        // content is in native local CAS now
                         (*setter)(nullptr);
                         return;
                     }
                 }
-                // check remote execution endpoint, if given
-                if (remote_api != nullptr and
+                // check if content is on remote, if given and native
+                if (compat_storage_config == nullptr and
+                    remote_api != nullptr and
                     remote_api->RetrieveToCas(
-                        {Artifact::ObjectInfo{.digest = digest,
+                        {Artifact::ObjectInfo{.digest = native_digest,
                                               .type = ObjectType::File}},
                         *local_api)) {
                     progress->TaskTracker().Stop(key.origin);
@@ -280,13 +342,13 @@ auto CreateContentCASMap(
                 FetchFromNetwork(key,
                                  additional_mirrors,
                                  ca_info,
-                                 *storage,
+                                 *native_storage,
                                  progress,
                                  setter,
                                  logger);
             },
-            [logger, target_path = storage_config->GitRoot()](auto const& msg,
-                                                              bool fatal) {
+            [logger, target_path = native_storage_config->GitRoot()](
+                auto const& msg, bool fatal) {
                 (*logger)(fmt::format("While running critical Git op "
                                       "ENSURE_INIT for target {}:\n{}",
                                       target_path.string(),
