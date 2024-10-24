@@ -820,12 +820,14 @@
     , "cflags-files"
     , "lint-deps fieldnames"
     , "deps-transition"
+    , "deps-fieldnames"
     , "compile-args"
     , "defaults-transition"
     ]
   , "imports":
     { "objects": "objects"
     , "list_provider": ["./", "..", "field_list_provider"]
+    , "runfiles_list": ["./", "..", "field_runfiles_list"]
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     , "compiler": "compiler"
@@ -870,6 +872,52 @@
             ]
           }
         ]
+      , [ "direct-deps hdrs"
+        , { "type": "to_subdir"
+          , "subdir": "include"
+          , "$1":
+            { "type": "let*"
+            , "bindings":
+              [["transition", {"type": "var", "name": "deps-transition"}]]
+            , "body":
+              { "type": "map_union"
+              , "$1":
+                { "type": "++"
+                , "$1":
+                  { "type": "foreach"
+                  , "var": "fieldname"
+                  , "range": {"type": "var", "name": "deps-fieldnames"}
+                  , "body":
+                    {"type": "CALL_EXPRESSION", "name": "runfiles_list"}
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "own headers"
+        , { "type": "to_subdir"
+          , "subdir": "work"
+          , "$1":
+            { "type": "map_union"
+            , "$1":
+              [ {"type": "var", "name": "hdrs"}
+              , {"type": "var", "name": "private-hdrs"}
+              ]
+            }
+          }
+        ]
+      , [ "direct hdrs"
+        , { "type": "map_union"
+          , "$1":
+            [ {"type": "var", "name": "own headers"}
+            , {"type": "var", "name": "direct-deps hdrs"}
+            ]
+          }
+        ]
+      , [ "direct deps artifact names"
+        , {"type": "keys", "$1": {"type": "var", "name": "direct hdrs"}}
+        ]
       , [ "hdr lint"
         , { "type": "foreach"
           , "range":
@@ -908,7 +956,10 @@
                       }
                     ]
                   ]
-                , "body": {"type": "env", "vars": ["cmd", "src"]}
+                , "body":
+                  { "type": "env"
+                  , "vars": ["cmd", "src", "direct deps artifact names"]
+                  }
                 }
               }
             }
@@ -980,7 +1031,10 @@
                   { "type": "let*"
                   , "bindings":
                     [["src", {"type": "var", "name": "work src_name"}]]
-                  , "body": {"type": "env", "vars": ["cmd", "src"]}
+                  , "body":
+                    { "type": "env"
+                    , "vars": ["cmd", "src", "direct deps artifact names"]
+                    }
                   }
                 }
               }
