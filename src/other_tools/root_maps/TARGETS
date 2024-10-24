@@ -209,6 +209,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/serve", "mr_git_api"]
+    , ["src/buildtool/execution_api/serve", "utils"]
     , ["src/buildtool/file_system", "object_type"]
     ]
   }

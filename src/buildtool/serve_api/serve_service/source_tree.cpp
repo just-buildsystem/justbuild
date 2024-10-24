@@ -1665,7 +1665,6 @@ auto SourceTreeService::GetRemoteTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::GetRemoteTreeRequest* request,
     GetRemoteTreeResponse* response) -> ::grpc::Status {
-    auto const& tree_id{request->tree()};
     // acquire locks
     auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
@@ -1675,15 +1674,12 @@ auto SourceTreeService::GetRemoteTree(
     }
 
     // get tree from remote CAS into tmp dir
-    auto const digest = ArtifactDigestFactory::Create(
-        native_context_->storage_config->hash_function.GetType(),
-        tree_id,
-        0,
-        /*is_tree=*/true);
-    if (not digest or not apis_.remote->IsAvailable(*digest)) {
+    auto const remote_digest = ArtifactDigestFactory::FromBazel(
+        apis_.hash_function.GetType(), request->digest());
+    if (not remote_digest or not apis_.remote->IsAvailable(*remote_digest)) {
         logger_->Emit(LogLevel::Error,
                       "Remote CAS does not contain expected tree {}",
-                      tree_id);
+                      remote_digest->hash());
         response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
         return ::grpc::Status::OK;
     }
@@ -1693,42 +1689,36 @@ auto SourceTreeService::GetRemoteTree(
         logger_->Emit(LogLevel::Error,
                       "Failed to create tmp directory for copying git-tree {} "
                       "from remote CAS",
-                      digest->hash());
+                      remote_digest->hash());
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
     if (not apis_.remote->RetrieveToPaths(
-            {Artifact::ObjectInfo{.digest = *digest, .type = ObjectType::Tree}},
+            {Artifact::ObjectInfo{.digest = *remote_digest,
+                                  .type = ObjectType::Tree}},
             {tmp_dir->GetPath()},
             &(*apis_.local))) {
         logger_->Emit(LogLevel::Error,
                       "Failed to retrieve tree {} from remote CAS",
-                      tree_id);
+                      remote_digest->hash());
         response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
         return ::grpc::Status::OK;
     }
     // Import from tmp dir to Git cache
-    auto res =
-        CommonImportToGit(tmp_dir->GetPath(),
-                          fmt::format("Content of tree {}", tree_id)  // message
-        );
+    auto res = CommonImportToGit(
+        tmp_dir->GetPath(),
+        fmt::format("Content of tree {}", remote_digest->hash())  // message
+    );
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    auto const& imported_tree_id = *res;
-    // sanity check
-    if (imported_tree_id != tree_id) {
-        logger_->Emit(
-            LogLevel::Error,
-            "Unexpected mismatch in imported tree:\nexpected {}, but got {}",
-            tree_id,
-            imported_tree_id);
-        response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
-        return ::grpc::Status::OK;
-    }
+    logger_->Emit(LogLevel::Debug,
+                  "GetRemoteTree: imported tree {} to Git as {}",
+                  remote_digest->hash(),
+                  *res);
     // success!
     response->set_status(GetRemoteTreeResponse::OK);
     return ::grpc::Status::OK;

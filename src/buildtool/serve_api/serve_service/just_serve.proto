@@ -286,8 +286,11 @@ message CheckRootTreeResponse {
 // A request message for
 // [SourceTree.GetRemoteTree][justbuild.just_serve.SourceTree.GetRemoteTree].
 message GetRemoteTreeRequest {
-  // The Git tree identifier.
-  string tree = 1;
+  reserved 1; // The Git tree identifier in an earlier version of the API.
+
+  // The tree digest, which can be used to retrieve it from the associated
+  // remote-execution endpoint.
+  build.bazel.remote.execution.v2.Digest digest = 2;
 }
 
 // A response message for
@@ -347,9 +350,9 @@ service SourceTree {
   // There are no method-specific errors.
   rpc CheckRootTree(CheckRootTreeRequest) returns (CheckRootTreeResponse) {}
 
-  // Retrieve a given Git-tree from the CAS of the associated
-  // remote-execution endpoint and make it available in a location where this
-  // serve instance can build against.
+  // Retrieve a given tree from the CAS of the associated remote-execution
+  // endpoint and make it available in a location where this serve instance
+  // can build against.
   //
   // There are no method-specific errors.
   rpc GetRemoteTree(GetRemoteTreeRequest) returns (GetRemoteTreeResponse) {}

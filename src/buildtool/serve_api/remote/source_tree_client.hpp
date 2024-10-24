@@ -127,11 +127,11 @@ class SourceTreeClient {
 
     /// \brief Retrieve tree from the CAS of the associated remote-execution
     /// endpoint and makes it available for a serve-orchestrated build.
-    /// \param[in] tree_id Identifier of the Git tree to retrieve.
+    /// \param[in] digest Tree to retrieve.
     /// \returns Flag to state whether tree was successfully imported into the
     /// local Git storage or not.
-    [[nodiscard]] auto GetRemoteTree(std::string const& tree_id) const noexcept
-        -> bool;
+    [[nodiscard]] auto GetRemoteTree(
+        ArtifactDigest const& digest) const noexcept -> bool;
 
   private:
     HashFunction const& hash_function_;  // hash function of the remote

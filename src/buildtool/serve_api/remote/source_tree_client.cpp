@@ -330,10 +330,10 @@ auto SourceTreeClient::CheckRootTree(std::string const& tree_id) const noexcept
     return true;  // tree found
 }
 
-auto SourceTreeClient::GetRemoteTree(std::string const& tree_id) const noexcept
-    -> bool {
+auto SourceTreeClient::GetRemoteTree(
+    ArtifactDigest const& digest) const noexcept -> bool {
     justbuild::just_serve::GetRemoteTreeRequest request{};
-    request.set_tree(tree_id);
+    (*request.mutable_digest()) = ArtifactDigestFactory::ToBazel(digest);
 
     grpc::ClientContext context;
     justbuild::just_serve::GetRemoteTreeResponse response;

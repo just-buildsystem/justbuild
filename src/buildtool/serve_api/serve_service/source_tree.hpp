@@ -122,9 +122,9 @@ class SourceTreeService final
         const ::justbuild::just_serve::CheckRootTreeRequest* request,
         CheckRootTreeResponse* response) -> ::grpc::Status override;
 
-    // Retrieve a given Git-tree from the CAS of the associated
-    // remote-execution endpoint and make it available in a location where this
-    // serve instance can build against.
+    // Retrieve a given tree from the CAS of the associated remote-execution
+    // endpoint and make it available in a location where this serve instance
+    // can build against.
     //
     // There are no method-specific errors.
     auto GetRemoteTree(

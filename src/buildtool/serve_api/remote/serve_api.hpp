@@ -120,8 +120,8 @@ class ServeApi final {
     }
 
     [[nodiscard]] auto GetTreeFromRemote(
-        std::string const& tree_id) const noexcept -> bool {
-        return stc_.GetRemoteTree(tree_id);
+        ArtifactDigest const& digest) const noexcept -> bool {
+        return stc_.GetRemoteTree(digest);
     }
 
     [[nodiscard]] auto ServeTargetVariables(std::string const& target_root_id,
