@@ -95,6 +95,9 @@ auto BazelExecutionClient::Execute(std::string const& instance_name,
         }
         auto contents = ExtractContents(std::move(op));
         response = contents.response;
+        if (response.state == ExecutionResponse::State::Ongoing) {
+            return {.ok = true, .exit_retry_loop = true};
+        }
         if (response.state == ExecutionResponse::State::Finished) {
             return {.ok = true};
         }

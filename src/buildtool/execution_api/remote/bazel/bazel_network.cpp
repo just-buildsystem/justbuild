@@ -131,6 +131,12 @@ auto BazelNetwork::ExecuteBazelActionSync(
     auto response =
         exec_->Execute(instance_name_, action, exec_config_, true /*wait*/);
 
+    if (response.state ==
+        BazelExecutionClient::ExecutionResponse::State::Ongoing) {
+        Logger::Log(
+            LogLevel::Trace, "Waiting for {}", response.execution_handle);
+        response = exec_->WaitExecution(response.execution_handle);
+    }
     if (response.state !=
             BazelExecutionClient::ExecutionResponse::State::Finished or
         not response.output) {
