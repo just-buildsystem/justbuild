@@ -4,6 +4,7 @@
   , "hdrs": ["graph_traverser.hpp"]
   , "deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]

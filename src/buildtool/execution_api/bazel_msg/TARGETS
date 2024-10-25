@@ -36,6 +36,7 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/utils/cpp", "hex_string"]
@@ -57,6 +58,7 @@
     [ ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }

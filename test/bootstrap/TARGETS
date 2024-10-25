@@ -60,6 +60,7 @@
     , ["@", "protoc", "", "protoc"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["@", "grpc", "", "grpc++"]
+    , ["@", "grpc", "", "grpc"]
     , ["@", "grpc", "", "grpc_cpp_plugin"]
     , ["@", "src", "", "libarchive"]
     ]

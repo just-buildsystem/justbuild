@@ -23,6 +23,7 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/common", "action_description"]
+    , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["", "catch-main"]

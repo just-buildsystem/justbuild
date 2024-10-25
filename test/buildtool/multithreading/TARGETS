@@ -4,6 +4,7 @@
   , "srcs": ["task.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/multithreading", "task"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["", "catch-main"]
     ]

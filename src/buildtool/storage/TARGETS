@@ -29,6 +29,7 @@
   , "private-deps":
     [ ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "storage"]
@@ -85,12 +86,15 @@
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "file_locking"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["src/buildtool/execution_api/common", "message_limits"]
+    [ ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path_hash"]
     ]
   }

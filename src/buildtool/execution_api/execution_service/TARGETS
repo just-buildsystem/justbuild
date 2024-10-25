@@ -46,7 +46,8 @@
     , ["src/buildtool/storage", "storage"]
     ]
   , "private-deps":
-    [ ["src/buildtool/common", "artifact_digest_factory"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     ]
@@ -82,7 +83,8 @@
   , "srcs": ["server_implementation.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["src/buildtool/execution_api/common", "api_bundle"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "context"]
     ]
@@ -152,6 +154,7 @@
   , "srcs": ["operation_cache.cpp"]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
+  , "deps": [["@", "protoc", "", "libprotobuf"]]
   , "private-deps": [["src/buildtool/logging", "logging"]]
   }
 , "operations_server":
@@ -162,6 +165,7 @@
   , "deps":
     [ "operation_cache"
     , ["@", "gsl", "", "gsl"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]

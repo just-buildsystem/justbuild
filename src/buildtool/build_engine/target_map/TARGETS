@@ -17,6 +17,7 @@
   , "hdrs": ["result_map.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/expression", "expression"]
@@ -59,6 +60,8 @@
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "field_reader"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
@@ -86,6 +89,7 @@
   , "deps":
     [ "configured_target"
     , "target_map"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/base_maps", "entity_name"]
     , ["src/buildtool/build_engine/base_maps", "field_reader"]

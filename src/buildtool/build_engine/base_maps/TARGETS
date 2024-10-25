@@ -12,6 +12,7 @@
   , "srcs": ["directory_map.cpp"]
   , "deps":
     [ "module_name"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
@@ -91,7 +92,12 @@
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   , "private-deps":
-    [["src/buildtool/crypto", "hash_function"], ["src/utils/cpp", "json"]]
+    [ ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "json"]
+    ]
   }
 , "field_reader":
   { "type": ["@", "rules", "CC", "library"]
@@ -113,7 +119,8 @@
   , "name": ["expression_function"]
   , "hdrs": ["expression_function.hpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

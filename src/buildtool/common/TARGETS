@@ -52,7 +52,11 @@
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
     ]
-  , "private-deps": ["protocol_traits", ["src/buildtool/crypto", "hasher"]]
+  , "private-deps":
+    [ "protocol_traits"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/crypto", "hasher"]
+    ]
   , "stage": ["src", "buildtool", "common"]
   }
 , "artifact_digest_factory":
@@ -110,7 +114,11 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
     ]
-  , "private-deps": ["artifact_digest_factory", ["src/utils/cpp", "json"]]
+  , "private-deps":
+    [ "artifact_digest_factory"
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "json"]
+    ]
   , "stage": ["src", "buildtool", "common"]
   }
 , "action_description":

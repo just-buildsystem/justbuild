@@ -154,6 +154,7 @@
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/utils/cpp", "tmp_dir"]

@@ -41,6 +41,7 @@
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/bazel_msg"

@@ -8,6 +8,7 @@
     , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

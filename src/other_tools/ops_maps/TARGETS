@@ -72,6 +72,7 @@
     , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
+    , ["src/other_tools/utils", "curl_url_handle"]
     , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "other_tools", "ops_maps"]

@@ -40,7 +40,10 @@
   , "hdrs": ["base_progress_reporter.hpp"]
   , "srcs": ["base_progress_reporter.cpp"]
   , "stage": ["src", "buildtool", "progress_reporting"]
-  , "private-deps": [["src/buildtool/logging", "logging"]]
+  , "private-deps":
+    [ ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    ]
   }
 , "exports_progress_reporter":
   { "type": ["@", "rules", "CC", "library"]

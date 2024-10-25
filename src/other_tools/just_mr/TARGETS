@@ -132,6 +132,7 @@
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "retry"]
     , ["src/buildtool/multithreading", "async_map_utils"]
@@ -167,6 +168,7 @@
     , "utils"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
@@ -209,6 +211,7 @@
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "retry"]
     , ["src/buildtool/multithreading", "async_map_utils"]
@@ -250,6 +253,7 @@
     , "utils"
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "repository_garbage_collector"]
@@ -273,12 +277,13 @@
   , "name": ["rc"]
   , "hdrs": ["rc.hpp"]
   , "srcs": ["rc.cpp"]
-  , "deps": ["cli"]
+  , "deps": ["cli", ["@", "gsl", "", "gsl"]]
   , "private-deps":
     [ "exit_codes"
     , "rc_merge"
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/common", "location"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]

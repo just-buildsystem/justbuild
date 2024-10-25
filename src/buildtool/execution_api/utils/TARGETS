@@ -12,6 +12,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
@@ -20,7 +21,10 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["outputscheck"]
   , "hdrs": ["outputscheck.hpp"]
-  , "deps": [["src/buildtool/common", "common"]]
+  , "deps":
+    [ ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/common", "common"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
   }
 }

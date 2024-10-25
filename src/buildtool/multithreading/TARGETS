@@ -64,6 +64,7 @@
   , "deps":
     [ "async_map_consumer"
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "multithreading"]

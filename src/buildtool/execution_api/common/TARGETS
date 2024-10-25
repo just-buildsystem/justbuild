@@ -14,6 +14,7 @@
   , "deps":
     [ "artifact_blob_container"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
@@ -21,13 +22,17 @@
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     ]
-  , "private-deps": [["src/buildtool/common", "artifact_digest_factory"]]
+  , "private-deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "bytestream_utils":
@@ -47,6 +52,7 @@
   , "stage": ["src", "buildtool", "execution_api", "common"]
   , "deps":
     [ "common"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/local", "context"]
@@ -62,7 +68,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["message_limits"]
   , "hdrs": ["message_limits.hpp"]
-  , "deps": [["@", "grpc", "", "grpc++"]]
+  , "deps": [["@", "grpc", "", "grpc"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "common_api":

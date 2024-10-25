@@ -14,11 +14,13 @@
     , "test_env"
     , "test_remote_config"
     , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     ]
   , "stage": ["test", "utils"]
   }

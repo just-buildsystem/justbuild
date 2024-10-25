@@ -4,6 +4,7 @@
   , "hdrs": ["graph_traverser.test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
@@ -23,6 +24,7 @@
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "json"]
     , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "graph_traverser"]
@@ -35,6 +37,7 @@
   , "private-deps":
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/storage", "config"]
@@ -54,6 +57,7 @@
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["utils", "catch-main-remote-execution"]

@@ -81,6 +81,7 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 , "configuration_client":
