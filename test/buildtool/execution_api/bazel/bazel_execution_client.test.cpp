@@ -93,6 +93,9 @@ TEST_CASE("Bazel internals: Execution Client", "[execution_api]") {
         }
 
         SECTION("Non-blocking, obtain result later") {
+            // note that the boolean false means do not wait for the stream to
+            // become available, and it has nothing to do with waiting until the
+            // action completes. This is WaitExecution's job :)
             auto response = execution_client.Execute(
                 instance_name, *action_delayed, config, false);
 
