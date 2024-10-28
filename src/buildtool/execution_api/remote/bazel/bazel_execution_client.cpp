@@ -16,6 +16,8 @@
 
 #include <utility>  // std::move
 
+#include "fmt/core.h"
+#include "google/protobuf/text_format.h"
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
@@ -40,6 +42,17 @@ void LogExecutionStatus(gsl::not_null<Logger const*> const& logger,
                          "Execution could not be started.\n{}",
                          s.ShortDebugString());
             break;
+        case grpc::StatusCode::FAILED_PRECONDITION:
+            // quote from remote_execution.proto:
+            // One or more errors occurred in setting up the
+            // action requested, such as a missing input or command or no worker
+            // being available. The client may be able to fix the errors and
+            // retry.
+            logger->Emit(LogLevel::Progress,
+                         "Some precondition for the action failed.\n{}",
+                         s.message());
+            break;
+
         default:
             // fallback to default status logging
             LogStatus(logger, LogLevel::Error, s);
@@ -229,6 +242,17 @@ auto BazelExecutionClient::ExtractContents(
     if (status_code != grpc::StatusCode::OK) {
         LogExecutionStatus(&logger_, exec_response.status());
         if (status_code == grpc::StatusCode::UNAVAILABLE) {
+            response.state = ExecutionResponse::State::Retry;
+        }
+        else if (status_code == grpc::StatusCode::FAILED_PRECONDITION) {
+            logger_.Emit(LogLevel::Debug, [&exec_response] {
+                std::string text_repr;
+                google::protobuf::TextFormat::PrintToString(exec_response,
+                                                            &text_repr);
+                return fmt::format(
+                    "Full exec_response of precondition failure\n{}",
+                    text_repr);
+            });
             response.state = ExecutionResponse::State::Retry;
         }
         else {

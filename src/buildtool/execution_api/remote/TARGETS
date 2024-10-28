@@ -51,6 +51,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_digest_factory"]
     , ["src/buildtool/common", "protocol_traits"]
