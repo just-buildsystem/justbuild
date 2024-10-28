@@ -24,6 +24,7 @@
 
 #include "grpcpp/grpcpp.h"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
 // Utility class to help detecting when exit the retry loop. This class can be
@@ -51,9 +52,11 @@ using CallableReturningRetryResponse = std::function<RetryResponse(void)>;
 /// \brief Calls a function with a retry strategy using a backoff algorithm.
 /// Retry loop interrupts when one of the two members of the function's returned
 /// RetryResponse object is set to true.
-[[nodiscard]] auto WithRetry(CallableReturningRetryResponse const& f,
-                             RetryConfig const& retry_config,
-                             Logger const& logger) noexcept -> bool;
+[[nodiscard]] auto WithRetry(
+    CallableReturningRetryResponse const& f,
+    RetryConfig const& retry_config,
+    Logger const& logger,
+    LogLevel fatal_log_level = LogLevel::Error) noexcept -> bool;
 
 using CallableReturningGrpcStatus = std::function<grpc::Status(void)>;
 

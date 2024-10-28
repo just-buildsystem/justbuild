@@ -15,6 +15,7 @@
 #include "src/buildtool/common/remote/retry.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 
+#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -22,7 +23,8 @@
 
 auto WithRetry(CallableReturningRetryResponse const& f,
                RetryConfig const& retry_config,
-               Logger const& logger) noexcept -> bool {
+               Logger const& logger,
+               LogLevel fatal_log_level) noexcept -> bool {
     try {
         auto const& attempts = retry_config.GetMaxAttempts();
         for (auto attempt = 1U; attempt <= attempts; ++attempt) {
@@ -32,7 +34,7 @@ auto WithRetry(CallableReturningRetryResponse const& f,
             }
             if (fatal) {
                 if (error_msg) {
-                    logger.Emit(LogLevel::Error, "{}", *error_msg);
+                    logger.Emit(fatal_log_level, "{}", *error_msg);
                 }
                 return false;
             }
@@ -51,7 +53,7 @@ auto WithRetry(CallableReturningRetryResponse const& f,
             }
             else {
                 if (error_msg) {
-                    logger.Emit(LogLevel::Error,
+                    logger.Emit(fatal_log_level,
                                 "After {} attempts: {}",
                                 attempt,
                                 *error_msg);
@@ -59,7 +61,8 @@ auto WithRetry(CallableReturningRetryResponse const& f,
             }
         }
     } catch (...) {
-        logger.Emit(LogLevel::Error, "WithRetry: caught unknown exception");
+        logger.Emit(std::min(fatal_log_level, LogLevel::Warning),
+                    "WithRetry: caught unknown exception");
     }
     return false;
 }

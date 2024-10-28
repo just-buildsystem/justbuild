@@ -58,9 +58,9 @@
   , "deps":
     [ "retry_config"
     , ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
-  , "private-deps": [["src/buildtool/logging", "log_level"]]
   }
 }
