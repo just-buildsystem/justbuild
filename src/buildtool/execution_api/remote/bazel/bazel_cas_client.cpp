@@ -542,12 +542,14 @@ auto BazelCasClient::BatchUpdateBlobs(
                                         return batch_update_blobs(request);
                                     },
                                     retry_config_,
-                                    logger_);
+                                    logger_,
+                                    LogLevel::Performance);
                             })) {
-            logger_.Emit(LogLevel::Error, "Failed to BatchUpdateBlobs.");
+            logger_.Emit(LogLevel::Performance, "Failed to BatchUpdateBlobs.");
         }
     } catch (...) {
-        logger_.Emit(LogLevel::Error, "Caught exception in DoBatchUpdateBlobs");
+        logger_.Emit(LogLevel::Warning,
+                     "Caught exception in DoBatchUpdateBlobs");
     }
     logger_.Emit(LogLevel::Trace, [begin, end, &result]() {
         std::ostringstream oss{};
