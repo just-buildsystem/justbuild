@@ -21,10 +21,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["outputscheck"]
   , "hdrs": ["outputscheck.hpp"]
-  , "deps":
-    [ ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/common", "common"]
-    ]
+  , "deps": [["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "execution_api", "utils"]
   }
 }

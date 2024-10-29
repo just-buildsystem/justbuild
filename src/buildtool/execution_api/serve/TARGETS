@@ -52,12 +52,10 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_engine/dag", "dag"]
-    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":

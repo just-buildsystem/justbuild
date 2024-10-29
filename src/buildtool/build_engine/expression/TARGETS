@@ -61,7 +61,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
-    , ["src/utils/cpp", "type_safe_arithmetic"]
     ]
   }
 }

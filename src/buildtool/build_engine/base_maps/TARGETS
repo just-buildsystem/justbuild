@@ -87,14 +87,13 @@
     , ["src/buildtool/build_engine/analysed_target", "target"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/multithreading", "task_system"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
   , "private-deps":
-    [ ["src/buildtool/common", "artifact_description"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/crypto", "hash_function"]
+    [ ["src/buildtool/common", "common"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "json"]
     ]
@@ -127,7 +126,6 @@
     , ["src/utils/cpp", "gsl"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
-  , "private-deps": [["src/utils/cpp", "hash_combine"]]
   }
 , "expression_map":
   { "type": ["@", "rules", "CC", "library"]
@@ -146,8 +144,7 @@
     , ["src/buildtool/multithreading", "async_map_consumer"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
-  , "private-deps":
-    ["field_reader", ["src/buildtool/build_engine/expression", "expression"]]
+  , "private-deps": ["field_reader"]
   }
 , "user_rule":
   { "type": ["@", "rules", "CC", "library"]
@@ -182,7 +179,6 @@
     , ["src/buildtool/multithreading", "async_map_consumer"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "base_maps"]
-  , "private-deps":
-    ["field_reader", ["src/buildtool/build_engine/expression", "expression"]]
+  , "private-deps": ["field_reader"]
   }
 }

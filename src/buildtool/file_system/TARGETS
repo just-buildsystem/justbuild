@@ -92,8 +92,7 @@
     ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
-    [ "file_system_manager"
-    , ["", "libgit2"]
+    [ ["", "libgit2"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

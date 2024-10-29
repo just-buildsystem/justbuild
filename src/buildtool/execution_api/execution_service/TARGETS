@@ -155,7 +155,6 @@
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "proto": [["@", "googleapis", "", "google_longrunning_operations_proto"]]
   , "deps": [["@", "protoc", "", "libprotobuf"]]
-  , "private-deps": [["src/buildtool/logging", "logging"]]
   }
 , "operations_server":
   { "type": ["@", "rules", "CC", "library"]
