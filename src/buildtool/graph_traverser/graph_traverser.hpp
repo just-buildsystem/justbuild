@@ -285,7 +285,7 @@ class GraphTraverser {
                 context_.apis->hash_function, blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
-                    "Uploaded blob {}, its digest has id {} and size {}.",
+                    "Will upload blob {}, its digest has id {} and size {}.",
                     nlohmann::json(blob).dump(),
                     digest.hash(),
                     digest.size());
@@ -305,7 +305,16 @@ class GraphTraverser {
             }
         }
         // Upload remaining blobs.
-        return context_.apis->remote->Upload(std::move(container));
+        auto result = context_.apis->remote->Upload(std::move(container));
+        Logger::Log(logger_, LogLevel::Trace, [&]() {
+            std::stringstream msg{};
+            msg << (result ? "Finished" : "Failed") << " upload of\n";
+            for (auto const& blob : blobs) {
+                msg << " - " << nlohmann::json(blob).dump() << "\n";
+            }
+            return msg.str();
+        });
+        return result;
     }
 
     /// \brief Adds the artifacts to be retrieved to the graph
