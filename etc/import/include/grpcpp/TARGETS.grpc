@@ -9,7 +9,9 @@
     , "create_channel_posix.h"
     , "ext/health_check_service_server_builder_option.h"
     , "generic/async_generic_service.h"
+    , "generic/callback_generic_service.h"
     , "generic/generic_stub.h"
+    , "generic/generic_stub_callback.h"
     , "grpcpp.h"
     , "health_check_service_interface.h"
     , "impl/call_hook.h"
@@ -37,6 +39,7 @@
     , "impl/service_type.h"
     , "impl/status.h"
     , "impl/sync.h"
+    , "passive_listener.h"
     , "resource_quota.h"
     , "security/audit_logging.h"
     , "security/tls_crl_provider.h"
@@ -156,6 +159,11 @@
 , "grpcpp_backend_metric_recorder_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs": ["ext/server_metric_recorder.h"]
+  , "stage": ["grpcpp"]
+  }
+, "global_callback_hook_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["support/global_callback_hook.h"]
   , "stage": ["grpcpp"]
   }
 }

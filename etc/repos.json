@@ -234,13 +234,13 @@
   , "ssl":
     { "repository":
       { "type": "archive"
-      , "content": "7b7deaf147baf61c8efdc8a4ac79a16ba70b216e"
-      , "fetch": "https://github.com/google/boringssl/archive/ae72a4514c7afd150596b0a80947f3ca9b8363b5.tar.gz"
-      , "sha256": "057f662b0e85931a84945b2e89ba201fd44b0583da827c948fe443593690fb83"
-      , "sha512": "757a2727a2ab0e45656c22d807ea1217c74c276f51fa721a87f92b59a4d040d9931586e912b4558f57330340cc3af6361f1694b1479b764635c6a111b356afc4"
-      , "subdir": "boringssl-ae72a4514c7afd150596b0a80947f3ca9b8363b5"
+      , "content": "2142a2813a0d387f5f86dd90635d29a88b5b6c66"
+      , "fetch": "https://github.com/google/boringssl/archive/b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6.tar.gz"
+      , "sha256": "c70d519e4ee709b7a74410a5e3a937428b8198d793a3d771be3dd2086ae167c8"
+      , "sha512": "3a35107ce0b891911608b97e24a3437fb849bcb738f699eab74e55a2e0fd911f4a448ac1f2b11f444bcf7ae5794b7fa109009043a0f5dbeec5d73cf3909651c0"
+      , "subdir": "boringssl-b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6"
       , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/ae72a4514c7afd150596b0a80947f3ca9b8363b5.tar.gz"
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6.tar.gz"
         ]
       }
     , "target_root": "import targets"
@@ -248,7 +248,7 @@
     , "bindings": {"rules": "rules-boringssl", "patches": "patches"}
     , "bootstrap":
       { "arch_map": {"arm64": "aarch64"}
-      , "build": "{cc} {cflags} -I . -I src/include -c *.c src/crypto/*.c  src/crypto/*/*.c src/crypto/*/*.S src/third_party/fiat/asm/*.S {os}-{arch}/crypto/fipsmodule/*.S && {ar} cqs libcrypto.a *.o"
+      , "build": "{cc} {cflags} -I . -I src/include -c src/crypto/*.c src/crypto/*/*.c src/gen/crypto/*.c src/crypto/*/*.S src/crypto/*/*/*.S src/gen/bcm/*.S src/gen/crypto/*.S src/third_party/fiat/asm/*.S && {ar} cqs libcrypto.a *.o"
       , "link": ["-lcrypto", "-pthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
@@ -258,11 +258,11 @@
   , "protobuf":
     { "repository":
       { "type": "archive"
-      , "content": "989aa1fec35687ab84229fa84099582dd8f0246a"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v25.1/protobuf-25.1.tar.gz"
-      , "sha256": "9bd87b8280ef720d3240514f884e56a712f2218f0d693b48050c836028940a42"
-      , "sha512": "d2fad2188118ced2cd951bdb472d72cc9e9b2158c88eeca652c76332a884b5b5b4b58628f7777272fa693140753823584ea9c7924f1655b1d5a363f59bdf7a4c"
-      , "subdir": "protobuf-25.1"
+      , "content": "eef52bb7f76e8c87ab741d6d9139a837f4b399d4"
+      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v27.2/protobuf-27.2.tar.gz"
+      , "sha256": "e4ff2aeb767da6f4f52485c2e72468960ddfe5262483879ef6ad552e52757a77"
+      , "sha512": "664c66b62cf1ed0c65d9b910d8e67d4d5d471113697f1b8edf1573cd5c0fc8e850ac53ce984e48e6c6b9cbbefa12f8530058384e7388e65a59c1e46d03772397"
+      , "subdir": "protobuf-27.2"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
@@ -291,13 +291,13 @@
   , "google_apis":
     { "repository":
       { "type": "archive"
-      , "content": "5d9001f3dff8dec1880c06c0de100a0c2fc65094"
-      , "fetch": "https://github.com/googleapis/googleapis/archive/2f9af297c84c55c8b871ba4495e01ade42476c92.tar.gz"
-      , "sha256": "5bb6b0253ccf64b53d6c7249625a7e3f6c3bc6402abd52d3778bfa48258703a0"
-      , "sha512": "cdeefae807df7097174b4bb28c0900b06a68d424c00ebba4ff5add260c9c651351d5e429bfc5de42f95ebb75dadec313f7bd3991c2fa476c9104f9ea656acad4"
-      , "subdir": "googleapis-2f9af297c84c55c8b871ba4495e01ade42476c92"
+      , "content": "db3c51a8fd9c923a4e4908d8bcd7dd4642cc4664"
+      , "fetch": "https://github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz"
+      , "sha256": "0513f0f40af63bd05dc789cacc334ab6cec27cc89db596557cb2dfe8919463e4"
+      , "sha512": "d77ea83f8e68e3c0b667e7de43c2cd28b0ca7b969b2cf127b3873fc19f330ad85afb314bef4174a4e11ed68b620e43853d8b44eb833c5eca7e820ca21c1c3e15"
+      , "subdir": "googleapis-fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0"
       , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/googleapis/googleapis/archive/2f9af297c84c55c8b871ba4495e01ade42476c92.tar.gz"
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz"
         ]
       }
     , "target_root": "import targets"
@@ -392,11 +392,11 @@
   , "com_github_grpc_grpc":
     { "repository":
       { "type": "archive"
-      , "content": "d89bbef10ae30b511e062e6aa36520a2805e0f97"
-      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.62.1.tar.gz"
-      , "sha256": "c9f9ae6e4d6f40464ee9958be4068087881ed6aa37e30d0e64d40ed7be39dd01"
-      , "sha512": "3224ad2617c18156f90c54c1ebf1f2015e405a6f12546e8709e0c905f52508c9f1a13b4d5a6cc7a35abf58b429985b5b504c9062f50c0d3d6aa163180a61047a"
-      , "subdir": "grpc-1.62.1"
+      , "content": "11573055daa6b91b4873e8e6118d0535ddc05418"
+      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.67.1.tar.gz"
+      , "sha256": "d74f8e99a433982a12d7899f6773e285c9824e1d9a173ea1d1fb26c9bd089299"
+      , "sha512": "4f9b63278590be282b5578ec6c5f607f11046fdac3e62b5bf9054f664971312efee621e1fd3a086eaf978d41f4cd83bab7f2947c9e6189dc30bcb69263f481dc"
+      , "subdir": "grpc-1.67.1"
       , "pragma": {"special": "ignore"}
       }
     , "target_root": "import targets"

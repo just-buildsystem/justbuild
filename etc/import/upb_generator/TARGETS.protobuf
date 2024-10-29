@@ -1,0 +1,9 @@
+{ "mangle":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["mangle"]
+  , "stage": ["upb_generator"]
+  , "srcs": ["mangle.cc"]
+  , "hdrs": ["mangle.h"]
+  , "deps": [["@", "absl", "absl/strings", "strings"]]
+  }
+}

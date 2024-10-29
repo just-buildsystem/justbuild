@@ -26,6 +26,14 @@
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_api_client_proto"]
   , "srcs": ["google/api/client.proto"]
+  , "deps": ["google_api_launch_stage_proto"]
+  }
+, "google_api_launch_stage_proto":
+  {"type": "export", "target": "google_api_launch_stage_proto (unexported)"}
+, "google_api_launch_stage_proto (unexported)":
+  { "type": ["@", "rules", "proto", "library"]
+  , "name": ["google_api_launch_stage_proto"]
+  , "srcs": ["google/api/launch_stage.proto"]
   }
 , "google_api_expr_v1alpha1_checked_proto":
   { "type": "export"
@@ -45,11 +53,6 @@
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_api_expr_v1alpha1_syntax_proto"]
   , "srcs": ["google/api/expr/v1alpha1/syntax.proto"]
-  }
-, "google/bytestream/bytestream.proto":
-  { "type": ["@", "rules", "patch", "file"]
-  , "src": [["FILE", null, "google/bytestream/bytestream.proto"]]
-  , "patch": [["@", "patches", "", "bytestream.proto.diff"]]
   }
 , "google_bytestream_proto":
   { "type": "export"

@@ -18,6 +18,12 @@
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["google_api_client_proto"]
   , "srcs": ["google/api/client.proto"]
+  , "deps": ["google_api_launch_stage_proto"]
+  }
+, "google_api_launch_stage_proto":
+  { "type": ["@", "rules", "proto", "library"]
+  , "name": ["google_api_launch_stage_proto"]
+  , "srcs": ["google/api/launch_stage.proto"]
   }
 , "google_api_expr_v1alpha1_checked_proto":
   { "type": ["@", "rules", "proto", "library"]

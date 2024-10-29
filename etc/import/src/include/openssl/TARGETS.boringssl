@@ -1,9 +1,4 @@
-{ "ssl_headers":
-  { "type": ["@", "rules", "data", "staged"]
-  , "srcs": ["dtls1.h", "srtp.h", "ssl.h", "ssl3.h", "tls1.h"]
-  , "stage": ["openssl"]
-  }
-, "crypto_headers":
+{ "crypto_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
     [ "aead.h"
@@ -45,17 +40,21 @@
     , "evp.h"
     , "evp_errors.h"
     , "ex_data.h"
+    , "experimental/dilithium.h"
+    , "experimental/kyber.h"
+    , "experimental/spx.h"
     , "hkdf.h"
     , "hmac.h"
     , "hpke.h"
     , "hrss.h"
     , "is_boringssl.h"
     , "kdf.h"
-    , "kyber.h"
     , "lhash.h"
     , "md4.h"
     , "md5.h"
     , "mem.h"
+    , "mldsa.h"
+    , "mlkem.h"
     , "nid.h"
     , "obj.h"
     , "obj_mac.h"
@@ -90,6 +89,11 @@
     , "x509v3.h"
     , "x509v3_errors.h"
     ]
+  , "stage": ["openssl"]
+  }
+, "ssl_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["dtls1.h", "srtp.h", "ssl.h", "ssl3.h", "tls1.h"]
   , "stage": ["openssl"]
   }
 }

@@ -1,7 +1,9 @@
 { "grpcxx_sources":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    [ "src/cpp/client/channel_cc.cc"
+    [ "src/cpp/client/call_credentials.cc"
+    , "src/cpp/client/channel_cc.cc"
+    , "src/cpp/client/channel_credentials.cc"
     , "src/cpp/client/client_callback.cc"
     , "src/cpp/client/client_context.cc"
     , "src/cpp/client/client_interceptor.cc"
@@ -27,6 +29,7 @@
     , "src/cpp/server/server_callback.cc"
     , "src/cpp/server/server_cc.cc"
     , "src/cpp/server/server_context.cc"
+    , "src/cpp/server/server_credentials.cc"
     , "src/cpp/server/server_posix.cc"
     , "src/cpp/thread_manager/thread_manager.cc"
     , "src/cpp/util/byte_buffer_cc.cc"
@@ -69,16 +72,23 @@
     , "grpc_trace"
     , "http_connect_handshaker"
     , "iomgr_timer"
+    , "server"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "log"]
     , ["src/core", "channel_args"]
     , ["src/core", "channel_init"]
     , ["src/core", "channel_stack_type"]
+    , ["src/core", "client_channel_backup_poller"]
     , ["src/core", "default_event_engine"]
+    , ["src/core", "endpoint_info_handshaker"]
     , ["src/core", "experiments"]
     , ["src/core", "forkable"]
     , ["src/core", "grpc_authorization_base"]
+    , ["src/core", "http_proxy_mapper"]
     , ["src/core", "init_internally"]
     , ["src/core", "posix_event_engine_timer_manager"]
+    , ["src/core", "server_call_tracer_filter"]
+    , ["src/core", "service_config_channel_arg_filter"]
     , ["src/core", "slice"]
     , ["src/core", "tcp_connect_handshaker"]
     ]
@@ -134,15 +144,19 @@
     , "iomgr_timer"
     , "promise"
     , "ref_counted_ptr"
+    , "server"
     , "sockaddr_utils"
     , "tsi_base"
     , "uri_parser"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "log"]
     , ["src/core", "channel_args"]
     , ["src/core", "channel_creds_registry_init"]
     , ["src/core", "channel_init"]
     , ["src/core", "channel_stack_type"]
+    , ["src/core", "client_channel_backup_poller"]
     , ["src/core", "default_event_engine"]
+    , ["src/core", "endpoint_info_handshaker"]
     , ["src/core", "experiments"]
     , ["src/core", "forkable"]
     , ["src/core", "grpc_authorization_base"]
@@ -169,11 +183,14 @@
     , ["src/core", "grpc_transport_chttp2_alpn"]
     , ["src/core", "grpc_xds_channel_stack_modifier"]
     , ["src/core", "grpc_xds_client"]
+    , ["src/core", "http_proxy_mapper"]
     , ["src/core", "httpcli_ssl_credentials"]
     , ["src/core", "init_internally"]
     , ["src/core", "json"]
     , ["src/core", "posix_event_engine_timer_manager"]
     , ["src/core", "ref_counted"]
+    , ["src/core", "server_call_tracer_filter"]
+    , ["src/core", "service_config_channel_arg_filter"]
     , ["src/core", "slice"]
     , ["src/core", "slice_refcount"]
     , ["src/core", "tcp_connect_handshaker"]
@@ -205,33 +222,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["gpr"]
   , "srcs":
-    [ "src/core/lib/gpr/alloc.cc"
-    , "src/core/lib/gpr/android/log.cc"
-    , "src/core/lib/gpr/iphone/cpu.cc"
-    , "src/core/lib/gpr/linux/cpu.cc"
-    , "src/core/lib/gpr/linux/log.cc"
-    , "src/core/lib/gpr/log.cc"
-    , "src/core/lib/gpr/msys/tmpfile.cc"
-    , "src/core/lib/gpr/posix/cpu.cc"
-    , "src/core/lib/gpr/posix/log.cc"
-    , "src/core/lib/gpr/posix/string.cc"
-    , "src/core/lib/gpr/posix/sync.cc"
-    , "src/core/lib/gpr/posix/time.cc"
-    , "src/core/lib/gpr/posix/tmpfile.cc"
-    , "src/core/lib/gpr/string.cc"
-    , "src/core/lib/gpr/sync.cc"
-    , "src/core/lib/gpr/sync_abseil.cc"
-    , "src/core/lib/gpr/time.cc"
-    , "src/core/lib/gpr/time_precise.cc"
-    , "src/core/lib/gpr/windows/cpu.cc"
-    , "src/core/lib/gpr/windows/log.cc"
-    , "src/core/lib/gpr/windows/string.cc"
-    , "src/core/lib/gpr/windows/string_util.cc"
-    , "src/core/lib/gpr/windows/sync.cc"
-    , "src/core/lib/gpr/windows/time.cc"
-    , "src/core/lib/gpr/windows/tmpfile.cc"
-    , "src/core/lib/gpr/wrap_memcpy.cc"
-    , "src/core/lib/gprpp/crash.cc"
+    [ "src/core/lib/gprpp/crash.cc"
     , "src/core/lib/gprpp/fork.cc"
     , "src/core/lib/gprpp/host_port.cc"
     , "src/core/lib/gprpp/mpscq.cc"
@@ -240,13 +231,30 @@
     , "src/core/lib/gprpp/time_util.cc"
     , "src/core/lib/gprpp/windows/stat.cc"
     , "src/core/lib/gprpp/windows/thd.cc"
+    , "src/core/util/alloc.cc"
+    , "src/core/util/iphone/cpu.cc"
+    , "src/core/util/linux/cpu.cc"
+    , "src/core/util/log.cc"
+    , "src/core/util/msys/tmpfile.cc"
+    , "src/core/util/posix/cpu.cc"
+    , "src/core/util/posix/string.cc"
+    , "src/core/util/posix/sync.cc"
+    , "src/core/util/posix/time.cc"
+    , "src/core/util/posix/tmpfile.cc"
+    , "src/core/util/string.cc"
+    , "src/core/util/sync.cc"
+    , "src/core/util/sync_abseil.cc"
+    , "src/core/util/time.cc"
+    , "src/core/util/time_precise.cc"
+    , "src/core/util/windows/cpu.cc"
+    , "src/core/util/windows/string.cc"
+    , "src/core/util/windows/string_util.cc"
+    , "src/core/util/windows/sync.cc"
+    , "src/core/util/windows/time.cc"
+    , "src/core/util/windows/tmpfile.cc"
     ]
   , "hdrs":
-    [ "src/core/lib/gpr/alloc.h"
-    , "src/core/lib/gpr/string.h"
-    , "src/core/lib/gpr/time_precise.h"
-    , "src/core/lib/gpr/tmpfile.h"
-    , "src/core/lib/gprpp/crash.h"
+    [ "src/core/lib/gprpp/crash.h"
     , "src/core/lib/gprpp/fork.h"
     , "src/core/lib/gprpp/host_port.h"
     , "src/core/lib/gprpp/memory.h"
@@ -255,6 +263,10 @@
     , "src/core/lib/gprpp/sync.h"
     , "src/core/lib/gprpp/thd.h"
     , "src/core/lib/gprpp/time_util.h"
+    , "src/core/util/alloc.h"
+    , "src/core/util/string.h"
+    , "src/core/util/time_precise.h"
+    , "src/core/util/tmpfile.h"
     , ["include/grpc", "gpr_public_headers"]
     ]
   , "deps":
@@ -262,7 +274,11 @@
     , "debug_location"
     , ["@", "absl", "absl/base", "base"]
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/base", "log_severity"]
     , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "globals"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "absl", "absl/random", "random"]
     , ["@", "absl", "absl/status", "status"]
@@ -308,7 +324,6 @@
     , ["src/core", "grpc_backend_metric_filter"]
     , ["src/core", "grpc_channel_idle_filter"]
     , ["src/core", "grpc_client_authority_filter"]
-    , ["src/core", "grpc_deadline_filter"]
     , ["src/core", "grpc_fault_injection_filter"]
     , ["src/core", "grpc_lb_policy_grpclb"]
     , ["src/core", "grpc_lb_policy_outlier_detection"]
@@ -330,7 +345,10 @@
 , "grpc_public_hdrs":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_public_hdrs"]
-  , "hdrs": [["include/grpc", "grpc_public_headers"]]
+  , "hdrs":
+    [ ["include/grpc", "grpc_public_headers"]
+    , ["include/grpc", "grpc_public_event_engine_headers"]
+    ]
   , "deps":
     [ "channel_arg_names"
     , "gpr_public_hdrs"
@@ -346,7 +364,12 @@
     , ["include/grpcpp", "grpcpp_public_headers"]
     ]
   , "deps":
-    [ "grpc_public_hdrs"
+    [ "global_callback_hook"
+    , "grpc_public_hdrs"
+    , ["@", "absl", "absl/log", "absl_check"]
+    , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "cord"]
     , ["@", "absl", "absl/synchronization", "synchronization"]
     , ["@", "protobuf", "", "libprotobuf"]
@@ -390,7 +413,12 @@
     , ["include/grpcpp", "grpcpp_public_headers"]
     ]
   , "deps":
-    [ "grpc++_base"
+    [ "global_callback_hook"
+    , "grpc++_base"
+    , ["@", "absl", "absl/log", "absl_check"]
+    , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "cord"]
     , ["src/core", "gpr_atm"]
     , ["src/core", "slice"]
@@ -427,6 +455,8 @@
     , "grpc_trace"
     , "ref_counted_ptr"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -468,6 +498,7 @@
     [ "gpr"
     , "grpc_mock_cel"
     , ["@", "absl", "absl/container", "flat_hash_set"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
     , ["@", "absl", "absl/types", "span"]
@@ -527,7 +558,9 @@
     , "include/grpcpp/security/binder_security_policy.h"
     ]
   , "deps":
-    [ "config"
+    [ "channel"
+    , "channel_create"
+    , "config"
     , "debug_location"
     , "exec_ctx"
     , "gpr"
@@ -539,11 +572,14 @@
     , "grpc_public_hdrs"
     , "orphanable"
     , "ref_counted_ptr"
+    , "server"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/cleanup", "cleanup"]
     , ["@", "absl", "absl/container", "flat_hash_map"]
     , ["@", "absl", "absl/functional", "any_invocable"]
     , ["@", "absl", "absl/hash", "hash"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "absl", "absl/meta", "type_traits"]
     , ["@", "absl", "absl/status", "status"]
@@ -565,6 +601,7 @@
     , ["src/core", "slice"]
     , ["src/core", "slice_refcount"]
     , ["src/core", "status_helper"]
+    , ["src/core", "subchannel_connector"]
     , ["src/core", "transport_fwd"]
     ]
   }
@@ -581,6 +618,7 @@
     , "grpc_base"
     , "grpc_public_hdrs"
     , "grpc_security_base"
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/strings", "strings"]
     ]
   }
@@ -600,6 +638,7 @@
     , "gpr"
     , "grpc"
     , "grpc++_base"
+    , ["@", "absl", "absl/log", "check"]
     , ["src/core", "xds_enabled_server"]
     ]
   }
@@ -611,12 +650,28 @@
     , "src/cpp/common/insecure_create_auth_context.cc"
     , "src/cpp/server/insecure_server_credentials.cc"
     ]
+  , "hdrs":
+    [ ["include/grpc++", "grpc++_public_headers"]
+    , ["include/grpcpp", "grpcpp_public_headers"]
+    ]
   , "deps":
-    [ "gpr"
+    [ "channel_arg_names"
+    , "generic_stub_internal"
+    , "global_callback_hook"
+    , "gpr"
     , "grpc++_base_unsecure"
     , "grpc++_codegen_proto"
+    , "grpc_core_credentials_header"
     , "grpc_public_hdrs"
+    , "grpc_security_base"
     , "grpc_unsecure"
+    , ["@", "absl", "absl/log", "absl_check"]
+    , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/synchronization", "synchronization"]
+    , ["src/core", "gpr_atm"]
     , ["src/core", "grpc_insecure_credentials"]
     ]
   }
@@ -639,11 +694,11 @@
     , "include/grpcpp/security/alts_util.h"
     ]
   , "deps":
-    [ "alts_upb"
-    , "gpr"
+    [ "gpr"
     , "grpc++"
     , "grpc_base"
     , "tsi_alts_credentials"
+    , ["@", "absl", "absl/log", "log"]
     , ["third_party/upb", "base"]
     , ["third_party/upb", "mem"]
     , ["third_party/upb", "message"]
@@ -655,7 +710,12 @@
   , "srcs": ["src/core/ext/filters/census/grpc_context.cc"]
   , "hdrs": [["include/grpc", "census_headers"]]
   , "deps":
-    ["gpr", "grpc_base", "grpc_public_hdrs", "grpc_trace", "legacy_context"]
+    [ "gpr"
+    , "grpc_base"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , ["src/core", "arena"]
+    ]
   }
 , "gpr_platform":
   { "type": ["@", "rules", "CC", "library"]
@@ -683,24 +743,112 @@
     , ["@", "absl", "absl/types", "optional"]
     ]
   }
-, "grpc_base":
+, "channelz":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["grpc_base"]
+  , "name": ["channelz"]
   , "srcs":
-    [ "src/core/lib/channel/call_tracer.cc"
-    , "src/core/lib/channel/channel_stack.cc"
-    , "src/core/lib/channel/channel_stack_builder_impl.cc"
-    , "src/core/lib/channel/channel_trace.cc"
-    , "src/core/lib/channel/channelz.cc"
-    , "src/core/lib/channel/channelz_registry.cc"
-    , "src/core/lib/channel/connected_channel.cc"
-    , "src/core/lib/channel/promise_based_filter.cc"
-    , "src/core/lib/channel/server_call_tracer_filter.cc"
-    , "src/core/lib/channel/status_util.cc"
-    , "src/core/lib/compression/compression.cc"
-    , "src/core/lib/compression/message_compress.cc"
-    , "src/core/lib/iomgr/call_combiner.cc"
-    , "src/core/lib/iomgr/cfstream_handle.cc"
+    [ "src/core/channelz/channel_trace.cc"
+    , "src/core/channelz/channelz.cc"
+    , "src/core/channelz/channelz_registry.cc"
+    ]
+  , "hdrs":
+    [ "src/core/channelz/channel_trace.h"
+    , "src/core/channelz/channelz.h"
+    , "src/core/channelz/channelz_registry.h"
+    ]
+  , "deps":
+    [ "exec_ctx"
+    , "gpr"
+    , "grpc_public_hdrs"
+    , "parse_address"
+    , "ref_counted_ptr"
+    , "sockaddr_utils"
+    , "uri_parser"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "connectivity_state"]
+    , ["src/core", "json"]
+    , ["src/core", "json_writer"]
+    , ["src/core", "per_cpu"]
+    , ["src/core", "ref_counted"]
+    , ["src/core", "resolved_address"]
+    , ["src/core", "slice"]
+    , ["src/core", "time"]
+    , ["src/core", "useful"]
+    ]
+  }
+, "dynamic_annotations":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["dynamic_annotations"]
+  , "hdrs": ["src/core/lib/iomgr/dynamic_annotations.h"]
+  , "deps": ["gpr_public_hdrs"]
+  }
+, "call_combiner":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["call_combiner"]
+  , "srcs": ["src/core/lib/iomgr/call_combiner.cc"]
+  , "hdrs": ["src/core/lib/iomgr/call_combiner.h"]
+  , "deps":
+    [ "dynamic_annotations"
+    , "exec_ctx"
+    , "gpr"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["src/core", "closure"]
+    , ["src/core", "gpr_atm"]
+    , ["src/core", "ref_counted"]
+    , ["src/core", "stats_data"]
+    ]
+  }
+, "resource_quota_api":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["resource_quota_api"]
+  , "srcs": ["src/core/lib/resource_quota/api.cc"]
+  , "hdrs": ["src/core/lib/resource_quota/api.h"]
+  , "deps":
+    [ "channel_arg_names"
+    , "config"
+    , "event_engine_base_hdrs"
+    , "exec_ctx"
+    , "gpr_public_hdrs"
+    , "grpc_public_hdrs"
+    , "ref_counted_ptr"
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "memory_quota"]
+    , ["src/core", "resource_quota"]
+    , ["src/core", "thread_quota"]
+    ]
+  }
+, "byte_buffer":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["byte_buffer"]
+  , "srcs":
+    [ "src/core/lib/surface/byte_buffer.cc"
+    , "src/core/lib/surface/byte_buffer_reader.cc"
+    ]
+  , "deps":
+    [ "exec_ctx"
+    , "gpr_public_hdrs"
+    , "grpc_public_hdrs"
+    , ["@", "absl", "absl/log", "check"]
+    , ["src/core", "compression"]
+    , ["src/core", "slice"]
+    ]
+  }
+, "iomgr":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["iomgr"]
+  , "srcs":
+    [ "src/core/lib/iomgr/cfstream_handle.cc"
     , "src/core/lib/iomgr/dualstack_socket_posix.cc"
     , "src/core/lib/iomgr/endpoint.cc"
     , "src/core/lib/iomgr/endpoint_cfstream.cc"
@@ -711,10 +859,6 @@
     , "src/core/lib/iomgr/ev_epoll1_linux.cc"
     , "src/core/lib/iomgr/ev_poll_posix.cc"
     , "src/core/lib/iomgr/ev_posix.cc"
-    , "src/core/lib/iomgr/ev_windows.cc"
-    , "src/core/lib/iomgr/event_engine_shims/closure.cc"
-    , "src/core/lib/iomgr/event_engine_shims/endpoint.cc"
-    , "src/core/lib/iomgr/event_engine_shims/tcp_client.cc"
     , "src/core/lib/iomgr/fork_posix.cc"
     , "src/core/lib/iomgr/fork_windows.cc"
     , "src/core/lib/iomgr/gethostname_fallback.cc"
@@ -758,47 +902,13 @@
     , "src/core/lib/iomgr/wakeup_fd_nospecial.cc"
     , "src/core/lib/iomgr/wakeup_fd_pipe.cc"
     , "src/core/lib/iomgr/wakeup_fd_posix.cc"
-    , "src/core/lib/resource_quota/api.cc"
-    , "src/core/lib/slice/b64.cc"
-    , "src/core/lib/surface/api_trace.cc"
-    , "src/core/lib/surface/builtins.cc"
-    , "src/core/lib/surface/byte_buffer.cc"
-    , "src/core/lib/surface/byte_buffer_reader.cc"
-    , "src/core/lib/surface/call.cc"
-    , "src/core/lib/surface/call_details.cc"
-    , "src/core/lib/surface/call_log_batch.cc"
-    , "src/core/lib/surface/call_trace.cc"
-    , "src/core/lib/surface/channel.cc"
-    , "src/core/lib/surface/channel_ping.cc"
-    , "src/core/lib/surface/completion_queue.cc"
-    , "src/core/lib/surface/completion_queue_factory.cc"
-    , "src/core/lib/surface/event_string.cc"
-    , "src/core/lib/surface/lame_client.cc"
-    , "src/core/lib/surface/metadata_array.cc"
-    , "src/core/lib/surface/server.cc"
-    , "src/core/lib/surface/validate_metadata.cc"
-    , "src/core/lib/surface/version.cc"
-    , "src/core/lib/surface/wait_for_cq_end_op.cc"
-    , "src/core/lib/transport/batch_builder.cc"
-    , "src/core/lib/transport/transport.cc"
-    , "src/core/lib/transport/transport_op_string.cc"
+    , "src/core/lib/iomgr/event_engine_shims/closure.cc"
+    , "src/core/lib/iomgr/event_engine_shims/endpoint.cc"
+    , "src/core/lib/iomgr/event_engine_shims/tcp_client.cc"
     ]
   , "hdrs":
-    [ "src/core/lib/channel/call_finalization.h"
-    , "src/core/lib/channel/call_tracer.h"
-    , "src/core/lib/channel/channel_stack.h"
-    , "src/core/lib/channel/channel_stack_builder_impl.h"
-    , "src/core/lib/channel/channel_trace.h"
-    , "src/core/lib/channel/channelz.h"
-    , "src/core/lib/channel/channelz_registry.h"
-    , "src/core/lib/channel/connected_channel.h"
-    , "src/core/lib/channel/promise_based_filter.h"
-    , "src/core/lib/channel/status_util.h"
-    , "src/core/lib/compression/message_compress.h"
-    , "src/core/lib/iomgr/block_annotate.h"
-    , "src/core/lib/iomgr/call_combiner.h"
+    [ "src/core/lib/iomgr/block_annotate.h"
     , "src/core/lib/iomgr/cfstream_handle.h"
-    , "src/core/lib/iomgr/dynamic_annotations.h"
     , "src/core/lib/iomgr/endpoint.h"
     , "src/core/lib/iomgr/endpoint_cfstream.h"
     , "src/core/lib/iomgr/endpoint_pair.h"
@@ -807,9 +917,6 @@
     , "src/core/lib/iomgr/ev_epoll1_linux.h"
     , "src/core/lib/iomgr/ev_poll_posix.h"
     , "src/core/lib/iomgr/ev_posix.h"
-    , "src/core/lib/iomgr/event_engine_shims/closure.h"
-    , "src/core/lib/iomgr/event_engine_shims/endpoint.h"
-    , "src/core/lib/iomgr/event_engine_shims/tcp_client.h"
     , "src/core/lib/iomgr/gethostname.h"
     , "src/core/lib/iomgr/iocp_windows.h"
     , "src/core/lib/iomgr/iomgr.h"
@@ -841,33 +948,16 @@
     , "src/core/lib/iomgr/vsock.h"
     , "src/core/lib/iomgr/wakeup_fd_pipe.h"
     , "src/core/lib/iomgr/wakeup_fd_posix.h"
-    , "src/core/lib/resource_quota/api.h"
-    , "src/core/lib/slice/b64.h"
-    , "src/core/lib/surface/api_trace.h"
-    , "src/core/lib/surface/builtins.h"
-    , "src/core/lib/surface/call.h"
-    , "src/core/lib/surface/call_test_only.h"
-    , "src/core/lib/surface/call_trace.h"
-    , "src/core/lib/surface/channel.h"
-    , "src/core/lib/surface/completion_queue.h"
-    , "src/core/lib/surface/completion_queue_factory.h"
-    , "src/core/lib/surface/event_string.h"
-    , "src/core/lib/surface/init.h"
-    , "src/core/lib/surface/lame_client.h"
-    , "src/core/lib/surface/server.h"
-    , "src/core/lib/surface/validate_metadata.h"
-    , "src/core/lib/surface/wait_for_cq_end_op.h"
-    , "src/core/lib/transport/batch_builder.h"
-    , "src/core/lib/transport/transport.h"
+    , "src/core/lib/iomgr/event_engine_shims/closure.h"
+    , "src/core/lib/iomgr/event_engine_shims/endpoint.h"
+    , "src/core/lib/iomgr/event_engine_shims/tcp_client.h"
     , ["include/grpc", "grpc_public_event_engine_headers"]
     , ["include/grpc", "grpc_public_headers"]
     ]
   , "deps":
-    [ "channel_arg_names"
-    , "channel_stack_builder"
-    , "config"
+    [ "byte_buffer"
+    , "channel_arg_names"
     , "config_vars"
-    , "cpp_impl_of"
     , "debug_location"
     , "exec_ctx"
     , "gpr"
@@ -876,30 +966,352 @@
     , "iomgr_buffer_list"
     , "iomgr_internal_errqueue"
     , "iomgr_timer"
-    , "legacy_context"
     , "orphanable"
     , "parse_address"
-    , "promise"
-    , "ref_counted_ptr"
+    , "resource_quota_api"
     , "sockaddr_utils"
     , "stats"
-    , "tcp_tracer"
-    , "uri_parser"
     , ["@", "absl", "absl/base", "core_headers"]
-    , ["@", "absl", "absl/cleanup", "cleanup"]
     , ["@", "absl", "absl/container", "flat_hash_map"]
     , ["@", "absl", "absl/container", "flat_hash_set"]
-    , ["@", "absl", "absl/container", "inlined_vector"]
     , ["@", "absl", "absl/functional", "any_invocable"]
-    , ["@", "absl", "absl/functional", "function_ref"]
-    , ["@", "absl", "absl/hash", "hash"]
-    , ["@", "absl", "absl/meta", "type_traits"]
-    , ["@", "absl", "absl/random", "random"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/time", "time"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["@", "absl", "absl/utility", "utility"]
+    , ["src/core", "1999"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "channel_args_endpoint_config"]
+    , ["src/core", "closure"]
+    , ["src/core", "construct_destruct"]
+    , ["src/core", "context"]
+    , ["src/core", "default_event_engine"]
+    , ["src/core", "error"]
+    , ["src/core", "error_utils"]
+    , ["src/core", "event_engine_common"]
+    , ["src/core", "event_engine_extensions"]
+    , ["src/core", "event_engine_memory_allocator_factory"]
+    , ["src/core", "event_engine_query_extensions"]
+    , ["src/core", "event_engine_shim"]
+    , ["src/core", "event_engine_tcp_socket_utils"]
+    , ["src/core", "event_log"]
+    , ["src/core", "examine_stack"]
+    , ["src/core", "experiments"]
+    , ["src/core", "gpr_atm"]
+    , ["src/core", "gpr_manual_constructor"]
+    , ["src/core", "grpc_sockaddr"]
+    , ["src/core", "init_internally"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "iomgr_port"]
+    , ["src/core", "memory_quota"]
+    , ["src/core", "no_destruct"]
+    , ["src/core", "pollset_set"]
+    , ["src/core", "posix_event_engine_base_hdrs"]
+    , ["src/core", "posix_event_engine_endpoint"]
+    , ["src/core", "resolved_address"]
+    , ["src/core", "resource_quota"]
+    , ["src/core", "slice"]
+    , ["src/core", "slice_buffer"]
+    , ["src/core", "slice_cast"]
+    , ["src/core", "slice_refcount"]
+    , ["src/core", "socket_mutator"]
+    , ["src/core", "stats_data"]
+    , ["src/core", "strerror"]
+    , ["src/core", "time"]
+    , ["src/core", "useful"]
+    , ["src/core", "windows_event_engine"]
+    , ["src/core", "windows_event_engine_listener"]
+    ]
+  }
+, "call_tracer":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["call_tracer"]
+  , "srcs": ["src/core/telemetry/call_tracer.cc"]
+  , "hdrs": ["src/core/telemetry/call_tracer.h"]
+  , "deps":
+    [ "gpr"
+    , "tcp_tracer"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "arena"]
+    , ["src/core", "call_final_info"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "context"]
+    , ["src/core", "error"]
+    , ["src/core", "metadata_batch"]
+    , ["src/core", "ref_counted_string"]
+    , ["src/core", "slice_buffer"]
+    ]
+  }
+, "channel":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["channel"]
+  , "srcs": ["src/core/lib/surface/channel.cc"]
+  , "hdrs": ["src/core/lib/surface/channel.h"]
+  , "deps":
+    [ "channel_arg_names"
+    , "channelz"
+    , "cpp_impl_of"
+    , "event_engine_base_hdrs"
+    , "exec_ctx"
+    , "gpr"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "arena"]
+    , ["src/core", "call_arena_allocator"]
+    , ["src/core", "call_destination"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "channel_stack_type"]
+    , ["src/core", "compression"]
+    , ["src/core", "connectivity_state"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "ref_counted"]
+    , ["src/core", "resource_quota"]
+    , ["src/core", "slice"]
+    , ["src/core", "stats_data"]
+    , ["src/core", "time"]
+    ]
+  }
+, "legacy_channel":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["legacy_channel"]
+  , "srcs": ["src/core/lib/surface/legacy_channel.cc"]
+  , "hdrs": ["src/core/lib/surface/legacy_channel.h"]
+  , "deps":
+    [ "channel"
+    , "channelz"
+    , "config"
+    , "exec_ctx"
+    , "gpr"
+    , "grpc_base"
+    , "grpc_client_channel"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "arena"]
+    , ["src/core", "call_arena_allocator"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "channel_args_endpoint_config"]
+    , ["src/core", "channel_fwd"]
+    , ["src/core", "channel_init"]
+    , ["src/core", "channel_stack_type"]
+    , ["src/core", "closure"]
+    , ["src/core", "dual_ref_counted"]
+    , ["src/core", "error"]
+    , ["src/core", "init_internally"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "metrics"]
+    , ["src/core", "resource_quota"]
+    , ["src/core", "slice"]
+    , ["src/core", "stats_data"]
+    , ["src/core", "time"]
+    ]
+  }
+, "channel_create":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["channel_create"]
+  , "srcs": ["src/core/lib/surface/channel_create.cc"]
+  , "hdrs": ["src/core/lib/surface/channel_create.h"]
+  , "deps":
+    [ "channel"
+    , "channel_arg_names"
+    , "channelz"
+    , "config"
+    , "gpr"
+    , "grpc_base"
+    , "grpc_client_channel"
+    , "grpc_public_hdrs"
+    , "legacy_channel"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "arena"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "channel_stack_type"]
+    , ["src/core", "direct_channel"]
+    , ["src/core", "experiments"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "ref_counted"]
+    , ["src/core", "slice"]
+    , ["src/core", "stats_data"]
+    ]
+  }
+, "server":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["server"]
+  , "srcs": ["src/core/server/server.cc"]
+  , "hdrs": ["src/core/server/server.h"]
+  , "deps":
+    [ "call_combiner"
+    , "call_tracer"
+    , "channel"
+    , "channel_arg_names"
+    , "channelz"
+    , "config"
+    , "cpp_impl_of"
+    , "debug_location"
+    , "exec_ctx"
+    , "gpr"
+    , "grpc_base"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , "iomgr"
+    , "legacy_channel"
+    , "orphanable"
+    , "promise"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/cleanup", "cleanup"]
+    , ["@", "absl", "absl/container", "flat_hash_map"]
+    , ["@", "absl", "absl/container", "flat_hash_set"]
+    , ["@", "absl", "absl/hash", "hash"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/random", "random"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["@", "absl", "absl/types", "optional"]
+    , ["src/core", "activity"]
+    , ["src/core", "arena_promise"]
+    , ["src/core", "cancel_callback"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "channel_args_preconditioning"]
+    , ["src/core", "channel_fwd"]
+    , ["src/core", "channel_stack_type"]
+    , ["src/core", "closure"]
+    , ["src/core", "connectivity_state"]
+    , ["src/core", "context"]
+    , ["src/core", "dual_ref_counted"]
+    , ["src/core", "error"]
+    , ["src/core", "error_utils"]
+    , ["src/core", "experiments"]
+    , ["src/core", "interception_chain"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "map"]
+    , ["src/core", "metadata_batch"]
+    , ["src/core", "pipe"]
+    , ["src/core", "poll"]
+    , ["src/core", "pollset_set"]
+    , ["src/core", "random_early_detection"]
+    , ["src/core", "seq"]
+    , ["src/core", "server_interface"]
+    , ["src/core", "slice"]
+    , ["src/core", "slice_buffer"]
+    , ["src/core", "status_helper"]
+    , ["src/core", "time"]
+    , ["src/core", "try_join"]
+    , ["src/core", "try_seq"]
+    , ["src/core", "useful"]
+    ]
+  }
+, "grpc_base":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["grpc_base"]
+  , "srcs":
+    [ "src/core/lib/channel/channel_stack.cc"
+    , "src/core/lib/channel/channel_stack_builder_impl.cc"
+    , "src/core/lib/channel/connected_channel.cc"
+    , "src/core/lib/channel/promise_based_filter.cc"
+    , "src/core/lib/channel/status_util.cc"
+    , "src/core/lib/compression/message_compress.cc"
+    , "src/core/lib/surface/call.cc"
+    , "src/core/lib/surface/call_details.cc"
+    , "src/core/lib/surface/call_log_batch.cc"
+    , "src/core/lib/surface/call_utils.cc"
+    , "src/core/lib/surface/client_call.cc"
+    , "src/core/lib/surface/completion_queue.cc"
+    , "src/core/lib/surface/completion_queue_factory.cc"
+    , "src/core/lib/surface/event_string.cc"
+    , "src/core/lib/surface/filter_stack_call.cc"
+    , "src/core/lib/surface/lame_client.cc"
+    , "src/core/lib/surface/metadata_array.cc"
+    , "src/core/lib/surface/server_call.cc"
+    , "src/core/lib/surface/validate_metadata.cc"
+    , "src/core/lib/surface/version.cc"
+    , "src/core/lib/transport/transport.cc"
+    , "src/core/lib/transport/transport_op_string.cc"
+    ]
+  , "hdrs":
+    [ "src/core/lib/channel/channel_stack.h"
+    , "src/core/lib/channel/channel_stack_builder_impl.h"
+    , "src/core/lib/channel/connected_channel.h"
+    , "src/core/lib/channel/promise_based_filter.h"
+    , "src/core/lib/channel/status_util.h"
+    , "src/core/lib/compression/message_compress.h"
+    , "src/core/lib/surface/call.h"
+    , "src/core/lib/surface/call_test_only.h"
+    , "src/core/lib/surface/call_utils.h"
+    , "src/core/lib/surface/client_call.h"
+    , "src/core/lib/surface/completion_queue.h"
+    , "src/core/lib/surface/completion_queue_factory.h"
+    , "src/core/lib/surface/event_string.h"
+    , "src/core/lib/surface/filter_stack_call.h"
+    , "src/core/lib/surface/init.h"
+    , "src/core/lib/surface/lame_client.h"
+    , "src/core/lib/surface/server_call.h"
+    , "src/core/lib/surface/validate_metadata.h"
+    , "src/core/lib/transport/transport.h"
+    , ["include/grpc", "grpc_public_event_engine_headers"]
+    , ["include/grpc", "grpc_public_headers"]
+    ]
+  , "deps":
+    [ "call_combiner"
+    , "call_tracer"
+    , "channel"
+    , "channel_arg_names"
+    , "channel_stack_builder"
+    , "channelz"
+    , "config"
+    , "cpp_impl_of"
+    , "debug_location"
+    , "exec_ctx"
+    , "gpr"
+    , "grpc_core_credentials_header"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , "iomgr"
+    , "iomgr_timer"
+    , "orphanable"
+    , "promise"
+    , "ref_counted_ptr"
+    , "stats"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/container", "flat_hash_map"]
+    , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/functional", "function_ref"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/meta", "type_traits"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/status", "statusor"]
+    , ["@", "absl", "absl/strings", "str_format"]
+    , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
     , ["@", "absl", "absl/utility", "utility"]
     , ["@", "zlib", "", "zlib"]
@@ -910,96 +1322,64 @@
     , ["src/core", "arena_promise"]
     , ["src/core", "atomic_utils"]
     , ["src/core", "bitset"]
-    , ["src/core", "call_factory"]
+    , ["src/core", "call_destination"]
     , ["src/core", "call_filters"]
     , ["src/core", "call_final_info"]
+    , ["src/core", "call_finalization"]
     , ["src/core", "call_spine"]
     , ["src/core", "cancel_callback"]
     , ["src/core", "channel_args"]
-    , ["src/core", "channel_args_endpoint_config"]
     , ["src/core", "channel_args_preconditioning"]
     , ["src/core", "channel_fwd"]
     , ["src/core", "channel_init"]
-    , ["src/core", "channel_stack_trace"]
     , ["src/core", "channel_stack_type"]
-    , ["src/core", "chunked_vector"]
     , ["src/core", "closure"]
-    , ["src/core", "compression_internal"]
+    , ["src/core", "compression"]
     , ["src/core", "connectivity_state"]
-    , ["src/core", "construct_destruct"]
     , ["src/core", "context"]
     , ["src/core", "default_event_engine"]
-    , ["src/core", "dual_ref_counted"]
     , ["src/core", "error"]
     , ["src/core", "error_utils"]
     , ["src/core", "event_engine_common"]
-    , ["src/core", "event_engine_extensions"]
-    , ["src/core", "event_engine_memory_allocator_factory"]
-    , ["src/core", "event_engine_query_extensions"]
-    , ["src/core", "event_engine_shim"]
-    , ["src/core", "event_engine_tcp_socket_utils"]
-    , ["src/core", "event_engine_trace"]
-    , ["src/core", "event_log"]
+    , ["src/core", "event_engine_context"]
     , ["src/core", "experiments"]
     , ["src/core", "for_each"]
     , ["src/core", "gpr_atm"]
     , ["src/core", "gpr_manual_constructor"]
     , ["src/core", "gpr_spinlock"]
-    , ["src/core", "grpc_sockaddr"]
     , ["src/core", "if"]
-    , ["src/core", "init_internally"]
     , ["src/core", "iomgr_fwd"]
-    , ["src/core", "iomgr_port"]
-    , ["src/core", "json"]
-    , ["src/core", "json_writer"]
     , ["src/core", "latch"]
+    , ["src/core", "latent_see"]
     , ["src/core", "loop"]
     , ["src/core", "map"]
     , ["src/core", "match"]
-    , ["src/core", "memory_quota"]
     , ["src/core", "message"]
     , ["src/core", "metadata"]
     , ["src/core", "metadata_batch"]
+    , ["src/core", "metrics"]
     , ["src/core", "no_destruct"]
-    , ["src/core", "per_cpu"]
     , ["src/core", "pipe"]
     , ["src/core", "poll"]
-    , ["src/core", "pollset_set"]
-    , ["src/core", "posix_event_engine_base_hdrs"]
-    , ["src/core", "posix_event_engine_endpoint"]
     , ["src/core", "promise_status"]
-    , ["src/core", "promise_trace"]
     , ["src/core", "race"]
-    , ["src/core", "random_early_detection"]
     , ["src/core", "ref_counted"]
-    , ["src/core", "resolved_address"]
-    , ["src/core", "resource_quota"]
-    , ["src/core", "resource_quota_trace"]
     , ["src/core", "seq"]
+    , ["src/core", "server_interface"]
+    , ["src/core", "single_set_ptr"]
     , ["src/core", "slice"]
     , ["src/core", "slice_buffer"]
     , ["src/core", "slice_cast"]
     , ["src/core", "slice_refcount"]
-    , ["src/core", "socket_mutator"]
     , ["src/core", "stats_data"]
     , ["src/core", "status_flag"]
     , ["src/core", "status_helper"]
-    , ["src/core", "strerror"]
-    , ["src/core", "thread_quota"]
     , ["src/core", "time"]
     , ["src/core", "transport_fwd"]
-    , ["src/core", "try_join"]
     , ["src/core", "try_seq"]
+    , ["src/core", "unique_type_name"]
     , ["src/core", "useful"]
-    , ["src/core", "windows_event_engine"]
-    , ["src/core", "windows_event_engine_listener"]
     ]
-  }
-, "legacy_context":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["legacy_context"]
-  , "hdrs": ["src/core/lib/channel/context.h"]
-  , "deps": ["gpr_platform", ["src/core", "context"]]
   }
 , "lb_load_data_store":
   { "type": ["@", "rules", "CC", "library"]
@@ -1009,7 +1389,14 @@
     [ "src/cpp/server/load_reporter/constants.h"
     , "src/cpp/server/load_reporter/load_data_store.h"
     ]
-  , "deps": ["gpr", "gpr_platform", "grpc++", ["src/core", "grpc_sockaddr"]]
+  , "deps":
+    [ "gpr"
+    , "gpr_platform"
+    , "grpc++"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["src/core", "grpc_sockaddr"]
+    ]
   }
 , "lb_server_load_reporting_service_server_builder_plugin":
   { "type": ["@", "rules", "CC", "library"]
@@ -1039,6 +1426,7 @@
     , "grpc++_public_hdrs"
     , "grpc_public_hdrs"
     , "lb_server_load_reporting_service_server_builder_plugin"
+    , ["@", "absl", "absl/log", "log"]
     , ["src/core", "lb_server_load_reporting_filter"]
     ]
   }
@@ -1052,6 +1440,8 @@
     [ "gpr"
     , "grpc++"
     , "lb_load_reporter"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "protobuf", "", "libprotobuf"]
     , ["src/proto/grpc/lb/v1", "load_reporter_proto"]
@@ -1067,7 +1457,7 @@
     , "src/cpp/server/load_reporter/get_cpu_stats_windows.cc"
     ]
   , "hdrs": ["src/cpp/server/load_reporter/get_cpu_stats.h"]
-  , "deps": ["gpr", "gpr_platform"]
+  , "deps": ["gpr", "gpr_platform", ["@", "absl", "absl/log", "log"]]
   }
 , "lb_load_reporter":
   { "type": ["@", "rules", "CC", "library"]
@@ -1081,6 +1471,8 @@
     [ "gpr"
     , "lb_get_cpu_stats"
     , "lb_load_data_store"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "opencensus-stats", "", ""]
     , ["@", "opencensus-tags", "", ""]
     , ["@", "protobuf", "", "libprotobuf"]
@@ -1091,49 +1483,53 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_security_base"]
   , "srcs":
-    [ "src/core/lib/security/context/security_context.cc"
+    [ "src/core/handshaker/security/secure_endpoint.cc"
+    , "src/core/handshaker/security/security_handshaker.cc"
+    , "src/core/lib/security/context/security_context.cc"
     , "src/core/lib/security/credentials/call_creds_util.cc"
     , "src/core/lib/security/credentials/composite/composite_credentials.cc"
     , "src/core/lib/security/credentials/credentials.cc"
     , "src/core/lib/security/credentials/plugin/plugin_credentials.cc"
     , "src/core/lib/security/security_connector/security_connector.cc"
     , "src/core/lib/security/transport/client_auth_filter.cc"
-    , "src/core/lib/security/transport/legacy_server_auth_filter.cc"
-    , "src/core/lib/security/transport/secure_endpoint.cc"
-    , "src/core/lib/security/transport/security_handshaker.cc"
     , "src/core/lib/security/transport/server_auth_filter.cc"
-    , "src/core/lib/security/transport/tsi_error.cc"
     ]
   , "hdrs":
-    [ "src/core/lib/security/context/security_context.h"
+    [ "src/core/handshaker/security/secure_endpoint.h"
+    , "src/core/handshaker/security/security_handshaker.h"
+    , "src/core/lib/security/context/security_context.h"
     , "src/core/lib/security/credentials/call_creds_util.h"
     , "src/core/lib/security/credentials/composite/composite_credentials.h"
     , "src/core/lib/security/credentials/credentials.h"
     , "src/core/lib/security/credentials/plugin/plugin_credentials.h"
     , "src/core/lib/security/security_connector/security_connector.h"
     , "src/core/lib/security/transport/auth_filters.h"
-    , "src/core/lib/security/transport/secure_endpoint.h"
-    , "src/core/lib/security/transport/security_handshaker.h"
-    , "src/core/lib/security/transport/tsi_error.h"
     , ["include/grpc", "grpc_public_headers"]
     ]
   , "deps":
     [ "channel_arg_names"
+    , "channelz"
     , "config"
     , "debug_location"
     , "exec_ctx"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_public_hdrs"
     , "grpc_trace"
     , "handshaker"
-    , "legacy_context"
+    , "iomgr"
+    , "orphanable"
     , "promise"
     , "ref_counted_ptr"
+    , "resource_quota_api"
     , "stats"
     , "tsi_base"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -1156,7 +1552,6 @@
     , ["src/core", "poll"]
     , ["src/core", "ref_counted"]
     , ["src/core", "resource_quota"]
-    , ["src/core", "resource_quota_trace"]
     , ["src/core", "seq"]
     , ["src/core", "slice"]
     , ["src/core", "slice_refcount"]
@@ -1181,6 +1576,11 @@
     ]
   , "deps": ["gpr", "grpc_public_hdrs", "grpc_trace"]
   }
+, "grpc_core_credentials_header":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["grpc_core_credentials_header"]
+  , "hdrs": [["include/grpc", "grpc_core_credentials_header"]]
+  }
 , "alts_util":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["alts_util"]
@@ -1202,7 +1602,9 @@
     ]
   , "deps":
     [ "gpr"
+    , "grpc_core_credentials_header"
     , "grpc_public_hdrs"
+    , ["@", "absl", "absl/log", "log"]
     , ["src/core/ext/upb-gen", "upb-gen-lib"]
     , ["third_party/upb", "base"]
     , ["third_party/upb", "mem"]
@@ -1233,7 +1635,6 @@
     , "src/cpp/client/secure_credentials.cc"
     , "src/cpp/common/auth_property_iterator.cc"
     , "src/cpp/common/secure_auth_context.cc"
-    , "src/cpp/common/secure_channel_arguments.cc"
     , "src/cpp/common/secure_create_auth_context.cc"
     , "src/cpp/common/tls_certificate_provider.cc"
     , "src/cpp/common/tls_certificate_verifier.cc"
@@ -1255,10 +1656,13 @@
     , "channel_stack_builder"
     , "config"
     , "exec_ctx"
+    , "generic_stub_internal"
+    , "global_callback_hook"
     , "gpr"
     , "grpc"
     , "grpc++_codegen_proto"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_credentials_util"
     , "grpc_public_hdrs"
     , "grpc_security_base"
@@ -1267,11 +1671,18 @@
     , "grpcpp_backend_metric_recorder"
     , "grpcpp_call_metric_recorder"
     , "grpcpp_status"
+    , "iomgr"
     , "iomgr_timer"
-    , "legacy_context"
     , "ref_counted_ptr"
+    , "resource_quota_api"
+    , "server"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "absl_check"]
+    , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
@@ -1295,6 +1706,7 @@
     , ["src/core", "grpc_backend_metric_provider"]
     , ["src/core", "grpc_crl_provider"]
     , ["src/core", "grpc_service_config"]
+    , ["src/core", "grpc_transport_chttp2_server"]
     , ["src/core", "grpc_transport_inproc"]
     , ["src/core", "json"]
     , ["src/core", "json_reader"]
@@ -1328,20 +1740,32 @@
     , "channel_stack_builder"
     , "config"
     , "exec_ctx"
+    , "generic_stub_internal"
+    , "global_callback_hook"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_health_upb"
     , "grpc_public_hdrs"
+    , "grpc_security_base"
     , "grpc_service_config_impl"
     , "grpc_trace"
+    , "grpc_transport_chttp2"
     , "grpc_unsecure"
     , "grpcpp_backend_metric_recorder"
     , "grpcpp_call_metric_recorder"
     , "grpcpp_status"
+    , "iomgr"
     , "iomgr_timer"
-    , "legacy_context"
     , "ref_counted_ptr"
+    , "resource_quota_api"
+    , "server"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "absl_check"]
+    , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
@@ -1361,6 +1785,7 @@
     , ["src/core", "grpc_backend_metric_provider"]
     , ["src/core", "grpc_insecure_credentials"]
     , ["src/core", "grpc_service_config"]
+    , ["src/core", "grpc_transport_chttp2_server"]
     , ["src/core", "grpc_transport_inproc"]
     , ["src/core", "ref_counted"]
     , ["src/core", "resource_quota"]
@@ -1409,7 +1834,8 @@
     , "include/grpcpp/ext/proto_server_reflection_plugin.h"
     ]
   , "deps":
-    [ "grpc++"
+    [ "config_vars"
+    , "grpc++"
     , "grpc++_config_proto"
     , ["@", "protobuf", "", "libprotobuf"]
     , ["src/proto/grpc/reflection/v1", "reflection_proto"]
@@ -1440,6 +1866,7 @@
     , "grpc_trace"
     , "grpcpp_call_metric_recorder"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "grpc_backend_metric_data"]
     , ["src/core", "grpc_backend_metric_provider"]
@@ -1459,6 +1886,7 @@
     , "grpcpp_backend_metric_recorder"
     , "ref_counted_ptr"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/time", "time"]
     , ["@", "absl", "absl/types", "optional"]
@@ -1531,7 +1959,7 @@
     , "include/grpcpp/test/mock_stream.h"
     , "include/grpcpp/test/server_context_test_spouse.h"
     ]
-  , "deps": ["grpc++", "grpc_base", ["@", "gtest", "", ""]]
+  , "deps": ["channel", "grpc++", "grpc_base", ["@", "gtest", "", ""]]
   }
 , "grpc_opencensus_plugin":
   { "type": ["@", "rules", "CC", "library"]
@@ -1556,15 +1984,16 @@
     , "src/cpp/ext/filters/census/server_call_tracer.h"
     ]
   , "deps":
-    [ "config"
+    [ "call_tracer"
+    , "config"
     , "gpr"
     , "grpc++_base"
     , "grpc_base"
     , "grpc_public_hdrs"
-    , "legacy_context"
     , "tcp_tracer"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/base", "endian"]
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -1585,6 +2014,7 @@
     , ["src/core", "channel_stack_type"]
     , ["src/core", "context"]
     , ["src/core", "error"]
+    , ["src/core", "experiments"]
     , ["src/core", "logging_filter"]
     , ["src/core", "metadata_batch"]
     , ["src/core", "slice"]
@@ -1608,7 +2038,25 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpcpp_otel_plugin"]
   , "hdrs": ["include/grpcpp/ext/otel_plugin.h"]
-  , "deps": [["src/cpp/ext/otel", "otel_plugin"]]
+  , "deps": ["grpc++", ["src/cpp/ext/otel", "otel_plugin"]]
+  }
+, "generic_stub_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["generic_stub_internal"]
+  , "hdrs": ["include/grpcpp/impl/generic_stub_internal.h"]
+  , "deps": ["grpc++_public_hdrs"]
+  }
+, "generic_stub_callback":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["generic_stub_callback"]
+  , "hdrs": ["include/grpcpp/generic/generic_stub_callback.h"]
+  , "deps": ["generic_stub_internal"]
+  }
+, "callback_generic_service":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["callback_generic_service"]
+  , "hdrs": ["include/grpcpp/generic/callback_generic_service.h"]
+  , "deps": ["grpc++_public_hdrs"]
   }
 , "work_serializer":
   { "type": ["@", "rules", "CC", "library"]
@@ -1625,20 +2073,30 @@
     , "stats"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["src/core", "experiments"]
+    , ["src/core", "latent_see"]
     , ["src/core", "stats_data"]
     ]
   }
 , "grpc_trace":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_trace"]
-  , "srcs": ["src/core/lib/debug/trace.cc"]
-  , "hdrs": ["src/core/lib/debug/trace.h"]
+  , "srcs":
+    ["src/core/lib/debug/trace.cc", "src/core/lib/debug/trace_flags.cc"]
+  , "hdrs":
+    [ "src/core/lib/debug/trace.h"
+    , "src/core/lib/debug/trace_flags.h"
+    , "src/core/lib/debug/trace_impl.h"
+    ]
   , "deps":
     [ "config_vars"
     , "gpr"
     , "grpc_public_hdrs"
     , ["@", "absl", "absl/strings", "strings"]
+    , ["src/core", "glob"]
+    , ["src/core", "no_destruct"]
     ]
   }
 , "load_config":
@@ -1650,10 +2108,10 @@
     [ "gpr_platform"
     , ["@", "absl", "absl/flags", "flag"]
     , ["@", "absl", "absl/flags", "marshalling"]
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
     , ["src/core", "env"]
-    , ["src/core", "gpr_log_internal"]
     ]
   }
 , "config_vars":
@@ -1681,6 +2139,7 @@
     [ "gpr"
     , "grpc_resolver"
     , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
     , ["src/core", "certificate_provider_registry"]
     , ["src/core", "channel_args_preconditioning"]
     , ["src/core", "channel_creds_registry"]
@@ -1695,7 +2154,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["debug_location"]
   , "hdrs": ["src/core/lib/gprpp/debug_location.h"]
-  , "deps": ["gpr_platform"]
+  , "deps": ["gpr_platform", ["@", "absl", "absl/strings", "strings"]]
   }
 , "orphanable":
   { "type": ["@", "rules", "CC", "library"]
@@ -1705,6 +2164,7 @@
     [ "debug_location"
     , "gpr_platform"
     , "ref_counted_ptr"
+    , ["src/core", "down_cast"]
     , ["src/core", "ref_counted"]
     ]
   }
@@ -1726,13 +2186,17 @@
   , "name": ["ref_counted_ptr"]
   , "hdrs": ["src/core/lib/gprpp/ref_counted_ptr.h"]
   , "deps":
-    ["debug_location", "gpr_platform", ["@", "absl", "absl/hash", "hash"]]
+    [ "debug_location"
+    , "gpr_platform"
+    , ["@", "absl", "absl/hash", "hash"]
+    , ["src/core", "down_cast"]
+    ]
   }
 , "handshaker":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["handshaker"]
-  , "srcs": ["src/core/lib/transport/handshaker.cc"]
-  , "hdrs": ["src/core/lib/transport/handshaker.h"]
+  , "srcs": ["src/core/handshaker/handshaker.cc"]
+  , "hdrs": ["src/core/handshaker/handshaker.h"]
   , "deps":
     [ "debug_location"
     , "event_engine_base_hdrs"
@@ -1741,10 +2205,16 @@
     , "grpc_base"
     , "grpc_public_hdrs"
     , "grpc_trace"
+    , "iomgr"
+    , "orphanable"
     , "ref_counted_ptr"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/container", "inlined_vector"]
+    , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["src/core", "channel_args"]
     , ["src/core", "closure"]
@@ -1759,8 +2229,8 @@
 , "http_connect_handshaker":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["http_connect_handshaker"]
-  , "srcs": ["src/core/lib/transport/http_connect_handshaker.cc"]
-  , "hdrs": ["src/core/lib/transport/http_connect_handshaker.h"]
+  , "srcs": ["src/core/handshaker/http_connect/http_connect_handshaker.cc"]
+  , "hdrs": ["src/core/handshaker/http_connect/http_connect_handshaker.h"]
   , "deps":
     [ "config"
     , "debug_location"
@@ -1769,8 +2239,10 @@
     , "grpc_base"
     , "handshaker"
     , "httpcli"
+    , "iomgr"
     , "ref_counted_ptr"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
@@ -1804,12 +2276,15 @@
     , "gpr"
     , "grpc_public_hdrs"
     , "grpc_trace"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["src/core", "closure"]
     , ["src/core", "error"]
     , ["src/core", "experiments"]
     , ["src/core", "gpr_atm"]
     , ["src/core", "gpr_spinlock"]
+    , ["src/core", "latent_see"]
     , ["src/core", "time"]
     , ["src/core", "useful"]
     ]
@@ -1822,6 +2297,8 @@
   , "deps":
     [ "gpr"
     , "uri_parser"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -1853,6 +2330,8 @@
     , "gpr"
     , "gpr_platform"
     , "grpc_trace"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "closure"]
@@ -1869,7 +2348,12 @@
   , "name": ["iomgr_internal_errqueue"]
   , "srcs": ["src/core/lib/iomgr/internal_errqueue.cc"]
   , "hdrs": ["src/core/lib/iomgr/internal_errqueue.h"]
-  , "deps": ["gpr", ["src/core", "iomgr_port"], ["src/core", "strerror"]]
+  , "deps":
+    [ "gpr"
+    , ["@", "absl", "absl/log", "log"]
+    , ["src/core", "iomgr_port"]
+    , ["src/core", "strerror"]
+    ]
   }
 , "iomgr_buffer_list":
   { "type": ["@", "rules", "CC", "library"]
@@ -1879,6 +2363,7 @@
   , "deps":
     [ "gpr"
     , "iomgr_internal_errqueue"
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
@@ -1893,6 +2378,7 @@
   , "hdrs": ["src/core/lib/uri/uri_parser.h"]
   , "deps":
     [ "gpr"
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -1914,6 +2400,8 @@
   , "deps":
     [ "gpr"
     , "uri_parser"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -1938,8 +2426,8 @@
 , "stats":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["stats"]
-  , "srcs": ["src/core/lib/debug/stats.cc"]
-  , "hdrs": ["src/core/lib/debug/stats.h"]
+  , "srcs": ["src/core/telemetry/stats.cc"]
+  , "hdrs": ["src/core/telemetry/stats.h"]
   , "deps":
     [ "gpr"
     , ["@", "absl", "absl/strings", "strings"]
@@ -1973,6 +2461,7 @@
     [ "config"
     , "gpr"
     , "ref_counted_ptr"
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -2000,6 +2489,7 @@
     , "gpr_platform"
     , "sockaddr_utils"
     , ["@", "absl", "absl/functional", "function_ref"]
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2033,6 +2523,8 @@
     , "ref_counted_ptr"
     , "server_address"
     , "uri_parser"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2042,65 +2534,109 @@
     , ["src/core", "iomgr_fwd"]
     ]
   }
+, "oob_backend_metric":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["oob_backend_metric"]
+  , "srcs": ["src/core/load_balancing/oob_backend_metric.cc"]
+  , "hdrs":
+    [ "src/core/load_balancing/oob_backend_metric.h"
+    , "src/core/load_balancing/oob_backend_metric_internal.h"
+    ]
+  , "deps":
+    [ "channelz"
+    , "debug_location"
+    , "exec_ctx"
+    , "gpr"
+    , "grpc_client_channel"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , "orphanable"
+    , "ref_counted_ptr"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["src/core", "backend_metric_parser"]
+    , ["src/core", "closure"]
+    , ["src/core", "error"]
+    , ["src/core", "grpc_backend_metric_data"]
+    , ["src/core", "iomgr_fwd"]
+    , ["src/core", "pollset_set"]
+    , ["src/core", "slice"]
+    , ["src/core", "subchannel_interface"]
+    , ["src/core", "time"]
+    , ["src/core", "unique_type_name"]
+    , ["third_party/upb", "base"]
+    , ["third_party/upb", "mem"]
+    ]
+  }
+, "lb_child_policy_handler":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["lb_child_policy_handler"]
+  , "srcs": ["src/core/load_balancing/child_policy_handler.cc"]
+  , "hdrs": ["src/core/load_balancing/child_policy_handler.h"]
+  , "deps":
+    [ "config"
+    , "debug_location"
+    , "gpr_public_hdrs"
+    , "grpc_public_hdrs"
+    , "grpc_trace"
+    , "orphanable"
+    , "ref_counted_ptr"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/strings", "strings"]
+    , ["src/core", "channel_args"]
+    , ["src/core", "connectivity_state"]
+    , ["src/core", "delegating_helper"]
+    , ["src/core", "lb_policy"]
+    , ["src/core", "lb_policy_registry"]
+    , ["src/core", "pollset_set"]
+    , ["src/core", "resolved_address"]
+    , ["src/core", "subchannel_interface"]
+    ]
+  }
 , "grpc_client_channel":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["grpc_client_channel"]
   , "srcs":
-    [ "src/core/client_channel/backend_metric.cc"
-    , "src/core/client_channel/backup_poller.cc"
-    , "src/core/client_channel/channel_connectivity.cc"
-    , "src/core/client_channel/client_channel_channelz.cc"
+    [ "src/core/client_channel/client_channel.cc"
     , "src/core/client_channel/client_channel_factory.cc"
     , "src/core/client_channel/client_channel_filter.cc"
     , "src/core/client_channel/client_channel_plugin.cc"
-    , "src/core/client_channel/client_channel_service_config.cc"
-    , "src/core/client_channel/config_selector.cc"
     , "src/core/client_channel/dynamic_filters.cc"
     , "src/core/client_channel/global_subchannel_pool.cc"
-    , "src/core/client_channel/http_proxy_mapper.cc"
+    , "src/core/client_channel/load_balanced_call_destination.cc"
     , "src/core/client_channel/local_subchannel_pool.cc"
     , "src/core/client_channel/retry_filter.cc"
     , "src/core/client_channel/retry_filter_legacy_call_data.cc"
-    , "src/core/client_channel/retry_service_config.cc"
-    , "src/core/client_channel/retry_throttle.cc"
-    , "src/core/client_channel/service_config_channel_arg_filter.cc"
     , "src/core/client_channel/subchannel.cc"
-    , "src/core/client_channel/subchannel_pool_interface.cc"
     , "src/core/client_channel/subchannel_stream_client.cc"
-    , "src/core/load_balancing/child_policy_handler.cc"
-    , "src/core/load_balancing/oob_backend_metric.cc"
     ]
   , "hdrs":
-    [ "src/core/client_channel/backend_metric.h"
-    , "src/core/client_channel/backup_poller.h"
-    , "src/core/client_channel/client_channel_channelz.h"
+    [ "src/core/client_channel/client_channel.h"
     , "src/core/client_channel/client_channel_factory.h"
     , "src/core/client_channel/client_channel_filter.h"
-    , "src/core/client_channel/client_channel_internal.h"
-    , "src/core/client_channel/client_channel_service_config.h"
-    , "src/core/client_channel/config_selector.h"
-    , "src/core/client_channel/connector.h"
     , "src/core/client_channel/dynamic_filters.h"
     , "src/core/client_channel/global_subchannel_pool.h"
-    , "src/core/client_channel/http_proxy_mapper.h"
+    , "src/core/client_channel/load_balanced_call_destination.h"
     , "src/core/client_channel/local_subchannel_pool.h"
     , "src/core/client_channel/retry_filter.h"
     , "src/core/client_channel/retry_filter_legacy_call_data.h"
-    , "src/core/client_channel/retry_service_config.h"
-    , "src/core/client_channel/retry_throttle.h"
     , "src/core/client_channel/subchannel.h"
     , "src/core/client_channel/subchannel_interface_internal.h"
-    , "src/core/client_channel/subchannel_pool_interface.h"
     , "src/core/client_channel/subchannel_stream_client.h"
-    , "src/core/load_balancing/child_policy_handler.h"
-    , "src/core/load_balancing/oob_backend_metric.h"
-    , "src/core/load_balancing/oob_backend_metric_internal.h"
     ]
   , "deps":
     [ "backoff"
+    , "call_combiner"
+    , "call_tracer"
+    , "channel"
     , "channel_arg_names"
+    , "channelz"
     , "config"
-    , "config_vars"
     , "debug_location"
     , "endpoint_addresses"
     , "exec_ctx"
@@ -2111,11 +2647,9 @@
     , "grpc_security_base"
     , "grpc_service_config_impl"
     , "grpc_trace"
-    , "http_connect_handshaker"
-    , "iomgr_timer"
-    , "legacy_context"
+    , "iomgr"
+    , "lb_child_policy_handler"
     , "orphanable"
-    , "parse_address"
     , "promise"
     , "ref_counted_ptr"
     , "sockaddr_utils"
@@ -2127,6 +2661,8 @@
     , ["@", "absl", "absl/container", "flat_hash_set"]
     , ["@", "absl", "absl/container", "inlined_vector"]
     , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "cord"]
@@ -2134,67 +2670,76 @@
     , ["@", "absl", "absl/types", "optional"]
     , ["@", "absl", "absl/types", "variant"]
     , ["@", "protobuf", "", "libprotobuf"]
-    , ["src/core", "activity"]
     , ["src/core", "arena"]
     , ["src/core", "arena_promise"]
+    , ["src/core", "backend_metric_parser"]
+    , ["src/core", "call_destination"]
+    , ["src/core", "call_filters"]
+    , ["src/core", "call_spine"]
     , ["src/core", "cancel_callback"]
     , ["src/core", "channel_args"]
+    , ["src/core", "channel_args_endpoint_config"]
     , ["src/core", "channel_fwd"]
     , ["src/core", "channel_init"]
     , ["src/core", "channel_stack_type"]
+    , ["src/core", "client_channel_backup_poller"]
+    , ["src/core", "client_channel_internal_header"]
+    , ["src/core", "client_channel_service_config"]
     , ["src/core", "closure"]
+    , ["src/core", "config_selector"]
     , ["src/core", "connectivity_state"]
     , ["src/core", "construct_destruct"]
     , ["src/core", "context"]
-    , ["src/core", "delegating_helper"]
     , ["src/core", "dual_ref_counted"]
-    , ["src/core", "env"]
     , ["src/core", "error"]
     , ["src/core", "error_utils"]
+    , ["src/core", "exec_ctx_wakeup_scheduler"]
     , ["src/core", "experiments"]
-    , ["src/core", "gpr_atm"]
     , ["src/core", "gpr_manual_constructor"]
     , ["src/core", "grpc_backend_metric_data"]
-    , ["src/core", "grpc_deadline_filter"]
-    , ["src/core", "grpc_message_size_filter"]
+    , ["src/core", "grpc_channel_idle_filter"]
     , ["src/core", "grpc_service_config"]
+    , ["src/core", "idle_filter_state"]
     , ["src/core", "init_internally"]
+    , ["src/core", "interception_chain"]
     , ["src/core", "iomgr_fwd"]
     , ["src/core", "json"]
-    , ["src/core", "json_args"]
-    , ["src/core", "json_channel_args"]
-    , ["src/core", "json_object_loader"]
     , ["src/core", "latch"]
+    , ["src/core", "lb_metadata"]
     , ["src/core", "lb_policy"]
     , ["src/core", "lb_policy_registry"]
+    , ["src/core", "loop"]
     , ["src/core", "map"]
     , ["src/core", "memory_quota"]
+    , ["src/core", "metadata"]
     , ["src/core", "metadata_batch"]
+    , ["src/core", "metrics"]
+    , ["src/core", "observable"]
     , ["src/core", "pipe"]
     , ["src/core", "poll"]
     , ["src/core", "pollset_set"]
-    , ["src/core", "proxy_mapper"]
     , ["src/core", "proxy_mapper_registry"]
     , ["src/core", "ref_counted"]
     , ["src/core", "resolved_address"]
     , ["src/core", "resource_quota"]
+    , ["src/core", "retry_service_config"]
+    , ["src/core", "retry_throttle"]
     , ["src/core", "seq"]
-    , ["src/core", "service_config_parser"]
+    , ["src/core", "single_set_ptr"]
+    , ["src/core", "sleep"]
     , ["src/core", "slice"]
     , ["src/core", "slice_buffer"]
     , ["src/core", "slice_refcount"]
     , ["src/core", "stats_data"]
     , ["src/core", "status_helper"]
+    , ["src/core", "subchannel_connector"]
     , ["src/core", "subchannel_interface"]
+    , ["src/core", "subchannel_pool_interface"]
     , ["src/core", "time"]
     , ["src/core", "try_seq"]
     , ["src/core", "unique_type_name"]
     , ["src/core", "useful"]
-    , ["src/core", "validation_errors"]
     , ["src/core/ext/upb-gen", "upb-gen-lib"]
-    , ["third_party/upb", "base"]
-    , ["third_party/upb", "mem"]
-    , ["third_party/upb", "message"]
     ]
   }
 , "grpc_resolver_dns_ares":
@@ -2227,6 +2772,7 @@
     , "grpc_resolver"
     , "grpc_service_config_impl"
     , "grpc_trace"
+    , "iomgr"
     , "iomgr_timer"
     , "orphanable"
     , "parse_address"
@@ -2235,6 +2781,8 @@
     , "uri_parser"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/functional", "any_invocable"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2263,14 +2811,14 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["httpcli"]
   , "srcs":
-    [ "src/core/lib/http/format_request.cc"
-    , "src/core/lib/http/httpcli.cc"
-    , "src/core/lib/http/parser.cc"
+    [ "src/core/util/http_client/format_request.cc"
+    , "src/core/util/http_client/httpcli.cc"
+    , "src/core/util/http_client/parser.cc"
     ]
   , "hdrs":
-    [ "src/core/lib/http/format_request.h"
-    , "src/core/lib/http/httpcli.h"
-    , "src/core/lib/http/parser.h"
+    [ "src/core/util/http_client/format_request.h"
+    , "src/core/util/http_client/httpcli.h"
+    , "src/core/util/http_client/parser.h"
     ]
   , "deps":
     [ "config"
@@ -2282,12 +2830,16 @@
     , "grpc_security_base"
     , "grpc_trace"
     , "handshaker"
+    , "iomgr"
     , "orphanable"
     , "ref_counted_ptr"
+    , "resource_quota_api"
     , "sockaddr_utils"
     , "uri_parser"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/functional", "bind_front"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2328,13 +2880,17 @@
     , "exec_ctx"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_public_hdrs"
     , "grpc_security_base"
     , "handshaker"
+    , "iomgr"
     , "promise"
     , "ref_counted_ptr"
     , "tsi_alts_credentials"
     , "tsi_base"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "optional"]
@@ -2354,7 +2910,15 @@
   , "name": ["tsi_fake_credentials"]
   , "srcs": ["src/core/tsi/fake_transport_security.cc"]
   , "hdrs": ["src/core/tsi/fake_transport_security.h"]
-  , "deps": ["gpr", "tsi_base", ["src/core", "slice"], ["src/core", "useful"]]
+  , "deps":
+    [ "gpr"
+    , "tsi_base"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
+    , ["src/core", "dump_args"]
+    , ["src/core", "slice"]
+    , ["src/core", "useful"]
+    ]
   }
 , "grpc_jwt_credentials":
   { "type": ["@", "rules", "CC", "library"]
@@ -2373,14 +2937,18 @@
     [ "exec_ctx"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_credentials_util"
     , "grpc_security_base"
     , "grpc_trace"
     , "httpcli"
+    , "iomgr"
     , "orphanable"
     , "promise"
     , "ref_counted_ptr"
     , "uri_parser"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2414,6 +2982,7 @@
     [ "src/core/lib/security/credentials/tls/tls_utils.cc"
     , "src/core/lib/security/security_connector/load_system_roots_fallback.cc"
     , "src/core/lib/security/security_connector/load_system_roots_supported.cc"
+    , "src/core/lib/security/security_connector/load_system_roots_windows.cc"
     , "src/core/lib/security/util/json_util.cc"
     ]
   , "hdrs":
@@ -2427,6 +2996,8 @@
     , "gpr"
     , "grpc_base"
     , "grpc_security_base"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "error"]
     , ["src/core", "json"]
@@ -2452,11 +3023,17 @@
     ]
   , "deps":
     [ "alts_util"
+    , "channel"
+    , "channel_create"
+    , "exec_ctx"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_security_base"
     , "tsi_alts_frame_protector"
     , "tsi_base"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "channel_args"]
     , ["src/core", "closure"]
@@ -2507,6 +3084,8 @@
     , "gpr"
     , "gpr_platform"
     , "tsi_base"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/types", "span"]
     , ["@", "ssl", "", "crypto"]
     , ["@", "ssl", "", "ssl"]
@@ -2531,6 +3110,8 @@
     [ "cpp_impl_of"
     , "gpr"
     , "grpc_public_hdrs"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "ssl", "", "ssl"]
     , ["src/core", "ref_counted"]
@@ -2557,6 +3138,7 @@
     , "config_vars"
     , "gpr"
     , "grpc_base"
+    , "grpc_core_credentials_header"
     , "grpc_credentials_util"
     , "grpc_public_hdrs"
     , "grpc_security_base"
@@ -2564,7 +3146,10 @@
     , "tsi_base"
     , "tsi_ssl_session_cache"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
+    , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "ssl", "", "crypto"]
     , ["@", "ssl", "", "ssl"]
@@ -2586,25 +3171,25 @@
     [ "src/core/ext/filters/http/client/http_client_filter.cc"
     , "src/core/ext/filters/http/http_filters_plugin.cc"
     , "src/core/ext/filters/http/message_compress/compression_filter.cc"
-    , "src/core/ext/filters/http/message_compress/legacy_compression_filter.cc"
     , "src/core/ext/filters/http/server/http_server_filter.cc"
     ]
   , "hdrs":
     [ "src/core/ext/filters/http/client/http_client_filter.h"
     , "src/core/ext/filters/http/message_compress/compression_filter.h"
-    , "src/core/ext/filters/http/message_compress/legacy_compression_filter.h"
     , "src/core/ext/filters/http/server/http_server_filter.h"
     ]
   , "deps":
-    [ "channel_arg_names"
+    [ "call_tracer"
+    , "channel_arg_names"
     , "config"
     , "gpr"
     , "grpc_base"
     , "grpc_public_hdrs"
     , "grpc_trace"
-    , "legacy_context"
     , "promise"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "str_format"]
@@ -2616,7 +3201,7 @@
     , ["src/core", "channel_args"]
     , ["src/core", "channel_fwd"]
     , ["src/core", "channel_stack_type"]
-    , ["src/core", "compression_internal"]
+    , ["src/core", "compression"]
     , ["src/core", "context"]
     , ["src/core", "experiments"]
     , ["src/core", "grpc_message_size_filter"]
@@ -2650,23 +3235,25 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["xds_client"]
   , "srcs":
-    [ "src/core/ext/xds/xds_api.cc"
-    , "src/core/ext/xds/xds_bootstrap.cc"
-    , "src/core/ext/xds/xds_client.cc"
-    , "src/core/ext/xds/xds_client_stats.cc"
+    [ "src/core/xds/xds_client/xds_api.cc"
+    , "src/core/xds/xds_client/xds_bootstrap.cc"
+    , "src/core/xds/xds_client/xds_client.cc"
+    , "src/core/xds/xds_client/xds_client_stats.cc"
     ]
   , "hdrs":
-    [ "src/core/ext/xds/xds_api.h"
-    , "src/core/ext/xds/xds_bootstrap.h"
-    , "src/core/ext/xds/xds_channel_args.h"
-    , "src/core/ext/xds/xds_client.h"
-    , "src/core/ext/xds/xds_client_stats.h"
-    , "src/core/ext/xds/xds_resource_type.h"
-    , "src/core/ext/xds/xds_resource_type_impl.h"
-    , "src/core/ext/xds/xds_transport.h"
+    [ "src/core/xds/xds_client/xds_api.h"
+    , "src/core/xds/xds_client/xds_bootstrap.h"
+    , "src/core/xds/xds_client/xds_channel_args.h"
+    , "src/core/xds/xds_client/xds_client.h"
+    , "src/core/xds/xds_client/xds_client_stats.h"
+    , "src/core/xds/xds_client/xds_metrics.h"
+    , "src/core/xds/xds_client/xds_resource_type.h"
+    , "src/core/xds/xds_client/xds_resource_type_impl.h"
+    , "src/core/xds/xds_client/xds_transport.h"
     ]
   , "deps":
     [ "backoff"
+    , "call_tracer"
     , "debug_location"
     , "endpoint_addresses"
     , "event_engine_base_hdrs"
@@ -2679,6 +3266,8 @@
     , "work_serializer"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/cleanup", "cleanup"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/memory", "memory"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
@@ -2741,6 +3330,7 @@
     , "uri_parser"
     , "work_serializer"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "channel_args"]
     , ["src/core", "notification"]
@@ -2755,6 +3345,7 @@
   , "hdrs": ["src/core/ext/transport/chttp2/transport/frame.h"]
   , "deps":
     [ "gpr"
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/status", "statusor"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -2770,13 +3361,6 @@
   , "hdrs": ["src/core/ext/transport/chttp2/transport/legacy_frame.h"]
   , "deps": ["gpr"]
   }
-, "http_trace":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["http_trace"]
-  , "srcs": ["src/core/ext/transport/chttp2/transport/http_trace.cc"]
-  , "hdrs": ["src/core/ext/transport/chttp2/transport/http_trace.h"]
-  , "deps": ["gpr_platform", "grpc_trace"]
-  }
 , "hpack_parser_table":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["hpack_parser_table"]
@@ -2787,8 +3371,10 @@
     , "gpr_platform"
     , "grpc_trace"
     , "hpack_parse_result"
-    , "http_trace"
+    , "stats"
     , ["@", "absl", "absl/functional", "function_ref"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "hpack_constants"]
@@ -2796,6 +3382,7 @@
     , ["src/core", "no_destruct"]
     , ["src/core", "parsed_metadata"]
     , ["src/core", "slice"]
+    , ["src/core", "unique_ptr_with_bitset"]
     ]
   }
 , "hpack_parse_result":
@@ -2807,6 +3394,7 @@
     [ "gpr"
     , "grpc_base"
     , "ref_counted_ptr"
+    , ["@", "absl", "absl/log", "check"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "str_format"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -2824,7 +3412,8 @@
   , "srcs": ["src/core/ext/transport/chttp2/transport/hpack_parser.cc"]
   , "hdrs": ["src/core/ext/transport/chttp2/transport/hpack_parser.h"]
   , "deps":
-    [ "chttp2_legacy_frame"
+    [ "call_tracer"
+    , "chttp2_legacy_frame"
     , "gpr"
     , "gpr_platform"
     , "grpc_base"
@@ -2834,6 +3423,8 @@
     , "hpack_parser_table"
     , "stats"
     , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/random", "bit_gen_ref"]
     , ["@", "absl", "absl/status", "status"]
     , ["@", "absl", "absl/strings", "strings"]
@@ -2845,6 +3436,7 @@
     , ["src/core", "hpack_constants"]
     , ["src/core", "match"]
     , ["src/core", "metadata_batch"]
+    , ["src/core", "metadata_info"]
     , ["src/core", "parsed_metadata"]
     , ["src/core", "random_early_detection"]
     , ["src/core", "slice"]
@@ -2858,7 +3450,8 @@
   , "srcs": ["src/core/ext/transport/chttp2/transport/hpack_encoder.cc"]
   , "hdrs": ["src/core/ext/transport/chttp2/transport/hpack_encoder.h"]
   , "deps":
-    [ "chttp2_bin_encoder"
+    [ "call_tracer"
+    , "chttp2_bin_encoder"
     , "chttp2_legacy_frame"
     , "chttp2_varint"
     , "gpr"
@@ -2866,7 +3459,8 @@
     , "grpc_base"
     , "grpc_public_hdrs"
     , "grpc_trace"
-    , "http_trace"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["src/core", "hpack_constants"]
     , ["src/core", "hpack_encoder_table"]
@@ -2884,14 +3478,23 @@
   , "srcs": ["src/core/ext/transport/chttp2/transport/bin_encoder.cc"]
   , "hdrs": ["src/core/ext/transport/chttp2/transport/bin_encoder.h"]
   , "deps":
-    ["gpr", "gpr_platform", ["src/core", "huffsyms"], ["src/core", "slice"]]
+    [ "gpr"
+    , "gpr_platform"
+    , ["@", "absl", "absl/log", "check"]
+    , ["src/core", "huffsyms"]
+    , ["src/core", "slice"]
+    ]
   }
 , "chttp2_varint":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["chttp2_varint"]
   , "srcs": ["src/core/ext/transport/chttp2/transport/varint.cc"]
   , "hdrs": ["src/core/ext/transport/chttp2/transport/varint.h"]
-  , "deps": ["gpr", ["@", "absl", "absl/base", "core_headers"]]
+  , "deps":
+    [ "gpr"
+    , ["@", "absl", "absl/base", "core_headers"]
+    , ["@", "absl", "absl/log", "check"]
+    ]
   }
 , "chttp2_context_list_entry":
   { "type": ["@", "rules", "CC", "library"]
@@ -2902,7 +3505,7 @@
 , "tcp_tracer":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["tcp_tracer"]
-  , "hdrs": ["src/core/lib/channel/tcp_tracer.h"]
+  , "hdrs": ["src/core/telemetry/tcp_tracer.h"]
   , "deps":
     [ "gpr"
     , ["@", "absl", "absl/time", "time"]
@@ -2937,10 +3540,13 @@
     , "src/core/ext/transport/chttp2/transport/internal.h"
     ]
   , "deps":
-    [ "channel_arg_names"
+    [ "call_tracer"
+    , "channel_arg_names"
+    , "channelz"
     , "chttp2_context_list_entry"
     , "chttp2_legacy_frame"
     , "chttp2_varint"
+    , "config_vars"
     , "debug_location"
     , "exec_ctx"
     , "gpr"
@@ -2950,16 +3556,17 @@
     , "hpack_encoder"
     , "hpack_parser"
     , "hpack_parser_table"
-    , "http_trace"
     , "httpcli"
+    , "iomgr"
     , "iomgr_buffer_list"
-    , "legacy_context"
     , "ref_counted_ptr"
     , "stats"
     , "tcp_tracer"
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/container", "flat_hash_map"]
     , ["@", "absl", "absl/hash", "hash"]
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/meta", "type_traits"]
     , ["@", "absl", "absl/random", "bit_gen_ref"]
     , ["@", "absl", "absl/random", "distributions"]
@@ -2979,6 +3586,8 @@
     , ["src/core", "connectivity_state"]
     , ["src/core", "error"]
     , ["src/core", "error_utils"]
+    , ["src/core", "event_engine_extensions"]
+    , ["src/core", "event_engine_query_extensions"]
     , ["src/core", "experiments"]
     , ["src/core", "gpr_manual_constructor"]
     , ["src/core", "http2_errors"]
@@ -2987,9 +3596,9 @@
     , ["src/core", "iomgr_fwd"]
     , ["src/core", "iomgr_port"]
     , ["src/core", "match"]
-    , ["src/core", "max_concurrent_streams_policy"]
     , ["src/core", "memory_quota"]
     , ["src/core", "metadata_batch"]
+    , ["src/core", "metadata_info"]
     , ["src/core", "ping_abuse_policy"]
     , ["src/core", "ping_callbacks"]
     , ["src/core", "ping_rate_policy"]
@@ -2997,7 +3606,6 @@
     , ["src/core", "random_early_detection"]
     , ["src/core", "ref_counted"]
     , ["src/core", "resource_quota"]
-    , ["src/core", "resource_quota_trace"]
     , ["src/core", "slice"]
     , ["src/core", "slice_buffer"]
     , ["src/core", "slice_refcount"]
@@ -3029,7 +3637,7 @@
   , "hdrs": ["src/cpp/ext/chaotic_good.h"]
   , "deps":
     [ "gpr"
-    , "grpc++_public_hdrs"
+    , "grpc++_base"
     , "grpc_public_hdrs"
     , ["src/core", "chaotic_good_connector"]
     , ["src/core", "chaotic_good_server"]
@@ -3039,16 +3647,29 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["subprocess"]
   , "srcs":
-    [ "src/core/lib/gpr/subprocess_poxis.cc"
-    , "src/core/lib/gpr/subprocess_windows.cc"
+    [ "src/core/util/subprocess_poxis.cc"
+    , "src/core/util/subprocess_windows.cc"
     ]
-  , "hdrs": ["src/core/lib/gpr/subprocess.h"]
+  , "hdrs": ["src/core/util/subprocess.h"]
   , "deps":
     [ "gpr"
+    , ["@", "absl", "absl/log", "check"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/strings", "strings"]
     , ["@", "absl", "absl/types", "span"]
     , ["src/core", "strerror"]
     , ["src/core", "tchar"]
+    ]
+  }
+, "global_callback_hook":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["global_callback_hook"]
+  , "srcs": ["src/cpp/client/global_callback_hook.cc"]
+  , "hdrs": [["include/grpcpp", "global_callback_hook_headers"]]
+  , "deps":
+    [ ["@", "absl", "absl/base", "no_destructor"]
+    , ["@", "absl", "absl/functional", "function_ref"]
+    , ["@", "absl", "absl/log", "check"]
     ]
   }
 , "grpc_cpp_plugin":

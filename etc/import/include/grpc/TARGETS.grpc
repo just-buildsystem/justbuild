@@ -10,6 +10,7 @@
     , "support/json.h"
     , "support/log.h"
     , "support/log_windows.h"
+    , "support/metrics.h"
     , "support/port_platform.h"
     , "support/string_util.h"
     , "support/sync.h"
@@ -51,6 +52,7 @@
     , "grpc_posix.h"
     , "grpc_security.h"
     , "grpc_security_constants.h"
+    , "passive_listener.h"
     , "slice.h"
     , "slice_buffer.h"
     , "status.h"
@@ -139,6 +141,11 @@
 , "channel_arg_names_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs": ["impl/channel_arg_names.h"]
+  , "stage": ["grpc"]
+  }
+, "grpc_core_credentials_header":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["credentials.h"]
   , "stage": ["grpc"]
   }
 }

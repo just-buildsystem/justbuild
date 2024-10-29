@@ -24,6 +24,34 @@
   , "name": ["utf8_validity"]
   , "hdrs": ["utf8_validity.h"]
   , "srcs": ["utf8_validity.cc"]
-  , "deps": [["@", "absl", "absl/strings", "strings"]]
+  , "deps": ["utf8_range", ["@", "absl", "absl/strings", "strings"]]
+  }
+, "utf8_range":
+  { "type": "export"
+  , "target": "utf8_range_internal"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    , "DEBUG"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    , "CC"
+    , "CFLAGS"
+    , "ADD_CFLAGS"
+    , "PKG_CONFIG_ARGS"
+    ]
+  }
+, "utf8_range_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utf8_range"]
+  , "hdrs": ["utf8_range.h"]
+  , "srcs": ["utf8_range.c"]
+  , "pure C": ["YES"]
   }
 }
