@@ -78,6 +78,11 @@ local build root on upgrade.
   file the user might have in their home directory
 - Various improvements of the documentation.
 
+## Release `1.4.0~beta1` (2024-10-30)
+
+First beta release for the upcoming `1.4.0` release; see release
+notes there.
+
 ## Release `1.3.0` (2024-05-08)
 
 A feature release on top of `1.2.0`, backwards compatible.
