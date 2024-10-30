@@ -8,6 +8,9 @@ local build root on upgrade.
 
 ### New features
 
+- `just serve` now also works together with a compatible remote-execution
+  endpoint. This uses an extended version of the serve protocol, so
+  both, `just-mr` and `just serve` need to be at the new version.
 - User-defined rules, as well as the built-in rule `"generic"` can
   now specify a subdirectory in which an action is to be executed.
 - `just-mr` now supports garbage collection for repository roots
