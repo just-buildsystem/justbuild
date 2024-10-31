@@ -67,6 +67,8 @@
       , "  - at key \"direct deps artifact names\" a list of all input"
       , "    artifacts that come from the target itself or are runfiles of a"
       , "    direct dependency."
+      , "- TMPDIR pointing to a directory location that can be used to"
+      , "  create additional temporary files."
       , "It is supposed to indicate by the exit code whether the file to lint"
       , "complies with the given linting policy, with 0 meaning"
       , "compliant."

@@ -24,6 +24,8 @@ export OUT="$(pwd)/out"
 mkdir -p config
 export CONFIG="$(pwd)/config"
 export META="$(pwd)/meta.json"
+mkdir scratch
+export TMPDIR=$(realpath scratch)
 
 cd work
 
