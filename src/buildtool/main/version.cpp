@@ -20,15 +20,15 @@
 #include "src/utils/cpp/json.hpp"
 
 auto version() -> std::string {
-    std::size_t major = 1;
-    std::size_t minor = 4;
-    std::size_t revision = 0;
-    std::string suffix = std::string{};
+    static const std::size_t kMajor = 1;
+    static const std::size_t kMinor = 5;
+    static const std::size_t kRevision = 0;
+    std::string suffix = "~alpha";
 #ifdef VERSION_EXTRA_SUFFIX
     suffix += VERSION_EXTRA_SUFFIX;
 #endif
 
-    nlohmann::json version_info = {{"version", {major, minor, revision}},
+    nlohmann::json version_info = {{"version", {kMajor, kMinor, kRevision}},
                                    {"suffix", suffix}};
 
 #ifdef SOURCE_DATE_EPOCH
