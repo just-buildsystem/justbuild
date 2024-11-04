@@ -1,4 +1,4 @@
-## Release `1.4.0` (UNRELEASED)
+## Release `1.4.0` (2024-11-04)
 
 A feature release on top of `1.3.0`, backwards compatible with
 respect to rule language, build description, repository description,
