@@ -22,7 +22,7 @@ import sys
 import tempfile
 import time
 import zlib
-from typing import Any, Dict, List, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, NoReturn, Optional, Set, Tuple, Union, cast
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -140,7 +140,7 @@ def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
-def fail(s: str, exit_code: int = 65) -> None:
+def fail(s: str, exit_code: int = 65) -> NoReturn:
     log(f"Error: {s}")
     sys.exit(exit_code)
 
@@ -701,7 +701,7 @@ def distdir_tree_id_file(content: str) -> str:
                         content)
 
 
-def distdir_checkout(desc: Json, repos: Json):
+def distdir_checkout(desc: Json, repos: Json) -> List[str]:
     """ Logic for processing the distdir repo type.
     """
     content: Dict[str, str] = {}
@@ -783,7 +783,7 @@ def distdir_checkout(desc: Json, repos: Json):
     ]
 
 
-def checkout(desc: Json, *, name: str, repos: Json) -> Optional[List[str]]:
+def checkout(desc: Json, *, name: str, repos: Json) -> List[str]:
     repo_desc = resolve_repo(desc, repos=repos)
     repo_type = repo_desc.get("type")
     if repo_type == "git":
@@ -965,8 +965,7 @@ def fetch(*,
             return os.path.commonpath([path, base]) == base
 
         # warn if fetch_dir is in invocation workspace
-        if g_WORKSPACE_ROOT and is_subpath(cast(str, fetch_dir),
-                                           g_WORKSPACE_ROOT):
+        if g_WORKSPACE_ROOT and is_subpath(fetch_dir, g_WORKSPACE_ROOT):
             repo = repos.get(main, {}).get("repository", {})
             repo_path = repo.get("path", None)
             if repo_path is not None and repo.get("type", None) == "file":
@@ -993,7 +992,7 @@ Warning: Writing distribution files to workspace location '{fetch_dir}',
             print("%r --> %r (content: %s)" % (repo, distfile, content))
             archive_fetch(repo_desc, content)
             shutil.copyfile(cas_path(content),
-                            os.path.join(cast(str, fetch_dir), distfile))
+                            os.path.join(fetch_dir, distfile))
 
     sys.exit(0)
 

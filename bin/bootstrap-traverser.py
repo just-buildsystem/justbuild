@@ -19,7 +19,7 @@ import os
 import shutil
 import subprocess
 import sys
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, NoReturn, cast
 
 from argparse import ArgumentParser
 
@@ -32,7 +32,7 @@ def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
-def fail(s: str) -> None:
+def fail(s: str) -> NoReturn:
     log(s)
     sys.exit(1)
 
@@ -66,7 +66,7 @@ def link(src: str, dest: str) -> None:
         os.symlink(src, dest)
 
 
-def build_local(desc: Json, *, root: str, config: Json) -> Optional[str]:
+def build_local(desc: Json, *, root: str, config: Json) -> str:
     repo_name = desc["data"]["repository"]
     repo: List[str] = config["repositories"][repo_name]["workspace_root"]
     rel_path = desc["data"]["path"]
@@ -83,7 +83,7 @@ def build_tree(desc: Json, *, config: Json, root: str, graph: Json) -> str:
     tree_dir_tmp = tree_dir + ".tmp"
     tree_desc = graph["trees"][tree_id]
     for location, desc in tree_desc.items():
-        link(cast(str, build(desc, config=config, root=root, graph=graph)),
+        link(build(desc, config=config, root=root, graph=graph),
              os.path.join(tree_dir_tmp, location))
     # correctly handle the empty tree
     os.makedirs(tree_dir_tmp, exist_ok=True)
@@ -98,7 +98,7 @@ def run_action(action_id: str, *, config: Json, root: str, graph: Json) -> str:
     os.makedirs(action_dir)
     action_desc = graph["actions"][action_id]
     for location, desc in action_desc.get("input", {}).items():
-        link(cast(str, build(desc, config=config, root=root, graph=graph)),
+        link(build(desc, config=config, root=root, graph=graph),
              os.path.join(action_dir, location))
     cmd = action_desc["command"]
     env = action_desc.get("env")
@@ -121,7 +121,7 @@ def build_action(desc: Json, *, config: Json, root: str, graph: Json) -> str:
     return os.path.join(action_dir, desc["data"]["path"])
 
 
-def build(desc: Json, *, config: Json, root: str, graph: Json) -> Optional[str]:
+def build(desc: Json, *, config: Json, root: str, graph: Json) -> str:
     if desc["type"] == "TREE":
         return build_tree(desc, config=config, root=root, graph=graph)
     if desc["type"] == "ACTION":
@@ -139,7 +139,7 @@ def traverse(*, graph: Json, to_build: Json, out: str, root: str,
     os.makedirs(root, exist_ok=True)
     create_blobs(graph["blobs"], root=root)
     for location, artifact in to_build.items():
-        link(cast(str, build(artifact, config=config, root=root, graph=graph)),
+        link(build(artifact, config=config, root=root, graph=graph),
              os.path.join(out, location))
 
 

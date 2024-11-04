@@ -23,7 +23,7 @@ import tempfile
 from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, cast
+from typing import Any, Dict, Iterable, List, NoReturn, Optional, Set, Tuple, cast
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -34,7 +34,7 @@ def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
-def fail(s: str, exit_code: int = 1):
+def fail(s: str, exit_code: int = 1) -> NoReturn:
     log(f"Error: {s}")
     sys.exit(exit_code)
 
@@ -114,7 +114,7 @@ def get_repository_config_file(root: Optional[str] = None) -> Optional[str]:
             return path
 
 
-def get_base_config(repository_config: Optional[str]) -> Optional[Json]:
+def get_base_config(repository_config: Optional[str]) -> Json:
     if repository_config == "-":
         return json.load(sys.stdin)
     if not repository_config:
@@ -125,9 +125,13 @@ def get_base_config(repository_config: Optional[str]) -> Optional[Json]:
     fail('Could not get base config')
 
 
-def clone(url: str, branch: str, *,
-          mirrors: List[str], inherit_env: List[str],
-          ) -> Tuple[str, Dict[str, Any], str]:
+def clone(
+    url: str,
+    branch: str,
+    *,
+    mirrors: List[str],
+    inherit_env: List[str],
+) -> Tuple[str, Dict[str, Any], str]:
     # clone the given git repository, checkout the specified
     # branch, and return the checkout location
     workdir: str = tempfile.mkdtemp()
@@ -157,7 +161,7 @@ def get_repo_to_import(config: Json) -> str:
         return cast(str, config.get("main"))
     repos = config.get("repositories", {}).keys()
     if repos:
-        return sorted(repos)[0]
+        return cast(str, sorted(repos)[0])
     fail("Config does not contain any repositories; unsure what to import")
 
 
@@ -226,8 +230,8 @@ def name_imports(to_import: List[str],
     return assign
 
 
-def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
-                 assign: Json, absent: bool) -> Json:
+def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any], assign: Json,
+                 absent: bool) -> Json:
     new_spec: Json = {}
     repo = repo_spec.get("repository", {})
     if isinstance(repo, str):
@@ -261,12 +265,13 @@ def rewrite_repo(repo_spec: Json, *, remote: Dict[str, Any],
 
 
 def handle_import(args: Namespace) -> Json:
-    base_config: Json = cast(Json, get_base_config(args.repository_config))
+    base_config: Json = get_base_config(args.repository_config)
     base_repos: Json = base_config.get("repositories", {})
     srcdir, remote, to_cleanup = clone(
-        args.URL, args.branch,
-        mirrors = args.mirrors,
-        inherit_env = args.inherit_env,
+        args.URL,
+        args.branch,
+        mirrors=args.mirrors,
+        inherit_env=args.inherit_env,
     )
     if args.foreign_repository_config:
         foreign_config_file = args.foreign_repository_config
@@ -293,7 +298,7 @@ def handle_import(args: Namespace) -> Json:
             fail('Could not get repository config file')
     foreign_repos: Json = foreign_config.get("repositories", {})
     if args.foreign_repository_name:
-        foreign_name = args.foreign_repository_name
+        foreign_name = cast(str, args.foreign_repository_name)
     else:
         foreign_name = get_repo_to_import(foreign_config)
     import_map: Json = {}
@@ -357,8 +362,7 @@ def main():
     parser.add_argument(
         "--absent",
         action="store_true",
-        help="Import repository and all its dependencies as absent."
-    )
+        help="Import repository and all its dependencies as absent.")
     parser.add_argument(
         "--as",
         dest="import_as",

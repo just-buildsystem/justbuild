@@ -16,15 +16,17 @@
 import json
 import sys
 
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, NoReturn, Optional, Tuple, Union, cast
 
 # generic JSON type
 Json = Any
 
+
 def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
-def fail(s: str, exit_code: int = 1):
+
+def fail(s: str, exit_code: int = 1) -> NoReturn:
     log(f"Error: {s}")
     sys.exit(exit_code)
 
@@ -45,29 +47,39 @@ def roots_equal(a: Json, b: Json) -> bool:
         # for full equality
         return a == b
 
-def get_root(repos: Json, name: str, *, root_name: str="repository",
-             default_root : Optional[Json]=None) -> Json:
+
+def get_root(repos: Json,
+             name: str,
+             *,
+             root_name: str = "repository",
+             default_root: Optional[Json] = None) -> Json:
     root = repos[name].get(root_name)
     if root is None:
         if default_root is not None:
             return default_root
         else:
-            fail("Did not find mandatory root %s" % (name,))
+            fail("Did not find mandatory root %s" % (name, ))
     if isinstance(root, str):
         return get_root(repos, root)
     return root
+
 
 def local_repos_equal(repos: Json, name_a: str, name_b: str) -> bool:
     if name_a == name_b:
         return True
     root_a = None
     root_b = None
-    for root_name in ["repository",
-                      "target_root", "rule_root", "expression_root"]:
-        root_a = get_root(repos, name_a, root_name=root_name,
-                          default_root = root_a)
-        root_b = get_root(repos, name_b, root_name=root_name,
-                          default_root = root_b)
+    for root_name in [
+            "repository", "target_root", "rule_root", "expression_root"
+    ]:
+        root_a = get_root(repos,
+                          name_a,
+                          root_name=root_name,
+                          default_root=root_a)
+        root_b = get_root(repos,
+                          name_b,
+                          root_name=root_name,
+                          default_root=root_b)
         if not roots_equal(root_a, root_b):
             return False
     for file_name, default_name in [("target_file_name", "TARGETS"),
@@ -83,38 +95,38 @@ def local_repos_equal(repos: Json, name_a: str, name_b: str) -> bool:
         return False
     return True
 
+
 def bisimilar_repos(repos: Json) -> List[List[str]]:
     """Compute the maximal bisimulation between the repositories
     and return the bisimilarity classes."""
-    bisim = {}
+    bisim: Dict[Tuple[str, str], Json] = {}
 
     def is_different(name_a: str, name_b: str) -> bool:
         return bisim.get((name_a, name_b), {}).get("different", False)
 
     def mark_as_different(name_a: str, name_b: str):
         nonlocal bisim
-        entry = bisim.get((name_a, name_b),{})
+        entry = bisim.get((name_a, name_b), {})
         if entry.get("different"):
             return
         bisim[(name_a, name_b)] = dict(entry, **{"different": True})
-        also_different = entry.get("different_if", [])
+        also_different: List[Tuple[str, str]] = entry.get("different_if", [])
         for a, b in also_different:
             mark_as_different(a, b)
 
     def register_dependency(name_a: str, name_b: str, dep_a: str, dep_b: str):
         pos = (name_a, name_b) if name_a < name_b else (name_b, name_a)
         entry = bisim.get(pos, {})
-        deps = entry.get("different_if", [])
+        deps: List[Tuple[str, str]] = entry.get("different_if", [])
         deps.append((dep_a, dep_b))
         bisim[pos] = dict(entry, **{"different_if": deps})
-
 
     names = sorted(repos.keys())
     for j in range(len(names)):
         b = names[j]
         for i in range(j):
             a = names[i]
-            if is_different(a,b):
+            if is_different(a, b):
                 continue
             if not local_repos_equal(repos, names[i], names[j]):
                 mark_as_different(names[i], names[j])
@@ -126,12 +138,12 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
                 next_b = links_b[link]
                 if next_a != next_b:
                     if is_different(next_a, next_b):
-                        mark_as_different(a,b)
+                        mark_as_different(a, b)
                         continue
                     else:
                         register_dependency(next_a, next_b, a, b)
-    classes = []
-    done = {}
+    classes: List[List[str]] = []
+    done: Dict[str, bool] = {}
     for j in reversed(range(len(names))):
         name_j = names[j]
         if done.get(name_j):
@@ -139,11 +151,12 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
         c = [name_j]
         for i in range(j):
             name_i = names[i]
-            if not bisim.get((name_i, name_j),{}).get("different"):
+            if not bisim.get((name_i, name_j), {}).get("different"):
                 c.append(name_i)
                 done[name_i] = True
         classes.append(c)
     return classes
+
 
 def dedup(repos: Json, user_keep: List[str]) -> Json:
 
@@ -157,9 +170,10 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
         candidates = c
         # Keep a repository with a proper root, if any of those has a root.
         # In this way, we're not losing actual roots.
-        with_root = [ n for n in candidates
-                      if isinstance(repos["repositories"][n]["repository"],
-                                    dict)]
+        with_root = [
+            n for n in candidates
+            if isinstance(repos["repositories"][n]["repository"], dict)
+        ]
         if with_root:
             candidates = with_root
 
@@ -168,8 +182,7 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
         if keep_entries:
             candidates = list(keep_entries)
 
-        return sorted(candidates,
-                      key=lambda s: (s.count("/"), len(s), s))[0]
+        return sorted(candidates, key=lambda s: (s.count("/"), len(s), s))[0]
 
     def merge_pragma(rep: str, merged: List[str]) -> Json:
         desc = cast(Union[str, Dict[str, Json]],
@@ -179,7 +192,7 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
         pragma = desc.get("pragma", {})
         # Clear pragma absent unless all merged repos that are not references
         # have the pragma
-        absent = pragma.get("absent", False)
+        absent: bool = pragma.get("absent", False)
         for c in merged:
             alt_desc = cast(Union[str, Dict[str, Json]],
                             repos["repositories"][c]["repository"])
@@ -207,8 +220,8 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
         return desc
 
     bisim = bisimilar_repos(repos["repositories"])
-    renaming = {}
-    updated_repos = {}
+    renaming: Dict[str, str] = {}
+    updated_repos: Json = {}
     for c in bisim:
         if len(c) == 1:
             continue
@@ -226,12 +239,11 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
             # actual root; can still be merged into a different once, but only
             # one with a proper root as well.
             return renaming.get(name, name)
-        elif isinstance(root, str):
+        if isinstance(root, str):
             return final_root_reference(root)
-        else:
-            fail("Invalid root found for %r: %r" % (name, root))
+        fail("Invalid root found for %r: %r" % (name, root))
 
-    new_repos = {}
+    new_repos: Json = {}
     for name in repos["repositories"].keys():
         if name not in renaming:
             desc = repos["repositories"][name]
@@ -254,6 +266,7 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
             desc = dict(desc, **new_roots)
             new_repos[name] = desc
     return dict(repos, **{"repositories": new_repos})
+
 
 if __name__ == "__main__":
     orig = json.load(sys.stdin)

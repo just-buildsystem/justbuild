@@ -23,7 +23,7 @@ import sys
 import threading
 from enum import Enum
 from argparse import ArgumentParser
-from typing import Any, Callable, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, NoReturn, Optional, Tuple, cast
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -195,11 +195,11 @@ class AtomicListMap:
 g_CALLBACKS_PER_ID = AtomicListMap()
 
 
-def log(*args: str, **kwargs: Any):
+def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
-def fail(s: str):
+def fail(s: str) -> NoReturn:
     log(s)
     sys.exit(1)
 
@@ -236,7 +236,7 @@ def link(src: str, dest: str) -> None:
         os.symlink(src, dest)
 
 
-def build_local(desc: Json, *, root: str, config: Json) -> Optional[str]:
+def build_local(desc: Json, *, root: str, config: Json) -> str:
     repo_name: str = desc["data"]["repository"]
     repo: List[str] = config["repositories"][repo_name]["workspace_root"]
     rel_path: str = desc["data"]["path"]
