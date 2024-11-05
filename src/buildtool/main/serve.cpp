@@ -17,25 +17,32 @@
 #ifndef BOOTSTRAP_BUILD_TOOL
 
 #include <chrono>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <ratio>
 #include <string>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/location.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 

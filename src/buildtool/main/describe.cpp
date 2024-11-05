@@ -16,16 +16,30 @@
 
 #include "src/buildtool/main/describe.hpp"
 
+#include <exception>
+#include <functional>
 #include <iostream>
+#include <memory>
 #include <optional>
+#include <string>
+#include <vector>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/exit_codes.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 
 namespace {
 

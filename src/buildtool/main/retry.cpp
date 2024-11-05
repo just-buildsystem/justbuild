@@ -18,6 +18,7 @@
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 [[nodiscard]] auto CreateRetryConfig(RetryArguments const& args)
     -> std::optional<RetryConfig> {

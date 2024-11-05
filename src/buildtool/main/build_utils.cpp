@@ -13,10 +13,20 @@
 // limitations under the License.
 
 #include "src/buildtool/main/build_utils.hpp"
+
+#include <iterator>
+#include <memory>
+#include <unordered_set>
+
+#include "fmt/core.h"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 

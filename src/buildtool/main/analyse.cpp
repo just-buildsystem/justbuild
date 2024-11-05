@@ -16,26 +16,37 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
+#include <cstdlib>
+#include <functional>
+#include <map>
+#include <memory>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
+#include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/action.hpp"
+#include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/serve_api/remote/config.hpp"
-#endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
 

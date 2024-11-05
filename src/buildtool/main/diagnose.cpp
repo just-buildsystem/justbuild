@@ -15,12 +15,28 @@
 #include "src/buildtool/main/diagnose.hpp"
 
 #include <algorithm>
+#include <compare>
 #include <cstddef>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
+#include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/json.hpp"

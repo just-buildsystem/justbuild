@@ -12,34 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <algorithm>
 #include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
+#include <set>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
+#include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
@@ -55,15 +65,13 @@
 #include "src/buildtool/main/exit_codes.hpp"
 #include "src/buildtool/main/install_cas.hpp"
 #include "src/buildtool/main/version.hpp"
-#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/file_chunker.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
-#include "src/utils/cpp/concepts.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/json.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 #include "fmt/core.h"

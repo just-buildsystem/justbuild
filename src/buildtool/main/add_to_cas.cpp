@@ -18,15 +18,20 @@
 
 #include <filesystem>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
+#include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

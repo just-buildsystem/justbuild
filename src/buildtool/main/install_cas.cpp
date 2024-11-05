@@ -14,13 +14,33 @@
 
 #include "src/buildtool/main/install_cas.hpp"
 
-#include <cstddef>
+#ifdef __unix__
+#include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
 
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
+#include <memory>
+#include <sstream>
+#include <utility>
+#include <vector>
+
+#include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #include "src/buildtool/main/archive.hpp"
 #endif

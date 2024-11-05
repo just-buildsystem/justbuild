@@ -22,6 +22,14 @@
 #error "Non-unix is not supported yet"
 #endif
 
+#include <functional>
+#include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"

@@ -14,6 +14,10 @@
 
 #include "src/buildtool/main/cli.hpp"
 
+#include <cstdlib>
+#include <exception>
+
+#include "CLI/CLI.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
