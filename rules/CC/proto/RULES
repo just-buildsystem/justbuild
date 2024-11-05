@@ -83,7 +83,6 @@
     , "base-provides-++": ["./", "..", "defaults-base-provides-++"]
     , "base-provides-list": ["./", "..", "defaults-base-provides-list"]
     , "artifacts_list": ["", "field_artifacts_list"]
-    , "nub_left": ["", "nub_left"]
     , "compile-deps": ["CC", "compile-deps"]
     , "compile-args-deps": ["CC", "compile-args-deps"]
     , "link-deps": ["CC", "link-deps"]
@@ -137,17 +136,14 @@
         ]
       , ["provider", "PATH"]
       , [ "PATH"
-        , { "type": "++"
+        , { "type": "nub_left"
           , "$1":
-            [ {"type": "var", "name": "PATH"}
-            , {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
-            ]
-          }
-        ]
-      , [ "PATH"
-        , { "type": "let*"
-          , "bindings": [["list", {"type": "var", "name": "PATH"}]]
-          , "body": {"type": "CALL_EXPRESSION", "name": "nub_left"}
+            { "type": "++"
+            , "$1":
+              [ {"type": "var", "name": "PATH"}
+              , {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+              ]
+            }
           }
         ]
       , ["provider", "ENV"]

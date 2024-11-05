@@ -116,44 +116,32 @@
           }
         ]
       , [ "PATH"
-        , { "type": "reverse"
+        , { "type": "nub_left"
           , "$1":
-            { "type": "nub_right"
+            { "type": "++"
             , "$1":
-              { "type": "reverse"
-              , "$1":
-                { "type": "++"
-                , "$1":
-                  [ {"type": "FIELD", "name": "PATH"}
-                  , { "type": "let*"
-                    , "bindings": [["provider", "PATH"]]
-                    , "body":
-                      {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
-                    }
-                  ]
+              [ {"type": "FIELD", "name": "PATH"}
+              , { "type": "let*"
+                , "bindings": [["provider", "PATH"]]
+                , "body":
+                  {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
                 }
-              }
+              ]
             }
           }
         ]
       , [ "bin dirs"
-        , { "type": "reverse"
+        , { "type": "nub_left"
           , "$1":
-            { "type": "nub_right"
+            { "type": "++"
             , "$1":
-              { "type": "reverse"
-              , "$1":
-                { "type": "++"
-                , "$1":
-                  [ {"type": "FIELD", "name": "bin dirs"}
-                  , { "type": "let*"
-                    , "bindings": [["provider", "bin dirs"]]
-                    , "body":
-                      {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
-                    }
-                  ]
+              [ {"type": "FIELD", "name": "bin dirs"}
+              , { "type": "let*"
+                , "bindings": [["provider", "bin dirs"]]
+                , "body":
+                  {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
                 }
-              }
+              ]
             }
           }
         ]
