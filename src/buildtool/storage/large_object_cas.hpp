@@ -199,6 +199,6 @@ class LargeObjectCAS final {
 };
 
 // NOLINTNEXTLINE(misc-header-include-cycle)
-#include "src/buildtool/storage/large_object_cas.tpp"
+#include "src/buildtool/storage/large_object_cas.tpp"  // IWYU pragma: export
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_HPP

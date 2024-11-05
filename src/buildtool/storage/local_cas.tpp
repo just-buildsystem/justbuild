@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_CAS_TPP
 
+// IWYU pragma: private, include "src/buildtool/storage/local_cas.hpp"
+
 #include <cstddef>
 #include <utility>  // std::move
 

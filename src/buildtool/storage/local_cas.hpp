@@ -353,7 +353,7 @@ class LocalCAS {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 // NOLINTNEXTLINE(misc-header-include-cycle)
-#include "src/buildtool/storage/local_cas.tpp"
+#include "src/buildtool/storage/local_cas.tpp"  // IWYU pragma: export
 #else
 template <bool kDoGlobalUplink>
 auto LocalCAS<kDoGlobalUplink>::CheckTreeInvariant(

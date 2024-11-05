@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LARGE_OBJECT_CAS_TPP
 
+// IWYU pragma: private, include "src/buildtool/storage/large_object_cas.hpp"
+
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>

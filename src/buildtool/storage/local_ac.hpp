@@ -133,7 +133,7 @@ class LocalAC {
 
 #ifndef BOOTSTRAP_BUILD_TOOL
 // NOLINTNEXTLINE(misc-header-include-cycle)
-#include "src/buildtool/storage/local_ac.tpp"
+#include "src/buildtool/storage/local_ac.tpp"  // IWYU pragma: export
 #endif
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_HPP

@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_TPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_LOCAL_AC_TPP
 
+// IWYU pragma: private, include "src/buildtool/storage/local_ac.hpp"
+
 #include <tuple>    //std::ignore
 #include <utility>  // std::move
 

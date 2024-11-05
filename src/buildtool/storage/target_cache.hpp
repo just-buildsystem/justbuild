@@ -160,6 +160,6 @@ using ActiveTargetCache = TargetCache<true>;
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 // NOLINTNEXTLINE(misc-header-include-cycle)
-#include "src/buildtool/storage/target_cache.tpp"
+#include "src/buildtool/storage/target_cache.tpp"  // IWYU pragma: export
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_HPP
