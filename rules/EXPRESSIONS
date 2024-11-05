@@ -126,7 +126,7 @@
   , "expression":
     { "type": "map_union"
     , "$1":
-      [ {"type": "singleton_map", "key": "PATH", "value": "/bin:/usr/bin"}
+      [ {"type": "'", "$1": {"PATH": "/bin:/usr/bin"}}
       , {"type": "var", "name": "ENV", "default": {"type": "empty_map"}}
       ]
     }

@@ -348,19 +348,16 @@
               }
             ]
           , [ "artifacts"
-            , { "type": "map_union"
+            , { "type": "`"
               , "$1":
-                [ { "type": "singleton_map"
-                  , "key": "pwd"
-                  , "value": {"type": "BLOB", "data": "/summary"}
-                  }
-                , {"type": "var", "name": "summary"}
-                , { "type": "singleton_map"
-                  , "key": "work"
-                  , "value":
+                { "pwd":
+                  {"type": ",", "$1": {"type": "BLOB", "data": "/summary"}}
+                , "work":
+                  { "type": ","
+                  , "$1":
                     {"type": "TREE", "$1": {"type": "var", "name": "attempts"}}
                   }
-                ]
+                }
               }
             ]
           , [ "runfiles"

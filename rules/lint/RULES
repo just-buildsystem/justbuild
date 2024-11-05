@@ -93,8 +93,7 @@
     , "call_lint": ["call_lint"]
     , "call_summary": ["call_summary"]
     }
-  , "config_transitions":
-    {"targets": [{"type": "singleton_map", "key": "LINT", "value": true}]}
+  , "config_transitions": {"targets": [{"type": "'", "$1": {"LINT": true}}]}
   , "anonymous":
     {"lint": {"target": "targets", "provider": "lint", "rule_map": {}}}
   , "imports":
