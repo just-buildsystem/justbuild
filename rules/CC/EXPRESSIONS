@@ -1757,16 +1757,8 @@
                 }
               ]
             }
-          , "cmd":
-            [ "sh"
-            , "-c"
-            , { "type": "join"
-              , "$1":
-                [ "cd work && "
-                , {"type": "join_cmd", "$1": {"type": "var", "name": "cmd"}}
-                ]
-              }
-            ]
+          , "cmd": {"type": "var", "name": "cmd"}
+          , "cwd": "work"
           , "env": {"type": "var", "name": "ENV"}
           }
         ]
