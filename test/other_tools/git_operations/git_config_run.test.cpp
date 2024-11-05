@@ -17,6 +17,7 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <span>
 #include <string>
 
 #include "src/buildtool/file_system/git_context.hpp"
@@ -25,8 +26,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
 #include "test/utils/logging/log_config.hpp"
-
-#include <span>
 
 extern "C" {
 #include <git2.h>
