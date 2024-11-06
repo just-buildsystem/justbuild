@@ -313,7 +313,10 @@ def run_action(action_id: str, *, config: Json, root: str, graph: Json,
             for out in action_desc["output"]:
                 os.makedirs(os.path.join(action_dir, os.path.dirname(out)),
                             exist_ok=True)
-            subprocess.run(cmd, env=env, cwd=action_dir, check=True)
+            exec_dir = action_dir
+            if "cwd" in action_desc:
+                exec_dir = os.path.join(action_dir, action_desc["cwd"])
+            subprocess.run(cmd, env=env, cwd=exec_dir, check=True)
             vals = g_CALLBACKS_PER_ID.fetch_clear(f"ACTION/{action_id}")
             if vals:
                 for cb in vals:  # mark ready

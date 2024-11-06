@@ -106,7 +106,10 @@ def run_action(action_id: str, *, config: Json, root: str, graph: Json) -> str:
     for out in action_desc["output"]:
         os.makedirs(os.path.join(action_dir, os.path.dirname(out)),
                     exist_ok=True)
-    subprocess.run(cmd, env=env, cwd=action_dir, check=True)
+    exec_dir = action_dir
+    if "cwd" in action_desc:
+        exec_dir = os.path.join(action_dir, action_desc["cwd"])
+    subprocess.run(cmd, env=env, cwd=exec_dir, check=True)
     return action_dir
 
 
