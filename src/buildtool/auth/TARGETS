@@ -3,7 +3,7 @@
   , "name": ["auth"]
   , "hdrs": ["authentication.hpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]

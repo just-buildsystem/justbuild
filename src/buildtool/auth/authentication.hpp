@@ -15,17 +15,18 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_AUTH_AUTHENTICATION_HPP
 #define INCLUDED_SRC_BUILDTOOL_AUTH_AUTHENTICATION_HPP
 
-#include <cerrno>  // for errno
-#include <cstdint>
+#include <cerrno>   // for errno
 #include <cstring>  // for strerror()
+#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <optional>
-#include <streambuf>
 #include <string>
 #include <utility>
+#include <variant>
 
-#include "gsl/gsl"
+#include "fmt/core.h"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
