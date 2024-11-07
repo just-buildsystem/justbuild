@@ -15,11 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_EXPRESSION_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <exception>
 #include <functional>
-#include <memory>
 #include <optional>
 #include <string>
 #include <type_traits>
@@ -28,17 +29,15 @@
 #include <vector>
 
 #include "fmt/core.h"
-#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
-#include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/expression/linked_map.hpp"
 #include "src/buildtool/build_engine/expression/target_node.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hex_string.hpp"
-#include "src/utils/cpp/json.hpp"
 
 class Expression {
     friend auto operator+(Expression const& /*lhs*/,

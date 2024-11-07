@@ -16,18 +16,14 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_SOURCE_MAP_HPP
 
 #include <cstddef>
-#include <unordered_set>
 
 #include "gsl/gsl"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/buildtool/multithreading/task_system.hpp"
 
 namespace BuildMaps::Base {
 

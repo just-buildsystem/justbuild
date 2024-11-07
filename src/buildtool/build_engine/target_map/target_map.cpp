@@ -14,44 +14,64 @@
 
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 
-#include <algorithm>
-#include <cstdint>
-#include <memory>
-#include <set>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-
 #ifdef __unix__
 #include <fnmatch.h>
 #else
 #error "Non-unix is not supported yet"
 #endif
 
+#include <algorithm>
+#include <compare>
+#include <cstdint>
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <optional>
+#include <set>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <variant>
+#include <vector>
+
 #include "fmt/core.h"
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/base_maps/expression_function.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
+#include "src/buildtool/build_engine/base_maps/module_name.hpp"
+#include "src/buildtool/build_engine/base_maps/user_rule.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
+#include "src/buildtool/build_engine/expression/target_node.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/build_engine/target_map/built_in_rules.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
+#include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/vector.hpp"
-
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 

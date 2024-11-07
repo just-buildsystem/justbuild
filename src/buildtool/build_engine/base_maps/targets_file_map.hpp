@@ -15,12 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_TARGETS_FILE_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_TARGETS_FILE_MAP_HPP
 
-#include <filesystem>
-#include <string>
+#include <cstddef>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Base {

@@ -16,7 +16,9 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_CONFIGURED_TARGET_HPP
 
 #include <cstddef>
+#include <functional>
 #include <memory>
+#include <string>
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"

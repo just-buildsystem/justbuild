@@ -15,17 +15,23 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_FUNCTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_EXPRESSION_FUNCTION_HPP
 
+#include <functional>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <unordered_map>
-#include <utility>  // std::move
+#include <utility>
 #include <vector>
 
 #include "fmt/core.h"
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"

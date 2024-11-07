@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
@@ -27,7 +28,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-class Configuration;
 class Expression;
 
 class ExpressionPtr {

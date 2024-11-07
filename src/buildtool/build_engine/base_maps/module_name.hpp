@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_MODULE_NAME_HPP
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 

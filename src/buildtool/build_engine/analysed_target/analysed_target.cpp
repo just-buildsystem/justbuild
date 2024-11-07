@@ -15,6 +15,7 @@
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 
 #include "gsl/gsl"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 
 namespace {
 

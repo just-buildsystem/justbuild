@@ -17,14 +17,13 @@
 
 #include <cstddef>
 #include <exception>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
-
-class Configuration;
 
 class Evaluator {
     struct ConfigData {

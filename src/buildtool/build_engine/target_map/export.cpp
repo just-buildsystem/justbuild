@@ -14,22 +14,42 @@
 
 #include "src/buildtool/build_engine/target_map/export.hpp"
 
+#include <functional>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <utility>  // std::move
+#include <variant>
+#include <vector>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/target_cache_entry.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/json.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 

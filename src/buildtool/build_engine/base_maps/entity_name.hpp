@@ -17,15 +17,18 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <functional>
 #include <optional>
+#include <string>
 #include <utility>
 
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Base {
 

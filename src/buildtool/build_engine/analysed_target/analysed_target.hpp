@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILDENGINE_ANALYSED_TARGET_ANALYSED_TARGET_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_ANALYSED_TARGET_ANALYSED_TARGET_HPP
 
+#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -23,7 +24,6 @@
 #include <vector>
 
 #include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
-#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/action_description.hpp"

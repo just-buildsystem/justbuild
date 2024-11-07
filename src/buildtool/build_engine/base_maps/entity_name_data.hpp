@@ -16,8 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_ENTITY_NAME_DATA_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
-#include <optional>
+#include <functional>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -25,7 +27,6 @@
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
-#include "src/utils/cpp/hex_string.hpp"
 
 namespace BuildMaps::Base {
 

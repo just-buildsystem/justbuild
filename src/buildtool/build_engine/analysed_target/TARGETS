@@ -5,14 +5,16 @@
   , "srcs": ["analysed_target.cpp"]
   , "deps":
     [ "graph_information"
-    , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "tree"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
-  , "private-deps": [["@", "gsl", "", "gsl"]]
+  , "private-deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
   }
 , "graph_information":
   { "type": ["@", "rules", "CC", "library"]

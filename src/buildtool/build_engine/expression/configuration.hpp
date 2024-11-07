@@ -17,12 +17,16 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <utility>  // std::move
+#include <vector>
 
-#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/utils/cpp/concepts.hpp"
 #include "src/utils/cpp/gsl.hpp"
 

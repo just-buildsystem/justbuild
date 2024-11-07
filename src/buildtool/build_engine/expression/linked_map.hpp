@@ -15,19 +15,19 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_LINKED_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_LINKED_MAP_HPP
 
-#include <algorithm>
-#include <atomic>
-#include <condition_variable>
 #include <cstddef>
+#include <functional>
+#include <iterator>
 #include <map>
 #include <memory>
-#include <mutex>
+#include <optional>
+#include <stdexcept>
+#include <type_traits>
 #include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"
 #include "src/buildtool/multithreading/atomic_value.hpp"
-#include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 template <class K, class V, class NextPtr>

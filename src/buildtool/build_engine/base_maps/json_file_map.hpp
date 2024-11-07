@@ -16,8 +16,8 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_JSON_FILE_MAP_HPP
 
 #include <cstddef>
+#include <exception>
 #include <filesystem>
-#include <fstream>
 #include <string>
 #include <utility>  // std::move
 
@@ -26,6 +26,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Base {

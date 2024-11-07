@@ -15,13 +15,24 @@
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 
 #include <filesystem>
+#include <functional>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_set>
 #include <utility>  // std::move
+#include <vector>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
+#include "src/buildtool/build_engine/base_maps/module_name.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/utils/cpp/json.hpp"
 
 namespace BuildMaps::Base {
 

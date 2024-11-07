@@ -14,13 +14,20 @@
 
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>
 #include <utility>  // std::move
+#include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/expression_function.hpp"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 
 namespace BuildMaps::Base {
 

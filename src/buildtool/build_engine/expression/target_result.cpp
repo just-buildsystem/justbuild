@@ -14,6 +14,9 @@
 
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 
+#include <exception>
+#include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>  // std::move
@@ -21,9 +24,13 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/target_node.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 
 namespace {
 

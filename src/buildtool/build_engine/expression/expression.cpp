@@ -15,18 +15,13 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 
 #include <algorithm>
-#include <exception>
+#include <iterator>
 #include <optional>
-#include <sstream>
 #include <string>
-#include <type_traits>
 
 #include "fmt/core.h"
-#include "gsl/gsl"
-#include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/json.hpp"
 

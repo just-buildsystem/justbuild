@@ -14,6 +14,7 @@
 
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 
+#include <compare>
 #include <string>
 #include <utility>  // std::move
 

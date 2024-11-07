@@ -16,7 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_USER_RULE_HPP
 
 #include <algorithm>
+#include <compare>
 #include <cstddef>
+#include <functional>
+#include <iterator>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -28,9 +31,9 @@
 
 #include "fmt/core.h"
 #include "gsl/gsl"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_function.hpp"
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/utils/cpp/concepts.hpp"
 #include "src/utils/cpp/gsl.hpp"
 

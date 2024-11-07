@@ -16,11 +16,13 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_RESULT_HPP
 
 #include <cstddef>
+#include <functional>
 #include <optional>
 #include <unordered_map>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/hash_combine.hpp"

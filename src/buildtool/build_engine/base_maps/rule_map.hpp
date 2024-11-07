@@ -16,12 +16,10 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_RULE_MAP_HPP
 
 #include <cstddef>
-#include <memory>
-#include <string>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"

@@ -15,14 +15,17 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_PATH_HASH_HPP
 #define INCLUDED_SRC_UTILS_CPP_PATH_HASH_HPP
 
-#include <cstddef>
-#include <filesystem>
+// IWYU pragma: always_keep
 
 // NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define GLIBCXX_11_4 20230528  // gcc/DATESTAMP of version 11.4
 #if (defined(__GLIBCXX__) and _GLIBCXX_RELEASE < 12 and            \
      !(_GLIBCXX_RELEASE == 11 and __GLIBCXX__ >= GLIBCXX_11_4)) or \
     (defined(_LIBCPP_VERSION) and _LIBCPP_VERSION < 16000)
+
+#include <cstddef>
+#include <filesystem>
+
 // std::hash<std::filesystem::path> is missing for
 // - GNU's libstdc++ < 11.4
 // - LLVM's libcxx < 16 (see https://reviews.llvm.org/D125394)

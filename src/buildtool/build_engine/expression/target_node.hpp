@@ -15,12 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_NODE_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILDENGINE_EXPRESSION_TARGET_NODE_HPP
 
-#include <type_traits>
-#include <utility>  // std::move
+#include <string>
+#include <utility>  // IWYU pragma: keep
 #include <variant>
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
-#include "src/buildtool/build_engine/expression/target_result.hpp"
 
 class TargetNode {
     using Value = ExpressionPtr;  // store result type

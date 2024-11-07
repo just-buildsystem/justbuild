@@ -16,9 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_DIRECTORY_MAP_HPP
 
 #include <cstddef>
-#include <filesystem>
-#include <map>
-#include <unordered_set>
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"

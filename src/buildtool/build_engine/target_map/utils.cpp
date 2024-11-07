@@ -17,10 +17,20 @@
 #include <algorithm>
 #include <cstddef>
 #include <filesystem>
+#include <functional>
+#include <map>
+#include <memory>
 #include <unordered_set>
 #include <utility>  // std::move
 #include <vector>
 
+#include "fmt/core.h"
+#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/expression/evaluator.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
+#include "src/buildtool/common/action.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/utils/cpp/path.hpp"

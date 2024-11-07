@@ -15,16 +15,26 @@
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 
 #include <algorithm>
+#include <cmath>
+#include <compare>
+#include <cstdint>
+#include <cstdlib>
 #include <exception>
 #include <filesystem>
+#include <iterator>
+#include <map>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_set>
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace {

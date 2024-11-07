@@ -16,19 +16,23 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_UTILS_HPP
 
 #include <optional>
+#include <set>
+#include <string>
 #include <unordered_map>
 #include <variant>
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
-#include "src/buildtool/build_engine/base_maps/field_reader.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
-#include "src/buildtool/build_engine/expression/evaluator.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
+#include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/common/tree.hpp"
 
 namespace BuildMaps::Target::Utils {
 

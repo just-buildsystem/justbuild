@@ -14,24 +14,36 @@
 #include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <set>
 #include <unordered_set>
 #include <utility>  // std::move
+#include <variant>
 
-#include "nlohmann/json.hpp"
+#include "fmt/core.h"
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/json.hpp"
-#endif
+#endif  // BOOTSTRAP_BUILD_TOOL
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-
 namespace {
 void WithFlexibleVariables(
     const gsl::not_null<AnalyseContext*>& context,

@@ -17,12 +17,11 @@
 
 #include <cstddef>
 #include <functional>
-#include <memory>
 #include <string>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_function.hpp"
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"

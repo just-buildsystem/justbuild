@@ -14,11 +14,11 @@
 
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 
-#include <filesystem>
-#include <unordered_set>
+#include <functional>
+#include <string>
 
+#include "fmt/core.h"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/utils/cpp/path.hpp"
 
 auto BuildMaps::Base::CreateDirectoryEntriesMap(
     gsl::not_null<const RepositoryConfig*> const& repo_config,

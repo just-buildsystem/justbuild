@@ -5,7 +5,6 @@
   , "deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/multithreading", "atomic_value"]
-    , ["src/utils/cpp", "atomic"]
     , ["src/utils/cpp", "hash_combine"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
@@ -42,24 +41,25 @@
   , "deps":
     [ "expression_ptr_interface"
     , "linked_map"
-    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["src/buildtool/common", "artifact_description"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "expression"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "json"]
     , ["src/utils/cpp", "path"]
     ]
   }

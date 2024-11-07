@@ -16,12 +16,19 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_TARGET_MAP_RESULT_MAP_HPP
 
 #include <algorithm>
+#include <compare>
 #include <cstddef>
 #include <fstream>
+#include <functional>
+#include <iomanip>
+#include <iterator>
+#include <memory>
 #include <mutex>
+#include <numeric>
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <utility>  // std::move
 #include <vector>
@@ -29,19 +36,19 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
-#include "src/buildtool/storage/target_cache.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
-#include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Target {
 

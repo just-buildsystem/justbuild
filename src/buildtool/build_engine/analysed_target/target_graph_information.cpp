@@ -14,6 +14,8 @@
 
 #include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
 
+#include <memory>
+
 auto TargetGraphInformation::NodeString() const noexcept
     -> std::optional<std::string> {
     if (node_) {
