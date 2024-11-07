@@ -12,22 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "bytestream_server.hpp"
+#include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
 
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <utility>
+#include <memory>
+#include <optional>
+#include <string>
 
 #include "fmt/core.h"
+#include "google/protobuf/stubs/port.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 auto BytestreamServiceImpl::Read(

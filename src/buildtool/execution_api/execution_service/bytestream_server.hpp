@@ -15,7 +15,10 @@
 #ifndef BYTESTREAM_SERVER_HPP
 #define BYTESTREAM_SERVER_HPP
 
+#include <grpcpp/grpcpp.h>
+
 #include "google/bytestream/bytestream.grpc.pb.h"
+#include "google/bytestream/bytestream.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"

@@ -16,11 +16,11 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_EXECUTION_SERVICE_CAS_UTILS_HPP
 
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <vector>
 
-#include "grpcpp/support/status.h"
+#include <grpcpp/support/status.h>
+
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"

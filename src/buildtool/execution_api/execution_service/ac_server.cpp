@@ -14,11 +14,17 @@
 
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 
+#include <optional>
+#include <string>
+#include <utility>
+
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 auto ActionCacheServiceImpl::GetActionResult(
     ::grpc::ServerContext* /*context*/,

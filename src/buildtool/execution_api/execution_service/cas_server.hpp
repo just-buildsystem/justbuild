@@ -15,8 +15,7 @@
 #ifndef CAS_SERVER_HPP
 #define CAS_SERVER_HPP
 
-#include <optional>
-#include <string>
+#include <grpcpp/grpcpp.h>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"

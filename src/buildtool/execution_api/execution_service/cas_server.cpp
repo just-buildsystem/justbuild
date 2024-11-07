@@ -15,20 +15,25 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 
 #include <algorithm>
-#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <optional>
 #include <sstream>
+#include <string>
 #include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"
+#include "google/protobuf/repeated_ptr_field.h"
+#include "google/rpc/status.pb.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 [[nodiscard]] auto ChunkingAlgorithmToString(

@@ -3,10 +3,15 @@
   , "name": ["execution_server"]
   , "hdrs": ["execution_server.hpp"]
   , "srcs": ["execution_server.cpp"]
-  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "proto":
+    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "googleapis", "", "google_longrunning_operations_proto"]
+    , ["@", "googleapis", "", "google_rpc_status_proto"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
     [ "operation_cache"
+    , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -18,11 +23,14 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
@@ -38,7 +46,8 @@
   , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
@@ -49,7 +58,9 @@
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 , "cas_server":
@@ -57,10 +68,14 @@
   , "name": ["cas_server"]
   , "hdrs": ["cas_server.hpp"]
   , "srcs": ["cas_server.cpp"]
-  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "proto":
+    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "googleapis", "", "google_rpc_status_proto"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
@@ -70,10 +85,12 @@
   , "private-deps":
     [ "cas_utils"
     , ["@", "fmt", "", "fmt"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 , "server_implementation":
@@ -98,10 +115,14 @@
     , ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "port"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/utils/cpp", "type_safe_arithmetic"]
     ]
   }
 , "bytestream_server":
@@ -112,7 +133,8 @@
   , "proto": [["@", "googleapis", "", "google_bytestream_proto"]]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "config"]
@@ -121,12 +143,14 @@
   , "private-deps":
     [ "cas_utils"
     , ["@", "fmt", "", "fmt"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "bytestream_utils"]
-    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
@@ -135,10 +159,14 @@
   , "name": ["capabilities_server"]
   , "hdrs": ["capabilities_server.hpp"]
   , "srcs": ["capabilities_server.cpp"]
-  , "proto": [["@", "bazel_remote_apis", "", "remote_execution_proto"]]
+  , "proto":
+    [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "bazel_remote_apis", "", "semver_proto"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "execution_service"]
   , "deps":
-    [ ["src/buildtool/common", "bazel_types"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/crypto", "hash_function"]
     ]
   , "private-deps":
@@ -163,6 +191,7 @@
   , "srcs": ["operations_server.cpp"]
   , "deps":
     [ "operation_cache"
+    , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/logging", "logging"]
@@ -191,6 +220,7 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }

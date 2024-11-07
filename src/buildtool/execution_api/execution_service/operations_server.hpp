@@ -15,7 +15,11 @@
 #ifndef OPERATIONS_SERVER_HPP
 #define OPERATIONS_SERVER_HPP
 
+#include <grpcpp/grpcpp.h>
+
 #include "google/longrunning/operations.grpc.pb.h"
+#include "google/longrunning/operations.pb.h"
+#include "google/protobuf/empty.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/logger.hpp"

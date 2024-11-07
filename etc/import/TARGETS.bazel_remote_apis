@@ -1,4 +1,5 @@
-{ "semver_proto":
+{ "semver_proto": {"type": "export", "target": "semver_proto (unexported)"}
+, "semver_proto (unexported)":
   { "type": ["@", "rules", "proto", "library"]
   , "name": ["semver_proto"]
   , "srcs": ["build/bazel/semver/semver.proto"]

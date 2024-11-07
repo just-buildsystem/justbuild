@@ -14,15 +14,15 @@
 
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
 
-#include <type_traits>
+#include <optional>
 #include <utility>
 
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
-#include "src/buildtool/storage/local_cas.hpp"
 
 namespace {
 [[nodiscard]] auto ToGrpc(LargeObjectError&& error) noexcept -> grpc::Status {

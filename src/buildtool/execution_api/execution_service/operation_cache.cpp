@@ -15,6 +15,9 @@
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 
 #include <algorithm>
+#include <compare>   // for operator<
+#include <iterator>  // for back_insert_iterator
+#include <vector>    // for vector
 
 #include "google/protobuf/timestamp.pb.h"
 

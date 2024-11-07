@@ -16,6 +16,7 @@
 
 #include <cstddef>
 
+#include "build/bazel/semver/semver.pb.h"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

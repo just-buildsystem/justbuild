@@ -15,6 +15,8 @@
 #ifndef CAPABILITIES_SERVER_HPP
 #define CAPABILITIES_SERVER_HPP
 
+#include <grpcpp/grpcpp.h>
+
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"

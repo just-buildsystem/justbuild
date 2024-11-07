@@ -15,19 +15,17 @@
 #ifndef OPERATION_CACHE_HPP
 #define OPERATION_CACHE_HPP
 
-#include <atomic>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
 #include <string>
-#include <thread>
 #include <unordered_map>
-#include <vector>
+#include <utility>
 
 #include "google/longrunning/operations.pb.h"
-#include "google/protobuf/timestamp.pb.h"
 
 class OperationCache final {
     using Operation = ::google::longrunning::Operation;

@@ -19,10 +19,15 @@
 #include <optional>
 #include <string>
 
+#include <grpcpp/grpcpp.h>
+
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
+#include "google/longrunning/operations.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"

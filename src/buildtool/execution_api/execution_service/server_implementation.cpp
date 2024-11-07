@@ -14,20 +14,26 @@
 
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 
-#include <iostream>
-#include <memory>
-
 #ifdef __unix__
-#include <sys/types.h>
+#include <unistd.h>
 #else
 #error "Non-unix is not supported yet"
 #endif
 
+#include <fstream>
+#include <memory>
+#include <utility>
+#include <variant>
+#include <vector>
+
+#include <grpcpp/grpcpp.h>
+
 #include "fmt/core.h"
-#include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 #include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
@@ -36,6 +42,8 @@
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/utils/cpp/type_safe_arithmetic.hpp"
 
 namespace {
 template <typename T>
