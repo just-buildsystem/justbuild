@@ -15,11 +15,15 @@
 #include "src/buildtool/common/artifact_description.hpp"
 
 #include <cstddef>
+#include <exception>
+#include <functional>
 
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/json.hpp"
 
 namespace {

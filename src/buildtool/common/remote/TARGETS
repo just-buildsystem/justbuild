@@ -2,13 +2,13 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["client_common"]
   , "hdrs": ["client_common.hpp"]
+  , "proto": [["@", "googleapis", "", "google_rpc_status_proto"]]
   , "deps":
     [ "port"
     , ["@", "fmt", "", "fmt"]
     , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
@@ -61,5 +61,6 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
+  , "private-deps": [["@", "fmt", "", "fmt"]]
   }
 }

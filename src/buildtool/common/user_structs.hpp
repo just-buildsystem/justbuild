@@ -15,11 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_USER_STRUCTS_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_USER_STRUCTS_HPP
 
+#include <algorithm>
 #include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 #include "nlohmann/json.hpp"

@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 // Global artifact identifier (not the CAS hash)
 using ArtifactIdentifier = std::string;

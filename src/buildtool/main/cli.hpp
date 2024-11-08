@@ -18,6 +18,7 @@
 #include <cstdint>
 
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
 
 enum class SubCommand : std::uint8_t {
     kUnknown,

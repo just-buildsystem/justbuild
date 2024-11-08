@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_REPOSITORY_CONFIG_HPP
 
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -29,6 +30,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_tree.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
@@ -172,9 +174,13 @@ class RepositoryConfig {
     [[nodiscard]] auto Get(std::string const& repo,
                            std::function<T const*(RepositoryInfo const&)> const&
                                getter) const noexcept -> T const* {
-        if (auto const* info = Info(repo)) {
-            return getter(*info);
-        }
+        try {
+            if (auto const* info = Info(repo)) {
+                return getter(*info);
+            }
+        } catch (...) {
+            return nullptr;
+        };
         return nullptr;
     }
 

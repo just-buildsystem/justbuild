@@ -16,9 +16,9 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_PORT_HPP
 
 #include <cstdint>
-#include <exception>
 #include <limits>
 #include <optional>
+#include <stdexcept>
 #include <string>
 
 #include "gsl/gsl"

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_TREE_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_TREE_HPP
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>

@@ -22,7 +22,8 @@
 #include <string>
 #include <utility>
 
-#include "grpcpp/grpcpp.h"
+#include <grpcpp/grpcpp.h>
+
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

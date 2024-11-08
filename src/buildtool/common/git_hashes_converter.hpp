@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_GIT_HASHES_CONVERTER_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_GIT_HASHES_CONVERTER_HPP
 
+#include <functional>
 #include <mutex>  //std::unique_lock
 #include <optional>
 #include <shared_mutex>

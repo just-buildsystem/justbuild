@@ -19,7 +19,7 @@
 #include <chrono>
 #include <thread>
 
-#include "src/buildtool/logging/log_level.hpp"
+#include "fmt/core.h"
 
 auto WithRetry(CallableReturningRetryResponse const& f,
                RetryConfig const& retry_config,

@@ -14,6 +14,8 @@
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 
+#include <cstdint>
+
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"

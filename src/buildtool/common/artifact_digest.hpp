@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_COMMON_ARTIFACT_DIGEST_HPP
 
 #include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>  // std::move
 

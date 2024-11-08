@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_ACTION_DESCRIPTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ACTION_DESCRIPTION_HPP
 
+#include <exception>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -26,6 +28,7 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

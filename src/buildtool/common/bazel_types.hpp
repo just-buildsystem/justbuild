@@ -48,7 +48,13 @@ using int64 = std::int64_t;
 
 #else
 
+#include <cstddef>
+#include <functional>
+#include <string>
+
 #include "build/bazel/remote/execution/v2/remote_execution.pb.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/repeated_ptr_field.h"
 
 #endif
 

@@ -15,7 +15,6 @@
 #include <filesystem>
 #include <optional>
 #include <string>
-#include <unordered_set>
 #include <utility>
 
 #include "nlohmann/json.hpp"

@@ -16,13 +16,17 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_DESCRIPTION_HPP
 
 #include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <utility>  // std::move
 #include <variant>
 
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 

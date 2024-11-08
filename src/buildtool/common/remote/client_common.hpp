@@ -18,16 +18,17 @@
 /// \file client_common.hpp
 /// \brief Common types and functions required by client implementations.
 
+#include <memory>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <variant>
 
+#include <grpcpp/grpcpp.h>
+
 #include "fmt/core.h"
-#include "grpcpp/grpcpp.h"
+#include "google/rpc/status.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

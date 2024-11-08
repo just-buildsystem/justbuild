@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_COMMON_HPP
 #define INCLUDED_SRC_BUILDTOOL_COMMON_REMOTE_COMMON_HPP
 
+#include <cstdint>
+#include <exception>
 #include <map>
 #include <optional>
 #include <sstream>

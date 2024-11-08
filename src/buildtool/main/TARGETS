@@ -120,7 +120,8 @@
   , "hdrs": ["cli.hpp"]
   , "srcs": ["cli.cpp"]
   , "stage": ["src", "buildtool", "main"]
-  , "deps": [["src/buildtool/common", "cli"]]
+  , "deps":
+    [["src/buildtool/common", "cli"], ["src/buildtool/common", "retry_cli"]]
   , "private-deps":
     [ "common"
     , ["@", "gsl", "", "gsl"]
