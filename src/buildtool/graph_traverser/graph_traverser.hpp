@@ -15,32 +15,53 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_GRAPH_TRAVERSER_GRAPH_TRAVERSER_HPP
 #define INCLUDED_SRC_BUILDTOOL_GRAPH_TRAVERSER_GRAPH_TRAVERSER_HPP
 
+#ifdef __unix__
+#include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
+
 #include <algorithm>
+#include <atomic>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
+#include <cstdio>
 #include <filesystem>
+#include <fstream>
 #include <functional>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
 #include <map>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
 #include "fmt/core.h"
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/identifier.hpp"
+#include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
@@ -50,11 +71,10 @@
 #include "src/buildtool/file_system/jsonfs.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/log_sink_cmdline.hpp"
-#include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/utils/cpp/json.hpp"
+#include "src/utils/cpp/path.hpp"
 
 class GraphTraverser {
   public:
