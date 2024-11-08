@@ -15,17 +15,13 @@
 #include "src/buildtool/file_system/git_tree.hpp"
 
 #include <algorithm>
-#include <sstream>
+#include <functional>
 #include <vector>
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
-
-extern "C" {
-#include <git2.h>
-}
 
 namespace {
 

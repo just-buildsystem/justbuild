@@ -42,6 +42,7 @@
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_engine/executor", "context"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "git_context"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

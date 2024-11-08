@@ -20,12 +20,11 @@
 #include <memory>
 #include <optional>
 #include <shared_mutex>
-#include <unordered_map>
+#include <string>
 #include <utility>
-#include <vector>
 
-#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 class GitCAS;
 using GitCASPtr = std::shared_ptr<GitCAS const>;

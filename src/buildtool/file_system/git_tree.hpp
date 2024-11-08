@@ -17,12 +17,16 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
+#include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"

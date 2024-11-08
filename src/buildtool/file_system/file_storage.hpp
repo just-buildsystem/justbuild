@@ -15,9 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_STORAGE_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <string>
+#include <type_traits>
 #include <utility>
 
 #include "src/buildtool/execution_api/common/execution_common.hpp"

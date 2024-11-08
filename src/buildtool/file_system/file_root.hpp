@@ -15,14 +15,20 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_ROOT_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_ROOT_HPP
 
+#include <algorithm>
+#include <cstddef>
+#include <exception>
 #include <filesystem>
+#include <functional>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <variant>
 
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
@@ -32,11 +38,15 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/concepts.hpp"
-#include "src/utils/cpp/json.hpp"
+#include "src/utils/cpp/expected.hpp"
+// Keep it to ensure fmt::format works on JSON objects
+#include "src/utils/cpp/json.hpp"  // IWYU pragma: keep
 
 /// FilteredIterator is an helper class to allow for iteration over
 /// directory-only or file-only entries stored inside the class

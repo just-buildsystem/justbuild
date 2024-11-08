@@ -17,9 +17,9 @@
 
 #include <cstddef>
 #include <optional>
+#include <string>
 
 #include "gsl/gsl"
-#include "src/buildtool/file_system/object_type.hpp"
 
 extern "C" {
 struct git_oid;

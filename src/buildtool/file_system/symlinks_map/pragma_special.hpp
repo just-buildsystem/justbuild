@@ -15,8 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
 
+#include <cstdint>
+#include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 /* Enum used by the resolve_symlinks_map */
 

@@ -76,6 +76,7 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
+#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/main/describe.hpp"
 #include "src/buildtool/main/retry.hpp"

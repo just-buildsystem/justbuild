@@ -15,21 +15,28 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
+#include <cstring>
+#include <exception>
+#include <limits>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string_view>
 #include <thread>
 #include <unordered_set>
 
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 extern "C" {
 #include <git2.h>

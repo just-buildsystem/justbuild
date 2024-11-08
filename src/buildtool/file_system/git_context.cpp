@@ -14,9 +14,9 @@
 
 #include "src/buildtool/file_system/git_context.hpp"
 
+#include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/gsl.hpp"
 
 extern "C" {
 #include <git2.h>

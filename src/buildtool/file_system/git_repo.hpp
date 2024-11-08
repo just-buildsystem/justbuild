@@ -17,7 +17,9 @@
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
@@ -27,6 +29,8 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
+#include "src/buildtool/file_system/git_utils.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
 

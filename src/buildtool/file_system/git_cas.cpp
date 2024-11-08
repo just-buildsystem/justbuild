@@ -14,11 +14,10 @@
 
 #include "src/buildtool/file_system/git_cas.hpp"
 
-#include <cstring>
+#include <exception>
 #include <mutex>
-#include <sstream>
 
-#include "gsl/gsl"
+#include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"

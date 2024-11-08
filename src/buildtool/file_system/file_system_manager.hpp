@@ -15,22 +15,6 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 
-#include <array>
-#include <cerrno>  // for errno
-#include <chrono>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>   // for std::fopen
-#include <cstdlib>  // std::exit, std::getenv
-#include <cstring>
-#include <exception>
-#include <filesystem>
-#include <fstream>
-#include <optional>
-#include <system_error>
-#include <unordered_set>
-#include <variant>
-
 #ifdef __unix__
 #include <fcntl.h>
 #include <pwd.h>
@@ -42,6 +26,28 @@
 #error "Non-unix is not supported yet"
 #endif
 
+#include <algorithm>
+#include <array>
+#include <cerrno>  // for errno
+#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>   // for std::fopen
+#include <cstdlib>  // std::exit, std::getenv
+#include <cstring>
+#include <ctime>
+#include <exception>
+#include <filesystem>
+#include <fstream>
+#include <functional>
+#include <optional>
+#include <string>
+#include <system_error>
+#include <unordered_set>
+#include <utility>
+#include <variant>
+
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

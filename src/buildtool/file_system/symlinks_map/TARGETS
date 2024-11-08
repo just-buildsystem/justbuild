@@ -16,8 +16,8 @@
   , "stage": ["src", "buildtool", "file_system", "symlinks_map"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   }
 , "pragma_special":
