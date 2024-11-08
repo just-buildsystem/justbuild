@@ -14,6 +14,7 @@
 
 #include "src/buildtool/crypto/hasher.hpp"
 
+#include <array>
 #include <exception>
 #include <limits>
 #include <string_view>

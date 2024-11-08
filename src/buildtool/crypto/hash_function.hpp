@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_FUNCTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_CRYPTO_HASH_FUNCTION_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <functional>

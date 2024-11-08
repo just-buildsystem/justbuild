@@ -15,7 +15,6 @@
 #include "src/buildtool/crypto/hash_info.hpp"
 
 #include "fmt/core.h"
-#include "gsl/gsl"  // Ensures
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/utils/cpp/hex_string.hpp"

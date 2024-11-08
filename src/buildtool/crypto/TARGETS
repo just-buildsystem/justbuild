@@ -33,7 +33,6 @@
   , "private-deps":
     [ "hasher"
     , ["@", "fmt", "", "fmt"]
-    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/utils/cpp", "hex_string"]
     ]
