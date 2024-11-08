@@ -113,6 +113,19 @@ such that for each computed root, the referenced repository as well as
 all repositories reachable from that one via the `"bindings"` map only
 contain computed roots earlier in that order.
 
+### New root type `"tree structure"`
+
+In the described use case of generated target files, the tree of
+target files only depends on the structure of the workspace root. To
+avoid unnecessary actions, an additional new root type is defined,
+that of a `"tree structure"`. Such a root is given by precisely
+one root. It evaluates to that root but with all files replaced
+by empty files. Obviously, this computation can be done without
+spawning actions and is cachable.
+
+The serve functionality is extended to also answer queries for the
+tree structure of a given tree.
+
 ### Strict evaluation of roots as artifact tree
 
 The building of required computed roots happens in topological order;
@@ -135,7 +148,15 @@ During a build, each computed root is evaluated only once, even if
 required in several places. Two computed roots are considered equal, if
 they are defined in the same way, i.e., repository name, target, and
 configuration agree. The repository or layer using the computed root is
-not part of the root definition.
+not part of the root definition. Similarly, two tree-structure roots
+are equal if the defining roots are equal.
+
+### Evaluation through serve endpoint preferred
+
+When determining the value of a computed root, as for every export
+target, the provided serve endpoint (if any) is consulted first.
+Only if it is not aware of the root, a local evaluation is carried
+out. This strategy is also applied for tree-stucture roots.
 
 ### Computed roots available to the user
 
