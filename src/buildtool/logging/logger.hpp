@@ -17,13 +17,14 @@
 
 #include <algorithm>
 #include <functional>
-#include <memory>
+#include <iterator>
 #include <string>
 #include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"
 #include "src/buildtool/logging/log_config.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
 
 class Logger {

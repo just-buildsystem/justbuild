@@ -15,8 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_FILE_HPP
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_FILE_HPP
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdio>
+#include <ctime>
 #include <filesystem>
 #include <functional>
 #include <iterator>
@@ -27,15 +29,10 @@
 #include <thread>
 #include <unordered_map>
 
-#ifdef __unix__
-#include <sys/time.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include "fmt/chrono.h"
 #include "fmt/core.h"
 #include "gsl/gsl"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

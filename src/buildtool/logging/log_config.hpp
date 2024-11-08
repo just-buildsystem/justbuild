@@ -15,6 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_CONFIG_HPP
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_CONFIG_HPP
 
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <memory>
 #include <mutex>
 #include <utility>  // std::move
 #include <vector>

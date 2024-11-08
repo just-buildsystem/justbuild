@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_CMDLINE_HPP
 #define INCLUDED_SRC_BUILDTOOL_LOGGING_LOG_SINK_CMDLINE_HPP
 
+#include <algorithm>
+#include <cstdio>
 #include <iterator>
 #include <memory>
 #include <mutex>
