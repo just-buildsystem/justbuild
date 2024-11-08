@@ -8,7 +8,6 @@
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]

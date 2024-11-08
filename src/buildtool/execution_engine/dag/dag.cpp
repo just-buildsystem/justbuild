@@ -14,6 +14,10 @@
 
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 
+#include <algorithm>
+#include <filesystem>
+#include <iterator>
+
 auto DependencyGraph::CreateOutputArtifactNodes(
     std::string const& action_id,
     std::vector<std::string> const& file_paths,

@@ -17,9 +17,13 @@
 
 #include <atomic>
 #include <cstddef>
+#include <functional>
+#include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

@@ -4,6 +4,7 @@
   , "hdrs": ["traverser.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

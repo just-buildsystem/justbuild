@@ -15,9 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_DAG_DAG_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_DAG_DAG_HPP
 
-#include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -25,7 +25,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>  // std::move
-#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -33,7 +32,7 @@
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
