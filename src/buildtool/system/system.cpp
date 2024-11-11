@@ -14,15 +14,17 @@
 
 #include "src/buildtool/system/system.hpp"
 
-#include <array>
-#include <cstdlib>
-#include <string>
-
+#ifdef VALGRIND_BUILD
 #ifdef __unix__
 #include <unistd.h>
 #else
 #error "Non-unix is not supported yet"
-#endif
+#endif  // __unix__
+#include <array>
+#include <string>
+#else
+#include <cstdlib>
+#endif  // VALGRIND_BUILD
 
 void System::ExitWithoutCleanup(int exit_code) {
 #ifdef VALGRIND_BUILD
@@ -37,5 +39,5 @@ void System::ExitWithoutCleanup(int exit_code) {
     ::execvpe(args[0], args.data(), nullptr);
 #else
     std::_Exit(exit_code);
-#endif
+#endif  // VALGRIND_BUILD
 }

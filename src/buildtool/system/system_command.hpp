@@ -15,25 +15,27 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_COMMAND_HPP
 #define INCLUDED_SRC_BUILDTOOL_SYSTEM_SYSTEM_COMMAND_HPP
 
-#include <array>
-#include <cerrno>  // for errno
-#include <cstdio>
-#include <cstring>  // for strerror()
-#include <iostream>
-#include <iterator>
-#include <map>
-#include <optional>
-#include <sstream>
-#include <string>
-#include <utility>  // std::move
-#include <vector>
-
 #ifdef __unix__
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #else
 #error "Non-unix is not supported yet"
 #endif
+
+#include <algorithm>  // for transform
+#include <cerrno>     // for errno
+#include <cstdio>
+#include <cstdlib>  // for EXIT_FAILURE, WEXITSTATUS, WIFEXITED, WIFSIGNALED, WTERMSIG
+#include <cstring>     // for strerror()
+#include <filesystem>  // for path, operator/
+#include <iterator>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>  // std::move
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/file_system/file_system_manager.hpp"
