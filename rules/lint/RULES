@@ -44,6 +44,7 @@
     [ "Run a given linter on the lint information provided by the given targets."
     ]
   , "target_fields": ["linter", "config", "summarizer", "targets"]
+  , "string_fields": ["name"]
   , "tainted": ["lint"]
   , "field_doc":
     { "linter":
@@ -87,6 +88,10 @@
       ]
     , "call_lint": ["Launcher for the linter"]
     , "call_summary": ["Launcher for the summarizer"]
+    , "name":
+      [ "Name of the kind of lint check performed, to be reported"
+      , "when an action is failing."
+      ]
     }
   , "implicit":
     { "defaults": ["defaults"]
@@ -128,6 +133,7 @@
           , "$1": {"type": "CALL_EXPRESSION", "name": "default-PATH"}
           }
         ]
+      , ["name", {"type": "join", "$1": {"type": "FIELD", "name": "name"}}]
       , [ "lint results"
         , { "type": "foreach"
           , "range": {"type": "FIELD", "name": "lint"}
@@ -203,7 +209,12 @@
                 , "may_fail": ["lint"]
                 , "fail_message":
                   { "type": "join"
-                  , "$1": ["lint failed for ", {"type": "var", "name": "src"}]
+                  , "$1":
+                    [ "lint "
+                    , {"type": "var", "name": "name"}
+                    , " failed for "
+                    , {"type": "var", "name": "src"}
+                    ]
                   }
                 }
               }
