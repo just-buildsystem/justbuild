@@ -15,11 +15,14 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
 #include <algorithm>
-#include <cstddef>
+#include <iterator>
+#include <unordered_map>
+#include <utility>
 
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/transformed_range.hpp"
 
 BazelNetwork::BazelNetwork(
     std::string instance_name,

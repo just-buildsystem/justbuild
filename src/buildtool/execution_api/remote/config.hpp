@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_CONFIG_HPP
 
 #include <filesystem>
-#include <map>
 #include <optional>
 #include <string>
 #include <utility>

@@ -15,16 +15,20 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <mutex>
 #include <shared_mutex>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 
-#include "grpcpp/grpcpp.h"
-#include "src/buildtool/common/artifact_digest.hpp"
+#include <grpcpp/grpcpp.h>
+
+#include "google/protobuf/message.h"
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
@@ -33,6 +37,7 @@
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/utils/cpp/transformed_range.hpp"
 
 namespace {
 

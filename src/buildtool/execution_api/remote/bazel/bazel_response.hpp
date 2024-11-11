@@ -15,18 +15,22 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP
 
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <utility>  // std::move
-#include <vector>
+
+#include <grpcpp/support/status.h>
 
 #include "gsl/gsl"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 #include "src/utils/cpp/expected.hpp"
-
-class BazelAction;
 
 /// \brief Bazel implementation of the abstract Execution Response.
 /// Access Bazel execution output data and obtain a Bazel Artifact.

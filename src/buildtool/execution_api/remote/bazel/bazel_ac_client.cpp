@@ -14,6 +14,11 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 
+#include <algorithm>
+
+#include <grpcpp/grpcpp.h>
+
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"

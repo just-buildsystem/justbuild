@@ -16,12 +16,12 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 
 #include <cstddef>
-#include <filesystem>
 #include <functional>
 #include <iterator>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "gsl/gsl"

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_ACTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_ACTION_HPP
 
+#include <chrono>
 #include <map>
 #include <memory>
 #include <optional>
@@ -23,10 +24,11 @@
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
+#include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
-
-class BazelApi;
+#include "src/buildtool/logging/logger.hpp"
 
 /// \brief Bazel implementation of the abstract Execution Action.
 /// Uploads all dependencies, creates a Bazel Action and executes it.

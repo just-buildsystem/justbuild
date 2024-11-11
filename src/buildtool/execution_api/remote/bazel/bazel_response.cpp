@@ -14,21 +14,32 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
+#include <algorithm>
 #include <cstddef>
+#include <exception>
+#include <filesystem>
 #include <functional>
+#include <iterator>
+#include <vector>
 
 #include "fmt/core.h"
+#include "google/protobuf/repeated_ptr_field.h"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
-#include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 

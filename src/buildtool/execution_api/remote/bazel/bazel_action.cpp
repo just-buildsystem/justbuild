@@ -14,11 +14,19 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
 
+#include <algorithm>
+#include <compare>
+#include <functional>
+#include <unordered_map>
 #include <utility>  // std::move
 
+#include <grpcpp/support/status.h>
+
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/logging/log_level.hpp"

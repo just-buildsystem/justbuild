@@ -32,7 +32,6 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "bytestream_utils"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -45,6 +44,7 @@
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
     , ["@", "googleapis", "", "google_bytestream_proto"]
     , ["@", "googleapis", "", "google_longrunning_operations_proto"]
+    , ["@", "googleapis", "", "google_rpc_status_proto"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
@@ -55,13 +55,16 @@
     , ["src/buildtool/common", "bazel_digest_factory"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "retry"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common_api"]
+    , ["src/buildtool/execution_api/common", "content_blob_container"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "transformed_range"]
     ]
   }
 , "bazel":
@@ -78,8 +81,8 @@
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
-    , ["src/buildtool/execution_api/common", "blob_tree"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_engine/dag", "dag"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
@@ -88,15 +91,17 @@
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common_api"]
+    , ["src/buildtool/execution_api/common", "content_blob_container"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/storage", "fs_utils"]
+    , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "transformed_range"]
     ]
   }
 , "config":
@@ -113,8 +118,6 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
     ]
   }
 , "context":

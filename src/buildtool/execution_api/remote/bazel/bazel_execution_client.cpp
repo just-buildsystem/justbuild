@@ -16,9 +16,12 @@
 
 #include <utility>  // std::move
 
+#include <grpcpp/grpcpp.h>
+
 #include "fmt/core.h"
+#include "google/protobuf/any.pb.h"
 #include "google/protobuf/text_format.h"
-#include "grpcpp/grpcpp.h"
+#include "google/rpc/status.pb.h"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/logging/log_level.hpp"
