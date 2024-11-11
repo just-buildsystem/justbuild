@@ -14,6 +14,8 @@
 
 #include "src/buildtool/multithreading/task_system.hpp"
 
+#include <optional>
+
 #include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"
 

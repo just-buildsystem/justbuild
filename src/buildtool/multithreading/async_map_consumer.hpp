@@ -15,12 +15,14 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_CONSUMER_HPP
 #define INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_CONSUMER_HPP
 
-#include <atomic>
-#include <condition_variable>
 #include <cstddef>
 #include <functional>
+#include <iterator>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <shared_mutex>
+#include <string>
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
@@ -29,8 +31,6 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/multithreading/async_map.hpp"
-#include "src/buildtool/multithreading/async_map_node.hpp"
-#include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
 using AsyncMapConsumerLogger = std::function<void(std::string const&, bool)>;

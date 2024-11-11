@@ -17,7 +17,7 @@
 
 #include <atomic>
 #include <functional>
-#include <optional>
+#include <memory>
 
 #include "src/utils/cpp/atomic.hpp"
 

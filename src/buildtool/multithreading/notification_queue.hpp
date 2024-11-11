@@ -19,6 +19,7 @@
 #include <condition_variable>
 #include <cstddef>
 #include <deque>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <shared_mutex>
@@ -26,7 +27,8 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"
-#include "src/utils/cpp/atomic.hpp"
+// TODO(modernize): Remove pragma once underlying issue is solved
+#include "src/utils/cpp/atomic.hpp"  // IWYU pragma: keep
 
 // Counter that can block the caller until it reaches zero.
 class WaitableZeroCounter {
@@ -59,7 +61,7 @@ class WaitableZeroCounter {
     std::shared_mutex mutex_;
     std::condition_variable_any cv_;
     std::atomic<std::size_t> count_;
-    std::atomic<bool> done_;
+    std::atomic<bool> done_ = false;
 
     [[nodiscard]] auto IsZero() noexcept -> bool {
         return count_ == 0 or done_;

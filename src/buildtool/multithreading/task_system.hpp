@@ -76,7 +76,7 @@ class TaskSystem {
     std::vector<std::thread> threads_;
     std::vector<NotificationQueue> queues_;
     std::atomic<std::size_t> index_{0};
-    std::atomic<bool> shutdown_;
+    std::atomic<bool> shutdown_ = false;
     WaitableZeroCounter total_workload_;
 
     static constexpr std::size_t kNumberOfAttempts = 5;

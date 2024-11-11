@@ -15,18 +15,20 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_HPP
 #define INCLUDED_SRC_BUILDTOOL_MULTITHREADING_ASYNC_MAP_HPP
 
+#include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <mutex>  // unique_lock
 #include <shared_mutex>
 #include <thread>
+#include <tuple>
 #include <unordered_map>
 #include <utility>  // std::make_pair to use std::unordered_map's emplace()
 #include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/multithreading/async_map_node.hpp"
-#include "src/buildtool/multithreading/task.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
 // Wrapper around map data structure for KeyT->AsyncMapNode<ValueT> that only

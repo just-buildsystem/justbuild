@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_MULTITHREADING_TASK_HPP
 
 #include <functional>
-#include <type_traits>
 #include <utility>  // std::move
 
 class Task {

@@ -19,6 +19,7 @@
 #include <mutex>
 #include <optional>
 #include <utility>  // std::move
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/multithreading/task.hpp"

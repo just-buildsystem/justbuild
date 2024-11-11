@@ -34,20 +34,14 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["async_map"]
   , "hdrs": ["async_map.hpp"]
-  , "deps": ["async_map_node", "task", "task_system", ["@", "gsl", "", "gsl"]]
+  , "deps": ["async_map_node", "task_system", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "async_map_consumer":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["async_map_consumer"]
   , "hdrs": ["async_map_consumer.hpp"]
-  , "deps":
-    [ "async_map"
-    , "async_map_node"
-    , "task"
-    , "task_system"
-    , ["@", "gsl", "", "gsl"]
-    ]
+  , "deps": ["async_map", "task_system", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "multithreading"]
   }
 , "atomic_value":
