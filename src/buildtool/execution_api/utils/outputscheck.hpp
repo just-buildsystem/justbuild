@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/bazel_types.hpp"
 
 [[nodiscard]] static inline auto ActionResultContainsExpectedOutputs(

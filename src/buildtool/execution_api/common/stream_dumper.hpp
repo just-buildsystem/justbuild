@@ -22,7 +22,6 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 

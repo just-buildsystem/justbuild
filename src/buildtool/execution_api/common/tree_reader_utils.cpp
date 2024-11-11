@@ -15,9 +15,11 @@
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
 
 #include <exception>
-#include <type_traits>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
+#include "google/protobuf/repeated_ptr_field.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -25,7 +27,9 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 [[nodiscard]] auto CreateObjectInfo(HashFunction hash_function,

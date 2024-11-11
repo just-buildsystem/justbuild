@@ -18,10 +18,11 @@
 #include <chrono>
 #include <filesystem>
 #include <functional>
-#include <memory>
+#include <iterator>
+#include <map>
 #include <optional>
 #include <string>
-#include <utility>
+#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -32,7 +33,6 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
-#include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

@@ -14,6 +14,8 @@
 
 #include "directory_tree.hpp"
 
+#include <utility>
+
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"

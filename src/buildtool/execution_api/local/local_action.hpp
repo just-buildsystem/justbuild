@@ -15,26 +15,31 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_ACTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_ACTION_HPP
 
+#include <algorithm>
 #include <chrono>
+#include <compare>
+#include <filesystem>
+#include <functional>  // IWYU pragma: keep
 #include <map>
-#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
+#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
-
-class LocalApi;
 
 /// \brief Action for local execution.
 class LocalAction final : public IExecutionAction {

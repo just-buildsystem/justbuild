@@ -20,7 +20,6 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"

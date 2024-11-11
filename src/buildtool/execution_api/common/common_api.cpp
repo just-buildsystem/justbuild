@@ -14,10 +14,22 @@
 
 #include "src/buildtool/execution_api/common/common_api.hpp"
 
+#ifdef __unix__
+#include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
+
 #include <cstddef>
 #include <exception>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
 
 #include "fmt/core.h"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 auto CommonRetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,

@@ -14,6 +14,9 @@
 
 #include "src/buildtool/execution_api/common/blob_tree.hpp"
 
+#include <functional>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 
@@ -23,6 +26,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,

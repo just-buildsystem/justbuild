@@ -15,13 +15,19 @@
 #include "src/buildtool/execution_api/utils/subobject.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
 
+#include <functional>
+#include <memory>
 #include <utility>
 
+#include "gsl/gsl"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

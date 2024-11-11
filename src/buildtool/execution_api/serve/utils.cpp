@@ -20,6 +20,7 @@
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 

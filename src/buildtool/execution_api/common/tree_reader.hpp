@@ -16,16 +16,15 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_TREE_READER_HPP
 
 #include <filesystem>
-#include <functional>
 #include <optional>
 #include <utility>
 #include <vector>
 
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
 struct ReadTreeResult final {

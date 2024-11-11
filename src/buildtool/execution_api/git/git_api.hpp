@@ -17,22 +17,34 @@
 
 #include <cstddef>
 #include <cstdio>
+#include <filesystem>
+#include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
+#include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_tree.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 /// \brief API for local execution.
 class GitApi final : public IExecutionApi {

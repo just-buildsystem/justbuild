@@ -15,10 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_API_BUNDLE_HPP
 
-#include <memory>
 #include <optional>
 
 #include "gsl/gsl"
+#include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"

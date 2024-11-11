@@ -20,9 +20,7 @@
 #include <functional>
 #include <iterator>
 #include <optional>
-#include <type_traits>
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 #include "gsl/gsl"

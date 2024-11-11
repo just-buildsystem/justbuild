@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_DIRECTORY_TREE_HPP
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>

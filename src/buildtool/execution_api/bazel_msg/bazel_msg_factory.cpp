@@ -15,18 +15,22 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 
 #include <algorithm>
+#include <compare>
 #include <exception>
 #include <filesystem>
 #include <functional>
 #include <memory>
 #include <optional>
-#include <sstream>
 #include <string>
+#include <unordered_map>
 #include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"
+#include "google/protobuf/duration.pb.h"
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/utils/cpp/hex_string.hpp"

@@ -23,7 +23,6 @@
 #include <string>
 #include <vector>
 
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"

@@ -14,9 +14,14 @@
 
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 
+#include <memory>
+#include <utility>
+
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/storage/config.hpp"
 
 /// \note Some logic from MakeRemote is duplicated here as that method cannot
 /// be used without the hash_function field being set prior to the call.

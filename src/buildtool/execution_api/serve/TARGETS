@@ -12,6 +12,7 @@
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/storage", "fs_utils"]
     ]
@@ -25,7 +26,6 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
@@ -51,7 +51,6 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
@@ -65,6 +64,8 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     ]
   }

@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 
 #include <utility>
+#include <variant>
 
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"

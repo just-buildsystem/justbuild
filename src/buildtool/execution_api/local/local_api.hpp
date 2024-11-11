@@ -15,8 +15,11 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_API_HPP
 
+#include <algorithm>
 #include <cstddef>
-#include <iterator>
+#include <cstdio>
+#include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <new>  // std::nothrow
@@ -25,20 +28,21 @@
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
-#include <variant>
 #include <vector>
 
-#include "fmt/core.h"
-#include "grpcpp/support/status.h"
+#include <grpcpp/support/status.h>
+
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
-#include "src/buildtool/execution_api/common/blob_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
+#include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/stream_dumper.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
@@ -47,9 +51,15 @@
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
+#include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/transformed_range.hpp"
 
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {

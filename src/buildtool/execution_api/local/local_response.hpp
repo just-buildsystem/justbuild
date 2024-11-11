@@ -16,13 +16,20 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 
 #include <cstddef>
+#include <exception>
+#include <filesystem>
+#include <functional>
 #include <optional>
 #include <string>
 #include <utility>
 
 #include "fmt/core.h"
+#include "google/protobuf/repeated_ptr_field.h"
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
@@ -30,6 +37,7 @@
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/storage.hpp"

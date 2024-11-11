@@ -16,21 +16,30 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <filesystem>
+#include <iterator>
+#include <memory>
 #include <string>
 #include <system_error>
 #include <utility>
 
+#include "google/protobuf/repeated_ptr_field.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/system/system_command.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace {

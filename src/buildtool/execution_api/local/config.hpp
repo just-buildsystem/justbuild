@@ -22,9 +22,6 @@
 #include <vector>
 
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 /// \brief Store local execution configuration.

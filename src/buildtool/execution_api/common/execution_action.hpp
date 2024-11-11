@@ -19,11 +19,8 @@
 #include <cstdint>
 #include <memory>
 
-#include "gsl/gsl"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
-
-class Logger;
-class ExecutionArtifactContainer;
+#include "src/buildtool/logging/logger.hpp"
 
 /// \brief Abstract action.
 /// Can execute multiple commands. Commands are executed in arbitrary order and

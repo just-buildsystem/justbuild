@@ -13,10 +13,11 @@
   , "srcs": ["tree_reader_utils.cpp"]
   , "deps":
     [ "artifact_blob_container"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/file_system", "git_repo"]
@@ -30,6 +31,7 @@
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/utils/cpp", "path"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
@@ -51,7 +53,10 @@
   , "deps":
     [ "common"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "context"]
@@ -60,6 +65,8 @@
     [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
+    , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/storage", "config"]
     ]
   }
 , "message_limits":
@@ -87,7 +94,11 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
-  , "private-deps": [["@", "fmt", "", "fmt"]]
+  , "private-deps":
+    [ "artifact_blob_container"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "object_type"]
+    ]
   }
 , "blob_tree":
   { "type": ["@", "rules", "CC", "library"]
@@ -105,6 +116,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "hex_string"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]

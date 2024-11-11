@@ -14,9 +14,8 @@
 
 #include "src/buildtool/execution_api/serve/mr_local_api.hpp"
 
-#include <cstddef>
-#include <memory>
 #include <utility>
+#include <variant>
 
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -24,6 +23,8 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 MRLocalApi::MRLocalApi(

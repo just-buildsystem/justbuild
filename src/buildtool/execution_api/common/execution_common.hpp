@@ -24,6 +24,8 @@
 
 #include <array>
 #include <cstddef>
+#include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <optional>
 #include <random>
@@ -31,6 +33,7 @@
 #include <string>
 #include <thread>
 
+#include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/logging/log_level.hpp"
