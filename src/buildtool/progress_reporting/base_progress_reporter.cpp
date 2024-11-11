@@ -17,6 +17,7 @@
 #include <chrono>
 #include <exception>
 #include <mutex>
+#include <type_traits>
 #include <utility>
 
 #include "src/buildtool/logging/log_level.hpp"

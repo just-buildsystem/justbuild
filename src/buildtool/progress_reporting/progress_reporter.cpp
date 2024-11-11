@@ -14,10 +14,17 @@
 
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 
+#include <functional>
 #include <string>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
+#include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 
 auto ProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
                                 gsl::not_null<Progress*> const& progress,

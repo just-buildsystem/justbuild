@@ -14,11 +14,12 @@
 
 #include "src/buildtool/progress_reporting/exports_progress_reporter.hpp"
 
+#include <functional>
 #include <string>
 
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 
 auto ExportsProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
                                        gsl::not_null<Progress*> const& progress,

@@ -32,7 +32,12 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/logging", "log_level"]]
+    [ "task_tracker"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/logging", "log_level"]
+    ]
   }
 , "base_progress_reporter":
   { "type": ["@", "rules", "CC", "library"]
@@ -59,8 +64,8 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
-    , ["@", "json", "", "json"]
+    [ "task_tracker"
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/logging", "log_level"]
     ]
   }
