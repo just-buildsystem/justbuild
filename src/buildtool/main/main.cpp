@@ -1045,7 +1045,7 @@ auto main(int argc, char* argv[]) -> int {
                                 "together.",
                                 "--git-cas",
                                 "--compatible");
-                    std::exit(EXIT_FAILURE);
+                    return kExitFailure;
                 }
                 if (not repo_config.SetGitCAS(*arguments.graph.git_cas)) {
                     Logger::Log(LogLevel::Warning,
@@ -1057,8 +1057,9 @@ auto main(int argc, char* argv[]) -> int {
                                         arguments.graph.artifacts)) {
                 return kExitSuccess;
             }
+            return kExitFailure;
         }
-        else if (arguments.cmd == SubCommand::kDescribe) {
+        if (arguments.cmd == SubCommand::kDescribe) {
             if (auto id = DetermineNonExplicitTarget(main_repo,
                                                      main_ws_root,
                                                      &repo_config,
@@ -1079,156 +1080,148 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
-        else {
 #endif  // BOOTSTRAP_BUILD_TOOL
-            BuildMaps::Target::ResultTargetMap result_map{
-                arguments.common.jobs};
-            auto id = ReadConfiguredTarget(
-                main_repo, main_ws_root, &repo_config, arguments.analysis);
-            auto serve_errors = nlohmann::json::array();
-            std::mutex serve_errors_access{};
-            BuildMaps::Target::ServeFailureLogReporter collect_serve_errors =
-                [&serve_errors, &serve_errors_access](auto target, auto blob) {
-                    std::unique_lock lock(serve_errors_access);
-                    auto target_desc = nlohmann::json::array();
-                    target_desc.push_back(target.target.ToJson());
-                    target_desc.push_back(target.config.ToJson());
-                    auto entry = nlohmann::json::array();
-                    entry.push_back(target_desc);
-                    entry.push_back(blob);
-                    serve_errors.push_back(entry);
-                };
+        BuildMaps::Target::ResultTargetMap result_map{arguments.common.jobs};
+        auto id = ReadConfiguredTarget(
+            main_repo, main_ws_root, &repo_config, arguments.analysis);
+        auto serve_errors = nlohmann::json::array();
+        std::mutex serve_errors_access{};
+        BuildMaps::Target::ServeFailureLogReporter collect_serve_errors =
+            [&serve_errors, &serve_errors_access](auto target, auto blob) {
+                std::unique_lock lock(serve_errors_access);
+                auto target_desc = nlohmann::json::array();
+                target_desc.push_back(target.target.ToJson());
+                target_desc.push_back(target.config.ToJson());
+                auto entry = nlohmann::json::array();
+                entry.push_back(target_desc);
+                entry.push_back(blob);
+                serve_errors.push_back(entry);
+            };
 
-            // create progress tracker for export targets
-            Progress exports_progress{};
-            AnalyseContext analyse_ctx{.repo_config = &repo_config,
-                                       .storage = &storage,
-                                       .statistics = &stats,
-                                       .progress = &exports_progress,
-                                       .serve = serve ? &*serve : nullptr};
+        // create progress tracker for export targets
+        Progress exports_progress{};
+        AnalyseContext analyse_ctx{.repo_config = &repo_config,
+                                   .storage = &storage,
+                                   .statistics = &stats,
+                                   .progress = &exports_progress,
+                                   .serve = serve ? &*serve : nullptr};
 
-            auto result = AnalyseTarget(&analyse_ctx,
-                                        id,
-                                        &result_map,
-                                        arguments.common.jobs,
-                                        arguments.analysis.request_action_input,
-                                        /*logger=*/nullptr,
-                                        &collect_serve_errors);
-            if (arguments.analysis.serve_errors_file) {
+        auto result = AnalyseTarget(&analyse_ctx,
+                                    id,
+                                    &result_map,
+                                    arguments.common.jobs,
+                                    arguments.analysis.request_action_input,
+                                    /*logger=*/nullptr,
+                                    &collect_serve_errors);
+        if (arguments.analysis.serve_errors_file) {
+            Logger::Log(serve_errors.empty() ? LogLevel::Debug : LogLevel::Info,
+                        "Dumping serve-error information to {}",
+                        arguments.analysis.serve_errors_file->string());
+            std::ofstream os(*arguments.analysis.serve_errors_file);
+            os << serve_errors.dump() << std::endl;
+        }
+        if (result) {
+            Logger::Log(
+                LogLevel::Info,
+                "Analysed target {}",
+                result->id.ToShortString(Evaluator::GetExpressionLogLimit()));
+
+            {
+                auto cached = stats.ExportsCachedCounter();
+                auto served = stats.ExportsServedCounter();
+                auto uncached = stats.ExportsUncachedCounter();
+                auto not_eligible = stats.ExportsNotEligibleCounter();
                 Logger::Log(
-                    serve_errors.empty() ? LogLevel::Debug : LogLevel::Info,
-                    "Dumping serve-error information to {}",
-                    arguments.analysis.serve_errors_file->string());
-                std::ofstream os(*arguments.analysis.serve_errors_file);
-                os << serve_errors.dump() << std::endl;
+                    served + cached + uncached + not_eligible > 0
+                        ? LogLevel::Info
+                        : LogLevel::Debug,
+                    "Export targets found: {} cached, {}{} uncached, "
+                    "{} not eligible for caching",
+                    cached,
+                    served > 0 ? fmt::format("{} served, ", served) : "",
+                    uncached,
+                    not_eligible);
             }
-            if (result) {
-                Logger::Log(LogLevel::Info,
-                            "Analysed target {}",
-                            result->id.ToShortString(
-                                Evaluator::GetExpressionLogLimit()));
 
-                {
-                    auto cached = stats.ExportsCachedCounter();
-                    auto served = stats.ExportsServedCounter();
-                    auto uncached = stats.ExportsUncachedCounter();
-                    auto not_eligible = stats.ExportsNotEligibleCounter();
-                    Logger::Log(
-                        served + cached + uncached + not_eligible > 0
-                            ? LogLevel::Info
-                            : LogLevel::Debug,
-                        "Export targets found: {} cached, {}{} uncached, "
-                        "{} not eligible for caching",
-                        cached,
-                        served > 0 ? fmt::format("{} served, ", served) : "",
-                        uncached,
-                        not_eligible);
-                }
-
-                if (arguments.analysis.graph_file) {
-                    result_map.ToFile(
-                        *arguments.analysis.graph_file, &stats, &progress);
-                }
-                if (arguments.analysis.graph_file_plain) {
-                    result_map.ToFile</*kIncludeOrigins=*/false>(
-                        *arguments.analysis.graph_file_plain,
-                        &stats,
-                        &progress);
-                }
-                auto const [artifacts, runfiles] =
-                    ReadOutputArtifacts(result->target);
-                if (arguments.analysis.artifacts_to_build_file) {
-                    DumpArtifactsToBuild(
-                        artifacts,
-                        runfiles,
-                        *arguments.analysis.artifacts_to_build_file);
-                }
-                if (arguments.cmd == SubCommand::kAnalyse) {
-                    DiagnoseResults(*result, result_map, arguments.diagnose);
-                    ReportTaintedness(*result);
-                    // Clean up in parallel
-                    {
-                        TaskSystem ts{arguments.common.jobs};
-                        result_map.Clear(&ts);
-                    }
-                    return kExitSuccess;
-                }
-#ifndef BOOTSTRAP_BUILD_TOOL
+            if (arguments.analysis.graph_file) {
+                result_map.ToFile(
+                    *arguments.analysis.graph_file, &stats, &progress);
+            }
+            if (arguments.analysis.graph_file_plain) {
+                result_map.ToFile</*kIncludeOrigins=*/false>(
+                    *arguments.analysis.graph_file_plain, &stats, &progress);
+            }
+            auto const [artifacts, runfiles] =
+                ReadOutputArtifacts(result->target);
+            if (arguments.analysis.artifacts_to_build_file) {
+                DumpArtifactsToBuild(
+                    artifacts,
+                    runfiles,
+                    *arguments.analysis.artifacts_to_build_file);
+            }
+            if (arguments.cmd == SubCommand::kAnalyse) {
+                DiagnoseResults(*result, result_map, arguments.diagnose);
                 ReportTaintedness(*result);
-                auto const& [actions, blobs, trees] =
-                    result_map.ToResult(&stats, &progress);
-
-                // collect cache targets and artifacts for target-level caching
-                auto const cache_targets = result_map.CacheTargets();
-                auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
-
-                // Clean up result map, now that it is no longer needed
+                // Clean up in parallel
                 {
                     TaskSystem ts{arguments.common.jobs};
                     result_map.Clear(&ts);
                 }
+                return kExitSuccess;
+            }
+#ifndef BOOTSTRAP_BUILD_TOOL
+            ReportTaintedness(*result);
+            auto const& [actions, blobs, trees] =
+                result_map.ToResult(&stats, &progress);
 
-                Logger::Log(
-                    LogLevel::Info,
-                    "{}ing{} {}.",
-                    arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
-                    result->modified ? fmt::format(" input of action {} of",
-                                                   *(result->modified))
-                                     : "",
-                    result->id.ToShortString(
-                        Evaluator::GetExpressionLogLimit()));
+            // collect cache targets and artifacts for target-level caching
+            auto const cache_targets = result_map.CacheTargets();
+            auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
 
-                auto build_result =
-                    traverser.BuildAndStage(artifacts,
-                                            runfiles,
-                                            actions,
-                                            blobs,
-                                            trees,
-                                            std::move(cache_artifacts));
-                if (build_result) {
-                    WriteTargetCacheEntries(
-                        cache_targets,
-                        build_result->extra_infos,
-                        jobs,
-                        main_apis,
-                        arguments.tc.target_cache_write_strategy,
-                        storage.TargetCache(),
-                        nullptr,
-                        arguments.serve.remote_serve_address
-                            ? LogLevel::Performance
-                            : LogLevel::Warning);
+            // Clean up result map, now that it is no longer needed
+            {
+                TaskSystem ts{arguments.common.jobs};
+                result_map.Clear(&ts);
+            }
 
-                    // Repeat taintedness message to make the user aware that
-                    // the artifacts are not for production use.
-                    ReportTaintedness(*result);
-                    if (build_result->failed_artifacts) {
-                        Logger::Log(LogLevel::Warning,
-                                    "Build result contains failed artifacts.");
-                    }
-                    return build_result->failed_artifacts
-                               ? kExitSuccessFailedArtifacts
-                               : kExitSuccess;
+            Logger::Log(
+                LogLevel::Info,
+                "{}ing{} {}.",
+                arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
+                result->modified
+                    ? fmt::format(" input of action {} of", *(result->modified))
+                    : "",
+                result->id.ToShortString(Evaluator::GetExpressionLogLimit()));
+
+            auto build_result =
+                traverser.BuildAndStage(artifacts,
+                                        runfiles,
+                                        actions,
+                                        blobs,
+                                        trees,
+                                        std::move(cache_artifacts));
+            if (build_result) {
+                WriteTargetCacheEntries(
+                    cache_targets,
+                    build_result->extra_infos,
+                    jobs,
+                    main_apis,
+                    arguments.tc.target_cache_write_strategy,
+                    storage.TargetCache(),
+                    nullptr,
+                    arguments.serve.remote_serve_address ? LogLevel::Performance
+                                                         : LogLevel::Warning);
+
+                // Repeat taintedness message to make the user aware that
+                // the artifacts are not for production use.
+                ReportTaintedness(*result);
+                if (build_result->failed_artifacts) {
+                    Logger::Log(LogLevel::Warning,
+                                "Build result contains failed artifacts.");
                 }
+                return build_result->failed_artifacts
+                           ? kExitSuccessFailedArtifacts
+                           : kExitSuccess;
             }
 #endif  // BOOTSTRAP_BUILD_TOOL
         }
