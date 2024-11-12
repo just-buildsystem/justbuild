@@ -1,0 +1,13 @@
+{ "basic":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["basic"]
+  , "test": ["basic.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/base/TARGETS", "out/derived/out", "out/other-derived/out"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["computed-roots"]
+  , "deps": ["basic"]
+  }
+}

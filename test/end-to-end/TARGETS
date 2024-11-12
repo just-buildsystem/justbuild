@@ -61,6 +61,7 @@
     , ["./", "build-fails", "TESTS"]
     , ["./", "built-in-rules", "TESTS"]
     , ["./", "cli", "TESTS"]
+    , ["./", "computed-roots", "TESTS"]
     , ["./", "execution-service", "TESTS"]
     , ["./", "gc", "TESTS"]
     , ["./", "generated-binary", "TESTS"]
