@@ -15,6 +15,7 @@
 #include "src/buildtool/storage/backend_description.hpp"
 
 #include <exception>
+#include <map>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"

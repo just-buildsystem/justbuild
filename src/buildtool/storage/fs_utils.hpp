@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_FS_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_FS_UTILS_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <string>

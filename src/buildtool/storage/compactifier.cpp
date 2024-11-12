@@ -17,13 +17,11 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
-#include <functional>
 #include <optional>
-#include <vector>
+#include <string>
+#include <utility>
 
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
@@ -32,7 +30,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/compactification_task.hpp"
-#include "src/buildtool/storage/local_cas.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {

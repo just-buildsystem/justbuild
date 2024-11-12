@@ -16,9 +16,8 @@
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_GARBAGE_COLLECTOR_HPP
 
 #include <cstddef>
-#include <functional>
+#include <filesystem>
 #include <optional>
-#include <string>
 
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/file_locking.hpp"

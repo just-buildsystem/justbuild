@@ -14,15 +14,20 @@
 
 #include "src/buildtool/storage/fs_utils.hpp"
 
+#include <functional>
+#include <memory>
 #include <tuple>  //std::ignore
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace StorageUtils {
 

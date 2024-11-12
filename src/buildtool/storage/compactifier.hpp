@@ -17,8 +17,7 @@
 
 #include <cstddef>
 
-template <bool>
-class LocalCAS;
+#include "src/buildtool/storage/local_cas.hpp"
 
 class Compactifier final {
   public:

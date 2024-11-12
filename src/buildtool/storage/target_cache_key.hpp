@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
 
+#include <cstddef>
+#include <functional>
 #include <utility>
 
 #include "src/buildtool/common/artifact.hpp"

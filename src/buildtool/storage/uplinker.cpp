@@ -20,11 +20,9 @@
 #include <cstddef>
 
 #include "src/buildtool/file_system/object_type.hpp"
-#include "src/buildtool/storage/local_ac.hpp"
-#include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
-#include "src/buildtool/storage/target_cache_entry.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 
 namespace {
 [[nodiscard]] auto CreateGenerations(
@@ -44,6 +42,8 @@ GlobalUplinker::GlobalUplinker(
     gsl::not_null<StorageConfig const*> const& storage_config) noexcept
     : storage_config_{*storage_config},
       generations_{CreateGenerations(&storage_config_)} {}
+
+GlobalUplinker::~GlobalUplinker() = default;
 
 auto GlobalUplinker::UplinkBlob(ArtifactDigest const& digest,
                                 bool is_executable) const noexcept -> bool {

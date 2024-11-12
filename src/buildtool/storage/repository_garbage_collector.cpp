@@ -14,6 +14,9 @@
 
 #include "src/buildtool/storage/repository_garbage_collector.hpp"
 
+#include <cstddef>
+#include <string>
+
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"

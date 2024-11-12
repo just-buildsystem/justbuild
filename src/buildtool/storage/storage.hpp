@@ -19,13 +19,13 @@
 #include <memory>
 
 #include "gsl/gsl"
-#include "src/buildtool/common/artifact.hpp"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/local_ac.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache.hpp"
 #include "src/buildtool/storage/uplinker.hpp"
+#include "src/utils/cpp/gsl.hpp"
 
 /// \brief The local storage for accessing CAS and caches.
 /// Maintains an instance of LocalCAS, LocalAC, TargetCache. Supports global

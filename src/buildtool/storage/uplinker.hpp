@@ -25,7 +25,7 @@
 #include "src/buildtool/storage/config.hpp"
 
 template <bool>
-class LocalStorage;
+class LocalStorage;  // IWYU pragma: keep
 class TargetCacheKey;
 
 /// \brief Global uplinker implementation.
@@ -35,6 +35,11 @@ class GlobalUplinker final {
   public:
     explicit GlobalUplinker(
         gsl::not_null<StorageConfig const*> const& storage_config) noexcept;
+    GlobalUplinker(GlobalUplinker const&) = default;
+    GlobalUplinker(GlobalUplinker&&) noexcept = default;
+    auto operator=(GlobalUplinker const&) = delete;
+    auto operator=(GlobalUplinker&&) noexcept = delete;
+    ~GlobalUplinker();
 
     /// \brief Uplink blob across LocalCASes from all generations to latest.
     /// Note that blobs will NOT be synced between file/executable CAS.

@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <optional>
 #include <string>
+#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
@@ -25,10 +26,10 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_cas.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/large_object_cas.hpp"
+#include "src/buildtool/storage/large_object_cas.hpp"  // IWYU pragma: keep
 #include "src/buildtool/storage/uplinker.hpp"
 #include "src/utils/cpp/expected.hpp"
 

@@ -16,18 +16,22 @@
 
 #include "src/buildtool/storage/garbage_collector.hpp"
 
+#include <algorithm>
 #include <array>
 #include <filesystem>
+#include <string>
 #include <vector>
 
-#include "src/buildtool/common/artifact.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/compactifier.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 

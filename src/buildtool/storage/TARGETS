@@ -4,6 +4,7 @@
   , "hdrs": ["config.hpp"]
   , "deps":
     [ "backend_description"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
@@ -12,8 +13,6 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "tmp_dir"]
@@ -76,7 +75,6 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
@@ -86,14 +84,16 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "file_locking"]
+    , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["src/buildtool/crypto", "hasher"]
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path_hash"]
     ]
@@ -112,11 +112,13 @@
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   }
 , "file_chunker":

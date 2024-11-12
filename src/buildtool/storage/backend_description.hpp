@@ -15,10 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_STORAGE_BACKEND_DESCRIPTION_HPP
 #define INCLUDED_SRC_BUILDTOOL_STORAGE_BACKEND_DESCRIPTION_HPP
 
-#include <map>
 #include <optional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "src/buildtool/common/remote/remote_common.hpp"
