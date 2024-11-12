@@ -189,6 +189,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
