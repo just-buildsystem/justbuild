@@ -162,13 +162,4 @@ using ActiveTargetCache = TargetCache<true>;
 // NOLINTNEXTLINE(misc-header-include-cycle)
 #include "src/buildtool/storage/target_cache.tpp"
 
-namespace std {
-template <>
-struct hash<TargetCacheKey> {
-    [[nodiscard]] auto operator()(TargetCacheKey const& k) const {
-        return std::hash<Artifact::ObjectInfo>{}(k.Id());
-    }
-};
-}  // namespace std
-
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_HPP

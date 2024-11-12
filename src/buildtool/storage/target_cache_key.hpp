@@ -38,4 +38,14 @@ class TargetCacheKey {
     Artifact::ObjectInfo id_;
 };
 
+namespace std {
+template <>
+struct hash<TargetCacheKey> {
+    [[nodiscard]] auto operator()(TargetCacheKey const& key) const noexcept
+        -> std::size_t {
+        return std::hash<Artifact::ObjectInfo>{}(key.Id());
+    }
+};
+}  // namespace std
+
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_TARGET_CACHE_KEY_HPP
