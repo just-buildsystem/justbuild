@@ -16,21 +16,28 @@
 
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 
-#include <iostream>
-#include <memory>
-#include <variant>
-
 #ifdef __unix__
-#include <sys/types.h>
+#include <unistd.h>
 #else
 #error "Non-unix is not supported yet"
 #endif
 
+#include <filesystem>
+#include <fstream>
+#include <memory>
+#include <utility>
+#include <variant>
+#include <vector>
+
+#include <grpcpp/grpcpp.h>
+
 #include "fmt/core.h"
-#include "grpcpp/grpcpp.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/execution_service/ac_server.hpp"
 #include "src/buildtool/execution_api/execution_service/bytestream_server.hpp"
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
@@ -42,11 +49,14 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 #include "src/buildtool/serve_api/serve_service/source_tree.hpp"
 #include "src/buildtool/serve_api/serve_service/target.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/type_safe_arithmetic.hpp"
 
 namespace {
 template <typename T>

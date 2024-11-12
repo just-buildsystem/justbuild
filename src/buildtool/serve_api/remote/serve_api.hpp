@@ -23,11 +23,10 @@ class ServeApi final {};
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/artifact.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
@@ -38,6 +37,8 @@ class ServeApi final {};
 #include "src/buildtool/serve_api/remote/configuration_client.hpp"
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 #include "src/buildtool/serve_api/remote/target_client.hpp"
+#include "src/buildtool/storage/config.hpp"
+#include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 class ServeApi final {

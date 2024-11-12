@@ -17,22 +17,22 @@
 
 #include <filesystem>
 #include <memory>
-#include <mutex>
 #include <optional>
+#include <shared_mutex>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-#include <vector>
+
+#include <grpcpp/grpcpp.h>
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
-#include "src/buildtool/common/remote/remote_common.hpp"
+#include "justbuild/just_serve/just_serve.pb.h"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/git_types.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/logging/logger.hpp"

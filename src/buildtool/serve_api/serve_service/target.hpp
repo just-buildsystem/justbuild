@@ -16,20 +16,18 @@
 #define INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_TARGET_HPP
 
 #include <filesystem>
-#include <map>
 #include <memory>
-#include <optional>
 #include <string>
-#include <utility>
 #include <vector>
+
+#include <grpcpp/grpcpp.h>
 
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
-#include "nlohmann/json.hpp"
+#include "justbuild/just_serve/just_serve.pb.h"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"

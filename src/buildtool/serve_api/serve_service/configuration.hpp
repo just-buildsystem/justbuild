@@ -15,8 +15,11 @@
 #ifndef INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP
 #define INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP
 
+#include <grpcpp/grpcpp.h>
+
 #include "gsl/gsl"
 #include "justbuild/just_serve/just_serve.grpc.pb.h"
+#include "justbuild/just_serve/just_serve.pb.h"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 

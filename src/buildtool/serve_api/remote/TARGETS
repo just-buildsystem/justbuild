@@ -29,7 +29,9 @@
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
-    [ ["src/buildtool/common", "artifact_digest_factory"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/logging", "log_level"]
     ]
@@ -43,15 +45,16 @@
     , "configuration_client"
     , "source_tree_client"
     , "target_client"
-    , ["src/buildtool/auth", "auth"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/file_system", "git_types"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/storage", "config"]
+    , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
@@ -64,7 +67,6 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/remote", "config"]
@@ -76,12 +78,17 @@
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "grpc", "", "grpc++"]
     , ["@", "json", "", "json"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 , "configuration_client":
@@ -99,7 +106,8 @@
   , "proto": [["src/buildtool/serve_api/serve_service", "just_serve_proto"]]
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
-    [ ["@", "json", "", "json"]
+    [ ["@", "grpc", "", "grpc++"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/logging", "log_level"]
     ]

@@ -18,7 +18,12 @@
 
 #include <exception>
 #include <optional>
+#include <string>
+#include <utility>
 
+#include <grpcpp/grpcpp.h>
+
+#include "justbuild/just_serve/just_serve.pb.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/logging/log_level.hpp"

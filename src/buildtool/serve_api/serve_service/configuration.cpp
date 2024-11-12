@@ -16,7 +16,11 @@
 
 #include "src/buildtool/serve_api/serve_service/configuration.hpp"
 
+#include <optional>
+#include <string>
+
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 
 auto ConfigurationService::RemoteExecutionEndpoint(
     ::grpc::ServerContext* /*context*/,

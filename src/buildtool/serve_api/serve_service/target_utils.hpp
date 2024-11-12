@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "gsl/gsl"
-#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"

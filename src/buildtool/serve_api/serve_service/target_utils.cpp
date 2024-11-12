@@ -16,14 +16,15 @@
 
 #include <exception>
 #include <fstream>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
 auto IsTreeInRepo(std::string const& tree_id,

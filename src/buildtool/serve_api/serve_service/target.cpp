@@ -16,7 +16,14 @@
 
 #include "src/buildtool/serve_api/serve_service/target.hpp"
 
+#include <exception>
+#include <functional>
+#include <optional>
+#include <utility>
+
 #include "fmt/core.h"
+#include "google/protobuf/repeated_ptr_field.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
@@ -27,10 +34,12 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -45,9 +54,14 @@
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 #include "src/buildtool/serve_api/serve_service/target_utils.hpp"
 #include "src/buildtool/storage/backend_description.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/repository_garbage_collector.hpp"
+#include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/storage/target_cache.hpp"
+#include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 auto TargetService::GetDispatchList(
     ArtifactDigest const& dispatch_digest) noexcept
