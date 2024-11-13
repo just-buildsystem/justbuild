@@ -14,12 +14,16 @@
 
 #include "src/other_tools/ops_maps/archive_fetch_map.hpp"
 
+#include <memory>
+#include <optional>
 #include <string>
+#include <vector>
 
 #include "fmt/core.h"
-#include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/other_tools/just_mr/utils.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
 namespace {
 

@@ -14,9 +14,12 @@
 
 #include "src/other_tools/ops_maps/git_update_map.hpp"
 
+#include <memory>
+#include <optional>
+
 #include "fmt/core.h"
-#include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/storage/fs_utils.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 
 auto CreateGitUpdateMap(
     GitCASPtr const& git_cas,

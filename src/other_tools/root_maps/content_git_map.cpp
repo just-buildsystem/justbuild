@@ -21,6 +21,7 @@
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/other_tools/utils/content.hpp"
 #include "src/utils/archive/archive_ops.hpp"

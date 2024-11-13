@@ -14,6 +14,10 @@
 
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 
+#include <utility>
+
+#include "src/other_tools/git_operations/git_operations.hpp"
+
 // define the mapping to actual operations being called
 GitOpKeyMap const GitOpKey::kMap = {
     {GitOpType::INITIAL_COMMIT, CriticalGitOps::GitInitialCommit},

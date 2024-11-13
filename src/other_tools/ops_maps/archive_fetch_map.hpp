@@ -18,12 +18,12 @@
 #include <cstddef>
 #include <filesystem>
 #include <functional>
-#include <optional>
 #include <string>
 
 #include "gsl/gsl"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"

@@ -127,6 +127,7 @@
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "fs_utils"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/utils", "content"]
     , ["src/utils/archive", "archive_ops"]
     ]
@@ -183,6 +184,7 @@
     , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/serve", "mr_git_api"]
     , ["src/buildtool/file_system", "file_root"]
+    , ["src/other_tools/git_operations", "git_repo_remote"]
     ]
   }
 , "root_utils":

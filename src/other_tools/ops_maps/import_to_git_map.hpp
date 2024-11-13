@@ -17,12 +17,15 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/path_hash.hpp"

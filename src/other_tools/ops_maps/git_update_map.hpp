@@ -18,13 +18,12 @@
 #include <cstddef>
 #include <functional>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/utils/cpp/hash_combine.hpp"

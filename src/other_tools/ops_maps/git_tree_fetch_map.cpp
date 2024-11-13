@@ -15,20 +15,28 @@
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 
 #include <cstdlib>
-#include <tuple>    // std::ignore
+#include <filesystem>
+#include <iterator>
+#include <memory>
+#include <optional>
 #include <utility>  // std::move
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
-#include "src/buildtool/execution_api/serve/utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/system/system_command.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 

@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -24,7 +25,7 @@
 #include <unordered_map>
 
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
-#include "src/other_tools/git_operations/git_operations.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/path_hash.hpp"
 

@@ -14,11 +14,14 @@
 
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
+#include <memory>
+#include <optional>
+
 #include "fmt/core.h"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/storage/fs_utils.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 

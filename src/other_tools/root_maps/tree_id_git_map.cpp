@@ -20,6 +20,7 @@
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 
 namespace {
