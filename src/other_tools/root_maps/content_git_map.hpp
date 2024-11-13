@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_CONTENT_GIT_MAP_HPP
 
 #include <cstddef>
-#include <optional>
 #include <utility>
 
 #include "gsl/gsl"
@@ -24,12 +23,14 @@
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
+#include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 
 /// \brief Maps the content of an archive to the resulting Git tree WS root,

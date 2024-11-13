@@ -14,13 +14,28 @@
 
 #include "src/other_tools/root_maps/foreign_file_git_map.hpp"
 
+#include <filesystem>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {

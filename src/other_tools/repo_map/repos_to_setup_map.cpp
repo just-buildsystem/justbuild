@@ -14,21 +14,27 @@
 
 #include "src/other_tools/repo_map/repos_to_setup_map.hpp"
 
+#include <filesystem>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>  // std::move
+#include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/utils/parse_archive.hpp"
 #include "src/other_tools/utils/parse_git_tree.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/path.hpp"
 
 namespace {
 

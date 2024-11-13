@@ -16,14 +16,13 @@
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_TREE_ID_GIT_MAP_HPP
 
 #include <cstddef>
-#include <optional>
-#include <string>
+#include <functional>
 #include <utility>
-#include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"

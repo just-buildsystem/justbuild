@@ -14,14 +14,24 @@
 
 #include "src/other_tools/root_maps/tree_id_git_map.hpp"
 
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 

@@ -14,17 +14,28 @@
 
 #include "src/other_tools/root_maps/content_git_map.hpp"
 
+#include <filesystem>
+#include <functional>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
-#include "src/buildtool/file_system/file_storage.hpp"
-#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
-#include "src/other_tools/utils/content.hpp"
 #include "src/utils/archive/archive_ops.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 

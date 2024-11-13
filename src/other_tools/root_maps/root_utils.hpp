@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_ROOT_UTILS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_ROOT_MAPS_ROOT_UTILS_HPP
 
+#include <filesystem>
 #include <optional>
 #include <string>
 

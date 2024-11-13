@@ -15,24 +15,25 @@
 #include "src/other_tools/root_maps/distdir_git_map.hpp"
 
 #include <algorithm>
+#include <filesystem>
+#include <optional>
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
-#include "src/buildtool/file_system/file_storage.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
-#include "src/other_tools/just_mr/progress_reporting/progress.hpp"
-#include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
-#include "src/other_tools/ops_maps/content_cas_map.hpp"
-#include "src/other_tools/ops_maps/critical_git_op_map.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {

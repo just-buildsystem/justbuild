@@ -14,6 +14,10 @@
 
 #include "src/other_tools/root_maps/root_utils.hpp"
 
+#include <functional>
+#include <memory>
+#include <vector>
+
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -23,6 +27,7 @@
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/execution_api/serve/utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 auto CheckServeHasAbsentRoot(ServeApi const& serve,
                              std::string const& tree_id,

@@ -14,21 +14,29 @@
 
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 
-#include <algorithm>
+#include <filesystem>
+#include <memory>
 #include <optional>
 #include <string>
 
 #include "fmt/core.h"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
-#include "src/other_tools/utils/curl_url_handle.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
 

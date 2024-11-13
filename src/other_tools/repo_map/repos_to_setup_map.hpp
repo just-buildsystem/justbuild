@@ -22,7 +22,9 @@
 #include <string>
 
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/root_maps/commit_git_map.hpp"
 #include "src/other_tools/root_maps/content_git_map.hpp"

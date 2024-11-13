@@ -14,14 +14,17 @@
 
 #include "src/other_tools/root_maps/fpath_git_map.hpp"
 
+#include <memory>
 #include <utility>  // std::move
+#include <vector>
 
 #include "fmt/core.h"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
-#include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
