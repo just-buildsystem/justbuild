@@ -55,6 +55,7 @@ class RepositoryConfig {
         repos_[repo].base_desc = info.BaseContentDescription();
         repos_[repo].info = std::move(info);
         repos_[repo].key.Reset();
+        duplicates_.Reset();
     }
 
     [[nodiscard]] auto SetGitCAS(
