@@ -14,12 +14,15 @@
 
 #include "src/other_tools/git_operations/git_operations.hpp"
 
+#include <filesystem>
+#include <functional>
 #include <memory>
-#include <vector>
+#include <optional>
+#include <string>
+#include <utility>
 
 #include "fmt/core.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 
 auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,

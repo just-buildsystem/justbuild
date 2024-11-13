@@ -15,15 +15,22 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 
 #include <cstddef>
+#include <cstdlib>
+#include <exception>
+#include <functional>
+#include <limits>
+#include <map>
 #include <utility>  // std::move
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system_command.hpp"
 #include "src/other_tools/git_operations/git_config_settings.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 extern "C" {
 #include <git2.h>

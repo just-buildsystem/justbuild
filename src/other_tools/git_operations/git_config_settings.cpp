@@ -14,9 +14,13 @@
 
 #include "src/other_tools/git_operations/git_config_settings.hpp"
 
+#include <cstdlib>
+#include <exception>
 #include <map>
+#include <utility>
 
 #include "fmt/core.h"
+#include "gsl/gsl"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
 extern "C" {

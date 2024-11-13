@@ -21,7 +21,9 @@
 #include <string>
 #include <vector>
 
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 extern "C" {
