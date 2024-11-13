@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UPDATE_HPP
 
 #include <memory>
+#include <string>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/storage/config.hpp"

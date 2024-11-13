@@ -15,16 +15,20 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UTILS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_UTILS_HPP
 
+#include <cstdint>
+#include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/config.hpp"
 

@@ -14,6 +14,9 @@
 
 #include "src/other_tools/just_mr/utils.hpp"
 
+#include <exception>
+
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

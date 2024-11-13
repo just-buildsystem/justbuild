@@ -15,10 +15,12 @@
 #include "src/other_tools/just_mr/rc_merge.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <string>
 #include <vector>
 
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 
 namespace {
 

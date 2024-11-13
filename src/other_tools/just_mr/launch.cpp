@@ -14,23 +14,41 @@
 
 #include "src/other_tools/just_mr/launch.hpp"
 
-#include <cerrno>   // for errno
+#ifdef __unix__
+#include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
+
+#include <algorithm>
+#include <cerrno>  // for errno
+#include <cstdlib>
 #include <cstring>  // for strerror()
+#include <exception>
 #include <filesystem>
-#include <utility>
+#include <functional>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/repository_garbage_collector.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/setup.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 
 auto CallJust(std::optional<std::filesystem::path> const& config_file,

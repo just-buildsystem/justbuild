@@ -15,8 +15,12 @@
 #include "src/other_tools/just_mr/setup_utils.hpp"
 
 #include <algorithm>
+#include <cstdlib>
+#include <exception>
 #include <fstream>
+#include <iterator>
 #include <unordered_set>
+#include <utility>
 #include <variant>
 
 #include "nlohmann/json.hpp"
@@ -26,6 +30,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 

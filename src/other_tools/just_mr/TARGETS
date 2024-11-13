@@ -8,16 +8,20 @@
     , "exit_codes"
     , "fetch"
     , "launch"
+    , "mirrors"
     , "rc"
     , "setup"
     , "setup_utils"
     , "update"
+    , "utils"
     , ["@", "cli11", "", "cli11"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/common", "retry_cli"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_context"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -25,6 +29,7 @@
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "repository_garbage_collector"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-ldflags":
@@ -43,13 +48,14 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
-    [ ["src/buildtool/logging", "log_level"]
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]
   }
@@ -73,7 +79,6 @@
     , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/common", "retry_cli"]
     , ["src/buildtool/common", "user_structs"]
-    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/logging", "log_level"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
@@ -99,6 +104,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 , "fetch":
@@ -117,27 +123,31 @@
   , "private-deps":
     [ "exit_codes"
     , "setup_utils"
+    , "utils"
     , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "user_structs"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "retry"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
@@ -149,6 +159,7 @@
     , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/other_tools/utils", "parse_archive"]
     , ["src/other_tools/utils", "parse_git_tree"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "file_locking"]
     ]
   }
@@ -168,15 +179,18 @@
     , "utils"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/just_mr/progress_reporting", "progress_reporter"]
     , ["src/other_tools/just_mr/progress_reporting", "statistics"]
     , ["src/other_tools/ops_maps", "git_update_map"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   }
 , "setup":
@@ -193,30 +207,31 @@
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   , "private-deps":
-    [ "exit_codes"
-    , "setup_utils"
+    [ "setup_utils"
     , "utils"
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/auth", "auth"]
-    , ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "user_structs"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "retry"]
     , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
-    , ["src/buildtool/serve_api/remote", "config"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
@@ -225,12 +240,15 @@
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
+    , ["src/other_tools/ops_maps", "import_to_git_map"]
     , ["src/other_tools/repo_map", "repos_to_setup_map"]
     , ["src/other_tools/root_maps", "commit_git_map"]
     , ["src/other_tools/root_maps", "content_git_map"]
     , ["src/other_tools/root_maps", "distdir_git_map"]
+    , ["src/other_tools/root_maps", "foreign_file_git_map"]
     , ["src/other_tools/root_maps", "fpath_git_map"]
     , ["src/other_tools/root_maps", "tree_id_git_map"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "file_locking"]
     ]
   }
@@ -250,11 +268,14 @@
     [ "exit_codes"
     , "setup"
     , "setup_utils"
+    , "utils"
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "clidefaults"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/storage", "repository_garbage_collector"]
     , ["src/utils/cpp", "file_locking"]
     ]
@@ -280,13 +301,18 @@
   , "private-deps":
     [ "exit_codes"
     , "rc_merge"
+    , "utils"
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/common", "location"]
+    , ["src/buildtool/common", "retry_cli"]
+    , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "other_tools", "just_mr"]
   }
@@ -296,6 +322,9 @@
   , "hdrs": ["rc_merge.hpp"]
   , "srcs": ["rc_merge.cpp"]
   , "stage": ["src", "other_tools", "just_mr"]
-  , "deps": [["src/buildtool/build_engine/expression", "expression"]]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    ]
   }
 }

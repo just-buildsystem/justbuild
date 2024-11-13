@@ -16,10 +16,11 @@
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_SETUP_UTILS_HPP
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "src/buildtool/auth/authentication.hpp"

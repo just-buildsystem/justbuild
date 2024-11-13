@@ -19,14 +19,22 @@
 #include <cstddef>
 #include <exception>
 #include <filesystem>
+#include <functional>
+#include <iostream>
+#include <optional>
 #include <thread>
+#include <unordered_map>
+#include <vector>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
@@ -34,6 +42,7 @@
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/git_update_map.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                      MultiRepoCommonArguments const& common_args,

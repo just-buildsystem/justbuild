@@ -15,10 +15,15 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_MIRRORS_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_MIRRORS_HPP
 
+#include <algorithm>
 #include <exception>
+#include <functional>
+#include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "nlohmann/json.hpp"

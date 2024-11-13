@@ -15,9 +15,12 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_JUST_MR_CLI_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <thread>
@@ -32,7 +35,6 @@
 #include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/common/user_structs.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/utils.hpp"

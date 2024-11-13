@@ -14,12 +14,14 @@
 
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 
-#include <cstddef>
+#include <functional>
+#include <string>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 
 auto JustMRProgressReporter::Reporter(
     gsl::not_null<JustMRStatistics*> const& stats,

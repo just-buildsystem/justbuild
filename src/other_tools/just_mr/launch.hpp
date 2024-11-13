@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <optional>
+#include <string>
 
 #include "src/buildtool/common/retry_cli.hpp"
 #include "src/buildtool/storage/config.hpp"

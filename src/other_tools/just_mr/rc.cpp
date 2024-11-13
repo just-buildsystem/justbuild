@@ -14,18 +14,32 @@
 
 #include "src/other_tools/just_mr/rc.hpp"
 
+#include <cmath>
+#include <cstdlib>
+#include <exception>
+#include <fstream>
+#include <functional>
+#include <memory>
+#include <string>
+#include <unordered_map>
 #include <utility>  // std::move
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/common/location.hpp"
+#include "src/buildtool/common/retry_cli.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/rc_merge.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 

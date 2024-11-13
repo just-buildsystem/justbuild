@@ -12,22 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
 #include <exception>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
 #include <utility>
-
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
+#include <vector>
 
 #include "CLI/CLI.hpp"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -38,14 +42,18 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/repository_garbage_collector.hpp"
+#include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
 #include "src/other_tools/just_mr/fetch.hpp"
 #include "src/other_tools/just_mr/launch.hpp"
+#include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/rc.hpp"
 #include "src/other_tools/just_mr/setup.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
 #include "src/other_tools/just_mr/update.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 

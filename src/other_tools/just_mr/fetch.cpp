@@ -14,31 +14,43 @@
 
 #include "src/other_tools/just_mr/fetch.hpp"
 
+#include <algorithm>
+#include <atomic>
+#include <compare>
+#include <condition_variable>
 #include <filesystem>
+#include <functional>
 #include <optional>
+#include <thread>
+#include <unordered_map>
 #include <utility>  // std::move
+#include <vector>
 
 #include "fmt/core.h"
+#include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_api/serve/mr_local_api.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/retry.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
@@ -46,6 +58,7 @@
 #include "src/other_tools/just_mr/progress_reporting/progress_reporter.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/other_tools/just_mr/setup_utils.hpp"
+#include "src/other_tools/just_mr/utils.hpp"
 #include "src/other_tools/ops_maps/archive_fetch_map.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
@@ -53,6 +66,7 @@
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
 #include "src/other_tools/utils/parse_archive.hpp"
 #include "src/other_tools/utils/parse_git_tree.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 
 auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
