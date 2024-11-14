@@ -16,15 +16,21 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
+#include <functional>
 #include <map>
+#include <optional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "test/utils/container_matchers.hpp"

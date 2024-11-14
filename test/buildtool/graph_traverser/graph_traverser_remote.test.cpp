@@ -12,11 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cstdlib>
+#include <filesystem>
+#include <optional>
+#include <utility>
+#include <vector>
+
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"

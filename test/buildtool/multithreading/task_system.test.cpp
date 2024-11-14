@@ -16,20 +16,25 @@
 
 #include <atomic>
 #include <chrono>
+#include <compare>
 #include <condition_variable>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include <iterator>
 #include <mutex>
 #include <numeric>  // std::iota
+#include <ratio>
 #include <string>
 #include <thread>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
+#include "src/utils/cpp/atomic.hpp"
 #include "test/utils/container_matchers.hpp"
 
 namespace {

@@ -4,14 +4,25 @@
   , "hdrs": ["api_test.hpp"]
   , "deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/common"
+      , "artifact_blob_container"
+      ]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     , ["utils", "test_hash_function_type"]
     ]
   , "stage": ["test", "buildtool", "execution_api", "common"]
@@ -27,6 +38,7 @@
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["", "catch-main"]
     , ["utils", "test_hash_function_type"]
     ]
@@ -48,6 +60,7 @@
       , "bazel_msg_factory"
       ]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/utils/cpp", "expected"]

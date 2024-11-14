@@ -14,9 +14,9 @@
 
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
-#include <algorithm>  // std::transform
 #include <atomic>
 #include <cstdint>  // for fixed width integral types
+#include <iterator>
 #include <mutex>
 #include <numeric>
 #include <optional>
@@ -25,7 +25,6 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
-#include "src/buildtool/multithreading/async_map.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 
 auto FibonacciMapConsumer() -> AsyncMapConsumer<int, std::uint64_t> {

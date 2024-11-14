@@ -16,25 +16,28 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <string>
-#include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <utility>
-#include <variant>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
+#include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/large_objects/large_object_utils.hpp"

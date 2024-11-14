@@ -15,31 +15,49 @@
 #include "src/buildtool/execution_engine/executor/executor.hpp"
 
 #include <algorithm>
+#include <chrono>
+#include <exception>
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/action.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/identifier.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/transformed_range.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
@@ -70,11 +88,6 @@ static auto NamedDigest(std::string const& str) -> ArtifactDigest {
     return ArtifactDigestFactory::HashDataAs<ObjectType::File>(hash_function,
                                                                str);
 }
-
-// forward declarations
-class TestApi;
-class TestAction;
-class TestResponse;
 
 /// \brief Mockup Response, stores only config and action result
 class TestResponse : public IExecutionResponse {

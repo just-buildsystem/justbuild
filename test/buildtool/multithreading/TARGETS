@@ -17,6 +17,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/utils/cpp", "atomic"]
     , ["", "catch-main"]
     , ["utils", "container_matchers"]
     ]
@@ -42,7 +43,6 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/multithreading", "async_map"]
-    , ["@", "src", "src/buildtool/multithreading", "async_map_node"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["", "catch-main"]
     , ["utils", "container_matchers"]
@@ -55,7 +55,6 @@
   , "srcs": ["async_map_consumer.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/multithreading", "async_map"]
     , ["@", "src", "src/buildtool/multithreading", "async_map_consumer"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["", "catch-main"]

@@ -17,18 +17,19 @@
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/shell_quoting.hpp"

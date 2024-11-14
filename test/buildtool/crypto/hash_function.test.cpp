@@ -18,6 +18,7 @@
 #include <utility>  // std::move
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/crypto/hasher.hpp"
 
 TEST_CASE("Hash Function", "[crypto]") {
     std::string bytes{"test"};

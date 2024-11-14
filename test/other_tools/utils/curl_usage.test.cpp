@@ -14,8 +14,9 @@
 
 #include <cstdlib>
 #include <filesystem>
+#include <memory>
+#include <optional>
 #include <string>
-#include <vector>  // std::erase_if
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"

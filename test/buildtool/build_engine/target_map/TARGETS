@@ -5,11 +5,23 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "json", "", "json"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/analysed_target"
+      , "graph_information"
+      ]
     , ["@", "src", "src/buildtool/build_engine/analysed_target", "target"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/expression"
+      , "expression_ptr_interface"
+      ]
     , ["@", "src", "src/buildtool/build_engine/target_map", "result_map"]
     , ["@", "src", "src/buildtool/common", "action_description"]
     , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "tree"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["", "catch-main"]
@@ -23,17 +35,39 @@
   , "data": ["test_data"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/build_engine/analysed_target", "target"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/expression"
+      , "expression_ptr_interface"
+      ]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/target_map"
+      , "absent_target_map"
+      ]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/target_map"
+      , "configured_target"
+      ]
+    , ["@", "src", "src/buildtool/build_engine/target_map", "result_map"]
     , ["@", "src", "src/buildtool/build_engine/target_map", "target_map"]
+    , ["@", "src", "src/buildtool/common", "action_description"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/common", "tree"]
+    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
@@ -42,11 +76,10 @@
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/execution_api/remote", "context"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/main", "analyse_context"]
-    , ["@", "src", "src/buildtool/multithreading", "async_map_consumer"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
-    , ["@", "src", "src/buildtool/serve_api/remote", "config"]
     , ["@", "src", "src/buildtool/serve_api/remote", "serve_api"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
@@ -62,7 +95,13 @@
   , "srcs": ["target_map_internals.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/expression"
+      , "expression_ptr_interface"
+      ]
     , [ "@"
       , "src"
       , "src/buildtool/build_engine/target_map"

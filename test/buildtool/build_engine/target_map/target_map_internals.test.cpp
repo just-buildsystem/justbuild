@@ -12,8 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <optional>
+#include <string>
+
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/target_map/utils.hpp"
 
 TEST_CASE("Tree conflicts", "[tree_conflict]") {

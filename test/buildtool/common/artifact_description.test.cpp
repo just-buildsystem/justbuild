@@ -15,6 +15,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 
 #include <filesystem>
+#include <optional>
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"

@@ -14,6 +14,8 @@
 
 #include "src/buildtool/main/install_cas.hpp"
 
+#include <optional>
+
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"

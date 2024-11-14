@@ -15,8 +15,10 @@
 #include "src/other_tools/just_mr/rc_merge.hpp"
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 
 TEST_CASE("Simple field") {
     auto conf = Configuration{Expression::FromJson(R"(

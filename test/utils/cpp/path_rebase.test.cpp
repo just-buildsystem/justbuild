@@ -14,6 +14,9 @@
 
 #include "src/utils/cpp/path_rebase.hpp"
 
+#include <string>
+#include <vector>
+
 #include "catch2/catch_test_macros.hpp"
 
 TEST_CASE("rebase", "[path_rebase]") {

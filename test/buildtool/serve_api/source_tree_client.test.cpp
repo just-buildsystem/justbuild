@@ -14,17 +14,23 @@
 
 #include "src/buildtool/serve_api/remote/source_tree_client.hpp"
 
+#include <optional>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/file_system/git_types.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 

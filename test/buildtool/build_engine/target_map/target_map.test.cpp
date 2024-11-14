@@ -15,21 +15,38 @@
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 
 #include <filesystem>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <optional>
 #include <string>
 #include <utility>  // std::move
+#include <variant>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 #include "src/buildtool/build_engine/base_maps/targets_file_map.hpp"
+#include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/target_map/absent_target_map.hpp"
+#include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/build_engine/target_map/result_map.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
+#include "src/buildtool/common/tree.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -37,11 +54,10 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
-#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
-#include "src/buildtool/serve_api/remote/config.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"

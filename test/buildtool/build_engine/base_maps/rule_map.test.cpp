@@ -15,15 +15,16 @@
 #include "src/buildtool/build_engine/base_maps/rule_map.hpp"
 
 #include <filesystem>
-#include <functional>
-#include <memory>
+#include <map>
+#include <optional>
 #include <string>
 #include <utility>  // std::move
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
-#include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/common/repository_config.hpp"

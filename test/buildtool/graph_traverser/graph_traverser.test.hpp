@@ -15,11 +15,12 @@
 #ifndef INCLUDED_SRC_TEST_BUILDTOOL_GRAPH_GRAVERSER_GRAPH_TRAVERSER_TEST_HPP
 #define INCLUDED_SRC_TEST_BUILDTOOL_GRAPH_GRAVERSER_GRAPH_TRAVERSER_TEST_HPP
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <map>
 #include <optional>
-#include <sstream>
 #include <string>
 #include <thread>
 #include <utility>
@@ -29,8 +30,10 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -38,15 +41,17 @@
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
+#include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/jsonfs.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/utils/cpp/json.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 // NOLINTNEXTLINE(google-build-namespaces)

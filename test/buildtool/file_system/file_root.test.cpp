@@ -17,17 +17,20 @@
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <string_view>
-#include <thread>
 
 #include "catch2/catch_test_macros.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "test/utils/container_matchers.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/shell_quoting.hpp"
 

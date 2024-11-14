@@ -14,12 +14,15 @@
 
 #include "src/buildtool/build_engine/base_maps/json_file_map.hpp"
 
+#include <atomic>
 #include <filesystem>
-#include <memory>
+#include <map>
+#include <optional>
 #include <string>
 #include <utility>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"

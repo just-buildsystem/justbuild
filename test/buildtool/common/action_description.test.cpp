@@ -15,12 +15,18 @@
 #include "src/buildtool/common/action_description.hpp"
 
 #include <filesystem>
+#include <functional>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 TEST_CASE("From JSON", "[action_description]") {

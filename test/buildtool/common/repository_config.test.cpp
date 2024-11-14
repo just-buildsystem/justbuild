@@ -16,8 +16,10 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <map>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
@@ -28,7 +30,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 

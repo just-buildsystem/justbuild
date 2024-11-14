@@ -14,6 +14,8 @@
 
 #include "test/utils/large_objects/large_object_utils.hpp"
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <fstream>

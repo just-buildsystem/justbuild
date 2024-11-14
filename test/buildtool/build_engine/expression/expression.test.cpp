@@ -15,16 +15,20 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 
 #include <filesystem>
+#include <functional>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/configuration.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/buildtool/build_engine/expression/function_map.hpp"
+#include "src/buildtool/build_engine/expression/linked_map.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "test/utils/container_matchers.hpp"
 
 TEST_CASE("Expression access", "[expression]") {  // NOLINT
     using namespace std::string_literals;

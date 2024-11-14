@@ -15,6 +15,7 @@
 #include "src/buildtool/logging/logger.hpp"
 
 #include <atomic>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>

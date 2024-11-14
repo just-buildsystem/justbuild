@@ -16,10 +16,12 @@
 #define INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_TEST_REMOTE_CONFIG_HPP
 
 #include <optional>
+#include <utility>
 
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/test_env.hpp"
 
 class TestRemoteConfig final {

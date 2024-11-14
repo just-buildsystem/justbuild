@@ -3,7 +3,7 @@
   , "name": ["test_repo"]
   , "hdrs": ["test_repo.hpp"]
   , "deps":
-    [ ["@", "src", "src/buildtool/common", "config"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["utils", "shell_quoting"]
     ]
@@ -15,7 +15,7 @@
   , "srcs": ["entity_name.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
@@ -46,6 +46,7 @@
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
+    , ["@", "src", "src/buildtool/build_engine/base_maps", "module_name"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
@@ -63,14 +64,13 @@
     , ["@", "catch2", "", "catch2"]
     , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "directory_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "source_map"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
-    , ["@", "src", "src/buildtool/multithreading", "async_map_consumer"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["", "catch-main"]
     , ["utils", "test_hash_function_type"]
@@ -85,9 +85,9 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
@@ -104,9 +104,9 @@
   , "private-deps":
     [ "test_repo"
     , ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "expression_map"]
-    , ["@", "src", "src/buildtool/build_engine/base_maps", "json_file_map"]
     , ["@", "src", "src/buildtool/build_engine/base_maps", "rule_map"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , ["@", "src", "src/buildtool/common", "config"]

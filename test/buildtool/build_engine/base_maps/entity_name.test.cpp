@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
+#include <string>
 
 #include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 
 TEST_CASE("Normal module names") {
     using NT = BuildMaps::Base::NamedTarget;

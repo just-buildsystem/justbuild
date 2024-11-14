@@ -4,9 +4,11 @@
   , "srcs": ["traverser.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
+    , ["@", "src", "src/buildtool/common", "action_description"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/execution_engine/traverser", "traverser"]
     , ["", "catch-main"]

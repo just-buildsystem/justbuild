@@ -18,9 +18,12 @@
 #include <optional>
 #include <string>
 
+#include <grpc/grpc.h>
+
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/auth/authentication.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"

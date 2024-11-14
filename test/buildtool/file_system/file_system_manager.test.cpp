@@ -14,20 +14,26 @@
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 
-#include <algorithm>
 #include <chrono>
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <functional>
+#include <optional>
+#include <string>
 #include <unordered_map>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/system/system.hpp"
 
 class CopyFileFixture {
   public:

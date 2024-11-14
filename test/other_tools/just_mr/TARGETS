@@ -4,7 +4,13 @@
   , "srcs": ["rc_merge.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/expression"
+      , "expression_ptr_interface"
+      ]
     , ["@", "src", "src/other_tools/just_mr", "rc_merge"]
     , ["", "catch-main"]
     ]

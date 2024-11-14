@@ -16,12 +16,13 @@
 #define INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_TEST_AUTH_CONFIG_HPP
 
 #include <optional>
-#include <string>
+#include <utility>
 #include <variant>
 
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/test_env.hpp"
 
 class TestAuthConfig final {

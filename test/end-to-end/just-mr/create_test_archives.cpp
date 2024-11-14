@@ -13,16 +13,21 @@
 // limitations under the License.
 
 #include <cstdlib>
+#include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::pair
+#include <vector>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink_cmdline.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/archive/archive_ops.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 

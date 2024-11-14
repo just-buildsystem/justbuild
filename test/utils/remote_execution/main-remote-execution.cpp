@@ -15,17 +15,14 @@
 #define CATCH_CONFIG_RUNNER
 #include <chrono>
 #include <cstdlib>
-#include <iostream>
-#include <sstream>
+#include <optional>
 #include <thread>
 
 #include "catch2/catch_session.hpp"
-#include "catch2/catch_test_macros.hpp"
+#include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"

@@ -16,12 +16,12 @@
 #define INCLUDED_SRC_TEST_UTILS_SERVE_SERVICE_TEST_SERVE_CONFIG_HPP
 
 #include <optional>
-#include <string>
-#include <variant>
+#include <utility>
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/test_env.hpp"
 
 class TestServeConfig final {

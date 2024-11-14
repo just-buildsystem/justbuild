@@ -15,11 +15,13 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
-#include "test/utils/container_matchers.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 
 TEST_CASE("Access", "[configuration]") {
     auto env =

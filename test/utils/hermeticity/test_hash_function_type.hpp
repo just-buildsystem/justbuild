@@ -15,7 +15,7 @@
 #ifndef INCLUDED_SRC_TEST_UTILS_HERMETICITY_TEST_HASH_FUNCTION_TYPE_HPP
 #define INCLUDED_SRC_TEST_UTILS_HERMETICITY_TEST_HASH_FUNCTION_TYPE_HPP
 
-#include <cstddef>  //std::exit
+#include <cstdlib>
 #include <optional>
 
 #include "src/buildtool/crypto/hash_function.hpp"

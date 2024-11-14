@@ -17,14 +17,10 @@
 
 #include <cstdlib>
 #include <filesystem>
-#include <map>
 #include <optional>
 #include <sstream>
 #include <string>
-
-#include "src/buildtool/auth/authentication.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
-#include "test/utils/logging/log_config.hpp"
+#include <vector>
 
 [[nodiscard]] static inline auto ReadPlatformPropertiesFromEnv()
     -> std::vector<std::string> {

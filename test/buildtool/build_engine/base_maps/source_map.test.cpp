@@ -15,21 +15,22 @@
 #include "src/buildtool/build_engine/base_maps/source_map.hpp"
 
 #include <filesystem>
-#include <memory>
+#include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
-#include "src/buildtool/build_engine/base_maps/entity_name.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
-#include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"

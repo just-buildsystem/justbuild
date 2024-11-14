@@ -14,13 +14,22 @@
 
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 
+#include <functional>
+#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include <grpcpp/support/status.h>
+
+// Don't include "proto"
+// IWYU pragma: no_include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"

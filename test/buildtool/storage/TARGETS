@@ -16,8 +16,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
-    , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "config"]
@@ -37,7 +36,7 @@
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "common"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
@@ -52,17 +51,20 @@
   , "srcs": ["large_object_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
     , ["", "catch-main"]
     , ["utils", "large_object_utils"]

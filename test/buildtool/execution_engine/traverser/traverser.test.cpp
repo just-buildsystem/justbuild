@@ -15,16 +15,28 @@
 #include "src/buildtool/execution_engine/traverser/traverser.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <filesystem>
+#include <functional>
+#include <iterator>
+#include <map>
 #include <mutex>
+#include <optional>
 #include <string>
-#include <unordered_map>
+#include <thread>
 #include <unordered_set>
-#include <variant>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
+#include "gsl/gsl"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/common/action.hpp"
+#include "src/buildtool/common/action_description.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"

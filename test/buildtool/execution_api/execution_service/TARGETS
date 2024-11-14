@@ -4,10 +4,12 @@
   , "srcs": ["cas_server.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
-    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/execution_service"

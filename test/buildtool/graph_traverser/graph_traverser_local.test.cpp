@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <optional>
+#include <variant>
+#include <vector>
+
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/graph_traverser/graph_traverser.test.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
-#include "test/utils/remote_execution/test_auth_config.hpp"
 
 TEST_CASE("Local: Output created when entry point is local artifact",
           "[graph_traverser]") {

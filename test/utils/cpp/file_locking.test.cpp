@@ -14,10 +14,10 @@
 
 #include "src/utils/cpp/file_locking.hpp"
 
-#include <atomic>
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>

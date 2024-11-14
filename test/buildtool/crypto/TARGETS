@@ -16,6 +16,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/crypto", "hasher"]
     , ["", "catch-main"]
     ]
   , "stage": ["test", "buildtool", "crypto"]

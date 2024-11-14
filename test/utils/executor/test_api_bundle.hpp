@@ -15,8 +15,6 @@
 #ifndef INCLUDED_SRC_TEST_UTILS_EXECUTOR_TEST_API_BUNDLE_HPP
 #define INCLUDED_SRC_TEST_UTILS_EXECUTOR_TEST_API_BUNDLE_HPP
 
-#include <utility>  // std::move
-
 #include "gsl/gsl"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"

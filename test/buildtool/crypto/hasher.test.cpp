@@ -14,6 +14,7 @@
 
 #include "src/buildtool/crypto/hasher.hpp"
 
+#include <optional>
 #include <string>
 #include <utility>  // std::move
 

@@ -21,7 +21,7 @@
 #include <optional>
 #include <string>
 
-#include "src/buildtool/common/repository_config.hpp"
+#include "fmt/core.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "test/utils/shell_quoting.hpp"
 

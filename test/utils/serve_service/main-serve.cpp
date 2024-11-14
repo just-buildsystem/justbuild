@@ -16,21 +16,18 @@
 #include <chrono>
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
-#include <sstream>
+#include <optional>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "catch2/catch_session.hpp"
-#include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
+#include "fmt/core.h"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 #include "test/utils/logging/log_config.hpp"
 #include "test/utils/serve_service/test_serve_config.hpp"
 #include "test/utils/shell_quoting.hpp"

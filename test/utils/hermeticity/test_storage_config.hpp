@@ -17,14 +17,15 @@
 
 #include <cstdlib>  //std::exit, std::getenv
 #include <filesystem>
+#include <memory>
 #include <string>
 #include <utility>  //std::move
 
 #include "gsl/gsl"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 

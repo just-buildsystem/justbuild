@@ -17,17 +17,18 @@
 #include <cstddef>
 #include <cstdlib>  // std::system
 #include <filesystem>
+#include <memory>
 #include <numeric>
 #include <optional>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "fmt/core.h"
-#include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
+#include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "test/utils/shell_quoting.hpp"
 

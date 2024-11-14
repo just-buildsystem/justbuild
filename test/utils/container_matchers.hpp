@@ -16,14 +16,14 @@
 #define INCLUDED_SRC_TEST_UTILS_CONTAINER_MATCHERS_HPP
 
 #include <algorithm>
+#include <initializer_list>
+#include <iterator>
 #include <numeric>
 #include <sstream>
 #include <string>
-#include <type_traits>
 #include <unordered_set>
 #include <vector>
 
-#include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"
 
 /// \brief Matcher to check if the sets of elements present in two different

@@ -15,9 +15,11 @@
 #include "src/buildtool/build_engine/base_maps/directory_map.hpp"
 
 #include <filesystem>
-#include <memory>
+#include <map>
+#include <optional>
 #include <string>
 #include <utility>  // std::move
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"

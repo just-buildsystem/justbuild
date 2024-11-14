@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <exception>
 #include <string>  // std::stoul
+#include <vector>
 
 #include "src/buildtool/logging/log_config.hpp"
 #include "src/buildtool/logging/log_level.hpp"

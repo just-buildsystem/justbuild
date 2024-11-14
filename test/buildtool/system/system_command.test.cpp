@@ -14,10 +14,14 @@
 
 #include "src/buildtool/system/system_command.hpp"
 
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
+#include <map>
+#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/matchers/catch_matchers_all.hpp"

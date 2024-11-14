@@ -15,24 +15,37 @@
 #ifndef INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
 #define INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
 
+#include <algorithm>
 #include <cstdlib>
 #include <filesystem>
 #include <functional>
 #include <map>
+#include <memory>
+#include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "fmt/core.h"
+#include "gsl/gsl"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 using ApiFactory = std::function<IExecutionApi::Ptr()>;

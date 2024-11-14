@@ -18,19 +18,27 @@
 #include <atomic>
 #include <cstdlib>
 #include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "catch2/matchers/catch_matchers_all.hpp"
 #include "fmt/core.h"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hex_string.hpp"
+#include "src/utils/cpp/path.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/shell_quoting.hpp"
 

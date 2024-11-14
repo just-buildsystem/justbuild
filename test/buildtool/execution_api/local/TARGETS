@@ -4,17 +4,30 @@
   , "srcs": ["local_execution.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/common"
+      , "artifact_blob_container"
+      ]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     , ["", "catch-main"]
     , ["utils", "test_storage_config"]
     ]
@@ -26,10 +39,10 @@
   , "srcs": ["local_api.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
     , ["@", "src", "src/buildtool/execution_api/local", "local"]
-    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["", "catch-main"]
     , ["buildtool/execution_api/common", "api_test"]

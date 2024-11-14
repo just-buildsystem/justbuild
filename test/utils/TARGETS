@@ -14,13 +14,16 @@
     , "test_env"
     , "test_remote_config"
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -38,11 +41,6 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["test_env"]
   , "hdrs": ["test_env.hpp"]
-  , "deps":
-    [ "log_config"
-    , ["@", "src", "src/buildtool/auth", "auth"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
-    ]
   , "stage": ["test", "utils"]
   }
 , "test_storage_config":
@@ -52,10 +50,10 @@
   , "deps":
     [ "test_hash_function_type"
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["test", "utils"]
@@ -93,11 +91,10 @@
     , "test_env"
     , "test_remote_config"
     , ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/auth", "auth"]
+    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "git_context"]
-    , ["@", "src", "src/buildtool/logging", "log_level"]
-    , ["@", "src", "src/buildtool/logging", "logging"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -110,6 +107,7 @@
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -122,6 +120,7 @@
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -134,6 +133,7 @@
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/utils/cpp", "expected"]
     ]
   , "stage": ["test", "utils"]
   }
@@ -147,14 +147,12 @@
     , "test_env"
     , "test_serve_config"
     , ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common", "protocol_traits"]
-    , ["@", "src", "src/buildtool/execution_api/remote", "config"]
-    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/file_system", "git_context"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/serve_api/remote", "config"]
-    , ["@", "src", "src/buildtool/storage", "storage"]
     ]
   , "stage": ["test", "utils"]
   }

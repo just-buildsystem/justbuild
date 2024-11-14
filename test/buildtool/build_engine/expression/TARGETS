@@ -6,7 +6,6 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "src", "src/buildtool/build_engine/expression", "linked_map"]
     , ["", "catch-main"]
-    , ["utils", "container_matchers"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }
@@ -16,16 +15,17 @@
   , "srcs": ["expression.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
     , [ "@"
       , "src"
       , "src/buildtool/build_engine/expression"
       , "expression_ptr_interface"
       ]
+    , ["@", "src", "src/buildtool/build_engine/expression", "linked_map"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["", "catch-main"]
-    , ["utils", "container_matchers"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }
@@ -35,9 +35,14 @@
   , "srcs": ["configuration.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "json", "", "json"]
     , ["@", "src", "src/buildtool/build_engine/expression", "expression"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/build_engine/expression"
+      , "expression_ptr_interface"
+      ]
     , ["", "catch-main"]
-    , ["utils", "container_matchers"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "expression"]
   }

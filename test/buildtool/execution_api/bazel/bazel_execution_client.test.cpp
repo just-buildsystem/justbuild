@@ -14,12 +14,21 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 
+#include <map>
+#include <memory>
+#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"

@@ -13,17 +13,16 @@
 // limitations under the License.
 
 #include <memory>
+#include <optional>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
-#include "src/buildtool/execution_api/remote/config.hpp"
-#include "src/buildtool/execution_engine/executor/executor.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
-#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
