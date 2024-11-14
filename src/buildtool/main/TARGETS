@@ -38,6 +38,7 @@
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common/remote", "retry_config"]
+    , ["src/buildtool/computed_roots", "evaluate"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , [ "src/buildtool/execution_api/execution_service"

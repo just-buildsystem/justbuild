@@ -419,6 +419,8 @@ def bootstrap() -> None:
             dirs.remove('other_tools')
         if 'archive' in dirs:
             dirs.remove('archive')
+        if 'computed_roots' in dirs:
+            dirs.remove('computed_roots')
         for f in files:
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))

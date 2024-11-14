@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <cmath>
+#include <cstddef>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -77,6 +79,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/computed_roots/evaluate.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -1003,11 +1006,14 @@ auto main(int argc, char* argv[]) -> int {
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
                                             .progress = &progress};
+        const GraphTraverser::CommandLineArguments traverse_args{
+            jobs,
+            std::move(arguments.build),
+            std::move(stage_args),
+            std::move(rebuild_args)};
+
         GraphTraverser const traverser{
-            {jobs,
-             std::move(arguments.build),
-             std::move(stage_args),
-             std::move(rebuild_args)},
+            traverse_args,
             &exec_context,
             ProgressReporter::Reporter(&stats, &progress)};
 
@@ -1032,7 +1038,18 @@ auto main(int argc, char* argv[]) -> int {
         auto [main_repo, main_ws_root] =
             DetermineRoots(&repo_config, arguments.common, arguments.analysis);
 
+        std::size_t eval_root_jobs =
+            std::lround(std::ceil(std::sqrt(arguments.common.jobs)));
 #ifndef BOOTSTRAP_BUILD_TOOL
+        if (not EvaluateComputedRoots(&repo_config,
+                                      main_repo,
+                                      *storage_config,
+                                      traverse_args,
+                                      &exec_context,
+                                      eval_root_jobs)) {
+            return kExitFailure;
+        }
+
         std::optional<ServeApi> serve = ServeApi::Create(
             *serve_config, &local_context, &remote_context, &main_apis);
 #else
