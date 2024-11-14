@@ -18,7 +18,7 @@
 #include <optional>
 #include <string>
 
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 

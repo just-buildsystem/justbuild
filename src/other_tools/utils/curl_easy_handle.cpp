@@ -15,9 +15,10 @@
 #include "src/other_tools/utils/curl_easy_handle.hpp"
 
 #include <cstdio>
+#include <exception>
 #include <fstream>
 
-#include "gsl/gsl"
+#include "fmt/core.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

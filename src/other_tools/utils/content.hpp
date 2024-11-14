@@ -15,16 +15,18 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_UTILS_CONTENT_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_UTILS_CONTENT_HPP
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <utility>  // std::move
+#include <vector>
 
+#include "fmt/core.h"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/utils/curl_easy_handle.hpp"
-#include "src/other_tools/utils/curl_url_handle.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 // Utilities related to the content of an archive

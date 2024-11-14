@@ -14,11 +14,15 @@
 
 #include "src/other_tools/utils/parse_git_tree.hpp"
 
+#include <functional>
 #include <map>
 #include <utility>  // std::move
 #include <vector>
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 
 [[nodiscard]] auto ParseGitTree(ExpressionPtr const& repo_desc,

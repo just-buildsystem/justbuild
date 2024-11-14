@@ -15,10 +15,14 @@
   , "name": ["curl_easy_handle"]
   , "hdrs": ["curl_easy_handle.hpp"]
   , "srcs": ["curl_easy_handle.cpp"]
-  , "deps": ["curl_context", ["src/buildtool/logging", "log_level"]]
+  , "deps":
+    [ "curl_context"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "log_level"]
+    ]
   , "stage": ["src", "other_tools", "utils"]
   , "private-deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ ["@", "fmt", "", "fmt"]
     , ["", "libcurl"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "logging"]
@@ -43,7 +47,7 @@
   , "hdrs": ["content.hpp"]
   , "deps":
     [ "curl_easy_handle"
-    , "curl_url_handle"
+    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/logging", "log_level"]
@@ -58,12 +62,18 @@
   , "hdrs": ["parse_archive.hpp"]
   , "srcs": ["parse_archive.cpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/expression", "expression"]
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/crypto", "hash_info"]]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
+    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    ]
   , "stage": ["src", "other_tools", "utils"]
   }
 , "parse_git_tree":
@@ -72,12 +82,17 @@
   , "hdrs": ["parse_git_tree.hpp"]
   , "srcs": ["parse_git_tree.cpp"]
   , "deps":
-    [ ["src/buildtool/build_engine/expression", "expression"]
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/other_tools/ops_maps", "git_tree_fetch_map"]
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/crypto", "hash_info"]]
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hash_info"]
+    ]
   , "stage": ["src", "other_tools", "utils"]
   }
 }

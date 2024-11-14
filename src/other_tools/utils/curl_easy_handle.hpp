@@ -17,11 +17,12 @@
 
 #include <cstddef>
 #include <filesystem>
-#include <functional>
+#include <iosfwd>
 #include <memory>
 #include <optional>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/other_tools/utils/curl_context.hpp"
 

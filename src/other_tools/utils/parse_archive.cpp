@@ -14,10 +14,18 @@
 
 #include "src/other_tools/utils/parse_archive.hpp"
 
+#include <filesystem>
+#include <functional>
+#include <memory>
+#include <unordered_map>
 #include <utility>  // std::move
+#include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
+#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 
 auto ParseArchiveContent(ExpressionPtr const& repo_desc,
                          std::string const& origin)

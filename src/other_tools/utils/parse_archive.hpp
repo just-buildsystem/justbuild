@@ -18,7 +18,8 @@
 #include <optional>
 #include <string>
 
-#include "src/buildtool/build_engine/expression/expression.hpp"
+#include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 

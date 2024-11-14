@@ -14,7 +14,9 @@
 
 #include "src/other_tools/utils/curl_url_handle.hpp"
 
+#include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <regex>
 #include <sstream>
 
