@@ -15,8 +15,8 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_FILE_LOCKING_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_FILE_LOCKING_HPP
 
+#include <cstdio>
 #include <filesystem>
-#include <memory>
 #include <optional>
 #include <utility>  // std::move
 

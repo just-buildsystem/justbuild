@@ -15,12 +15,10 @@
 #ifndef INCLUDED_SRC_UTILS_ARCHIVE_ARCHIVE_OPS_HPP
 #define INCLUDED_SRC_UTILS_ARCHIVE_ARCHIVE_OPS_HPP
 
-#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <optional>
-
-#include "gsl/gsl"
+#include <string>
 
 extern "C" {
 using archive = struct archive;

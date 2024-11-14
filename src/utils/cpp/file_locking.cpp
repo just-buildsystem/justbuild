@@ -14,14 +14,16 @@
 
 #include "src/utils/cpp/file_locking.hpp"
 
-#include <cerrno>   // for errno
-#include <cstring>  // for strerror()
-
 #ifdef __unix__
 #include <sys/file.h>
 #else
 #error "Non-unix is not supported yet"
 #endif
+
+#include <cerrno>   // for errno
+#include <cstring>  // for strerror()
+#include <exception>
+#include <mutex>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"

@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_UTILS_CPP_PATH_HPP
 
 #include <filesystem>
-#include <sstream>
 
 [[nodiscard]] static inline auto ToNormalPath(
     std::filesystem::path const& p) noexcept -> std::filesystem::path {

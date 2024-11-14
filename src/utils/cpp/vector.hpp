@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_VECTOR_HPP
 
 // small library to manipulate vectors
+#include <algorithm>  // IWYU pragma: keep
 #include <vector>
 
 // sort the passed vector and remove repeated entries

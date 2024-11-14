@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_UTILS_CPP_TYPE_SAFE_ARITHMETIC_HPP
 
 #include <limits>
-#include <type_traits>
 
 #include "gsl/gsl"
 
@@ -94,48 +93,6 @@ class TypeSafeArithmetic {
     auto pointer() const -> const_pointer_t { return &value_; }
 };
 
-// template <typename TAG>
-// bool operator==(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return lhs.get() == rhs.get();
-// }
-//
-// template <typename TAG>
-// bool operator!=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return !(lhs == rhs);
-// }
-//
-// template <typename TAG>
-// bool operator>(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return lhs.get() > rhs.get();
-// }
-//
-// template <typename TAG>
-// bool operator>=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return lhs.get() >= rhs.get();
-// }
-//
-// template <typename TAG>
-// bool operator<(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return lhs.get() < rhs.get();
-// }
-//
-// template <typename TAG>
-// bool operator<=(TypeSafeArithmetic<TAG> lhs, TypeSafeArithmetic<TAG> rhs)
-// {
-//     return lhs.get() <= rhs.get();
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG> operator+(TypeSafeArithmetic<TAG> lhs,
-//                                     TypeSafeArithmetic<TAG> rhs) {
-//     return TypeSafeArithmetic<TAG>{lhs.get() + rhs.get()};
-// }
-
 template <typename TAG>
 auto operator+=(TypeSafeArithmetic<TAG>& lhs,
                 TypeSafeArithmetic<TAG> rhs) -> TypeSafeArithmetic<TAG>& {
@@ -143,67 +100,11 @@ auto operator+=(TypeSafeArithmetic<TAG>& lhs,
     return lhs;
 }
 
-// template <typename TAG>
-// TypeSafeArithmetic<TAG> operator-(TypeSafeArithmetic<TAG> lhs,
-//                                     TypeSafeArithmetic<TAG> rhs) {
-//     return TypeSafeArithmetic<TAG>{lhs.get() - rhs.get()};
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG>& operator-=(TypeSafeArithmetic<TAG>& lhs,
-//                                       TypeSafeArithmetic<TAG> rhs) {
-//     lhs.set(lhs.get() - rhs.get());
-//     return lhs;
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG> operator*(TypeSafeArithmetic<TAG> lhs,
-//                                     typename TAG::value_t rhs) {
-//     return TypeSafeArithmetic<TAG>{lhs.get() - rhs};
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG>& operator*=(TypeSafeArithmetic<TAG>& lhs,
-//                                       typename TAG::value_t rhs) {
-//     lhs.set(lhs.get() * rhs);
-//     return lhs;
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG> operator/(TypeSafeArithmetic<TAG> lhs,
-//                                     typename TAG::value_t rhs) {
-//     return TypeSafeArithmetic<TAG>{lhs.get() / rhs};
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG>& operator/=(TypeSafeArithmetic<TAG>& lhs,
-//                                       typename TAG::value_t rhs) {
-//     lhs.set(lhs.get() / rhs);
-//     return lhs;
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG>& operator++(TypeSafeArithmetic<TAG>& a) {
-//     return a += TypeSafeArithmetic<TAG>{1};
-// }
-
 template <typename TAG>
 auto operator++(TypeSafeArithmetic<TAG>& a, int) -> TypeSafeArithmetic<TAG> {
     auto r = a;
     a += TypeSafeArithmetic<TAG>{1};
     return r;
 }
-
-// template <typename TAG>
-// TypeSafeArithmetic<TAG>& operator--(TypeSafeArithmetic<TAG>& a) {
-//     return a -= TypeSafeArithmetic<TAG>{1};
-// }
-//
-// template <typename TAG>
-// TypeSafeArithmetic<TAG> operator--(TypeSafeArithmetic<TAG>& a, int) {
-//     auto r = a;
-//     a += TypeSafeArithmetic<TAG>{1};
-//     return r;
-// }
 
 #endif  // INCLUDED_SRC_UTILS_CPP_TYPE_SAFE_ARITHMETIC_HPP

@@ -17,9 +17,11 @@
 
 #include <atomic>
 #include <condition_variable>
+#include <memory>
+#include <mutex>  //std::unique_lock
 #include <shared_mutex>
-#include <type_traits>
-#include <utility>  // std::move
+#include <type_traits>  // IWYU pragma: keep
+#include <utility>      // IWYU pragma: keep
 
 // Atomic wrapper with notify/wait capabilities.
 // TODO(modernize): Replace any use this class by C++20's std::atomic<T>, once

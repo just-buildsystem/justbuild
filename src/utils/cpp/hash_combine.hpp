@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_HASH_COMBINE_HPP
 
 #include <cstddef>
+#include <functional>
 
 #include "gsl/gsl"
 

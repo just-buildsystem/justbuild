@@ -3,7 +3,6 @@
   , "name": ["archive_ops"]
   , "hdrs": ["archive_ops.hpp"]
   , "srcs": ["archive_ops.cpp"]
-  , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "archive"]
   , "private-deps":
     [ ["", "libarchive"]

@@ -15,10 +15,8 @@
 #ifndef INCLUDED_SRC_OTHER_TOOLS_TMP_DIR_HPP
 #define INCLUDED_SRC_OTHER_TOOLS_TMP_DIR_HPP
 
-#include <cstdlib>
 #include <filesystem>
 #include <memory>
-#include <optional>
 #include <string>
 
 std::string const kDefaultTemplate{"tmp.XXXXXX"};

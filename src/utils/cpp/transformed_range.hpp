@@ -19,7 +19,7 @@
 #include <functional>
 #include <iterator>
 #include <type_traits>
-#include <utility>  //std::move
+#include <utility>  // IWYU pragma: keep
 #include <vector>
 
 #include "gsl/gsl"

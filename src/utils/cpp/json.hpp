@@ -17,14 +17,17 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
+#include <functional>
+#include <iterator>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "fmt/core.h"
 #include "fmt/ostream.h"
-#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/utils/cpp/gsl.hpp"
 

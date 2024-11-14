@@ -15,7 +15,6 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_PREFIX_HPP
 #define INCLUDED_SRC_UTILS_CPP_PREFIX_HPP
 
-#include <algorithm>
 #include <sstream>
 #include <string>
 
