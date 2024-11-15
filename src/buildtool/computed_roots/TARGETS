@@ -1,0 +1,21 @@
+{ "analyse_and_build":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["analyse_and_build"]
+  , "hdrs": ["analyse_and_build.hpp"]
+  , "srcs": ["analyse_and_build.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/graph_traverser", "graph_traverser"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/main", "analyse"]
+    , ["src/buildtool/main", "analyse_context"]
+    ]
+  , "stage": ["src", "buildtool", "computed_roots"]
+  , "private-deps":
+    [ ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/main", "build_utils"]
+    ]
+  }
+}
