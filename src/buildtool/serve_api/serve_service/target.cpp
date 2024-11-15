@@ -450,7 +450,6 @@ auto TargetService::ServeTarget(
                               error_msg};
     }
 
-    BuildMaps::Target::ResultTargetMap result_map{serve_config_.jobs};
     auto configured_target = BuildMaps::Target::ConfiguredTarget{
         .target = std::move(*entity), .config = std::move(config)};
 
@@ -477,37 +476,38 @@ auto TargetService::ServeTarget(
                                .serve = serve_};
 
     // analyse the configured target
-    auto result = AnalyseTarget(&analyse_ctx,
-                                configured_target,
-                                &result_map,
-                                serve_config_.jobs,
-                                std::nullopt /*request_action_input*/,
-                                &logger);
+    auto analyse_result = AnalyseTarget(&analyse_ctx,
+                                        configured_target,
+                                        serve_config_.jobs,
+                                        std::nullopt /*request_action_input*/,
+                                        &logger);
 
-    if (not result) {
+    if (not analyse_result) {
         // report failure locally, to keep track of it...
         auto msg = fmt::format("Failed to analyse target {}",
                                configured_target.target.ToString());
         logger_->Emit(LogLevel::Warning, "{}", msg);
         return HandleFailureLog(tmp_log, "analysis", response);
     }
-    logger_->Emit(LogLevel::Info, "Analysed target {}", result->id.ToString());
+    logger_->Emit(
+        LogLevel::Info, "Analysed target {}", analyse_result->id.ToString());
 
     // get the output artifacts
-    auto const [artifacts, runfiles] = ReadOutputArtifacts(result->target);
+    auto const [artifacts, runfiles] =
+        ReadOutputArtifacts(analyse_result->target);
 
-    // get the result map outputs
+    // get the analyse_result map outputs
     auto const& [actions, blobs, trees] =
-        result_map.ToResult(&stats, &progress, &logger);
+        analyse_result->result_map.ToResult(&stats, &progress, &logger);
 
     // collect cache targets and artifacts for target-level caching
-    auto const cache_targets = result_map.CacheTargets();
+    auto const cache_targets = analyse_result->result_map.CacheTargets();
     auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
 
-    // Clean up result map, now that it is no longer needed
+    // Clean up analyse_result map, now that it is no longer needed
     {
         TaskSystem ts{serve_config_.jobs};
-        result_map.Clear(&ts);
+        analyse_result->result_map.Clear(&ts);
     }
 
     auto jobs = serve_config_.build_jobs;

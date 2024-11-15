@@ -1090,7 +1090,6 @@ auto main(int argc, char* argv[]) -> int {
         }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
-        BuildMaps::Target::ResultTargetMap result_map{arguments.common.jobs};
         auto id = ReadConfiguredTarget(
             main_repo, main_ws_root, &repo_config, arguments.analysis);
         auto serve_errors = nlohmann::json::array();
@@ -1115,13 +1114,13 @@ auto main(int argc, char* argv[]) -> int {
                                    .progress = &exports_progress,
                                    .serve = serve ? &*serve : nullptr};
 
-        auto result = AnalyseTarget(&analyse_ctx,
-                                    id,
-                                    &result_map,
-                                    arguments.common.jobs,
-                                    arguments.analysis.request_action_input,
-                                    /*logger=*/nullptr,
-                                    &collect_serve_errors);
+        auto analyse_result =
+            AnalyseTarget(&analyse_ctx,
+                          id,
+                          arguments.common.jobs,
+                          arguments.analysis.request_action_input,
+                          /*logger=*/nullptr,
+                          &collect_serve_errors);
         if (arguments.analysis.serve_errors_file) {
             Logger::Log(serve_errors.empty() ? LogLevel::Debug : LogLevel::Info,
                         "Dumping serve-error information to {}",
@@ -1129,11 +1128,11 @@ auto main(int argc, char* argv[]) -> int {
             std::ofstream os(*arguments.analysis.serve_errors_file);
             os << serve_errors.dump() << std::endl;
         }
-        if (result) {
-            Logger::Log(
-                LogLevel::Info,
-                "Analysed target {}",
-                result->id.ToShortString(Evaluator::GetExpressionLogLimit()));
+        if (analyse_result) {
+            Logger::Log(LogLevel::Info,
+                        "Analysed target {}",
+                        analyse_result->id.ToShortString(
+                            Evaluator::GetExpressionLogLimit()));
 
             {
                 auto cached = stats.ExportsCachedCounter();
@@ -1153,15 +1152,15 @@ auto main(int argc, char* argv[]) -> int {
             }
 
             if (arguments.analysis.graph_file) {
-                result_map.ToFile(
+                analyse_result->result_map.ToFile(
                     *arguments.analysis.graph_file, &stats, &progress);
             }
             if (arguments.analysis.graph_file_plain) {
-                result_map.ToFile</*kIncludeOrigins=*/false>(
+                analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
                     *arguments.analysis.graph_file_plain, &stats, &progress);
             }
             auto const [artifacts, runfiles] =
-                ReadOutputArtifacts(result->target);
+                ReadOutputArtifacts(analyse_result->target);
             if (arguments.analysis.artifacts_to_build_file) {
                 DumpArtifactsToBuild(
                     artifacts,
@@ -1169,38 +1168,41 @@ auto main(int argc, char* argv[]) -> int {
                     *arguments.analysis.artifacts_to_build_file);
             }
             if (arguments.cmd == SubCommand::kAnalyse) {
-                DiagnoseResults(*result, result_map, arguments.diagnose);
-                ReportTaintedness(*result);
+                DiagnoseResults(*analyse_result, arguments.diagnose);
+                ReportTaintedness(*analyse_result);
                 // Clean up in parallel
                 {
                     TaskSystem ts{arguments.common.jobs};
-                    result_map.Clear(&ts);
+                    analyse_result->result_map.Clear(&ts);
                 }
                 return kExitSuccess;
             }
 #ifndef BOOTSTRAP_BUILD_TOOL
-            ReportTaintedness(*result);
+            ReportTaintedness(*analyse_result);
             auto const& [actions, blobs, trees] =
-                result_map.ToResult(&stats, &progress);
+                analyse_result->result_map.ToResult(&stats, &progress);
 
             // collect cache targets and artifacts for target-level caching
-            auto const cache_targets = result_map.CacheTargets();
+            auto const cache_targets =
+                analyse_result->result_map.CacheTargets();
             auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
 
-            // Clean up result map, now that it is no longer needed
+            // Clean up analyse_result map, now that it is no longer needed
             {
                 TaskSystem ts{arguments.common.jobs};
-                result_map.Clear(&ts);
+                analyse_result->result_map.Clear(&ts);
             }
 
             Logger::Log(
                 LogLevel::Info,
                 "{}ing{} {}.",
                 arguments.cmd == SubCommand::kRebuild ? "Rebuild" : "Build",
-                result->modified
-                    ? fmt::format(" input of action {} of", *(result->modified))
+                analyse_result->modified
+                    ? fmt::format(" input of action {} of",
+                                  *(analyse_result->modified))
                     : "",
-                result->id.ToShortString(Evaluator::GetExpressionLogLimit()));
+                analyse_result->id.ToShortString(
+                    Evaluator::GetExpressionLogLimit()));
 
             auto build_result =
                 traverser.BuildAndStage(artifacts,
@@ -1223,7 +1225,7 @@ auto main(int argc, char* argv[]) -> int {
 
                 // Repeat taintedness message to make the user aware that
                 // the artifacts are not for production use.
-                ReportTaintedness(*result);
+                ReportTaintedness(*analyse_result);
                 if (build_result->failed_artifacts) {
                     Logger::Log(LogLevel::Warning,
                                 "Build result contains failed artifacts.");

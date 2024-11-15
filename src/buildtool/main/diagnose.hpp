@@ -15,11 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_MAIN_DIAGNOSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_MAIN_DIAGNOSE_HPP
 
-#include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/main/analyse.hpp"
 
 void DiagnoseResults(AnalysisResult const& result,
-                     BuildMaps::Target::ResultTargetMap const& result_map,
                      DiagnosticArguments const& clargs);
 #endif  // INCLUDED_SRC_BUILDTOOL_MAIN_DIAGNOSE_HPP

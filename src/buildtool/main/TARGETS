@@ -257,11 +257,7 @@
   , "hdrs": ["diagnose.hpp"]
   , "srcs": ["diagnose.cpp"]
   , "stage": ["src", "buildtool", "main"]
-  , "deps":
-    [ "analyse"
-    , ["src/buildtool/build_engine/target_map", "result_map"]
-    , ["src/buildtool/common", "cli"]
-    ]
+  , "deps": ["analyse", ["src/buildtool/common", "cli"]]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
@@ -271,6 +267,7 @@
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "json"]
