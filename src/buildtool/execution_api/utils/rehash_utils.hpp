@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -58,6 +59,12 @@ namespace RehashUtils {
                                        StorageConfig const& target_config,
                                        bool from_git = false) noexcept
     -> std::optional<std::string>;
+
+[[nodiscard]] auto RehashDigest(
+    std::vector<Artifact::ObjectInfo> const& digests,
+    StorageConfig const& source_config,
+    StorageConfig const& target_config)
+    -> expected<std::vector<Artifact::ObjectInfo>, std::string>;
 
 }  // namespace RehashUtils
 

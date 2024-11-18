@@ -46,8 +46,10 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/storage", "fs_utils"]
+    , ["src/buildtool/storage", "storage"]
     ]
   }
 }
