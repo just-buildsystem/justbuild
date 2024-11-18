@@ -15,13 +15,10 @@
 #include <array>
 #include <cstddef>
 #include <filesystem>
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
-#include <utility>
-#include <variant>
+#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact.hpp"
@@ -30,6 +27,7 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -56,13 +54,6 @@ namespace {
 [[nodiscard]] auto HashTree(HashFunction::Type hash_type,
                             std::filesystem::path const& path) noexcept
     -> std::optional<ArtifactDigest>;
-
-/// \brief Deeply rehash tree that is present in source storage and add it to
-/// the target storage.
-[[nodiscard]] auto StoreRehashedTree(Storage const& source,
-                                     Storage const& target,
-                                     ArtifactDigest const& tree)
-    -> std::optional<ArtifactDigest>;
 }  // namespace
 
 TEST_CASE("Rehash tree", "[common]") {
@@ -73,21 +64,23 @@ TEST_CASE("Rehash tree", "[common]") {
     auto const native_config =
         GetTypedStorageConfig(env_config.Get(), HashFunction::Type::GitSHA1);
     REQUIRE(native_config);
-    auto const native_storage = Storage::Create(&*native_config);
 
     // Deploy compatible storage:
     auto const compatible_config = GetTypedStorageConfig(
         env_config.Get(), HashFunction::Type::PlainSHA256);
     REQUIRE(compatible_config);
-    auto const compatible_storage = Storage::Create(&*compatible_config);
 
     // Randomize test directory:
     auto const test_dir = GenerateTestDirectory();
     REQUIRE(test_dir.has_value());
     auto const& test_dir_path = (*test_dir)->GetPath();
 
-    auto const check_rehash = [&test_dir_path](Storage const& source,
-                                               Storage const& target) -> void {
+    auto const check_rehash = [&test_dir_path](
+                                  StorageConfig const& source_config,
+                                  StorageConfig const& target_config) -> void {
+        auto const source = Storage::Create(&source_config);
+        auto const target = Storage::Create(&target_config);
+
         // Add digest to the source storage:
         auto const stored_digest = StoreHashedTree(source, test_dir_path);
         REQUIRE(stored_digest.has_value());
@@ -100,13 +93,18 @@ TEST_CASE("Rehash tree", "[common]") {
         // Rehash source digest present in the source storage and add
         // it to the target storage. The resulting digest must be
         // equal to expected_rehashed.
-        auto const rehashed = StoreRehashedTree(source, target, *stored_digest);
+
+        auto const rehashed = RehashUtils::RehashDigest(
+            {Artifact::ObjectInfo{.digest = *stored_digest,
+                                  .type = ObjectType::Tree}},
+            source_config,
+            target_config);
         REQUIRE(rehashed.has_value());
-        CHECK(rehashed->hash() == expected_rehashed->hash());
+        CHECK(rehashed->front().digest.hash() == expected_rehashed->hash());
     };
 
     SECTION("GitTree to bazel::Directory") {
-        check_rehash(native_storage, compatible_storage);
+        check_rehash(*native_config, *compatible_config);
     }
 }
 
@@ -232,77 +230,5 @@ namespace {
                      path, hash_blob, hash_tree, hash_symlink)
                : BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                      path, hash_blob, hash_tree, hash_symlink);
-}
-
-[[nodiscard]] auto StoreRehashedTree(Storage const& source,
-                                     Storage const& target,
-                                     ArtifactDigest const& tree)
-    -> std::optional<ArtifactDigest> {
-    BazelMsgFactory::GitReadFunc const read_git =
-        [&source](ArtifactDigest const& digest, ObjectType type)
-        -> std::optional<std::variant<std::filesystem::path, std::string>> {
-        return IsTreeObject(type)
-                   ? source.CAS().TreePath(digest)
-                   : source.CAS().BlobPath(digest, IsExecutableObject(type));
-    };
-
-    BazelMsgFactory::BlobStoreFunc const store_file =
-        [&target](std::variant<std::filesystem::path, std::string> const& data,
-                  bool is_exec) -> std::optional<ArtifactDigest> {
-        if (std::holds_alternative<std::filesystem::path>(data)) {
-            return target.CAS().StoreBlob</*kOwner=*/true>(
-                std::get<std::filesystem::path>(data), is_exec);
-        }
-        if (std::holds_alternative<std::string>(data)) {
-            return target.CAS().StoreBlob</*kOwner=*/true>(
-                std::get<std::string>(data), is_exec);
-        }
-        return std::nullopt;
-    };
-
-    BazelMsgFactory::TreeStoreFunc const store_tree =
-        [&target](std::string const& content) -> std::optional<ArtifactDigest> {
-        return target.CAS().StoreTree(content);
-    };
-
-    BazelMsgFactory::SymlinkStoreFunc const store_symlink =
-        [&target](std::string const& content) -> std::optional<ArtifactDigest> {
-        return target.CAS().StoreBlob(content);
-    };
-
-    // Emulate rehash mapping using a regular std::unordered_map:
-    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> rehash_map;
-
-    BazelMsgFactory::RehashedDigestReadFunc const read_rehashed =
-        [&rehash_map](ArtifactDigest const& digest)
-        -> std::optional<Artifact::ObjectInfo> {
-        auto const it = rehash_map.find(digest);
-        if (it == rehash_map.end()) {
-            return std::nullopt;
-        }
-        return it->second;
-    };
-
-    BazelMsgFactory::RehashedDigestStoreFunc const store_rehashed =
-        [&rehash_map](ArtifactDigest const& key,
-                      ArtifactDigest const& value,
-                      ObjectType type) mutable -> std::optional<std::string> {
-        rehash_map[key] = Artifact::ObjectInfo{.digest = value, .type = type};
-        return std::nullopt;
-    };
-
-    REQUIRE(not ProtocolTraits::IsNative(target.GetHashFunction().GetType()));
-    auto result =
-        BazelMsgFactory::CreateDirectoryDigestFromGitTree(tree,
-                                                          read_git,
-                                                          store_file,
-                                                          store_tree,
-                                                          store_symlink,
-                                                          read_rehashed,
-                                                          store_rehashed);
-    if (result) {
-        return *std::move(result);
-    }
-    return std::nullopt;
 }
 }  // namespace
