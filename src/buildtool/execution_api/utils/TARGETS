@@ -38,6 +38,7 @@
   , "srcs": ["rehash_utils.cpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "expected"]

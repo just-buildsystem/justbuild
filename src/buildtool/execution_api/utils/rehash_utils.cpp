@@ -136,11 +136,11 @@ template <std::invocable<ArtifactDigest const&, ObjectType> TReadCallback>
         [&target_storage](
             std::variant<std::filesystem::path, std::string> const& data,
             bool is_exec) -> std::optional<ArtifactDigest> {
-        if (not std::holds_alternative<std::filesystem::path>(data)) {
-            return std::nullopt;
-        }
-        return target_storage.CAS().StoreBlob(
-            std::get<std::filesystem::path>(data), is_exec);
+        return std::visit(
+            [&target_storage, is_exec](auto const& d) {
+                return target_storage.CAS().StoreBlob(d, is_exec);
+            },
+            data);
     };
     BazelMsgFactory::TreeStoreFunc store_dir =
         [&cas = target_storage.CAS()](std::string const& content) {
@@ -250,6 +250,23 @@ auto RehashDigest(std::vector<Artifact::ObjectInfo> const& digests,
                             target_config,
                             std::move(read),
                             /*from_git=*/false);
+}
+
+auto RehashGitDigest(std::vector<Artifact::ObjectInfo> const& digests,
+                     StorageConfig const& source_config,
+                     StorageConfig const& target_config,
+                     RepositoryConfig const& repo_config)
+    -> expected<std::vector<Artifact::ObjectInfo>, std::string> {
+    auto read = [&repo_config](
+                    ArtifactDigest const& digest,
+                    ObjectType /*type*/) -> std::optional<std::string> {
+        return repo_config.ReadBlobFromGitCAS(digest.hash());
+    };
+    return RehashDigestImpl(digests,
+                            source_config,
+                            target_config,
+                            std::move(read),
+                            /*from_git=*/true);
 }
 
 }  // namespace RehashUtils
