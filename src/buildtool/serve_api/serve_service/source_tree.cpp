@@ -32,7 +32,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
-#include "src/buildtool/execution_api/serve/utils.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
@@ -423,10 +423,10 @@ auto SourceTreeService::SetDigestInResponse(
         // get the compatible digest from the mapping that was created during
         // upload from Git cache
         auto const cached_obj =
-            MRApiUtils::ReadRehashedDigest(*native_digest,
-                                           *native_context_->storage_config,
-                                           *compat_context_->storage_config,
-                                           from_git);
+            RehashUtils::ReadRehashedDigest(*native_digest,
+                                            *native_context_->storage_config,
+                                            *compat_context_->storage_config,
+                                            from_git);
         if (not cached_obj) {
             logger_->Emit(
                 LogLevel::Error, "SetDigestInResponse: {}", cached_obj.error());

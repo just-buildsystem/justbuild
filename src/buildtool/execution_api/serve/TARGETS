@@ -1,23 +1,4 @@
-{ "utils":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["utils"]
-  , "hdrs": ["utils.hpp"]
-  , "srcs": ["utils.cpp"]
-  , "deps":
-    [ ["src/buildtool/common", "common"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/storage", "config"]
-    , ["src/utils/cpp", "expected"]
-    ]
-  , "stage": ["src", "buildtool", "execution_api", "serve"]
-  , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/storage", "fs_utils"]
-    ]
-  }
-, "mr_git_api":
+{ "mr_git_api":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["mr_git_api"]
   , "hdrs": ["mr_git_api.hpp"]
@@ -34,9 +15,9 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":
-    [ "utils"
-    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/git", "git"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -58,9 +39,9 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":
-    [ "utils"
-    , ["src/buildtool/common", "protocol_traits"]
+    [ ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

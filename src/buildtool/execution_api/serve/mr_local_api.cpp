@@ -19,7 +19,7 @@
 
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
-#include "src/buildtool/execution_api/serve/utils.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -89,7 +89,7 @@ auto MRLocalApi::RetrieveToCas(
                           compat_storage = compat_context_->storage_config](
                              ArtifactDigest const& digest)
         -> expected<std::optional<Artifact::ObjectInfo>, std::string> {
-        return MRApiUtils::ReadRehashedDigest(
+        return RehashUtils::ReadRehashedDigest(
             digest, *native_storage, *compat_storage);
     };
     auto store_rehashed =
@@ -98,11 +98,11 @@ auto MRLocalApi::RetrieveToCas(
             ArtifactDigest const& source_digest,
             ArtifactDigest const& target_digest,
             ObjectType obj_type) -> std::optional<std::string> {
-        return MRApiUtils::StoreRehashedDigest(source_digest,
-                                               target_digest,
-                                               obj_type,
-                                               *native_storage,
-                                               *compat_storage);
+        return RehashUtils::StoreRehashedDigest(source_digest,
+                                                target_digest,
+                                                obj_type,
+                                                *native_storage,
+                                                *compat_storage);
     };
 
     // collect the native blobs and rehash them as compatible to be able to

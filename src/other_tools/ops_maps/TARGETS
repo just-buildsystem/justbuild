@@ -81,7 +81,7 @@
     [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hasher"]
-    , ["src/buildtool/execution_api/serve", "utils"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]

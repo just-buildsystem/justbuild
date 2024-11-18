@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_SERVE_UTILS_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_SERVE_UTILS_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_UTILS_REHASH_UTILS_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_UTILS_REHASH_UTILS_HPP
 
 #include <optional>
 #include <string>
@@ -24,7 +24,7 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
 
-namespace MRApiUtils {
+namespace RehashUtils {
 
 /// \brief Get a corresponding known object from a different local CAS, as
 /// stored in a mapping file, if exists.
@@ -59,6 +59,6 @@ namespace MRApiUtils {
                                        bool from_git = false) noexcept
     -> std::optional<std::string>;
 
-}  // namespace MRApiUtils
+}  // namespace RehashUtils
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_SERVE_UTILS_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_UTILS_REHASH_UTILS_HPP

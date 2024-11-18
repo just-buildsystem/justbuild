@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/execution_api/serve/utils.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 
 #include <cstddef>  // std::size_t
 #include <filesystem>
@@ -24,7 +24,7 @@
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 
-namespace MRApiUtils {
+namespace RehashUtils {
 
 auto ReadRehashedDigest(ArtifactDigest const& digest,
                         StorageConfig const& source_config,
@@ -115,4 +115,4 @@ auto StoreRehashedDigest(ArtifactDigest const& source_digest,
     return std::nullopt;  // a-ok
 }
 
-}  // namespace MRApiUtils
+}  // namespace RehashUtils

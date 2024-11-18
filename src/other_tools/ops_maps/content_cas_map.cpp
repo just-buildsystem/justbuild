@@ -22,7 +22,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
-#include "src/buildtool/execution_api/serve/utils.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -318,7 +318,7 @@ auto CreateContentCASMap(
                             return;
                         }
                         // cache association between digests
-                        auto error_msg = MRApiUtils::StoreRehashedDigest(
+                        auto error_msg = RehashUtils::StoreRehashedDigest(
                             native_digest,
                             *rehashed_digest,
                             ObjectType::File,
