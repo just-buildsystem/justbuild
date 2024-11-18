@@ -66,6 +66,9 @@ class RepositoryConfig {
         return static_cast<bool>(git_cas_);
     }
 
+    void SetComputedRoot(FileRoot::ComputedRoot const& root,
+                         FileRoot const& value);
+
     [[nodiscard]] auto Info(std::string const& repo) const noexcept
         -> RepositoryInfo const* {
         if (auto const* data = Data(repo)) {

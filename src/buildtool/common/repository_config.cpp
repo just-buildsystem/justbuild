@@ -150,3 +150,28 @@ auto RepositoryConfig::AddToGraphAndGetId(
     }
     return std::nullopt;
 }
+
+void RepositoryConfig::SetComputedRoot(FileRoot::ComputedRoot const& root,
+                                       FileRoot const& value) {
+    for (auto const& [name, desc] : repos_) {
+        auto new_info = desc.info;
+        bool changed = false;
+        auto set_root_if_matching =
+            [&changed, &root, &value](auto* candidate_root) {
+                auto croot = candidate_root->GetComputedDescription();
+                if (croot) {
+                    if (*croot == root) {
+                        *candidate_root = value;
+                        changed = true;
+                    }
+                }
+            };
+        set_root_if_matching(&new_info.workspace_root);
+        set_root_if_matching(&new_info.target_root);
+        set_root_if_matching(&new_info.rule_root);
+        set_root_if_matching(&new_info.expression_root);
+        if (changed) {
+            SetInfo(name, std::move(new_info));
+        }
+    }
+}
