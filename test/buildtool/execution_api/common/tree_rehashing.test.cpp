@@ -21,12 +21,17 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -98,13 +103,86 @@ TEST_CASE("Rehash tree", "[common]") {
             {Artifact::ObjectInfo{.digest = *stored_digest,
                                   .type = ObjectType::Tree}},
             source_config,
-            target_config);
+            target_config,
+            /*apis=*/std::nullopt);
         REQUIRE(rehashed.has_value());
         CHECK(rehashed->front().digest.hash() == expected_rehashed->hash());
     };
 
     SECTION("GitTree to bazel::Directory") {
         check_rehash(*native_config, *compatible_config);
+    }
+    SECTION("bazel::Directory to GitTree") {
+        check_rehash(*compatible_config, *native_config);
+    }
+
+    // Emulating the scenario when only the top-level bazel::Directory is
+    // available locally, and to rehash it to a git_tree, the parts must be
+    // downloaded from the remote endpoint.
+    // In the context of this test, "remote" is not a real remote
+    // endpoint: it is emulated using one more Storage that is deployed in a
+    // temporary directory. This "remote" storage contains the whole
+    // bazel::Directory and can be passed to ApiBundle's remote field to be used
+    // for downloading of artifacts that are unknown to the local storage.
+    SECTION("partially available bazel::Directory") {
+        // Provide aliases to be clear in regard of the direction of rehashing:
+        auto const& source_config = *compatible_config;
+        auto const& target_config = *native_config;
+        auto const source_storage = Storage::Create(&source_config);
+
+        // Deploy one more "remote" storage:
+        auto const tmp_dir = source_config.CreateTypedTmpDir("remote");
+        auto const remote_config =
+            StorageConfig::Builder{}
+                .SetBuildRoot(tmp_dir->GetPath())
+                .SetHashType(source_config.hash_function.GetType())
+                .Build();
+        REQUIRE(remote_config);
+        auto remote_storage = Storage::Create(&remote_config.value());
+
+        // Store the whole bazel::Directory to the "remote" storage:
+        auto const stored_digest =
+            StoreHashedTree(remote_storage, test_dir_path);
+        REQUIRE(stored_digest.has_value());
+
+        // Get the expected result of rehashing:
+        auto const expected_rehashed =
+            HashTree(target_config.hash_function.GetType(), test_dir_path);
+        REQUIRE(expected_rehashed.has_value());
+
+        // Add the top-level bazel::Directory only to the source storage:
+        auto const top_tree_path =
+            remote_storage.CAS().TreePath(stored_digest.value());
+        REQUIRE(top_tree_path);
+        auto source_top_tree_digest =
+            source_storage.CAS().StoreTree(*top_tree_path);
+        REQUIRE(source_top_tree_digest.has_value());
+        REQUIRE(*source_top_tree_digest == *stored_digest);
+
+        // Create parts of ApiBundle, taking into account that "remote" is a
+        // LocalApi as well.
+        LocalExecutionConfig const dump_exec_config{};
+        LocalContext const local_context{.exec_config = &dump_exec_config,
+                                         .storage_config = &source_config,
+                                         .storage = &source_storage};
+        LocalContext const remote_context{.exec_config = &dump_exec_config,
+                                          .storage_config = &*remote_config,
+                                          .storage = &remote_storage};
+        ApiBundle const apis{
+            .hash_function = local_context.storage_config->hash_function,
+            .local = std::make_shared<LocalApi>(&local_context),
+            .remote = std::make_shared<LocalApi>(&remote_context)};
+
+        // Rehash the top-level directory. This operation requires "downloading"
+        // of unknown parts of the trees from the "remote".
+        auto const rehashed = RehashUtils::RehashDigest(
+            {Artifact::ObjectInfo{.digest = *stored_digest,
+                                  .type = ObjectType::Tree}},
+            *compatible_config,
+            *native_config,
+            &apis);
+        REQUIRE(rehashed.has_value());
+        CHECK(rehashed->front().digest.hash() == expected_rehashed->hash());
     }
 }
 

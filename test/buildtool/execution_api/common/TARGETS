@@ -50,6 +50,7 @@
   , "srcs": ["tree_rehashing.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
@@ -59,6 +60,10 @@
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
+    , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_api/local", "context"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local"]
     , ["@", "src", "src/buildtool/execution_api/utils", "rehash_utils"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
