@@ -23,8 +23,10 @@
 #include <variant>
 
 #include "fmt/core.h"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -132,7 +134,13 @@ template <std::invocable<ArtifactDigest const&, ObjectType> TReadCallback>
 
     auto const target_storage = Storage::Create(&target_config);
 
-    BazelMsgFactory::BlobStoreFunc store_file =
+    BazelMsgFactory::FileStoreFunc store_file =
+        [&target_storage](std::filesystem::path const& data,
+                          bool is_exec) -> std::optional<ArtifactDigest> {
+        return target_storage.CAS().StoreBlob(data, is_exec);
+    };
+
+    BazelMsgFactory::BlobStoreFunc store_from_git =
         [&target_storage](
             std::variant<std::filesystem::path, std::string> const& data,
             bool is_exec) -> std::optional<ArtifactDigest> {
@@ -189,14 +197,23 @@ template <std::invocable<ArtifactDigest const&, ObjectType> TReadCallback>
         if (IsTreeObject(source_object.type)) {
             // get the directory digest
             auto target_tree =
-                BazelMsgFactory::CreateDirectoryDigestFromGitTree(
-                    source_object.digest,
-                    read_callback,
-                    store_file,
-                    store_dir,
-                    store_symlink,
-                    read_rehashed,
-                    store_rehashed);
+                ProtocolTraits::IsNative(target_config.hash_function.GetType())
+                    ? BazelMsgFactory::CreateGitTreeDigestFromDirectory(
+                          source_object.digest,
+                          read_callback,
+                          store_file,
+                          store_dir,
+                          store_symlink,
+                          read_rehashed,
+                          store_rehashed)
+                    : BazelMsgFactory::CreateDirectoryDigestFromGitTree(
+                          source_object.digest,
+                          read_callback,
+                          store_from_git,
+                          store_dir,
+                          store_symlink,
+                          read_rehashed,
+                          store_rehashed);
             if (not target_tree) {
                 return unexpected(std::move(target_tree).error());
             }
@@ -206,14 +223,14 @@ template <std::invocable<ArtifactDigest const&, ObjectType> TReadCallback>
         }
         else {
             // blobs can be directly rehashed
-            auto path = read_callback(source_object.digest, source_object.type);
-            if (not path) {
-                return unexpected(
-                    fmt::format("failed to get path of entry {}",
-                                source_object.digest.hash()));
+            auto data = read_callback(source_object.digest, source_object.type);
+            if (not data) {
+                return unexpected(fmt::format("failed to get path of entry {}",
+                                              source_object.digest.hash()));
             }
-            auto target_blob =
-                store_file(*path, IsExecutableObject(source_object.type));
+            auto const is_exec = IsExecutableObject(source_object.type);
+            auto target_blob = from_git ? store_from_git(*data, is_exec)
+                                        : store_file(*data, is_exec);
             if (not target_blob) {
                 return unexpected(fmt::format("failed to rehash entry {}",
                                               source_object.digest.hash()));
@@ -235,12 +252,23 @@ template <std::invocable<ArtifactDigest const&, ObjectType> TReadCallback>
 
 auto RehashDigest(std::vector<Artifact::ObjectInfo> const& digests,
                   StorageConfig const& source_config,
-                  StorageConfig const& target_config)
+                  StorageConfig const& target_config,
+                  std::optional<gsl::not_null<ApiBundle const*>> apis)
     -> expected<std::vector<Artifact::ObjectInfo>, std::string> {
     auto const source_storage = Storage::Create(&source_config);
-    auto read = [&source_storage](
+    auto read = [&source_storage, &apis](
                     ArtifactDigest const& digest,
                     ObjectType type) -> std::optional<std::filesystem::path> {
+        if (apis) {
+            auto const& local = *(*apis)->local;
+            auto const& remote = *(*apis)->remote;
+            if (not local.IsAvailable(digest) and
+                not remote.RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = digest, .type = type}},
+                    local)) {
+                return std::nullopt;
+            }
+        }
         return IsTreeObject(type) ? source_storage.CAS().TreePath(digest)
                                   : source_storage.CAS().BlobPath(
                                         digest, IsExecutableObject(type));

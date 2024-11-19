@@ -37,8 +37,12 @@
   , "hdrs": ["rehash_utils.hpp"]
   , "srcs": ["rehash_utils.cpp"]
   , "deps":
-    [ ["src/buildtool/common", "common"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "expected"]

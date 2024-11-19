@@ -19,9 +19,11 @@
 #include <string>
 #include <vector>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -64,7 +66,8 @@ namespace RehashUtils {
 [[nodiscard]] auto RehashDigest(
     std::vector<Artifact::ObjectInfo> const& digests,
     StorageConfig const& source_config,
-    StorageConfig const& target_config)
+    StorageConfig const& target_config,
+    std::optional<gsl::not_null<ApiBundle const*>> apis)
     -> expected<std::vector<Artifact::ObjectInfo>, std::string>;
 
 [[nodiscard]] auto RehashGitDigest(

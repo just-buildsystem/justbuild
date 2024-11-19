@@ -79,10 +79,11 @@ auto MRLocalApi::RetrieveToCas(
         return compat_local_api_->RetrieveToCas(artifacts_info, api);
     }
 
-    auto compat_artifacts =
-        RehashUtils::RehashDigest(artifacts_info,
-                                  *native_context_->storage_config,
-                                  *compat_context_->storage_config);
+    auto compat_artifacts = RehashUtils::RehashDigest(
+        artifacts_info,
+        *native_context_->storage_config,
+        *compat_context_->storage_config,
+        /*apis=*/std::nullopt);  // all parts of git trees are present locally
     if (not compat_artifacts) {
         Logger::Log(LogLevel::Error,
                     "MRLocalApi: {}",
