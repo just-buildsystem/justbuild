@@ -137,7 +137,7 @@ class SourceTreeService final
     ApiBundle const& apis_;
     gsl::not_null<LocalContext const*> native_context_;
     LocalContext const* compat_context_;
-    mutable std::shared_mutex mutex_;
+    mutable std::mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
     // symlinks resolver map
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};
