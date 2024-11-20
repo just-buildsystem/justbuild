@@ -37,6 +37,11 @@ which determines the type and semantic of the subsequent elements:
       entry is missing, the root is considered absent and any target
       requiring this root has to come from a specified serve end point.
 
+ - *`"computed"`* refers to a file root that is the result of evaluating
+   an export target of a content-fixed repository. The list has to have
+   length 5, with the remaining arguments being the global repository name,
+   the module name, the target name, and the configuration, in that order.
+
 Repository description
 ----------------------
 
