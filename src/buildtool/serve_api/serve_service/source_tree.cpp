@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <functional>
-#include <shared_mutex>
 #include <vector>
 
 #include "fmt/core.h"
@@ -552,7 +551,7 @@ auto SourceTreeService::ResolveContentTree(
             });
         {
             // this is a non-thread-safe Git operation, so it must be guarded!
-            std::shared_lock slock{mutex_};
+            std::unique_lock slock{mutex_};
             // open real repository at Git CAS location
             auto git_repo =
                 GitRepo::Open(native_context_->storage_config->GitRoot());
@@ -674,7 +673,7 @@ auto SourceTreeService::CommonImportToGit(
     // tag commit and keep it in Git CAS
     {
         // this is a non-thread-safe Git operation, so it must be guarded!
-        std::shared_lock slock{mutex_};
+        std::unique_lock slock{mutex_};
         // open real repository at Git CAS location
         auto git_repo =
             GitRepo::Open(native_context_->storage_config->GitRoot());
