@@ -111,10 +111,25 @@ echo Building a different computed root, without reference build
 echo
 "${JUST}" install -L '["env", "PATH='"${PATH}"'"]' \
     --local-build-root "${LBRDIR}" -C repo-config.json \
-    --log-limit 4 --main 'other derived' -o "${OUT}/other-derived" 2>&1
+    --log-limit 4 -f "${OUT}/log" \
+    --main 'other derived' -o "${OUT}/other-derived" 2>&1
 echo
 
 [ "$(cat "${OUT}/other-derived/out" | wc -l)" -eq 78 ]
 
+echo
+echo Sanity-check of the log
+echo
+grep '[Rr]oot.*base.*evaluted.*' "${OUT}/log"  > "${TMPDIR}/log_line"
+cat "${TMPDIR}/log_line"
+sed -i 's/.*log //' "${TMPDIR}/log_line"
+"${JUST}" install-cas --local-build-root "${LBRDIR}" \
+    -o "${OUT}/log.root" $(cat "${TMPDIR}/log_line")
+echo
+cat "${OUT}/log.root"
+echo
+grep 'COUNT.*12' "${OUT}/log.root"
+grep '[Dd]iscovered.*1 action' "${OUT}/log.root"
+grep '0 cache hit' "${OUT}/log.root"
 
 echo OK

@@ -34,6 +34,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
@@ -44,7 +45,6 @@
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
-#include "src/buildtool/logging/log_sink_cmdline.hpp"
 #include "src/buildtool/logging/log_sink_file.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
@@ -106,15 +106,12 @@ auto GetRootDeps(std::string const& name,
     std::set<std::string> seen{};
     TraverseRepoForComputedRoots(name, repository_config, &result, &seen);
     sort_and_deduplicate(&result);
-    Logger::Log(LogLevel::Performance, [&]() {
+    Logger::Log(LogLevel::Debug, [&]() {
         std::ostringstream msg{};
         msg << "Roots for " << nlohmann::json(name) << ", total of "
             << result.size() << ":";
         for (auto const& root : result) {
-            msg << "\n - ([\"@\", " << nlohmann::json(root.repository).dump()
-                << ", " << nlohmann::json(root.target_module).dump() << ", "
-                << nlohmann::json(root.target_name).dump() << "], "
-                << root.config.dump() << ")";
+            msg << "\n - " << root.ToString();
         }
         return msg.str();
     });
@@ -132,12 +129,7 @@ auto WhileHandling(FileRoot::ComputedRoot const& root,
     return std::make_shared<AsyncMapConsumerLogger>(
         [root, logger](auto const& msg, auto fatal) {
             (*logger)(fmt::format(
-                          "While materializing ([\"@\", {}, {}, {}], {}):\n{}",
-                          nlohmann::json(root.repository).dump(),
-                          nlohmann::json(root.target_module).dump(),
-                          nlohmann::json(root.target_name).dump(),
-                          root.config.dump(),
-                          msg),
+                          "While materializing {}:\n{}", root.ToString(), msg),
                       fatal);
         });
 }
@@ -276,11 +268,7 @@ void ComputeAndFill(
                                    .progress = &progress};
     Logger build_logger = Logger(
         target.ToString(),
-        std::vector<LogSinkFactory>{
-            LogSinkFile::CreateFactory(log_file),
-            LogSinkCmdLine::CreateFactory()});  // TODO(aehlig): drop
-                                                // command-line logging and only
-                                                // report blob-id of log file
+        std::vector<LogSinkFactory>{LogSinkFile::CreateFactory(log_file)});
     auto root_build_args = *traverser_args;
     root_build_args.stage =
         StageArguments{.output_dir = root_dir, .remember = true};
@@ -295,8 +283,20 @@ void ComputeAndFill(
         build_result = AnalyseAndBuild(
             &analyse_context, traverser, target, jobs, &build_logger);
     }
+    auto log_blob = storage.CAS().StoreBlob(log_file, false);
+    std::string log_desc{};
+    if (not log_blob) {
+        (*logger)(fmt::format("Failed to store log file {} to CAS",
+                              log_file.string()),
+                  false);
+        log_desc = "???";
+    }
+    else {
+        log_desc = log_blob->hash();
+    }
     if (not build_result) {
-        (*logger)("Build failed, see console output for details", true);
+        (*logger)(fmt::format("Build failed, see {} for details", log_desc),
+                  true);
         return;
     }
     auto result = ImportToGitCas(root_dir, *storage_config, git_lock, logger);
@@ -304,9 +304,10 @@ void ComputeAndFill(
         return;
     }
     Logger::Log(LogLevel::Performance,
-                "Root {} evaluted to {}",
+                "Root {} evaluted to {}, log {}",
                 target.ToString(),
-                *result);
+                *result,
+                log_desc);
     auto root_result = FileRoot::FromGit(storage_config->GitRoot(), *result);
     if (not root_result) {
         (*logger)(fmt::format("Failed to create git root for {}", *result),
@@ -387,6 +388,10 @@ auto EvaluateComputedRoots(
     std::size_t jobs) -> bool {
     auto roots = GetRootDeps(main_repo, repository_config);
     if (not roots.empty()) {
+        Logger::Log(LogLevel::Info,
+                    "Repository {} depends on {} top-level computed roots",
+                    nlohmann::json(main_repo).dump(),
+                    roots.size());
         // First, ensure the local git repository is present
         if (not FileSystemManager::CreateDirectory(storage_config.GitRoot())) {
             Logger::Log(LogLevel::Error,
@@ -422,18 +427,15 @@ auto EvaluateComputedRoots(
                 &ts,
                 roots,
                 [&roots](auto values) {
-                    Logger::Log(LogLevel::Performance, [&]() {
+                    Logger::Log(LogLevel::Progress,
+                                "Computed roots evaluted, {} top level",
+                                roots.size());
+                    Logger::Log(LogLevel::Debug, [&]() {
                         std::ostringstream msg{};
                         msg << "Top-level computed roots";
                         for (int i = 0; i < roots.size(); i++) {
                             auto const& root = roots[i];
-                            msg << "\n - ([\"@\", "
-                                << nlohmann::json(root.repository).dump()
-                                << ", "
-                                << nlohmann::json(root.target_module).dump()
-                                << ", "
-                                << nlohmann::json(root.target_name).dump()
-                                << "], " << root.config.dump() << ")"
+                            msg << "\n - " << root.ToString()
                                 << " evaluates to " << *values[i];
                         }
                         return msg.str();
