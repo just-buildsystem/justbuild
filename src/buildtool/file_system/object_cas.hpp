@@ -100,7 +100,7 @@ class ObjectCAS {
         auto const& id = digest.hash();
         auto blob_path = file_store_.GetPath(id);
         if (not IsAvailable(digest, blob_path)) {
-            logger_.Emit(LogLevel::Debug, "Blob not found {}", id);
+            logger_.Emit(LogLevel::Trace, "Blob not found {}", id);
             return std::nullopt;
         }
         return blob_path;
