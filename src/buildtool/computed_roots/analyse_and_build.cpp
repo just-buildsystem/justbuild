@@ -49,7 +49,7 @@
         ReadOutputArtifacts(analysis_result->target);
 
     auto const [actions, blobs, trees] = analysis_result->result_map.ToResult(
-        analyse_context->statistics, analyse_context->progress);
+        analyse_context->statistics, analyse_context->progress, logger);
 
     auto const cache_targets = analysis_result->result_map.CacheTargets();
     auto build_result =
