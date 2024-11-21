@@ -141,6 +141,14 @@ class FileRoot {
             }
             return config < other.config;
         }
+
+        [[nodiscard]] auto ToString() const -> std::string {
+            return fmt::format("([\"@\", {}, {}, {}], {})",
+                               nlohmann::json(repository).dump(),
+                               nlohmann::json(target_module).dump(),
+                               nlohmann::json(target_name).dump(),
+                               config.dump());
+        }
     };
 
   private:
