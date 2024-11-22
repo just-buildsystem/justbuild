@@ -6,6 +6,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "analyse"]
@@ -16,6 +17,8 @@
     [ ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/main", "build_utils"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/storage", "storage"]
     ]
   }
 , "evaluate":

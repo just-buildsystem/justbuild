@@ -20,6 +20,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/analyse.hpp"
@@ -35,6 +36,7 @@ struct AnalyseAndBuildResult {
     GraphTraverser const& traverser,
     BuildMaps::Target::ConfiguredTarget const& id,
     std::size_t jobs,
+    gsl::not_null<ApiBundle const*> const& apis,
     Logger const* logger = nullptr) -> std::optional<AnalyseAndBuildResult>;
 
 #endif  // INCLUDED_SRC_BUILDOOL_COMPUTED_ROOTS_ANALYSE_AND_BUILD_HPP

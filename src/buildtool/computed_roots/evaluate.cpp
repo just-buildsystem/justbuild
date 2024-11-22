@@ -286,8 +286,12 @@ void ComputeAndFill(
         // content-fixed repo
         // TODO(aehlig): avoid installing and importing to git if the
         // resulting root is available already
-        build_result = AnalyseAndBuild(
-            &analyse_context, traverser, target, jobs, &build_logger);
+        build_result = AnalyseAndBuild(&analyse_context,
+                                       traverser,
+                                       target,
+                                       jobs,
+                                       context->apis,
+                                       &build_logger);
     }
     auto log_blob = storage.CAS().StoreBlob(log_file, false);
     std::string log_desc{};

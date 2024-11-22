@@ -132,4 +132,14 @@ grep 'COUNT.*12' "${OUT}/log.root"
 grep '[Dd]iscovered.*1 action' "${OUT}/log.root"
 grep '0 cache hit' "${OUT}/log.root"
 
+echo
+echo Building computed root again, expecting target-level cache hit
+echo
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' \
+    --local-build-root "${LBRDIR}" -C repo-config.json \
+    --log-limit 4 -f "${OUT}/log2" \
+    --main 'other derived' 2>&1
+echo
+grep '[Ee]xport.*from cache' "${OUT}/log2"
+
 echo OK

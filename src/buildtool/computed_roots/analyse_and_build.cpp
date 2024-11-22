@@ -20,12 +20,15 @@
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/main/build_utils.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/storage.hpp"
 
 [[nodiscard]] auto AnalyseAndBuild(
     gsl::not_null<AnalyseContext*> const& analyse_context,
     GraphTraverser const& traverser,
     BuildMaps::Target::ConfiguredTarget const& id,
     std::size_t jobs,
+    gsl::not_null<ApiBundle const*> const& apis,
     Logger const* logger) -> std::optional<AnalyseAndBuildResult> {
     auto analysis_result = AnalyseTarget(analyse_context,
                                          id,
@@ -52,6 +55,13 @@
         analyse_context->statistics, analyse_context->progress, logger);
 
     auto const cache_targets = analysis_result->result_map.CacheTargets();
+
+    // Clean up analyse_result map, now that it is no longer needed
+    {
+        TaskSystem ts{jobs};
+        analysis_result->result_map.Clear(&ts);
+    }
+
     auto build_result =
         traverser.BuildAndStage(artifacts,
                                 runfiles,
@@ -67,6 +77,14 @@
         }
         return std::nullopt;
     }
+    WriteTargetCacheEntries(cache_targets,
+                            build_result->extra_infos,
+                            jobs,
+                            *apis,
+                            TargetCacheWriteStrategy::Sync,
+                            analyse_context->storage->TargetCache(),
+                            logger);
+
     return AnalyseAndBuildResult{.analysis_result = *std::move(analysis_result),
                                  .build_result = *std::move(build_result)};
 }
