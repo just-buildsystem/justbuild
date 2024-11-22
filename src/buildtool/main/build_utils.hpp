@@ -81,7 +81,7 @@ static const std::function<std::string(Artifact::ObjectInfo const&)>
 };
 
 /// \brief Write the target cache entries resulting after a build.
-/// \param strict_logging Bump warnings to actual errors.
+/// \param log_level the level at which to report failure
 void WriteTargetCacheEntries(
     std::unordered_map<TargetCacheKey, AnalysedTargetPtr> const& cache_targets,
     std::unordered_map<ArtifactDescription, Artifact::ObjectInfo> const&
