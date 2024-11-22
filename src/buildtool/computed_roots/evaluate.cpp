@@ -272,7 +272,13 @@ void ComputeAndFill(
     auto root_build_args = *traverser_args;
     root_build_args.stage =
         StageArguments{.output_dir = root_dir, .remember = true};
-    GraphTraverser traverser{root_build_args, context, reporter, &build_logger};
+    auto root_exec_context = ExecutionContext{context->repo_config,
+                                              context->apis,
+                                              context->remote_context,
+                                              &statistics,
+                                              &progress};
+    GraphTraverser traverser{
+        root_build_args, &root_exec_context, reporter, &build_logger};
     std::optional<AnalyseAndBuildResult> build_result{};
     {
         std::shared_lock computing{*config_lock};
