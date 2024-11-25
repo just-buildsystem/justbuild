@@ -1964,9 +1964,9 @@ auto CreateTargetMap(
             );
         }
 #ifndef BOOTSTRAP_BUILD_TOOL
-        else if (context->repo_config
-                     ->TargetRoot(key.target.ToModule().repository)
-                     ->IsAbsent()) {
+        else if (auto const* const file_root = context->repo_config->TargetRoot(
+                     key.target.ToModule().repository);
+                 file_root != nullptr and file_root->IsAbsent()) {
             if (context->serve == nullptr) {
                 (*logger)(
                     fmt::format("Root for target {} is absent, but no serve "
