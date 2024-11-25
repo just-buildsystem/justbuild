@@ -46,7 +46,8 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["evaluate"]
   , "hdrs": ["evaluate.hpp"]
-  , "srcs": ["evaluate.cpp"]
+  , "private-hdrs": ["lookup_cache.hpp"]
+  , "srcs": ["evaluate.cpp", "lookup_cache.cpp"]
   , "stage": ["src", "buildtool", "computed_roots"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
@@ -57,10 +58,15 @@
     ]
   , "private-deps":
     [ "analyse_and_build"
+    , "artifacts_root"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["src/buildtool/build_engine/base_maps", "field_reader"]
+    , ["src/buildtool/build_engine/base_maps", "module_name"]
+    , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]

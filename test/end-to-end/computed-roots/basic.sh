@@ -140,6 +140,6 @@ echo
     --log-limit 4 -f "${OUT}/log2" \
     --main 'other derived' 2>&1
 echo
-grep '[Ee]xport.*from cache' "${OUT}/log2"
+grep '[Rr]oot.*from cache' "${OUT}/log2"
 
 echo OK

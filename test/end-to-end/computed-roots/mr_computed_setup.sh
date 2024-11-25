@@ -73,6 +73,7 @@ cat > repo-config.json <<EOF
         { "repository":
             { "type": "file"
             , "path": "${BASE_ROOT}"
+            , "pragma": {"to_git": true}
             }
         }
     , "derived":

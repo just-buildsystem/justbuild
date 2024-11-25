@@ -26,6 +26,7 @@
 #include <shared_mutex>
 #include <sstream>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "fmt/core.h"
@@ -38,6 +39,7 @@
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
+#include "src/buildtool/computed_roots/lookup_cache.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
@@ -235,6 +237,27 @@ auto ImportToGitCas(std::filesystem::path root_dir,
     return *std::move(res);
 }
 
+auto IsTreePresent(std::string const& tree_id,
+                   gsl::not_null<const StorageConfig*> const& storage_config,
+                   GitRepo::anon_logger_ptr const& logger)
+    -> std::optional<bool> {
+    auto just_git_cas = GitCAS::Open(storage_config->GitRoot());
+    if (not just_git_cas) {
+        (*logger)(fmt::format("Failed to open Git ODB at {}",
+                              storage_config->GitRoot().string()),
+                  true);
+        return std::nullopt;
+    }
+    auto just_git_repo = GitRepo::Open(just_git_cas);
+    if (not just_git_repo) {
+        (*logger)(fmt::format("Failed to open Git repository at {}",
+                              storage_config->GitRoot().string()),
+                  true);
+        return std::nullopt;
+    }
+    return just_git_repo->CheckTreeExists(tree_id, logger);
+}
+
 void ComputeAndFill(
     FileRoot::ComputedRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -277,15 +300,59 @@ void ComputeAndFill(
                                               context->remote_context,
                                               &statistics,
                                               &progress};
+
+    auto cache_lookup =
+        expected<std::optional<std::string>, std::monostate>(std::nullopt);
+    {
+        std::shared_lock computing{*config_lock};
+        cache_lookup = LookupCache(target, repository_config, storage, logger);
+    }
+    if (not cache_lookup) {
+        // prerequisite failure; fatal logger call already handled by
+        // LookupCache
+        return;
+    }
+    if (*cache_lookup) {
+        std::string root = **cache_lookup;
+        auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
+            [&logger, &root](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While checking presence of tree {} in "
+                                      "local git repo:\n{}",
+                                      root,
+                                      msg),
+                          fatal);
+            });
+        auto tree_present = IsTreePresent(root, storage_config, wrapped_logger);
+        if (not tree_present) {
+            // fatal error; logger already called by IsTreePresent
+            return;
+        }
+        if (*tree_present) {
+            Logger::Log(LogLevel::Performance,
+                        "Root {} taken from cache to be {}",
+                        target.ToString(),
+                        root);
+            auto root_result =
+                FileRoot::FromGit(storage_config->GitRoot(), root);
+            if (not root_result) {
+                (*logger)(fmt::format("Failed to create git root for {}", root),
+                          /*fatal=*/true);
+                return;
+            }
+            {
+                std::unique_lock setting{*config_lock};
+                repository_config->SetComputedRoot(key, *root_result);
+            }
+            (*setter)(std::move(root));
+            return;
+        }
+    }
+
     GraphTraverser traverser{
         root_build_args, &root_exec_context, reporter, &build_logger};
     std::optional<AnalyseAndBuildResult> build_result{};
     {
         std::shared_lock computing{*config_lock};
-        // TODO(aehlig): ensure that target is an export target of a
-        // content-fixed repo
-        // TODO(aehlig): avoid installing and importing to git if the
-        // resulting root is available already
         build_result = AnalyseAndBuild(&analyse_context,
                                        traverser,
                                        target,
