@@ -155,7 +155,8 @@ enum class CheckoutType : std::uint8_t {
     ForeignFile,
     File,
     Distdir,
-    GitTree
+    GitTree,
+    Computed
 };
 
 /// \brief Checkout type map
@@ -166,7 +167,8 @@ std::unordered_map<std::string, CheckoutType> const kCheckoutTypeMap = {
     {"foreign file", CheckoutType::ForeignFile},
     {"file", CheckoutType::File},
     {"distdir", CheckoutType::Distdir},
-    {"git tree", CheckoutType::GitTree}};
+    {"git tree", CheckoutType::GitTree},
+    {"computed", CheckoutType::Computed}};
 namespace JustMR::Utils {
 
 /// \brief Recursive part of the ResolveRepo function.
