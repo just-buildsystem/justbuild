@@ -12,9 +12,26 @@
     , "out/log2"
     ]
   }
+, "mr_computed_setup":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["mr_computed_setup"]
+  , "test": ["mr_computed_setup.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
-  , "deps": ["basic"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["basic"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["mr_computed_setup"]
+        }
+      ]
+    }
   }
 }
