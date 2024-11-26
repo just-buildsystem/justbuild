@@ -21,6 +21,27 @@
     , ["src/buildtool/storage", "storage"]
     ]
   }
+, "artifacts_root":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["artifacts_root"]
+  , "hdrs": ["artifacts_root.hpp"]
+  , "srcs": ["artifacts_root.cpp"]
+  , "stage": ["src", "buildtool", "computed_roots"]
+  , "deps":
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    ]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "hex_string"]
+    ]
+  }
 , "evaluate":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["evaluate"]
