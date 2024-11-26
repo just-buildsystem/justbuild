@@ -30,6 +30,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
+#include "src/other_tools/utils/parse_computed_root.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
@@ -65,19 +66,35 @@ void ReachableRepositories(
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos) {
     // use temporary sets to avoid duplicates
     std::unordered_set<std::string> include_repos_set{};
+    // computed must not contain overlay repos, so they are collected separately
+    std::unordered_set<std::string> computed_repos_set{};
     // traversal of bindings
     std::function<void(std::string const&)> traverse =
         [&](std::string const& repo_name) {
-            if (not include_repos_set.contains(repo_name)) {
-                // if not found, add it and repeat for its bindings
+            if (include_repos_set.contains(repo_name) or
+                computed_repos_set.contains(repo_name)) {
+                return;
+            }
+            auto const repos_repo_name =
+                repos->Get(repo_name, Expression::none_t{});
+            if (not repos_repo_name.IsNotNull()) {
+                include_repos_set.insert(repo_name);
+                return;
+            }
+            WarnUnknownKeys(repo_name, repos_repo_name);
+
+            auto const repository =
+                repos_repo_name->Get("repository", Expression::none_t{});
+            if (auto const crparser = ComputedRootParser::Create(&repository)) {
+                computed_repos_set.insert(repo_name);
+                if (auto const target_repo = crparser->GetTargetRepository()) {
+                    traverse(*target_repo);
+                }
+            }
+            else {
+                // if not computed, add it and repeat for its bindings
                 include_repos_set.insert(repo_name);
                 // check bindings
-                auto repos_repo_name =
-                    repos->Get(repo_name, Expression::none_t{});
-                if (not repos_repo_name.IsNotNull()) {
-                    return;
-                }
-                WarnUnknownKeys(repo_name, repos_repo_name);
                 auto bindings =
                     repos_repo_name->Get("bindings", Expression::none_t{});
                 if (bindings.IsNotNull() and bindings->IsMap()) {
@@ -106,6 +123,10 @@ void ReachableRepositories(
             }
         }
     }
+
+    setup_repos_set.insert(computed_repos_set.begin(),
+                           computed_repos_set.end());
+    include_repos_set.merge(std::move(computed_repos_set));
 
     // copy to vectors
     setup_repos->to_setup.clear();

@@ -104,6 +104,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/other_tools/utils", "parse_computed_root"]
     , ["src/utils/cpp", "expected"]
     ]
   }
