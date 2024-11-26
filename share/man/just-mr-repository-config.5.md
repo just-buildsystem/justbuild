@@ -240,7 +240,9 @@ The repository configuration format is structured as a JSON object. The
 following fields are supported:
 
  - *`"main"`* contains a JSON string that determines which of the
-   provided repositories is considered the main repository.
+   provided repositories is considered the main repository. This entry
+   is optional, and if ommitted, it will be ommitted in the generated
+   **`just-repository-config`**.
 
  - *`"repositories"`* contains a JSON object, where each key is the
    global name of a repository and its corresponding value is the

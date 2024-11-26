@@ -91,8 +91,8 @@ keys:
 
  - *`"main"`* contains a string, which defines the repository name to
    consider by default if not explicitly specified on the command line
-   (i.e., via **`--main`**). This entry is optional and if omitted the
-   empty string is used.
+   (i.e., via **`--main`**). This entry is optional and if omitted **`just`**
+   will use the lexicographically first repository, as usual.
 
  - *`"repositories"`* contains a JSON object that defines all
    repositories by mapping global repository names to *repository
