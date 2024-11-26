@@ -95,4 +95,22 @@
     ]
   , "stage": ["src", "other_tools", "utils"]
   }
+, "parse_computed_root":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["parse_computed_root"]
+  , "hdrs": ["parse_computed_root.hpp"]
+  , "srcs": ["parse_computed_root.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/file_system", "file_root"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    ]
+  , "stage": ["src", "other_tools", "utils"]
+  }
 }
