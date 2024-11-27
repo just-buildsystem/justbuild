@@ -384,11 +384,7 @@ class GitRepo {
 
     class GitStrArray final {
       public:
-        void AddEntry(std::string entry) {
-            char* const entry_ptr =
-                entries_.emplace_back(std::move(entry)).data();
-            entry_pointers_.push_back(entry_ptr);
-        }
+        void AddEntry(std::string entry);
         [[nodiscard]] auto Get() & noexcept -> git_strarray;
 
       private:
