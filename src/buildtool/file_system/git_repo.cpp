@@ -2097,6 +2097,21 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
+void GitRepo::GitStrArray::AddEntry(std::string entry) {
+    std::size_t const prev_capacity = entries_.capacity();
+    entries_.emplace_back(std::move(entry));
+    if (prev_capacity == entries_.capacity()) {
+        entry_pointers_.push_back(entries_.back().data());
+    }
+    else {
+        // update pointers if reallocation happened
+        entry_pointers_.resize(entries_.size());
+        for (std::size_t i = 0; i < entries_.size(); ++i) {
+            entry_pointers_[i] = entries_[i].data();
+        }
+    }
+}
+
 auto GitRepo::GitStrArray::Get() & noexcept -> git_strarray {
     return git_strarray{.strings = entry_pointers_.data(),
                         .count = entry_pointers_.size()};
