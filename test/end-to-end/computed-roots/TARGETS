@@ -18,6 +18,14 @@
   , "test": ["mr_computed_setup.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "error-reporting":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["error-reporting"]
+  , "test": ["error-reporting.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep":
+    ["out/not-export.log", "out/not-content-fixed.log", "out/cycle.log"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
@@ -25,7 +33,7 @@
   , "deps":
     { "type": "++"
     , "$1":
-      [ ["basic"]
+      [ ["basic", "error-reporting"]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
