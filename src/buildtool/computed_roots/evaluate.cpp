@@ -51,6 +51,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/analyse_context.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
+#include "src/buildtool/multithreading/async_map_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -498,12 +499,13 @@ auto EvaluateComputedRoots(
                                   &repo_config_access,
                                   &git_access);
         bool failed = false;
+        bool done = false;
         {
             TaskSystem ts{jobs};
             root_map.ConsumeAfterKeysReady(
                 &ts,
                 roots,
-                [&roots](auto values) {
+                [&roots, &done](auto values) {
                     Logger::Log(LogLevel::Progress,
                                 "Computed roots evaluted, {} top level",
                                 roots.size());
@@ -517,6 +519,7 @@ auto EvaluateComputedRoots(
                         }
                         return msg.str();
                     });
+                    done = true;
                 },
                 [&failed](auto const& msg, bool fatal) {
                     Logger::Log(
@@ -528,7 +531,28 @@ auto EvaluateComputedRoots(
 
             );
         }
-        return (not failed);
+        if (failed) {
+            return false;
+        }
+        if (not done) {
+            const std::function<std::string(FileRoot::ComputedRoot const&)>
+                k_root_printer =
+                    [](FileRoot::ComputedRoot const& x) -> std::string {
+                return x.ToString();
+            };
+
+            auto cycle_msg = DetectAndReportCycle(
+                "computed roots", root_map, k_root_printer);
+            if (cycle_msg) {
+                Logger::Log(LogLevel::Error, "{}", *cycle_msg);
+            }
+            else {
+                DetectAndReportPending(
+                    "computed roots", root_map, k_root_printer);
+            }
+            return false;
+        }
+        return true;
     }
     return true;
 }

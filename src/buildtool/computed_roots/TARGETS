@@ -78,6 +78,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "analyse_context"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/multithreading", "async_map_utils"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/progress_reporting", "progress"]
