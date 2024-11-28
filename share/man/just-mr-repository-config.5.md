@@ -170,6 +170,26 @@ The following fields are supported:
  - *`"repositories"`* provides a list of global names of repositories.
    This entry is mandatory.
 
+### *`"computed"`*
+
+It defines a computed root, typically to be used as root by other
+repositories. A computed root is given as the artifacts map of
+an export target of a content-fixed repository. Computed roots
+themselves are content fixed; the dependency of computed roots on
+one another must be cycle free.
+
+The following fields are supported:
+
+ - *`"repo"`* specifies the repository the export target belongs
+   to. This entry is mandatory.
+
+ - *`"target"`* specifies the export target within the given
+   repository in module-name form. This entry is mandatory.
+
+ - *`"config"`* specifies the configuration at which to evaluate
+   the export target. This entry is optional and defaults to the
+   empty map.
+
 ### Additional keys
 
 The key *`"pragma"`* is reserved for type-specific repository directives
