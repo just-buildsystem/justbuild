@@ -146,8 +146,6 @@ auto ArtifactsRoot(ExpressionPtr const& stage,
                   true);
         return std::nullopt;
     }
-    // TODO(aehlig): Do re-hashing in case of compatible mode
-
     // We obtain the entries odered by key; in particular, the entries of all
     // subtrees will be next to each other. So, we compute the final tree
     // keeping a stack of partially set up tree while walking.

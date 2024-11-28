@@ -27,6 +27,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/computed_roots/artifacts_root.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -101,6 +102,16 @@ auto LookupCache(BuildMaps::Target::ConfiguredTarget const& ctarget,
     if (not flexible_vars) {
         return unexpected(std::monostate{});
     }
+    // TODO(aehlig): Support re-hashing in case of compatible mode, so that
+    // cache lookups can be used in this case as well.
+    if (storage.GetHashFunction().GetType() != HashFunction::Type::GitSHA1) {
+        // So far, transforming the result of a cache hit in memory into
+        // a git root is only implemented for GitSHA1. Therefore, do not
+        // try to look up cache hits, and simply pretend a non hit.
+        return expected<std::optional<std::string>, std::monostate>(
+            std::nullopt);
+    }
+
     auto effective_config = ctarget.config.Prune(*flexible_vars);
     auto cache_key = storage.TargetCache().ComputeKey(
         *repo_key, ctarget.target.GetNamedTarget(), effective_config);
