@@ -274,7 +274,8 @@ def handle_import(args: Namespace) -> Json:
         inherit_env=args.inherit_env,
     )
     if args.foreign_repository_config:
-        foreign_config_file = args.foreign_repository_config
+        foreign_config_file = os.path.join(srcdir,
+                                           args.foreign_repository_config)
     else:
         foreign_config_file = get_repository_config_file(srcdir)
     foreign_config: Json = {}
