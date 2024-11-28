@@ -108,8 +108,10 @@ just-lock [-C <repos.in.json>] [-o <repos.json>]
           [--clone <JSON>]
 
 OPTIONS:
-  -C PATH             Input file. If missing, searched in ['./repos.in.json', './etc/repos.in.json'].
-  -o PATH             Output file. If missing, placed as 'repos.json' in parent path of input file.
+  -C PATH             Input file. If missing, searched for in ['repos.in.json', 'etc/repos.in.json']
+                      with respect to the workspace root.
+  -o PATH             Output file. If missing, searched for in ['repos.json', 'etc/repos.json'] with respect to
+                      the workspace root. If none found, placed as 'repos.json' in parent path of input file.
   --local-build-root PATH
                       Local build root. Usual `just-mr` rules apply.
   --git PATH          Git binary to use if needed. If missing, system `git` is used.
@@ -125,6 +127,12 @@ OPTIONS:
 
   The proposed default naming choice for the input file is chosen to mirror the
   default names of the configuration file of `just-mr`.
+
+  The proposed search locations for the output configuration file, if an
+  explicit path is not provided, are the same ones used by `just-mr` when run
+  with the `--norc` option, but limited to the ones relative to the workspace
+  root. This is done to better match the desired lock-file quality of the
+  output file and also ensure `just-mr` can pick it up by default.
 
   The `--clone` option will produce an output configuration file meant for
   local development only. Therefore, it is not recommended for such a
