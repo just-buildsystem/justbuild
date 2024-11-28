@@ -26,20 +26,17 @@
   , "keep":
     ["out/not-export.log", "out/not-content-fixed.log", "out/cycle.log"]
   }
+, "basic remote build":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["remote"]
+  , "test": ["remote.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/log", "out/log.root"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
-  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
   , "deps":
-    { "type": "++"
-    , "$1":
-      [ ["basic", "error-reporting"]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
-        , "then": []
-        , "else": ["mr_computed_setup"]
-        }
-      ]
-    }
+    ["basic", "basic remote build", "error-reporting", "mr_computed_setup"]
   }
 }

@@ -27,7 +27,8 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": [["./", "serve-service", "TESTS"]]
+        , "else":
+          [["./", "serve-service", "TESTS"], ["./", "computed-roots", "TESTS"]]
         }
       ]
     }
@@ -61,7 +62,6 @@
     , ["./", "build-fails", "TESTS"]
     , ["./", "built-in-rules", "TESTS"]
     , ["./", "cli", "TESTS"]
-    , ["./", "computed-roots", "TESTS"]
     , ["./", "execution-service", "TESTS"]
     , ["./", "gc", "TESTS"]
     , ["./", "generated-binary", "TESTS"]
