@@ -44,7 +44,7 @@ auto CriticalGitOps::GitInitialCommit(GitOpParams const& crit_op_params,
     // Create and open a GitRepoRemote at given target location
     auto git_repo = GitRepoRemote::InitAndOpen(crit_op_params.target_path,
                                                /*is_bare=*/false);
-    if (git_repo == std::nullopt) {
+    if (git_repo == std::nullopt or git_repo->GetGitCAS() == nullptr) {
         (*logger)(fmt::format("could not initialize git repository {}",
                               crit_op_params.target_path.string()),
                   true /*fatal*/);
@@ -83,7 +83,7 @@ auto CriticalGitOps::GitEnsureInit(GitOpParams const& crit_op_params,
     auto git_repo = GitRepoRemote::InitAndOpen(
         crit_op_params.target_path,
         /*is_bare=*/crit_op_params.init_bare.value());
-    if (git_repo == std::nullopt) {
+    if (git_repo == std::nullopt or git_repo->GetGitCAS() == nullptr) {
         (*logger)(
             fmt::format("could not initialize {} git repository {}",
                         crit_op_params.init_bare.value() ? "bare" : "non-bare",
