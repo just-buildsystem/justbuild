@@ -133,6 +133,7 @@
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "file_locking"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
