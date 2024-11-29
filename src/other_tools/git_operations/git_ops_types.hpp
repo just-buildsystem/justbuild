@@ -68,7 +68,7 @@ struct GitOpValue {
     // used to continue with non-critical ops on same odb, if needed
     GitCASPtr git_cas{nullptr};
     // stores result of certain operations; always nullopt if failure
-    std::optional<std::string> result{""};
+    std::optional<std::string> result = std::nullopt;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_GIT_OPERATIONS_GIT_OPS_TYPES_HPP
