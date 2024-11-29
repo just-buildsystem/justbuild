@@ -21,8 +21,7 @@
     , "bazel/bazel_network_reader.cpp"
     ]
   , "deps":
-    [ "config"
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
@@ -60,7 +59,6 @@
     , ["src/buildtool/execution_api/common", "content_blob_container"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
-    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "path"]
@@ -73,8 +71,7 @@
   , "hdrs": ["bazel/bazel_api.hpp"]
   , "srcs": ["bazel/bazel_api.cpp"]
   , "deps":
-    [ "config"
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]

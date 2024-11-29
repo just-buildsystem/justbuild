@@ -66,7 +66,6 @@
     , ["src/buildtool/build_engine/base_maps", "module_name"]
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/expression", "expression"]
-    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
