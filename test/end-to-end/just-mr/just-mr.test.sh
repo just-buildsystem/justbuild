@@ -295,6 +295,11 @@ test_all & res2=$!
 test_all & res3=$!
 test_all & res4=$!
 
+test_all & res5=$!
+test_all & res6=$!
+test_all & res7=$!
+test_all & res8=$!
+
 wait ${res1}
 if [ $? -ne 0 ]; then
     error=true
@@ -308,6 +313,23 @@ if [ $? -ne 0 ]; then
     error=true
 fi
 wait ${res4}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+
+wait ${res5}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res6}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res7}
+if [ $? -ne 0 ]; then
+    error=true
+fi
+wait ${res8}
 if [ $? -ne 0 ]; then
     error=true
 fi
