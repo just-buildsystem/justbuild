@@ -22,6 +22,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/other_tools/git_operations/git_operations.hpp"
@@ -70,21 +71,24 @@ class CriticalGitOpGuard {
         -> std::optional<GitOpKey> {
         // making sure only one thread at a time processes this section
         std::scoped_lock<std::mutex> const lock(critical_key_mutex_);
-        auto target_path_key =
-            std::hash<std::filesystem::path>{}(new_key.params.target_path);
-        if (curr_critical_key_.contains(target_path_key)) {
-            GitOpKey old_key =
-                curr_critical_key_[target_path_key];  // return stored key
-            curr_critical_key_[target_path_key] =
-                new_key;  // replace stored key with new one
-            return old_key;
+        // try emplace a new value
+
+        auto const canonical_path = std::filesystem::weakly_canonical(
+            std::filesystem::absolute(new_key.params.target_path));
+        auto result = curr_critical_key_.try_emplace(canonical_path, new_key);
+        // If the insertion happens, there are no keys to wait for. std::nullopt
+        // is returned.
+        if (result.second) {
+            return std::nullopt;
         }
-        return std::nullopt;
-        // mutex released when lock goes out of scope
+        // If insertion fails (the path is being processed), mark the path
+        // occupied by the new key, but return the previous key to inform
+        // the new task to wait for the previous operation to complete.
+        return std::exchange(result.first->second, new_key);
     }
 
   private:
-    std::unordered_map<size_t, GitOpKey> curr_critical_key_;
+    std::unordered_map<std::filesystem::path, GitOpKey> curr_critical_key_;
     std::mutex critical_key_mutex_;
 };
 
