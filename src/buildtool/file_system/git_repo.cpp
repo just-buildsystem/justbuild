@@ -34,6 +34,7 @@
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/file_locking.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -525,39 +526,44 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
 
         GitContext::Create();  // initialize libgit2
 
-        // check if init is actually needed
-        if (git_repository_open_ext(nullptr,
-                                    repo_path.c_str(),
-                                    GIT_REPOSITORY_OPEN_NO_SEARCH,
-                                    nullptr) == 0) {
-            return GitRepo(repo_path);  // success
-        }
-
         git_repository* tmp_repo{nullptr};
-        std::size_t max_attempts = kGitLockNumTries;  // number of tries
         int err = 0;
         std::string err_mess{};
-        while (max_attempts > 0) {
-            --max_attempts;
-            err = git_repository_init(&tmp_repo,
-                                      repo_path.c_str(),
-                                      static_cast<std::size_t>(is_bare));
-            if (err == 0) {
-                git_repository_free(tmp_repo);
-                return GitRepo(repo_path);  // success
-            }
-            err_mess = GitLastError();  // store last error message
-            // only retry if failure is due to locking
-            if (err != GIT_ELOCKED) {
-                break;
-            }
-            git_repository_free(tmp_repo);  // cleanup before next attempt
-            // check if init hasn't already happened in another process
+        for (auto attempt = 0U; attempt < kGitLockNumTries; ++attempt) {
+            // check if init is needed or has already happened in another
+            // process
             if (git_repository_open_ext(nullptr,
                                         repo_path.c_str(),
                                         GIT_REPOSITORY_OPEN_NO_SEARCH,
                                         nullptr) == 0) {
                 return GitRepo(repo_path);  // success
+            }
+
+            // Initialization must be guarded across processes trying to
+            // initialize the same repo.
+            if (auto const lock_file = LockFile::Acquire(
+                    repo_path.parent_path() / "init_open.lock",
+                    /*is_shared=*/false)) {
+                err = git_repository_init(&tmp_repo,
+                                          repo_path.c_str(),
+                                          static_cast<std::size_t>(is_bare));
+            }
+            else {
+                Logger::Log(LogLevel::Error,
+                            "initializing git repository {} failed to "
+                            "acquire lock.");
+                return std::nullopt;
+            }
+
+            if (err == 0) {
+                git_repository_free(tmp_repo);
+                return GitRepo(repo_path);  // success
+            }
+            err_mess = GitLastError();      // store last error message
+            git_repository_free(tmp_repo);  // cleanup before next attempt
+            // only retry if failure is due to locking
+            if (err != GIT_ELOCKED) {
+                break;
             }
             // repo still not created, so sleep and try again
             std::this_thread::sleep_for(
