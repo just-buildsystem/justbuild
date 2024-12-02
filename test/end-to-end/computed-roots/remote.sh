@@ -150,13 +150,13 @@ grep '[Dd]iscovered.*1 action' "${OUT}/log.root"
 grep '0 cache hit' "${OUT}/log.root"
 
 echo
-echo Building computed root again, expecting a hit
+echo Building computed root again, expecting root-level cache hit
 echo
 "${JUST}" build ${REMOTE_ARGS} \
     --local-build-root "${LBRDIR}" -C repo-config.json \
     --log-limit 4 -f "${OUT}/log2" \
     --main 'other derived' 2>&1
 echo
-grep 'from cache' "${OUT}/log2"
+grep '[Rr]oot.*from cache' "${OUT}/log2"
 
 echo OK
