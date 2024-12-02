@@ -33,10 +33,29 @@
   , "deps": [["", "tool-under-test"]]
   , "keep": ["out/log", "out/log.root"]
   }
+, "remote sharding":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["sharding"]
+  , "test": ["sharding.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep":
+    [ "out/base-local.log"
+    , "out/derived-local.log"
+    , "out/derived-local/out"
+    , "out/derived-local2.log"
+    , "out/derived-remote.log"
+    , "out/derived-remote/out"
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
   , "deps":
-    ["basic", "basic remote build", "error-reporting", "mr_computed_setup"]
+    [ "basic"
+    , "basic remote build"
+    , "error-reporting"
+    , "mr_computed_setup"
+    , "remote sharding"
+    ]
   }
 }
