@@ -69,22 +69,19 @@ void ReachableRepositories(
     // use temporary sets to avoid duplicates
     std::unordered_set<std::string> include_repos_set;
     std::unordered_set<std::string> setup_repos_set;
-    // computed must not contain overlay repos, so they are collected separately
-    std::unordered_set<std::string> computed_repos_set{};
 
     // traverse all bindings of main repository
     for (std::queue<std::string> to_process({main}); not to_process.empty();
          to_process.pop()) {
         auto const& repo_name = to_process.front();
 
-        if (include_repos_set.contains(repo_name) or
-            computed_repos_set.contains(repo_name)) {
+        // Check the repo hasn't been processed yet
+        if (not include_repos_set.insert(repo_name).second) {
             continue;
         }
         auto const repos_repo_name =
             repos->Get(repo_name, Expression::none_t{});
         if (not repos_repo_name.IsNotNull()) {
-            include_repos_set.insert(repo_name);
             continue;
         }
         WarnUnknownKeys(repo_name, repos_repo_name);
@@ -92,22 +89,18 @@ void ReachableRepositories(
         auto const repository =
             repos_repo_name->Get("repository", Expression::none_t{});
         if (auto const crparser = ComputedRootParser::Create(&repository)) {
-            computed_repos_set.insert(repo_name);
             if (auto const target_repo = crparser->GetTargetRepository()) {
                 to_process.push(*target_repo);
             }
         }
-        else {
-            // if not computed, add it and repeat for its bindings
-            include_repos_set.insert(repo_name);
-            // check bindings
-            auto bindings =
-                repos_repo_name->Get("bindings", Expression::none_t{});
-            if (bindings.IsNotNull() and bindings->IsMap()) {
-                for (auto const& bound : bindings->Map().Values()) {
-                    if (bound.IsNotNull() and bound->IsString()) {
-                        to_process.push(bound->String());
-                    }
+
+        // check bindings
+        auto const bindings =
+            repos_repo_name->Get("bindings", Expression::none_t{});
+        if (bindings.IsNotNull() and bindings->IsMap()) {
+            for (auto const& bound : bindings->Map().Values()) {
+                if (bound.IsNotNull() and bound->IsString()) {
+                    to_process.push(bound->String());
                 }
             }
         }
@@ -122,10 +115,6 @@ void ReachableRepositories(
         }
     }
     setup_repos_set.insert(include_repos_set.begin(), include_repos_set.end());
-
-    setup_repos_set.insert(computed_repos_set.begin(),
-                           computed_repos_set.end());
-    include_repos_set.merge(std::move(computed_repos_set));
 
     // copy to vectors
     setup_repos->to_setup.clear();
