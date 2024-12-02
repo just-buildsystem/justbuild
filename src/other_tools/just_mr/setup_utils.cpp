@@ -67,7 +67,8 @@ void ReachableRepositories(
     std::string const& main,
     std::shared_ptr<JustMR::SetupRepos> const& setup_repos) {
     // use temporary sets to avoid duplicates
-    std::unordered_set<std::string> include_repos_set{};
+    std::unordered_set<std::string> include_repos_set;
+    std::unordered_set<std::string> setup_repos_set;
     // computed must not contain overlay repos, so they are collected separately
     std::unordered_set<std::string> computed_repos_set{};
 
@@ -110,23 +111,17 @@ void ReachableRepositories(
                 }
             }
         }
-    }
 
-    // Add overlay repositories
-    std::unordered_set<std::string> setup_repos_set{include_repos_set};
-    for (auto const& repo : include_repos_set) {
-        auto repos_repo = repos->Get(repo, Expression::none_t{});
-        if (repos_repo.IsNotNull()) {
-            // copy over any present alternative root dirs
-            for (auto const& layer : kAltDirs) {
-                auto layer_val = repos_repo->Get(layer, Expression::none_t{});
-                if (layer_val.IsNotNull() and layer_val->IsString()) {
-                    auto repo_name = layer_val->String();
-                    setup_repos_set.insert(repo_name);
-                }
+        for (auto const& layer : kAltDirs) {
+            auto const layer_val =
+                repos_repo_name->Get(layer, Expression::none_t{});
+            if (layer_val.IsNotNull() and layer_val->IsString()) {
+                auto const layer_repo_name = layer_val->String();
+                setup_repos_set.insert(layer_repo_name);
             }
         }
     }
+    setup_repos_set.insert(include_repos_set.begin(), include_repos_set.end());
 
     setup_repos_set.insert(computed_repos_set.begin(),
                            computed_repos_set.end());
