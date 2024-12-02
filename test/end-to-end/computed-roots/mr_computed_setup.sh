@@ -92,6 +92,10 @@ cat > repo-config.json <<EOF
             , "config": {"COUNT": "12"}
             }
         }
+    , "with_overlays":
+        { "repository": "base"
+        , "target_root": "derived"
+        }
     }
 }
 EOF
@@ -127,5 +131,16 @@ echo
 echo
 
 [ "$(cat "${OUT}/other-derived/out" | wc -l)" -eq 78 ]
+
+echo
+echo Building with overlays
+echo
+"${JUST_MR}" --norc --local-build-root "${LBRDIR}" -C repo-config.json \
+            --main 'with_overlays' --just "${JUST}" \
+            install -L '["env", "PATH='"${PATH}"'"]' \
+            -o "${OUT}/with-overlays" 2>&1
+echo
+
+[ "$(cat "${OUT}/with-overlays/out" | wc -l)" -eq 55 ]
 
 echo OK
