@@ -58,6 +58,20 @@ void WarnUnknownKeys(std::string const& name, ExpressionPtr const& repo_def) {
     }
 }
 
+[[nodiscard]] auto GetTargetRepoIfComputed(ExpressionPtr const& repo)
+    -> std::optional<std::string> {
+    if (not repo.IsNotNull() or not repo->IsMap()) {
+        return std::nullopt;
+    }
+    auto const repository = repo->Get("repository", Expression::none_t{});
+    if (auto const crparser = ComputedRootParser::Create(&repository)) {
+        if (auto target_repo = crparser->GetTargetRepository()) {
+            return std::move(target_repo).value();
+        }
+    }
+    return std::nullopt;
+}
+
 }  // namespace
 
 namespace JustMR::Utils {
@@ -86,12 +100,9 @@ void ReachableRepositories(
         }
         WarnUnknownKeys(repo_name, repos_repo_name);
 
-        auto const repository =
-            repos_repo_name->Get("repository", Expression::none_t{});
-        if (auto const crparser = ComputedRootParser::Create(&repository)) {
-            if (auto const target_repo = crparser->GetTargetRepository()) {
-                to_process.push(*target_repo);
-            }
+        // If the current repo is a computed one, process its target repo
+        if (auto computed_target = GetTargetRepoIfComputed(repos_repo_name)) {
+            to_process.push(*std::move(computed_target));
         }
 
         // check bindings
@@ -111,6 +122,13 @@ void ReachableRepositories(
             if (layer_val.IsNotNull() and layer_val->IsString()) {
                 auto const layer_repo_name = layer_val->String();
                 setup_repos_set.insert(layer_repo_name);
+
+                // If the overlay repo is a computed one, process its target
+                // repo
+                if (auto computed_target = GetTargetRepoIfComputed(
+                        repos->Get(layer_repo_name, Expression::none_t{}))) {
+                    to_process.push(*std::move(computed_target));
+                }
             }
         }
     }
