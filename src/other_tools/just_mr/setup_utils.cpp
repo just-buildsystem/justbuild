@@ -16,9 +16,11 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <deque>
 #include <exception>
 #include <fstream>
 #include <iterator>
+#include <queue>
 #include <unordered_set>
 #include <utility>
 #include <variant>
@@ -68,45 +70,47 @@ void ReachableRepositories(
     std::unordered_set<std::string> include_repos_set{};
     // computed must not contain overlay repos, so they are collected separately
     std::unordered_set<std::string> computed_repos_set{};
-    // traversal of bindings
-    std::function<void(std::string const&)> traverse =
-        [&](std::string const& repo_name) {
-            if (include_repos_set.contains(repo_name) or
-                computed_repos_set.contains(repo_name)) {
-                return;
-            }
-            auto const repos_repo_name =
-                repos->Get(repo_name, Expression::none_t{});
-            if (not repos_repo_name.IsNotNull()) {
-                include_repos_set.insert(repo_name);
-                return;
-            }
-            WarnUnknownKeys(repo_name, repos_repo_name);
 
-            auto const repository =
-                repos_repo_name->Get("repository", Expression::none_t{});
-            if (auto const crparser = ComputedRootParser::Create(&repository)) {
-                computed_repos_set.insert(repo_name);
-                if (auto const target_repo = crparser->GetTargetRepository()) {
-                    traverse(*target_repo);
-                }
+    // traverse all bindings of main repository
+    for (std::queue<std::string> to_process({main}); not to_process.empty();
+         to_process.pop()) {
+        auto const& repo_name = to_process.front();
+
+        if (include_repos_set.contains(repo_name) or
+            computed_repos_set.contains(repo_name)) {
+            continue;
+        }
+        auto const repos_repo_name =
+            repos->Get(repo_name, Expression::none_t{});
+        if (not repos_repo_name.IsNotNull()) {
+            include_repos_set.insert(repo_name);
+            continue;
+        }
+        WarnUnknownKeys(repo_name, repos_repo_name);
+
+        auto const repository =
+            repos_repo_name->Get("repository", Expression::none_t{});
+        if (auto const crparser = ComputedRootParser::Create(&repository)) {
+            computed_repos_set.insert(repo_name);
+            if (auto const target_repo = crparser->GetTargetRepository()) {
+                to_process.push(*target_repo);
             }
-            else {
-                // if not computed, add it and repeat for its bindings
-                include_repos_set.insert(repo_name);
-                // check bindings
-                auto bindings =
-                    repos_repo_name->Get("bindings", Expression::none_t{});
-                if (bindings.IsNotNull() and bindings->IsMap()) {
-                    for (auto const& bound : bindings->Map().Values()) {
-                        if (bound.IsNotNull() and bound->IsString()) {
-                            traverse(bound->String());
-                        }
+        }
+        else {
+            // if not computed, add it and repeat for its bindings
+            include_repos_set.insert(repo_name);
+            // check bindings
+            auto bindings =
+                repos_repo_name->Get("bindings", Expression::none_t{});
+            if (bindings.IsNotNull() and bindings->IsMap()) {
+                for (auto const& bound : bindings->Map().Values()) {
+                    if (bound.IsNotNull() and bound->IsString()) {
+                        to_process.push(bound->String());
                     }
                 }
             }
-        };
-    traverse(main);  // traverse all bindings of main repository
+        }
+    }
 
     // Add overlay repositories
     std::unordered_set<std::string> setup_repos_set{include_repos_set};
