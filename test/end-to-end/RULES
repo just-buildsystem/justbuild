@@ -25,6 +25,8 @@
       , "   implicit remote-execution endpoint is listening at."
       , " - COMPATIBLE is set to an non-empty string, if the server was"
       , "   started in compatible mode, and unset otherwise."
+      , " - REMOTE_BIN specifying an extra directory added to remote-execution"
+      , "   actions early in path."
       , "Additionally, the variables TLS_CA_CERT, TLS_CLIENT_CERT, and"
       , "TLS_CLIENT_KEY are removed from the environment."
       , ""

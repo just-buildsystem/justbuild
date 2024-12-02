@@ -60,6 +60,8 @@ os.makedirs(WORK_DIR, exist_ok=True)
 REMOTE_DIR = os.path.realpath("remote")
 os.makedirs(REMOTE_DIR, exist_ok=True)
 REMOTE_LBR = os.path.join(REMOTE_DIR, "build-root")
+REMOTE_EXTRA_BINDIR = os.path.join(REMOTE_DIR, "bin")
+os.makedirs(REMOTE_EXTRA_BINDIR, exist_ok=True)
 
 g_REMOTE_EXECUTION_ADDRESS: str = ""
 
@@ -85,7 +87,9 @@ if not custom_remote:
         "./staged/bin/just",
         "execute",
         "-L",
-        json.dumps(["env", "PATH=" + PATH]),
+        json.dumps(
+            ["env",
+             "PATH=" + REMOTE_EXTRA_BINDIR + (":" if PATH else "") + PATH]),
         "--info-file",
         REMOTE_INFO,
         "--local-build-root",
@@ -135,7 +139,8 @@ else:
 ENV = dict(os.environ,
            TEST_TMPDIR=TEMP_DIR,
            TMPDIR=TEMP_DIR,
-           REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS)
+           REMOTE_EXECUTION_ADDRESS=g_REMOTE_EXECUTION_ADDRESS,
+           REMOTE_BIN=REMOTE_EXTRA_BINDIR)
 
 if compatible:
     ENV["COMPATIBLE"] = "YES"
