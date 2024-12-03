@@ -72,6 +72,7 @@
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_cas"]

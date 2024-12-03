@@ -22,14 +22,17 @@
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 
-auto LookupCache(BuildMaps::Target::ConfiguredTarget const& ctarget,
-                 gsl::not_null<RepositoryConfig*> const& repository_config,
-                 Storage const& storage,
-                 AsyncMapConsumerLoggerPtr const& logger)
+auto LookupCache(
+    BuildMaps::Target::ConfiguredTarget const& ctarget,
+    gsl::not_null<RepositoryConfig*> const& repository_config,
+    Storage const& storage,
+    AsyncMapConsumerLoggerPtr const& logger,
+    std::optional<RehashUtils::Rehasher> const& rehash = std::nullopt)
     -> expected<std::optional<std::string>, std::monostate>;
 
 #endif
