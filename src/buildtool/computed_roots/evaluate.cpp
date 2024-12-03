@@ -40,6 +40,8 @@
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
 #include "src/buildtool/computed_roots/lookup_cache.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
@@ -266,6 +268,7 @@ void ComputeAndFill(
         traverser_args,
     gsl::not_null<const ExecutionContext*> const& context,
     gsl::not_null<const StorageConfig*> const& storage_config,
+    gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
     gsl::not_null<std::shared_mutex*> const& config_lock,
     gsl::not_null<std::mutex*> const& git_lock,
     std::size_t jobs,
@@ -306,7 +309,8 @@ void ComputeAndFill(
         expected<std::optional<std::string>, std::monostate>(std::nullopt);
     {
         std::shared_lock computing{*config_lock};
-        cache_lookup = LookupCache(target, repository_config, storage, logger);
+        cache_lookup =
+            LookupCache(target, repository_config, storage, logger, *rehash);
     }
     if (not cache_lookup) {
         // prerequisite failure; fatal logger call already handled by
@@ -401,15 +405,18 @@ void ComputeAndFill(
     (*setter)(std::move(*result));
 }
 
-auto FillRoots(std::size_t jobs,
-               gsl::not_null<RepositoryConfig*> const& repository_config,
-               gsl::not_null<const GraphTraverser::CommandLineArguments*> const&
-                   traverser_args,
-               gsl::not_null<const ExecutionContext*> const& context,
-               gsl::not_null<const StorageConfig*> const& storage_config,
-               gsl::not_null<std::shared_mutex*> const& config_lock,
-               gsl::not_null<std::mutex*> const& git_lock) -> RootMap {
+auto FillRoots(
+    std::size_t jobs,
+    gsl::not_null<RepositoryConfig*> const& repository_config,
+    gsl::not_null<const GraphTraverser::CommandLineArguments*> const&
+        traverser_args,
+    gsl::not_null<const ExecutionContext*> const& context,
+    gsl::not_null<const StorageConfig*> const& storage_config,
+    gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
+    gsl::not_null<std::shared_mutex*> const& config_lock,
+    gsl::not_null<std::mutex*> const& git_lock) -> RootMap {
     RootMap::ValueCreator fill_roots = [storage_config,
+                                        rehash,
                                         repository_config,
                                         traverser_args,
                                         context,
@@ -435,6 +442,7 @@ auto FillRoots(std::size_t jobs,
              context,
              storage_config,
              config_lock,
+             rehash,
              git_lock,
              jobs,
              logger = annotated_logger,
@@ -444,6 +452,7 @@ auto FillRoots(std::size_t jobs,
                                traverser_args,
                                context,
                                storage_config,
+                               rehash,
                                config_lock,
                                git_lock,
                                jobs,
@@ -461,6 +470,7 @@ auto EvaluateComputedRoots(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     std::string const& main_repo,
     StorageConfig const& storage_config,
+    std::optional<StorageConfig> const& git_storage_config,
     GraphTraverser::CommandLineArguments const& traverser_args,
     gsl::not_null<const ExecutionContext*> const& context,
     std::size_t jobs) -> bool {
@@ -485,6 +495,17 @@ auto EvaluateComputedRoots(
             return false;
         }
 
+        // Prepare rehash-function, if rehashing is required
+        const bool needs_rehash =
+            git_storage_config and
+            (git_storage_config->hash_function.GetType() !=
+             storage_config.hash_function.GetType());
+        auto rehash =
+            needs_rehash
+                ? std::make_optional<RehashUtils::Rehasher>(
+                      storage_config, *git_storage_config, context->apis)
+                : std::nullopt;
+
         // Our RepositoryConfig is a bit problematic: it cannot be copied, hence
         // we have to change in place. Moreover, it is tread-safe for read
         // access, but not for writing, so we have to synchronize access out of
@@ -496,6 +517,7 @@ auto EvaluateComputedRoots(
                                   &traverser_args,
                                   context,
                                   &storage_config,
+                                  &rehash,
                                   &repo_config_access,
                                   &git_access);
         bool failed = false;

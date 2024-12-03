@@ -1041,9 +1041,19 @@ auto main(int argc, char* argv[]) -> int {
         std::size_t eval_root_jobs =
             std::lround(std::ceil(std::sqrt(arguments.common.jobs)));
 #ifndef BOOTSTRAP_BUILD_TOOL
+        const bool need_rehash =
+            arguments.protocol.hash_type != HashFunction::Type::GitSHA1;
+        const auto git_storage_config =
+            need_rehash ? CreateStorageConfig(arguments.endpoint,
+                                              HashFunction::Type::GitSHA1)
+                        : std::nullopt;
+        if (need_rehash and (not git_storage_config)) {
+            return kExitFailure;
+        }
         if (not EvaluateComputedRoots(&repo_config,
                                       main_repo,
                                       *storage_config,
+                                      git_storage_config,
                                       traverse_args,
                                       &exec_context,
                                       eval_root_jobs)) {
