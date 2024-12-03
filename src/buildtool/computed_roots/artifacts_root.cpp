@@ -31,6 +31,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 namespace {
@@ -138,7 +139,8 @@ struct PartialTree {
 }  // namespace
 
 auto ArtifactsRoot(ExpressionPtr const& stage,
-                   AsyncMapConsumerLoggerPtr const& logger)
+                   AsyncMapConsumerLoggerPtr const& logger,
+                   std::optional<RehashUtils::Rehasher> const& rehash)
     -> std::optional<std::string> {
     if (not stage->IsMap()) {
         (*logger)(fmt::format("Expected stage to be a map, but found {}",
@@ -167,23 +169,26 @@ auto ArtifactsRoot(ExpressionPtr const& stage,
                       true);
             return std::nullopt;
         }
-        auto digest = val.ToArtifact().Digest();
-        if (not digest) {
-            (*logger)(
-                fmt::format("Failed to determine digest of known artifact {}",
-                            entry->ToString()),
-                true);
-            return std::nullopt;
-        }
-        auto ot = val.ToArtifact().Type();
-        if (not ot) {
-            (*logger)(fmt::format("Failed to determine object typle of known "
+        auto info_opt = val.ToArtifact().Info();
+        if (not info_opt) {
+            (*logger)(fmt::format("Failed to determine artifact info of known "
                                   "artifact {}",
                                   entry->ToString()),
                       true);
             return std::nullopt;
         }
-        if (not partial_tree.Add(ps, digest->hash(), *ot, logger)) {
+        auto info = *info_opt;
+        if (rehash) {
+            auto rehash_result = rehash->Rehash(info);
+            if (not rehash_result) {
+                (*logger)(
+                    fmt::format("Rehashing failed: {}", rehash_result.error()),
+                    true);
+                return std::nullopt;
+            }
+            info = *rehash_result;
+        }
+        if (not partial_tree.Add(ps, info.digest.hash(), info.type, logger)) {
             return std::nullopt;
         }
     }

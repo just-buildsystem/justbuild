@@ -29,7 +29,9 @@
   , "stage": ["src", "buildtool", "computed_roots"]
   , "deps":
     [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]

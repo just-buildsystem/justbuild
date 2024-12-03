@@ -19,6 +19,7 @@
 #include <string>
 
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 /// \brief Compute to the git tree identifier, as hex string, corresponding to
@@ -28,7 +29,8 @@
 /// \param logger Logger to report problems; will be called with the fatal
 /// property in case of error
 auto ArtifactsRoot(ExpressionPtr const& stage,
-                   AsyncMapConsumerLoggerPtr const& logger)
-    -> std::optional<std::string>;
+                   AsyncMapConsumerLoggerPtr const& logger,
+                   std::optional<RehashUtils::Rehasher> const& rehash =
+                       std::nullopt) -> std::optional<std::string>;
 
 #endif
