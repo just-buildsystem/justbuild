@@ -35,6 +35,7 @@
   , "private-deps":
     [ "git_config_settings"
     , ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["", "libgit2"]
     , ["src/buildtool/file_system", "file_system_manager"]

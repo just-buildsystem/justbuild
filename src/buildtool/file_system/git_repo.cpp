@@ -333,21 +333,17 @@ struct FetchIntoODBBackend {
                                            [[maybe_unused]] git_odb* odb,
                                            git_indexer_progress_cb progress_cb,
                                            void* progress_payload) -> int {
-    if (_backend != nullptr) {
-        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
-        return git_odb_write_pack(
-            _writepack, b->target_odb, progress_cb, progress_payload);
-    }
-    return GIT_ERROR;
+    Ensures(_backend != nullptr);
+    auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+    return git_odb_write_pack(
+        _writepack, b->target_odb, progress_cb, progress_payload);
 }
 
 [[nodiscard]] auto fetch_backend_exists(git_odb_backend* _backend,
                                         const git_oid* oid) -> int {
-    if (_backend != nullptr) {
-        auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
-        return git_odb_exists(b->target_odb, oid);
-    }
-    return GIT_ERROR;
+    Ensures(_backend != nullptr);
+    auto* b = reinterpret_cast<FetchIntoODBBackend*>(_backend);  // NOLINT
+    return git_odb_exists(b->target_odb, oid);
 }
 
 void fetch_backend_free(git_odb_backend* /*_backend*/) {}
