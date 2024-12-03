@@ -387,8 +387,8 @@ auto GitRepo::GuardedRepo::PtrRef() -> git_repository** {
 
 GitRepo::GuardedRepo::~GuardedRepo() noexcept {
 #ifndef BOOTSTRAP_BUILD_TOOL
+    std::unique_lock lock{*mutex_};
     if (repo_ != nullptr) {
-        std::unique_lock lock{*mutex_};
         git_repository_free(repo_);
     }
 #endif
