@@ -2,6 +2,15 @@
 
 A feature release on top of `1.4.0`, backwards compatible.
 
+### Fixes
+
+- Fixes ensuring proper pointer life time and access check.
+- Git operations are now properly locked against each other, also
+  between processes where necessary.
+- `just traverse` now exits unconditionally after traversal, also
+  in case of failure.
+- Missing entries in the documentation have been added.
+
 ## Release `1.4.0` (2024-11-04)
 
 A feature release on top of `1.3.0`, backwards compatible with
