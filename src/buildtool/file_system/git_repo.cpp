@@ -22,6 +22,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
 #include <sstream>
 #include <string_view>
 #include <thread>
@@ -36,7 +37,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/file_locking.hpp"
 #include "src/utils/cpp/hex_string.hpp"
-#include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 extern "C" {
@@ -370,32 +370,12 @@ const auto kCertificatePassthrough = [](git_cert* /*cert*/,
 }  // namespace
 #endif  // BOOTSTRAP_BUILD_TOOL
 
-GitRepo::GuardedRepo::GuardedRepo(std::shared_mutex* mutex) noexcept
-    : mutex_{mutex} {}
-
-auto GitRepo::GuardedRepo::Ptr() -> git_repository* {
-    return repo_;
-}
-
-auto GitRepo::GuardedRepo::PtrRef() -> git_repository** {
-    return &repo_;
-}
-
-GitRepo::GuardedRepo::~GuardedRepo() noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    std::unique_lock lock{*mutex_};
-    if (repo_ != nullptr) {
-        git_repository_free(repo_);
-    }
-#endif
-}
-
 auto GitRepo::Open(GitCASPtr git_cas) noexcept -> std::optional<GitRepo> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
 #else
     auto repo = GitRepo(std::move(git_cas));
-    if (not repo.repo_) {
+    if (not repo.git_cas_) {
         return std::nullopt;
     }
     return repo;
@@ -408,106 +388,26 @@ auto GitRepo::Open(std::filesystem::path const& repo_path) noexcept
     return std::nullopt;
 #else
     auto repo = GitRepo(repo_path);
-    if (not repo.repo_) {
+    if (not repo.git_cas_) {
         return std::nullopt;
     }
     return repo;
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
 
-GitRepo::GitRepo(GitCASPtr git_cas) noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    try {
-        if (git_cas != nullptr) {
-            auto repo_ptr = std::make_shared<GuardedRepo>(&git_cas->mutex_);
-            {
-                // acquire the odb lock exclusively
-                std::unique_lock lock{git_cas->mutex_};
-                if (git_repository_wrap_odb(repo_ptr->PtrRef(),
-                                            git_cas->odb_.get()) != 0) {
-                    Logger::Log(LogLevel::Error,
-                                "could not create wrapper for git repository");
-                    return;
-                }
-            }
-            repo_ = std::move(repo_ptr);
-            is_repo_fake_ = true;
-            git_cas_ = std::move(git_cas);
-        }
-        else {
-            Logger::Log(LogLevel::Error,
-                        "git repository creation attempted with null odb!");
-        }
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "opening git object database failed with:\n{}",
-                    ex.what());
-    }
-#endif  // BOOTSTRAP_BUILD_TOOL
-}
+GitRepo::GitRepo(GitCASPtr git_cas) noexcept
+    : git_cas_{std::move(git_cas)}, is_repo_fake_{true} {}
 
-GitRepo::GitRepo(std::filesystem::path const& repo_path) noexcept {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    try {
-        static std::mutex repo_mutex{};
-        std::unique_lock lock{repo_mutex};
-        auto cas = std::make_shared<GitCAS>();
-        // open repo, but retain it
-        auto repo_ptr = std::make_shared<GuardedRepo>(&cas->mutex_);
-        if (git_repository_open_ext(repo_ptr->PtrRef(),
-                                    repo_path.c_str(),
-                                    GIT_REPOSITORY_OPEN_NO_SEARCH,
-                                    nullptr) != 0) {
-            Logger::Log(LogLevel::Error,
-                        "opening git repository {} failed with:\n{}",
-                        repo_path.string(),
-                        GitLastError());
-            return;
-        }
-        repo_ = repo_ptr;  // retain repo pointer
-        // get odb
-        git_odb* odb_ptr{nullptr};
-        git_repository_odb(&odb_ptr, repo_->Ptr());
-        if (odb_ptr == nullptr) {
-            Logger::Log(LogLevel::Error,
-                        "retrieving odb of git repository {} failed with:\n{}",
-                        repo_path.string(),
-                        GitLastError());
-            // release resources
-            git_odb_free(odb_ptr);
-            return;
-        }
-        cas->odb_.reset(odb_ptr);  // retain odb pointer
-        is_repo_fake_ = false;
-        // save root path; this differs if repository is bare or not
-        if (git_repository_is_bare(repo_->Ptr()) != 0) {
-            cas->git_path_ = std::filesystem::absolute(
-                ToNormalPath(git_repository_path(repo_->Ptr())));
-        }
-        else {
-            cas->git_path_ = std::filesystem::absolute(
-                ToNormalPath(git_repository_workdir(repo_->Ptr())));
-        }
-        // retain the pointer
-        git_cas_ = std::static_pointer_cast<GitCAS const>(cas);
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "opening git object database failed with:\n{}",
-                    ex.what());
-    }
-#endif  // BOOTSTRAP_BUILD_TOOL
-}
+GitRepo::GitRepo(std::filesystem::path const& repo_path) noexcept
+    : git_cas_{GitCAS::Open(repo_path)}, is_repo_fake_{false} {}
 
 GitRepo::GitRepo(GitRepo&& other) noexcept
-    : git_cas_{std::move(other.git_cas_)},
-      repo_{std::move(other.repo_)},
-      is_repo_fake_{other.is_repo_fake_} {
+    : git_cas_{std::move(other.git_cas_)}, is_repo_fake_{other.is_repo_fake_} {
     other.git_cas_ = nullptr;
 }
 
 auto GitRepo::operator=(GitRepo&& other) noexcept -> GitRepo& {
     git_cas_ = std::move(other.git_cas_);
-    repo_ = std::move(other.repo_);
     is_repo_fake_ = other.is_repo_fake_;
     other.git_cas_ = nullptr;
     return *this;
@@ -584,7 +484,7 @@ auto GitRepo::GetGitCAS() const noexcept -> GitCASPtr {
 }
 
 auto GitRepo::GetGitRepository() const& noexcept -> git_repository& {
-    return *repo_->Ptr();
+    return *GetGitCAS()->GetRepository();
 }
 
 auto GitRepo::GetGitPath() const noexcept -> std::filesystem::path const& {

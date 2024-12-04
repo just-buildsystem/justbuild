@@ -19,7 +19,6 @@
 #include <functional>
 #include <memory>
 #include <optional>
-#include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <utility>  // std::move
@@ -317,37 +316,9 @@ class GitRepo {
         -> std::shared_ptr<git_config>;
 
   private:
-    /// \brief Wrapped git_repository with guarded destructor.
-    /// Kept privately nested to avoid misuse of its raw pointer members.
-    class GuardedRepo {
-      public:
-        GuardedRepo() noexcept = delete;
-        explicit GuardedRepo(std::shared_mutex* mutex) noexcept;
-        ~GuardedRepo() noexcept;
-
-        // prohibit moves and copies
-        GuardedRepo(GuardedRepo const&) = delete;
-        GuardedRepo(GuardedRepo&& other) = delete;
-        auto operator=(GuardedRepo const&) = delete;
-        auto operator=(GuardedRepo&& other) = delete;
-
-        // get the bare pointer
-        [[nodiscard]] auto Ptr() -> git_repository*;
-        [[nodiscard]] auto PtrRef() -> git_repository**;
-
-      private:
-        std::shared_mutex* mutex_;
-        git_repository* repo_{nullptr};
-    };
-
-    using GuardedRepoPtr = std::shared_ptr<GuardedRepo>;
-
-    // IMPORTANT! The GitCAS object must be defined before the repo object to
-    // keep the GitContext alive until cleanup ends.
-    GitCASPtr git_cas_{nullptr};
-    GuardedRepoPtr repo_{nullptr};
+    GitCASPtr git_cas_;
     // default to real repo, as that is non-thread-safe
-    bool is_repo_fake_{false};
+    bool is_repo_fake_;
 
   protected:
     /// \brief Open "fake" repository wrapper for existing CAS.

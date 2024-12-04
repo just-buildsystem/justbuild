@@ -142,7 +142,6 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "file_locking"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   , "cflags": ["-pthread"]
