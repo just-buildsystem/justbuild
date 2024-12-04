@@ -1972,7 +1972,6 @@ auto GitRepo::ReadTreeData(
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
         InMemoryODBBackend b{.parent = kInMemoryODBParent};
-        auto cas = std::make_shared<GitCAS>();
         if (auto raw_id =
                 is_hex_id ? FromHexString(id) : std::make_optional(id)) {
             try {
@@ -1980,17 +1979,16 @@ auto GitRepo::ReadTreeData(
             } catch (...) {
                 return std::nullopt;
             }
-            // create a GitCAS from a special-purpose in-memory object database.
-            git_odb* odb_ptr{nullptr};
-            if (git_odb_new(&odb_ptr) == 0 and
+            // create a GitCAS from a special-purpose in-memory object
+            // database.
+            auto cas = GitCAS::CreateEmpty();
+            if (cas != nullptr and
                 git_odb_add_backend(
-                    odb_ptr,
+                    cas->GetODB(),
                     reinterpret_cast<git_odb_backend*>(&b),  // NOLINT
                     0) == 0) {
-                cas->odb_.reset(odb_ptr);  // take ownership of odb
                 // wrap odb in "fake" repo
-                auto repo =
-                    GitRepo(std::static_pointer_cast<GitCAS const>(cas));
+                auto repo = GitRepo(cas);
                 return repo.ReadTree(
                     *raw_id, check_symlinks, /*is_hex_id=*/false);
             }
@@ -2008,17 +2006,14 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
         InMemoryODBBackend b{.parent = kInMemoryODBParent, .entries = &entries};
-        auto cas = std::make_shared<GitCAS>();
-        // create a GitCAS from a special-purpose in-memory object database.
-        git_odb* odb_ptr{nullptr};
-        if (git_odb_new(&odb_ptr) == 0 and
+        auto cas = GitCAS::CreateEmpty();
+        if (cas != nullptr and
             git_odb_add_backend(
-                odb_ptr,
+                cas->GetODB(),
                 reinterpret_cast<git_odb_backend*>(&b),  // NOLINT
                 0) == 0) {
-            cas->odb_.reset(odb_ptr);  // take ownership of odb
             // wrap odb in "fake" repo
-            auto repo = GitRepo(std::static_pointer_cast<GitCAS const>(cas));
+            auto repo = GitRepo(cas);
             if (auto raw_id = repo.CreateTree(entries)) {
                 // read result from in-memory trees
                 if (auto it = b.trees.find(*raw_id); it != b.trees.end()) {

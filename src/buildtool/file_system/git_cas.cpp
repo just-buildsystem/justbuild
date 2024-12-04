@@ -109,6 +109,24 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
 #endif
 }
 
+auto GitCAS::CreateEmpty() noexcept -> GitCASPtr {
+#ifdef BOOTSTRAP_BUILD_TOOL
+    return nullptr;
+#else
+    auto result = std::make_shared<GitCAS>();
+
+    git_odb* odb_ptr{nullptr};
+    if (git_odb_new(&odb_ptr) != 0 or odb_ptr == nullptr) {
+        Logger::Log(LogLevel::Error,
+                    "creating an empty database failed with:\n{}",
+                    GitLastError());
+        return nullptr;
+    }
+    result->odb_.reset(odb_ptr);  // retain odb pointer
+    return std::const_pointer_cast<GitCAS const>(result);
+#endif
+}
+
 auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
