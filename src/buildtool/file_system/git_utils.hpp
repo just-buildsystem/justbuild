@@ -24,6 +24,7 @@
 extern "C" {
 struct git_oid;
 struct git_odb;
+struct git_repository;
 struct git_tree;
 struct git_signature;
 struct git_object;
@@ -46,6 +47,8 @@ constexpr std::size_t kGitLockNumTries{10};
 [[nodiscard]] auto GitLastError() noexcept -> std::string;
 
 void odb_closer(gsl::owner<git_odb*> odb);
+
+void repository_closer(gsl::owner<git_repository*> repository);
 
 void tree_closer(gsl::owner<git_tree*> tree);
 

@@ -77,12 +77,11 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
                     GitLastError());
         return nullptr;
     }
-    auto const repo =
-        std::unique_ptr<git_repository, decltype(&git_repository_free)>(
-            repo_ptr, git_repository_free);
+    result->repo_.reset(repo_ptr);
 
     git_odb* odb_ptr = nullptr;
-    if (git_repository_odb(&odb_ptr, repo.get()) != 0 or odb_ptr == nullptr) {
+    if (git_repository_odb(&odb_ptr, result->repo_.get()) != 0 or
+        odb_ptr == nullptr) {
         Logger::Log(LogLevel::Error,
                     "Obtaining git object database {} failed with:\n{}",
                     repo_path.string(),
@@ -92,9 +91,9 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     result->odb_.reset(odb_ptr);
 
     auto const git_path =
-        git_repository_is_bare(repo.get()) != 0
-            ? ToNormalPath(git_repository_path(repo.get()))
-            : ToNormalPath(git_repository_workdir(repo.get()));
+        git_repository_is_bare(result->repo_.get()) != 0
+            ? ToNormalPath(git_repository_path(result->repo_.get()))
+            : ToNormalPath(git_repository_workdir(result->repo_.get()));
 
     try {
         result->git_path_ = std::filesystem::absolute(git_path);
@@ -123,6 +122,16 @@ auto GitCAS::CreateEmpty() noexcept -> GitCASPtr {
         return nullptr;
     }
     result->odb_.reset(odb_ptr);  // retain odb pointer
+
+    git_repository* repo_ptr = nullptr;
+    if (git_repository_wrap_odb(&repo_ptr, result->odb_.get()) != 0 or
+        repo_ptr == nullptr) {
+        Logger::Log(LogLevel::Error,
+                    "creating an empty repository failed with:\n{}",
+                    GitLastError());
+        return nullptr;
+    }
+    result->repo_.reset(repo_ptr);  // retain repo pointer
     return std::const_pointer_cast<GitCAS const>(result);
 #endif
 }

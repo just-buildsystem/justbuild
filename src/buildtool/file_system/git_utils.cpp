@@ -76,6 +76,12 @@ void odb_closer(gsl::owner<git_odb*> odb) {
 #endif
 }
 
+void repository_closer(gsl::owner<git_repository*> repository) {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    git_repository_free(repository);
+#endif
+}
+
 void tree_closer(gsl::owner<git_tree*> tree) {
 #ifndef BOOTSTRAP_BUILD_TOOL
     git_tree_free(tree);

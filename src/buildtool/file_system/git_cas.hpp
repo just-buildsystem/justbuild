@@ -52,6 +52,11 @@ class GitCAS {
         return odb_.get();
     }
 
+    [[nodiscard]] auto GetRepository() const noexcept
+        -> gsl::not_null<git_repository*> {
+        return repo_.get();
+    }
+
     /// \brief Read object from CAS.
     /// \param id         The object id.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
@@ -70,6 +75,9 @@ class GitCAS {
 
   private:
     std::unique_ptr<git_odb, decltype(&odb_closer)> odb_{nullptr, odb_closer};
+    std::unique_ptr<git_repository, decltype(&repository_closer)> repo_{
+        nullptr,
+        repository_closer};
     // git folder path of repo
     std::filesystem::path git_path_;
 
