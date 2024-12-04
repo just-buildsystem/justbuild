@@ -1,0 +1,67 @@
+{ "git-imports":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["git-imports"]
+  , "test": ["git-imports.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
+, "deduplicate":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["deduplicate"]
+  , "test": ["deduplicate.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "deduplicate-tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  , "keep":
+    [ "repos-keep.json"
+    , "actions-keep.json"
+    , "repos.json"
+    , "actions.json"
+    , "repos-dedup.json"
+    ]
+  }
+, "absent":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["absent"]
+  , "test": ["absent.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
+, "computed":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["computed"]
+  , "test": ["computed.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  , "keep": ["repos.json", "actions.json"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "stage": ["just-lock"]
+  , "deps":
+    { "type": "++"
+    , "$1":
+      [ ["deduplicate", "absent"]
+      , { "type": "if"
+        , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+        , "then": []
+        , "else": ["git-imports", "computed"]
+        }
+      ]
+    }
+  }
+}
