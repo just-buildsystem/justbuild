@@ -23,6 +23,7 @@
 #include <string>
 #include <utility>
 
+#include "gsl/gsl"
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 
@@ -35,6 +36,8 @@ class GitCAS {
     [[nodiscard]] static auto Open(
         std::filesystem::path const& repo_path) noexcept -> GitCASPtr;
 
+    [[nodiscard]] static auto CreateEmpty() noexcept -> GitCASPtr;
+
     GitCAS() noexcept;
     ~GitCAS() noexcept = default;
 
@@ -43,6 +46,10 @@ class GitCAS {
     GitCAS(GitCAS&& other) = delete;
     auto operator=(GitCAS const&) = delete;
     auto operator=(GitCAS&& other) = delete;
+
+    [[nodiscard]] auto GetODB() const noexcept -> gsl::not_null<git_odb*> {
+        return odb_.get();
+    }
 
     /// \brief Read object from CAS.
     /// \param id         The object id.

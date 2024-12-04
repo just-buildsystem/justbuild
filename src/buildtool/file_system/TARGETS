@@ -70,7 +70,7 @@
   , "name": ["git_cas"]
   , "hdrs": ["git_cas.hpp"]
   , "srcs": ["git_cas.cpp"]
-  , "deps": ["git_utils", "object_type"]
+  , "deps": ["git_utils", "object_type", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ "git_context"
