@@ -1238,8 +1238,11 @@
   , "string_fields": ["magic_string", "@only", "output"]
   , "target_fields": ["input"]
   , "config_vars": ["defines"]
-  , "imports": {"stage_singleton_field": ["", "stage_singleton_field"]}
-  , "implicit": {"runner": ["runner"]}
+  , "imports":
+    { "stage_singleton_field": ["", "stage_singleton_field"]
+    , "default-PATH": ["./", "..", "default-PATH"]
+    }
+  , "implicit": {"runner": ["runner"], "defaults": [["./", "..", "defaults"]]}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -1314,6 +1317,22 @@
             {"type": "CALL_EXPRESSION", "name": "stage_singleton_field"}
           }
         ]
+      , ["PATH", {"type": "CALL_EXPRESSION", "name": "default-PATH"}]
+      , [ "ENV"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "PATH"}
+          , "then":
+            { "type": "singleton_map"
+            , "key": "PATH"
+            , "value":
+              { "type": "join"
+              , "separator": ":"
+              , "$1": {"type": "var", "name": "PATH"}
+              }
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
       , [ "outfile"
         , { "type": "ACTION"
           , "inputs":
@@ -1331,6 +1350,7 @@
             , {"type": "var", "name": "magic_string"}
             , {"type": "var", "name": "@only"}
             ]
+          , "env": {"type": "var", "name": "ENV"}
           , "outs": ["out"]
           }
         ]
