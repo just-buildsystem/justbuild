@@ -18,7 +18,6 @@
 #include <cstddef>
 #include <map>
 #include <mutex>
-#include <shared_mutex>
 #include <sstream>
 #include <string_view>
 #include <thread>
@@ -509,8 +508,6 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
                       true /*fatal*/);
             return std::nullopt;
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         // Due to limitations of Git in general, and libgit2 in particular, by
         // which updating the index with entries that have Git-specific magic
@@ -619,8 +616,6 @@ auto GitRepo::KeepTag(std::string const& commit,
                       true /*fatal*/);
             return std::nullopt;
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         // get commit spec
         git_object* target_ptr{nullptr};
@@ -728,8 +723,6 @@ auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
                       true /*fatal*/);
             return std::nullopt;
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         // get root commit id
         git_oid head_oid;
@@ -854,8 +847,6 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                       true /*fatal*/);
             return std::nullopt;
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         // get tree oid
         git_oid tree_oid;
@@ -980,8 +971,6 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                 LogLevel::Debug,
                 "Subtree id retrieval from commit called on a real repository");
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         // get commit object
         git_oid commit_oid;
@@ -1080,8 +1069,6 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
                             "Subtree id retrieval from tree called on a real "
                             "repository");
             }
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
 
             // get tree object from tree id
             git_oid tree_oid;
@@ -1223,13 +1210,8 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
         }
 
         git_commit* commit_obj = nullptr;
-        int lookup_res{};
-        {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-            lookup_res = git_commit_lookup(
-                &commit_obj, &GetGitRepository(), &commit_oid);
-        }
+        int const lookup_res =
+            git_commit_lookup(&commit_obj, &GetGitRepository(), &commit_oid);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
                 // cleanup resources
@@ -1329,13 +1311,8 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
         }
         // get tree object
         git_tree* tree_ptr = nullptr;
-        int lookup_res{};
-        {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-            lookup_res =
-                git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid);
-        }
+        int const lookup_res =
+            git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid);
         git_tree_free(tree_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1381,13 +1358,8 @@ auto GitRepo::CheckBlobExists(std::string const& blob_id,
         }
         // get blob object
         git_blob* blob_ptr = nullptr;
-        int lookup_res{};
-        {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-            lookup_res =
-                git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
-        }
+        int const lookup_res =
+            git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
         git_blob_free(blob_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1433,13 +1405,8 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
         }
         // get blob object
         git_blob* blob_ptr = nullptr;
-        int lookup_res{};
-        {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-            lookup_res =
-                git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
-        }
+        int const lookup_res =
+            git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
         git_blob_free(blob_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1482,8 +1449,6 @@ auto GitRepo::WriteBlob(std::string const& content,
             Logger::Log(LogLevel::Debug,
                         "Blob writer called on a real repository");
         }
-        // share the odb lock
-        std::shared_lock lock{GetGitCAS()->mutex_};
 
         git_oid blob_oid;
         if (git_blob_create_from_buffer(&blob_oid,
@@ -1521,9 +1486,6 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
         }
         // check if path is not trivial
         if (rel_path != ".") {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-
             // get tree object from tree id
             git_oid tree_oid;
             if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
@@ -1720,15 +1682,11 @@ auto GitRepo::ReadTree(std::string const& id,
 
         // lookup tree
         git_tree* tree_ptr{nullptr};
-        {
-            // share the odb lock
-            std::shared_lock lock{GetGitCAS()->mutex_};
-            if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &(*oid)) != 0) {
-                Logger::Log(LogLevel::Debug,
-                            "failed to lookup Git tree {}",
-                            is_hex_id ? std::string{id} : ToHexString(id));
-                return std::nullopt;
-            }
+        if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &(*oid)) != 0) {
+            Logger::Log(LogLevel::Debug,
+                        "failed to lookup Git tree {}",
+                        is_hex_id ? std::string{id} : ToHexString(id));
+            return std::nullopt;
         }
         auto tree = std::unique_ptr<git_tree, decltype(&tree_closer)>{
             tree_ptr, tree_closer};
@@ -1809,9 +1767,6 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
     // Check consistency of entries. Also check that entries exist.
     ExpectsAudit(ValidateEntries(entries, GetGitCAS()));
 #endif  // NDEBUG
-    // share the odb lock
-    std::shared_lock lock{GetGitCAS()->mutex_};
-
     try {
         // As the libgit2 treebuilder checks for magic names and does not allow
         // us to add any and all entries to a Git tree, we resort to
