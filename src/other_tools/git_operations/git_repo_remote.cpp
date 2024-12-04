@@ -94,7 +94,7 @@ auto const kFetchIntoODBParent = CreateFetchIntoODBParent();
 auto GitRepoRemote::Open(GitCASPtr git_cas) noexcept
     -> std::optional<GitRepoRemote> {
     auto repo = GitRepoRemote(std::move(git_cas));
-    if (not repo.GetRepoRef()) {
+    if (not repo.GetGitCAS()) {
         return std::nullopt;
     }
     return repo;
@@ -103,7 +103,7 @@ auto GitRepoRemote::Open(GitCASPtr git_cas) noexcept
 auto GitRepoRemote::Open(std::filesystem::path const& repo_path) noexcept
     -> std::optional<GitRepoRemote> {
     auto repo = GitRepoRemote(repo_path);
-    if (not repo.GetRepoRef()) {
+    if (not repo.GetGitCAS()) {
         return std::nullopt;
     }
     return repo;
@@ -152,7 +152,7 @@ auto GitRepoRemote::GetCommitFromRemote(std::shared_ptr<git_config> cfg,
         // create remote
         git_remote* remote_ptr{nullptr};
         if (git_remote_create_anonymous(
-                &remote_ptr, GetRepoRef()->Ptr(), repo_url.c_str()) != 0) {
+                &remote_ptr, &GetGitRepository(), repo_url.c_str()) != 0) {
             (*logger)(
                 fmt::format("Creating anonymous remote for git repository {} "
                             "failed with:\n{}",
@@ -283,7 +283,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         // create remote from repo
         git_remote* remote_ptr{nullptr};
         if (git_remote_create_anonymous(
-                &remote_ptr, GetRepoRef()->Ptr(), repo_url.c_str()) != 0) {
+                &remote_ptr, &GetGitRepository(), repo_url.c_str()) != 0) {
             (*logger)(fmt::format("Creating remote {} for git repository {} "
                                   "failed with:\n{}",
                                   repo_url,
@@ -304,7 +304,7 @@ auto GitRepoRemote::FetchFromRemote(std::shared_ptr<git_config> cfg,
         if (not cfg) {
             // get config snapshot of current repo
             git_config* cfg_ptr{nullptr};
-            if (git_repository_config_snapshot(&cfg_ptr, GetRepoRef()->Ptr()) !=
+            if (git_repository_config_snapshot(&cfg_ptr, &GetGitRepository()) !=
                 0) {
                 (*logger)(fmt::format("Retrieving config object in fetch from "
                                       "remote failed with:\n{}",
@@ -562,9 +562,9 @@ auto GitRepoRemote::FetchViaTmpRepo(StorageConfig const& storage_config,
             }
             // add backend, with max priority
             FetchIntoODBBackend b{.parent = kFetchIntoODBParent,
-                                  .target_odb = GetGitOdb().get()};
+                                  .target_odb = &GetGitOdb()};
             if (git_odb_add_backend(
-                    tmp_repo->GetGitOdb().get(),
+                    &tmp_repo->GetGitOdb(),
                     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                     reinterpret_cast<git_odb_backend*>(&b),
                     std::numeric_limits<int>::max()) == 0) {
