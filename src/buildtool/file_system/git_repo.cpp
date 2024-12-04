@@ -482,18 +482,6 @@ auto GitRepo::GetGitCAS() const noexcept -> GitCASPtr {
     return git_cas_;
 }
 
-auto GitRepo::GetGitRepository() const& noexcept -> git_repository& {
-    return *GetGitCAS()->GetRepository();
-}
-
-auto GitRepo::GetGitPath() const noexcept -> std::filesystem::path const& {
-    return git_cas_->git_path_;
-}
-
-auto GitRepo::GetGitOdb() const& noexcept -> git_odb& {
-    return *git_cas_->odb_;
-}
-
 auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
                               std::string const& message,
                               anon_logger_ptr const& logger) noexcept
@@ -529,7 +517,7 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
                                 raw_id->data())) != 0) {
             (*logger)(fmt::format("subdir tree object id parsing in git "
                                   "repository {} failed with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
@@ -542,7 +530,7 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
             (*logger)(
                 fmt::format("creating signature in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             // cleanup resources
@@ -555,10 +543,11 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
 
         // get tree object
         git_tree* tree_ptr = nullptr;
-        if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid) != 0) {
+        if (git_tree_lookup(&tree_ptr, git_cas_->GetRepository(), &tree_oid) !=
+            0) {
             (*logger)(
                 fmt::format("tree lookup in git repository {} failed with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             // cleanup resources
@@ -575,7 +564,7 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
         git_oid commit_oid;
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
         if (git_commit_create_v(&commit_oid,
-                                &GetGitRepository(),
+                                git_cas_->GetRepository(),
                                 "HEAD",
                                 signature.get(),
                                 signature.get(),
@@ -585,7 +574,7 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
                                 0) != 0) {
             (*logger)(
                 fmt::format("git commit in repository {} failed with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             git_buf_dispose(&buffer);
@@ -620,11 +609,11 @@ auto GitRepo::KeepTag(std::string const& commit,
         // get commit spec
         git_object* target_ptr{nullptr};
         if (git_revparse_single(
-                &target_ptr, &GetGitRepository(), commit.c_str()) != 0) {
+                &target_ptr, git_cas_->GetRepository(), commit.c_str()) != 0) {
             (*logger)(fmt::format("rev-parse commit {} in repository {} failed "
                                   "with:\n{}",
                                   commit,
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             git_object_free(target_ptr);
@@ -640,7 +629,7 @@ auto GitRepo::KeepTag(std::string const& commit,
             (*logger)(
                 fmt::format("creating signature in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             // cleanup resources
@@ -657,8 +646,8 @@ auto GitRepo::KeepTag(std::string const& commit,
         git_strarray tag_names{};
 
         // check if tag hasn't already been added by another process
-        if (git_tag_list_match(&tag_names, name.c_str(), &GetGitRepository()) ==
-                0 and
+        if (git_tag_list_match(
+                &tag_names, name.c_str(), git_cas_->GetRepository()) == 0 and
             tag_names.count > 0) {
             git_strarray_dispose(&tag_names);
             return name;  // success!
@@ -671,7 +660,7 @@ auto GitRepo::KeepTag(std::string const& commit,
         while (max_attempts > 0) {
             --max_attempts;
             err = git_tag_create(&oid,
-                                 &GetGitRepository(),
+                                 git_cas_->GetRepository(),
                                  name.c_str(),
                                  target.get(),
                                  tagger.get(),
@@ -686,8 +675,9 @@ auto GitRepo::KeepTag(std::string const& commit,
                 break;
             }
             // check if tag hasn't already been added by another process
-            if (git_tag_list_match(
-                    &tag_names, name.c_str(), &GetGitRepository()) == 0 and
+            if (git_tag_list_match(&tag_names,
+                                   name.c_str(),
+                                   git_cas_->GetRepository()) == 0 and
                 tag_names.count > 0) {
                 git_strarray_dispose(&tag_names);
                 return name;  // success!
@@ -700,7 +690,7 @@ auto GitRepo::KeepTag(std::string const& commit,
         }
         (*logger)(
             fmt::format("tag creation in git repository {} failed with:\n{}",
-                        GetGitPath().string(),
+                        git_cas_->GetPath().string(),
                         err_mess),
             true /*fatal*/);
         return std::nullopt;
@@ -726,11 +716,11 @@ auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
 
         // get root commit id
         git_oid head_oid;
-        if (git_reference_name_to_id(&head_oid, &GetGitRepository(), "HEAD") !=
-            0) {
+        if (git_reference_name_to_id(
+                &head_oid, git_cas_->GetRepository(), "HEAD") != 0) {
             (*logger)(fmt::format("retrieving head commit in git repository {} "
                                   "failed with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
@@ -760,12 +750,13 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         }
         // create remote from repo
         git_remote* remote_ptr{nullptr};
-        if (git_remote_create_anonymous(
-                &remote_ptr, &GetGitRepository(), repo_path.c_str()) != 0) {
+        if (git_remote_create_anonymous(&remote_ptr,
+                                        git_cas_->GetRepository(),
+                                        repo_path.c_str()) != 0) {
             (*logger)(fmt::format("Creating remote {} for local repository {} "
                                   "failed with:\n{}",
                                   repo_path,
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             // cleanup resources
@@ -780,8 +771,8 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         if (not cfg) {
             // get config snapshot of current repo
             git_config* cfg_ptr{nullptr};
-            if (git_repository_config_snapshot(&cfg_ptr, &GetGitRepository()) !=
-                0) {
+            if (git_repository_config_snapshot(
+                    &cfg_ptr, git_cas_->GetRepository()) != 0) {
                 (*logger)(fmt::format("Retrieving config object in fetch from "
                                       "path failed with:\n{}",
                                       GitLastError()),
@@ -816,7 +807,7 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
             (*logger)(fmt::format(
                           "Fetching {} in local repository {} failed with:\n{}",
                           branch ? fmt::format("branch {}", *branch) : "all",
-                          GetGitPath().string(),
+                          git_cas_->GetPath().string(),
                           GitLastError()),
                       true /*fatal*/);
             return false;
@@ -853,20 +844,21 @@ auto GitRepo::KeepTree(std::string const& tree_id,
         if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
             (*logger)(fmt::format("tree ID parsing in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
         }
         // get tree object from oid
         git_object* target_ptr{nullptr};
-        if (git_object_lookup(
-                &target_ptr, &GetGitRepository(), &tree_oid, GIT_OBJECT_TREE) !=
-            0) {
+        if (git_object_lookup(&target_ptr,
+                              git_cas_->GetRepository(),
+                              &tree_oid,
+                              GIT_OBJECT_TREE) != 0) {
             (*logger)(fmt::format("object lookup for tree {} in repository "
                                   "{} failed with:\n{}",
                                   tree_id,
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             git_object_free(target_ptr);
@@ -882,7 +874,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
             (*logger)(
                 fmt::format("creating signature in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             // cleanup resources
@@ -899,8 +891,8 @@ auto GitRepo::KeepTree(std::string const& tree_id,
         git_strarray tag_names{};
 
         // check if tag hasn't already been added by another process
-        if (git_tag_list_match(&tag_names, name.c_str(), &GetGitRepository()) ==
-                0 and
+        if (git_tag_list_match(
+                &tag_names, name.c_str(), git_cas_->GetRepository()) == 0 and
             tag_names.count > 0) {
             git_strarray_dispose(&tag_names);
             return name;  // success!
@@ -913,7 +905,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
         while (max_attempts > 0) {
             --max_attempts;
             err = git_tag_create(&oid,
-                                 &GetGitRepository(),
+                                 git_cas_->GetRepository(),
                                  name.c_str(),
                                  target.get(),    /*tree*/
                                  signature.get(), /*tagger*/
@@ -928,8 +920,9 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                 break;
             }
             // check if tag hasn't already been added by another process
-            if (git_tag_list_match(
-                    &tag_names, name.c_str(), &GetGitRepository()) == 0 and
+            if (git_tag_list_match(&tag_names,
+                                   name.c_str(),
+                                   git_cas_->GetRepository()) == 0 and
                 tag_names.count > 0) {
                 git_strarray_dispose(&tag_names);
                 return name;  // success!
@@ -943,7 +936,7 @@ auto GitRepo::KeepTree(std::string const& tree_id,
         (*logger)(fmt::format("tag creation for tree {} in git repository {} "
                               "failed with:\n{}",
                               tree_id,
-                              GetGitPath().string(),
+                              git_cas_->GetPath().string(),
                               err_mess),
                   true /*fatal*/);
         return std::nullopt;
@@ -978,19 +971,19 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
             (*logger)(
                 fmt::format("commit ID parsing in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             return unexpected{GitLookupError::Fatal};
         }
 
         git_commit* commit_ptr{nullptr};
-        if (git_commit_lookup(&commit_ptr, &GetGitRepository(), &commit_oid) !=
-            0) {
+        if (git_commit_lookup(
+                &commit_ptr, git_cas_->GetRepository(), &commit_oid) != 0) {
             (*logger)(fmt::format("retrieving commit {} in git repository {} "
                                   "failed with:\n{}",
                                   commit,
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             // cleanup resources
@@ -1007,7 +1000,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                           "retrieving tree for commit {} in git repository {} "
                           "failed with:\n{}",
                           commit,
-                          GetGitPath().string(),
+                          git_cas_->GetPath().string(),
                           GitLastError()),
                       true /*fatal*/);
             // cleanup resources
@@ -1026,7 +1019,7 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
                     fmt::format("retrieving subtree at {} in git repository "
                                 "{} failed with:\n{}",
                                 subdir,
-                                GetGitPath().string(),
+                                git_cas_->GetPath().string(),
                                 GitLastError()),
                     true /*fatal*/);
                 // cleanup resources
@@ -1076,20 +1069,20 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
                 (*logger)(
                     fmt::format("tree ID parsing in git repository {} failed "
                                 "with:\n{}",
-                                GetGitPath().string(),
+                                git_cas_->GetPath().string(),
                                 GitLastError()),
                     true /*fatal*/);
                 return std::nullopt;
             }
 
             git_tree* tree_ptr{nullptr};
-            if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid) !=
-                0) {
+            if (git_tree_lookup(
+                    &tree_ptr, git_cas_->GetRepository(), &tree_oid) != 0) {
                 (*logger)(fmt::format(
                               "retrieving tree {} in git repository {} failed "
                               "with:\n{}",
                               tree_id,
-                              GetGitPath().string(),
+                              git_cas_->GetPath().string(),
                               GitLastError()),
                           true /*fatal*/);
                 // cleanup resources
@@ -1107,7 +1100,7 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
                     fmt::format("retrieving subtree at {} in git repository "
                                 "{} failed with:\n{}",
                                 subdir,
-                                GetGitPath().string(),
+                                git_cas_->GetPath().string(),
                                 GitLastError()),
                     true /*fatal*/);
                 // cleanup resources
@@ -1203,15 +1196,15 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
             (*logger)(
                 fmt::format("commit ID parsing in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             return std::nullopt;
         }
 
         git_commit* commit_obj = nullptr;
-        int const lookup_res =
-            git_commit_lookup(&commit_obj, &GetGitRepository(), &commit_oid);
+        int const lookup_res = git_commit_lookup(
+            &commit_obj, git_cas_->GetRepository(), &commit_oid);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
                 // cleanup resources
@@ -1223,7 +1216,7 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
                 fmt::format("lookup of commit {} in git repository {} failed "
                             "with:\n{}",
                             commit,
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             // cleanup resources
@@ -1304,7 +1297,7 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
         if (git_oid_fromstr(&tree_oid, tree_id.c_str()) != 0) {
             (*logger)(fmt::format("tree ID parsing in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
@@ -1312,7 +1305,7 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
         // get tree object
         git_tree* tree_ptr = nullptr;
         int const lookup_res =
-            git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid);
+            git_tree_lookup(&tree_ptr, git_cas_->GetRepository(), &tree_oid);
         git_tree_free(tree_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1320,7 +1313,7 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
             }
             (*logger)(
                 fmt::format("tree lookup in git repository {} failed with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError()),
                 true /*fatal*/);
             return std::nullopt;
@@ -1351,7 +1344,7 @@ auto GitRepo::CheckBlobExists(std::string const& blob_id,
         if (git_oid_fromstr(&blob_oid, blob_id.c_str()) != 0) {
             (*logger)(fmt::format("blob ID parsing in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
@@ -1359,7 +1352,7 @@ auto GitRepo::CheckBlobExists(std::string const& blob_id,
         // get blob object
         git_blob* blob_ptr = nullptr;
         int const lookup_res =
-            git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
+            git_blob_lookup(&blob_ptr, git_cas_->GetRepository(), &blob_oid);
         git_blob_free(blob_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1367,7 +1360,7 @@ auto GitRepo::CheckBlobExists(std::string const& blob_id,
             }
             (*logger)(fmt::format("blob lookup in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::nullopt;
@@ -1398,7 +1391,7 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
         if (git_oid_fromstr(&blob_oid, blob_id.c_str()) != 0) {
             (*logger)(fmt::format("blob ID parsing in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::pair(false, std::nullopt);
@@ -1406,7 +1399,7 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
         // get blob object
         git_blob* blob_ptr = nullptr;
         int const lookup_res =
-            git_blob_lookup(&blob_ptr, &GetGitRepository(), &blob_oid);
+            git_blob_lookup(&blob_ptr, git_cas_->GetRepository(), &blob_oid);
         git_blob_free(blob_ptr);
         if (lookup_res != 0) {
             if (lookup_res == GIT_ENOTFOUND) {
@@ -1414,19 +1407,19 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
             }
             (*logger)(fmt::format("blob lookup in git repository {} failed "
                                   "with:\n{}",
-                                  GetGitPath().string(),
+                                  git_cas_->GetPath().string(),
                                   GitLastError()),
                       true /*fatal*/);
             return std::pair(false, std::nullopt);
         }
         // get data of found blob
-        if (auto data = GetGitCAS()->ReadObject(blob_id, /*is_hex_id=*/true)) {
+        if (auto data = git_cas_->ReadObject(blob_id, /*is_hex_id=*/true)) {
             return std::pair(true, std::move(*data));
         }
         (*logger)(fmt::format(
                       "failed to read target for blob {} in git repository {}",
                       blob_id,
-                      GetGitPath().string()),
+                      git_cas_->GetPath().string()),
                   true /*fatal*/);
         return std::pair(false, std::nullopt);
     } catch (std::exception const& ex) {
@@ -1452,7 +1445,7 @@ auto GitRepo::WriteBlob(std::string const& content,
 
         git_oid blob_oid;
         if (git_blob_create_from_buffer(&blob_oid,
-                                        &GetGitRepository(),
+                                        git_cas_->GetRepository(),
                                         content.c_str(),
                                         content.size()) != 0) {
             (*logger)(fmt::format("writing blob into database failed with:\n{}",
@@ -1492,19 +1485,19 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                 Logger::Log(LogLevel::Trace,
                             "tree ID parsing in git repository {} failed "
                             "with:\n{}",
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError());
                 return std::nullopt;
             }
 
             git_tree* tree_ptr{nullptr};
-            if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &tree_oid) !=
-                0) {
+            if (git_tree_lookup(
+                    &tree_ptr, git_cas_->GetRepository(), &tree_oid) != 0) {
                 Logger::Log(LogLevel::Trace,
                             "retrieving tree {} in git repository {} "
                             "failed with:\n{}",
                             tree_id,
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError());
                 // cleanup resources
                 git_tree_free(tree_ptr);
@@ -1521,7 +1514,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                             "retrieving entry at {} in git repository {} "
                             "failed with:\n{}",
                             rel_path,
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError());
                 // cleanup resources
                 git_tree_entry_free(entry_ptr);
@@ -1546,7 +1539,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                             "retrieving type of entry {} in git repository "
                             "{} failed with:\n{}",
                             entry_id,
-                            GetGitPath().string(),
+                            git_cas_->GetPath().string(),
                             GitLastError());
                 return std::nullopt;
             }
@@ -1555,7 +1548,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
         // if symlink, also read target
         if (IsSymlinkObject(entry_type)) {
             if (auto target =
-                    GetGitCAS()->ReadObject(entry_id, /*is_hex_id=*/true)) {
+                    git_cas_->ReadObject(entry_id, /*is_hex_id=*/true)) {
                 return TreeEntryInfo{.id = entry_id,
                                      .type = entry_type,
                                      .symlink_content = std::move(target)};
@@ -1564,7 +1557,7 @@ auto GitRepo::GetObjectByPathFromTree(std::string const& tree_id,
                 LogLevel::Trace,
                 "failed to read target for symlink {} in git repository {}",
                 entry_id,
-                GetGitPath().string());
+                git_cas_->GetPath().string());
             return std::nullopt;
         }
         return TreeEntryInfo{.id = entry_id,
@@ -1609,9 +1602,9 @@ auto GitRepo::LocalFetchViaTmpRepo(StorageConfig const& storage_config,
         }
         // add backend, with max priority
         FetchIntoODBBackend b{.parent = kFetchIntoODBParent,
-                              .target_odb = &GetGitOdb()};
+                              .target_odb = git_cas_->GetODB()};
         if (git_odb_add_backend(
-                &tmp_repo->GetGitOdb(),
+                tmp_repo->git_cas_->GetODB(),
                 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
                 reinterpret_cast<git_odb_backend*>(&b),
                 std::numeric_limits<int>::max()) == 0) {
@@ -1656,7 +1649,8 @@ auto GitRepo::GetConfigSnapshot() const noexcept
     -> std::shared_ptr<git_config> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     git_config* cfg_ptr{nullptr};
-    if (git_repository_config_snapshot(&cfg_ptr, &GetGitRepository()) == 0) {
+    if (git_repository_config_snapshot(&cfg_ptr, git_cas_->GetRepository()) ==
+        0) {
         return std::shared_ptr<git_config>(cfg_ptr, config_closer);
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1682,7 +1676,8 @@ auto GitRepo::ReadTree(std::string const& id,
 
         // lookup tree
         git_tree* tree_ptr{nullptr};
-        if (git_tree_lookup(&tree_ptr, &GetGitRepository(), &(*oid)) != 0) {
+        if (git_tree_lookup(&tree_ptr, git_cas_->GetRepository(), &(*oid)) !=
+            0) {
             Logger::Log(LogLevel::Debug,
                         "failed to lookup Git tree {}",
                         is_hex_id ? std::string{id} : ToHexString(id));
@@ -1804,7 +1799,7 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
         git_oid oid;
         auto const tree_content_str = tree_content.str();
         if (git_odb_write(&oid,
-                          &GetGitOdb(),
+                          git_cas_->GetODB(),
                           tree_content_str.c_str(),
                           tree_content_str.size(),
                           GIT_OBJECT_TREE) != 0) {

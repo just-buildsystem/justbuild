@@ -55,6 +55,11 @@ class GitCAS {
         return repo_.get();
     }
 
+    [[nodiscard]] auto GetPath() const noexcept
+        -> std::filesystem::path const& {
+        return git_path_;
+    }
+
     /// \brief Read object from CAS.
     /// \param id         The object id.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
@@ -78,8 +83,6 @@ class GitCAS {
         repository_closer};
     // git folder path of repo
     std::filesystem::path git_path_;
-
-    friend class GitRepo;  // allow access to ODB
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_GIT_CAS_HPP
