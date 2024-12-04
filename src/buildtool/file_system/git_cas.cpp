@@ -150,15 +150,12 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
     }
 
     git_odb_object* obj = nullptr;
-    {
-        std::shared_lock lock{mutex_};
-        if (git_odb_read(&obj, odb_.get(), &oid.value()) != 0) {
-            Logger::Log(LogLevel::Error,
-                        "reading git object {} from database failed with:\n{}",
-                        is_hex_id ? id : ToHexString(id),
-                        GitLastError());
-            return std::nullopt;
-        }
+    if (git_odb_read(&obj, odb_.get(), &oid.value()) != 0) {
+        Logger::Log(LogLevel::Error,
+                    "reading git object {} from database failed with:\n{}",
+                    is_hex_id ? id : ToHexString(id),
+                    GitLastError());
+        return std::nullopt;
     }
 
     std::string data(static_cast<char const*>(git_odb_object_data(obj)),
@@ -183,16 +180,13 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
 
     std::size_t size{};
     git_object_t type{};
-    {
-        std::shared_lock lock{mutex_};
-        if (git_odb_read_header(&size, &type, odb_.get(), &oid.value()) != 0) {
-            Logger::Log(LogLevel::Error,
-                        "reading git object header {} from database failed "
-                        "with:\n{}",
-                        is_hex_id ? id : ToHexString(id),
-                        GitLastError());
-            return std::nullopt;
-        }
+    if (git_odb_read_header(&size, &type, odb_.get(), &oid.value()) != 0) {
+        Logger::Log(LogLevel::Error,
+                    "reading git object header {} from database failed "
+                    "with:\n{}",
+                    is_hex_id ? id : ToHexString(id),
+                    GitLastError());
+        return std::nullopt;
     }
 
     if (auto obj_type = GitTypeToObjectType(type)) {

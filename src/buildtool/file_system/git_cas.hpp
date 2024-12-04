@@ -19,7 +19,6 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
-#include <shared_mutex>
 #include <string>
 #include <utility>
 
@@ -79,11 +78,6 @@ class GitCAS {
         repository_closer};
     // git folder path of repo
     std::filesystem::path git_path_;
-
-    // mutex to guard odb while setting up a "fake" repository; it needs to be
-    // uniquely owned while wrapping the odb, but then git operations are free
-    // to share it.
-    mutable std::shared_mutex mutex_;
 
     friend class GitRepo;  // allow access to ODB
 };
