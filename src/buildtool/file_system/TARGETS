@@ -138,6 +138,7 @@
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "cflags": ["-pthread"]
   }
