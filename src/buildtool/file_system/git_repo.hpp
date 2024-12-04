@@ -323,13 +323,6 @@ class GitRepo {
     /// \brief Open real repository at given location.
     explicit GitRepo(std::filesystem::path const& repo_path) noexcept;
 
-    [[nodiscard]] auto GetGitRepository() const& noexcept -> git_repository&;
-
-    [[nodiscard]] auto GetGitPath() const noexcept
-        -> std::filesystem::path const&;
-
-    [[nodiscard]] auto GetGitOdb() const& noexcept -> git_odb&;
-
     using StoreDirEntryFunc =
         std::function<bool(std::filesystem::path const&, ObjectType type)>;
 
