@@ -297,4 +297,14 @@ auto RehashGitDigest(std::vector<Artifact::ObjectInfo> const& digests,
                             /*from_git=*/true);
 }
 
+auto Rehasher::Rehash(Artifact::ObjectInfo const& info) const
+    -> expected<Artifact::ObjectInfo, std::string> {
+    auto rehashed = RehashUtils::RehashDigest(
+        std::vector<Artifact::ObjectInfo>{info}, source_, target_, apis_);
+    if (not rehashed) {
+        return unexpected<std::string>(rehashed.error());
+    }
+    return rehashed.value()[0];
+}
+
 }  // namespace RehashUtils

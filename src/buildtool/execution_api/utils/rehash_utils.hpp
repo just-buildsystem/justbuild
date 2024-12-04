@@ -17,6 +17,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "gsl/gsl"
@@ -76,6 +77,24 @@ namespace RehashUtils {
     StorageConfig const& target_config,
     RepositoryConfig const& repo_config)
     -> expected<std::vector<Artifact::ObjectInfo>, std::string>;
+
+class Rehasher {
+  public:
+    Rehasher(StorageConfig source_config,
+             StorageConfig target_config,
+             std::optional<gsl::not_null<ApiBundle const*>> apis)
+        : source_{std::move(source_config)},
+          target_{std::move(target_config)},
+          apis_{std::move(apis)} {}
+
+    [[nodiscard]] auto Rehash(Artifact::ObjectInfo const& info) const
+        -> expected<Artifact::ObjectInfo, std::string>;
+
+  private:
+    StorageConfig const source_;
+    StorageConfig const target_;
+    std::optional<gsl::not_null<ApiBundle const*>> const apis_;
+};
 
 }  // namespace RehashUtils
 
