@@ -33,8 +33,8 @@ using GitCASPtr = std::shared_ptr<GitCAS const>;
 /// \brief Git CAS that maintains its Git context.
 class GitCAS {
   public:
-    static auto Open(std::filesystem::path const& repo_path) noexcept
-        -> GitCASPtr;
+    [[nodiscard]] static auto Open(
+        std::filesystem::path const& repo_path) noexcept -> GitCASPtr;
 
     GitCAS() noexcept;
     ~GitCAS() noexcept = default;
@@ -70,9 +70,6 @@ class GitCAS {
     // uniquely owned while wrapping the odb, but then git operations are free
     // to share it.
     mutable std::shared_mutex mutex_;
-
-    [[nodiscard]] auto OpenODB(std::filesystem::path const& repo_path) noexcept
-        -> bool;
 
     friend class GitRepo;  // allow access to ODB
 };

@@ -57,19 +57,56 @@ GitCAS::GitCAS() noexcept {
 
 auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     -> GitCASPtr {
-#ifndef BOOTSTRAP_BUILD_TOOL
-    try {
-        auto cas = std::make_shared<GitCAS>();
-        if (cas->OpenODB(repo_path)) {
-            return std::static_pointer_cast<GitCAS const>(cas);
-        }
-    } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "opening git object database failed with:\n{}",
-                    ex.what());
-    }
-#endif
+#ifdef BOOTSTRAP_BUILD_TOOL
     return nullptr;
+#else
+    auto result = std::make_shared<GitCAS>();
+
+    // lock as git_repository API has no thread-safety guarantees
+    static std::mutex repo_mutex{};
+    std::unique_lock lock{repo_mutex};
+    git_repository* repo_ptr = nullptr;
+    if (git_repository_open_ext(&repo_ptr,
+                                repo_path.c_str(),
+                                GIT_REPOSITORY_OPEN_NO_SEARCH,
+                                nullptr) != 0 or
+        repo_ptr == nullptr) {
+        Logger::Log(LogLevel::Error,
+                    "Opening git repository {} failed with:\n{}",
+                    repo_path.string(),
+                    GitLastError());
+        return nullptr;
+    }
+    auto const repo =
+        std::unique_ptr<git_repository, decltype(&git_repository_free)>(
+            repo_ptr, git_repository_free);
+
+    git_odb* odb_ptr = nullptr;
+    if (git_repository_odb(&odb_ptr, repo.get()) != 0 or odb_ptr == nullptr) {
+        Logger::Log(LogLevel::Error,
+                    "Obtaining git object database {} failed with:\n{}",
+                    repo_path.string(),
+                    GitLastError());
+        return nullptr;
+    }
+    result->odb_.reset(odb_ptr);
+
+    auto const git_path =
+        git_repository_is_bare(repo.get()) != 0
+            ? ToNormalPath(git_repository_path(repo.get()))
+            : ToNormalPath(git_repository_workdir(repo.get()));
+
+    try {
+        result->git_path_ = std::filesystem::absolute(git_path);
+    } catch (std::exception const& e) {
+        Logger::Log(LogLevel::Error,
+                    "Failed to obtain absolute path for {}: {}",
+                    git_path.string(),
+                    e.what());
+        return nullptr;
+    }
+    return std::const_pointer_cast<GitCAS const>(result);
+#endif
 }
 
 auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
@@ -137,61 +174,4 @@ auto GitCAS::ReadHeader(std::string const& id, bool is_hex_id) const noexcept
     }
 #endif
     return std::nullopt;
-}
-
-auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
-    static std::mutex repo_mutex{};
-#ifdef BOOTSTRAP_BUILD_TOOL
-    return false;
-#else
-    {  // lock as git_repository API has no thread-safety guarantees
-        std::unique_lock lock{repo_mutex};
-        git_repository* repo_ptr = nullptr;
-        if (git_repository_open_ext(&repo_ptr,
-                                    repo_path.c_str(),
-                                    GIT_REPOSITORY_OPEN_NO_SEARCH,
-                                    nullptr) != 0) {
-            Logger::Log(LogLevel::Debug,
-                        "opening git repository {} failed with:\n{}",
-                        repo_path.string(),
-                        GitLastError());
-            return false;
-        }
-        auto const repo =
-            std::unique_ptr<git_repository, decltype(&git_repository_free)>(
-                repo_ptr, git_repository_free);
-
-        git_odb* odb_ptr{nullptr};
-        git_repository_odb(&odb_ptr, repo.get());
-        odb_.reset(odb_ptr);  // retain odb pointer
-        // set root
-        std::filesystem::path git_path{};
-        if (git_repository_is_bare(repo.get()) != 0) {
-            git_path = ToNormalPath((git_repository_path(repo.get())));
-        }
-        else {
-            git_path = ToNormalPath(git_repository_workdir(repo.get()));
-        }
-        if (not git_path.is_absolute()) {
-            try {
-                git_path = std::filesystem::absolute(git_path);
-            } catch (std::exception const& e) {
-                Logger::Log(LogLevel::Error,
-                            "Failed to obtain absolute path for {}: {}",
-                            git_path.string(),
-                            e.what());
-                return false;
-            }
-        }
-        git_path_ = git_path;
-    }
-    if (not odb_) {
-        Logger::Log(LogLevel::Error,
-                    "obtaining git object database {} failed with:\n{}",
-                    repo_path.string(),
-                    GitLastError());
-        return false;
-    }
-    return true;
-#endif
 }
