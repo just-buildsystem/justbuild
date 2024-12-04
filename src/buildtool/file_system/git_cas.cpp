@@ -145,8 +145,8 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
 #else
     {  // lock as git_repository API has no thread-safety guarantees
         std::unique_lock lock{repo_mutex};
-        git_repository* repo = nullptr;
-        if (git_repository_open_ext(&repo,
+        git_repository* repo_ptr = nullptr;
+        if (git_repository_open_ext(&repo_ptr,
                                     repo_path.c_str(),
                                     GIT_REPOSITORY_OPEN_NO_SEARCH,
                                     nullptr) != 0) {
@@ -156,16 +156,20 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
                         GitLastError());
             return false;
         }
+        auto const repo =
+            std::unique_ptr<git_repository, decltype(&git_repository_free)>(
+                repo_ptr, git_repository_free);
+
         git_odb* odb_ptr{nullptr};
-        git_repository_odb(&odb_ptr, repo);
+        git_repository_odb(&odb_ptr, repo.get());
         odb_.reset(odb_ptr);  // retain odb pointer
         // set root
         std::filesystem::path git_path{};
-        if (git_repository_is_bare(repo) != 0) {
-            git_path = ToNormalPath((git_repository_path(repo)));
+        if (git_repository_is_bare(repo.get()) != 0) {
+            git_path = ToNormalPath((git_repository_path(repo.get())));
         }
         else {
-            git_path = ToNormalPath(git_repository_workdir(repo));
+            git_path = ToNormalPath(git_repository_workdir(repo.get()));
         }
         if (not git_path.is_absolute()) {
             try {
@@ -179,8 +183,6 @@ auto GitCAS::OpenODB(std::filesystem::path const& repo_path) noexcept -> bool {
             }
         }
         git_path_ = git_path;
-        // release resources
-        git_repository_free(repo);
     }
     if (not odb_) {
         Logger::Log(LogLevel::Error,
