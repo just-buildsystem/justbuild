@@ -681,7 +681,8 @@ class GraphTraverser {
                     if (info) {
                         if (not remote.RetrieveToFds({*info},
                                                      {dup(fileno(stdout))},
-                                                     /*raw_tree=*/false)) {
+                                                     /*raw_tree=*/false,
+                                                     &*context_.apis->local)) {
                             Logger::Log(logger_,
                                         LogLevel::Error,
                                         "Failed to retrieve {}",
@@ -720,9 +721,11 @@ class GraphTraverser {
                         auto new_info =
                             RetrieveSubPathId(*info, *context_.apis, relpath);
                         if (new_info) {
-                            if (not remote.RetrieveToFds({*new_info},
-                                                         {dup(fileno(stdout))},
-                                                         /*raw_tree=*/false)) {
+                            if (not remote.RetrieveToFds(
+                                    {*new_info},
+                                    {dup(fileno(stdout))},
+                                    /*raw_tree=*/false,
+                                    &*context_.apis->local)) {
                                 Logger::Log(logger_,
                                             LogLevel::Error,
                                             "Failed to retrieve artifact {} at "

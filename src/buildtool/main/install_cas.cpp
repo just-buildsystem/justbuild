@@ -173,8 +173,10 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
                     out->string());
     }
     else {  // dump to stdout
-        if (not apis.remote->RetrieveToFds(
-                {*object_info}, {dup(fileno(stdout))}, clargs.raw_tree)) {
+        if (not apis.remote->RetrieveToFds({*object_info},
+                                           {dup(fileno(stdout))},
+                                           clargs.raw_tree,
+                                           &*apis.local)) {
             Logger::Log(LogLevel::Error, "failed to dump artifact.");
             return false;
         }
