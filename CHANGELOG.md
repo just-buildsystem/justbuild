@@ -5,8 +5,12 @@ A feature release on top of `1.4.0`, backwards compatible.
 ### Fixes
 
 - Fixes ensuring proper pointer life time and access check.
+- A race condition in the use of `libgit2` was fixed that could
+  result in a segmentation fault.
 - Git operations are now properly locked against each other, also
   between processes where necessary.
+- `just install-cas` correctly exits with non-zero exit code on
+  failure, also if isntallation to stdout is requested.
 - `just traverse` now exits unconditionally after traversal, also
   in case of failure.
 - Missing entries in the documentation have been added.
