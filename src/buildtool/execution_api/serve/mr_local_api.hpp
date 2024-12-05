@@ -69,10 +69,13 @@ class MRLocalApi final : public IExecutionApi {
         IExecutionApi const* /*alternative*/ = nullptr) const noexcept
         -> bool final;
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& /*artifacts_info*/,
         std::vector<int> const& /*fds*/,
-        bool /*raw_tree*/) const noexcept -> bool final {
+        bool /*raw_tree*/,
+        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
+        -> bool final {
         // Retrieval to file descriptors not supported
         return false;
     }

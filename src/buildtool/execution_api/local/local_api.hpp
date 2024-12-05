@@ -144,10 +144,13 @@ class LocalApi final : public IExecutionApi {
         return true;
     }
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) const noexcept -> bool final {
+        bool raw_tree,
+        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
+        -> bool final {
         auto dumper =
             StreamDumper<LocalCasReader>{&local_context_.storage->CAS()};
         return CommonRetrieveToFds(

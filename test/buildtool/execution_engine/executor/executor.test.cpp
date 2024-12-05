@@ -201,7 +201,8 @@ class TestApi : public IExecutionApi {
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& /*unused*/,
         std::vector<int> const& /*unused*/,
-        bool /*unused*/) const noexcept -> bool final {
+        bool /*unused*/,
+        IExecutionApi const* /*unused*/) const noexcept -> bool final {
         return false;  // not needed by Executor
     }
     [[nodiscard]] auto RetrieveToCas(

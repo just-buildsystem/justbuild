@@ -117,10 +117,13 @@ class GitApi final : public IExecutionApi {
         return true;
     }
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) const noexcept -> bool override {
+        bool raw_tree,
+        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
+        -> bool override {
         if (artifacts_info.size() != fds.size()) {
             Logger::Log(LogLevel::Error,
                         "different number of digests and file descriptors.");

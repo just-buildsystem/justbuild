@@ -78,10 +78,12 @@ class IExecutionApi {
     /// pretty-printed before writing to fd. If `raw_tree` is set, pretty
     /// printing will be omitted and the raw tree object will be written
     /// instead.
+    /// NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] virtual auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
-        bool raw_tree) const noexcept -> bool = 0;
+        bool raw_tree,
+        IExecutionApi const* alternative = nullptr) const noexcept -> bool = 0;
 
     /// \brief Synchronization of artifacts between two CASes. Retrieves
     /// artifacts from one CAS and writes to another CAS. Tree artifacts are

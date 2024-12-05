@@ -307,10 +307,12 @@ auto BazelApi::CreateAction(
     return true;
 }
 
+// NOLINTNEXTLINE(google-default-arguments)
 [[nodiscard]] auto BazelApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
-    bool raw_tree) const noexcept -> bool {
+    bool raw_tree,
+    IExecutionApi const* /*alternative*/) const noexcept -> bool {
     auto dumper = StreamDumper<BazelNetworkReader>{network_->CreateReader()};
     return CommonRetrieveToFds(
         artifacts_info,
