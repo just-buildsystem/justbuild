@@ -193,6 +193,7 @@
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "expected"]
     ]
   }
 }

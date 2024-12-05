@@ -18,6 +18,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "fmt/core.h"
@@ -26,6 +27,7 @@
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 auto IsTreeInRepo(std::string const& tree_id,
                   std::filesystem::path const& repo_path,
@@ -99,7 +101,6 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
             main_repo);
     }
     // populate RepositoryConfig instance
-    std::string error_msg;
     for (auto const& [repo, desc] : repos.items()) {
         // root parser
         auto parse_keyword_root =
@@ -107,72 +108,69 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
              &storage_config,
              &desc = desc,
              &repo = repo,
-             &error_msg = error_msg,
-             logger](std::string const& keyword) -> std::optional<FileRoot> {
+             logger](
+                std::string const& keyword) -> expected<FileRoot, std::string> {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
-                if (auto parsed_root =
-                        FileRoot::ParseRoot(repo, keyword, *it, &error_msg)) {
-                    // check that root has absent-like format
-                    if (not parsed_root->first.IsAbsent()) {
-                        error_msg = fmt::format(
-                            "Expected {} to have absent Git tree format, but "
-                            "found {}",
-                            keyword,
-                            it->dump());
-                        return std::nullopt;
-                    }
-                    // find the serving repository for the root tree
-                    auto tree_id = *parsed_root->first.GetAbsentTreeId();
-                    auto repo_path = GetServingRepository(
-                        serve_config, storage_config, tree_id, logger);
-                    if (not repo_path) {
-                        error_msg = fmt::format(
-                            "{} tree {} is not known", keyword, tree_id);
-                        return std::nullopt;
-                    }
-                    // set the root as present
-                    if (auto root = FileRoot::FromGit(
-                            *repo_path,
-                            tree_id,
-                            parsed_root->first.IgnoreSpecial())) {
-                        return root;
-                    }
+                std::string error_msg;
+                auto parsed_root =
+                    FileRoot::ParseRoot(repo, keyword, *it, &error_msg);
+                if (not parsed_root) {
+                    return unexpected{std::move(error_msg)};
                 }
-                error_msg =
-                    fmt::format("Failed to parse {} {}", keyword, it->dump());
-                return std::nullopt;
+                // check that root has absent-like format
+                if (not parsed_root->first.IsAbsent()) {
+                    return unexpected{fmt::format(
+                        "Expected {} to have absent Git tree format, but "
+                        "found {}",
+                        keyword,
+                        it->dump())};
+                }
+                // find the serving repository for the root tree
+                auto tree_id = *parsed_root->first.GetAbsentTreeId();
+                auto repo_path = GetServingRepository(
+                    serve_config, storage_config, tree_id, logger);
+                if (not repo_path) {
+                    return unexpected{fmt::format(
+                        "{} tree {} is not known", keyword, tree_id)};
+                }
+                // set the root as present
+                if (auto root =
+                        FileRoot::FromGit(*repo_path,
+                                          tree_id,
+                                          parsed_root->first.IgnoreSpecial())) {
+                    return *std::move(root);
+                }
             }
-            error_msg =
-                fmt::format("Missing {} for repository {}", keyword, repo);
-            return std::nullopt;
+            return unexpected{
+                fmt::format("Missing {} for repository {}", keyword, repo)};
         };
 
-        std::optional<FileRoot> ws_root = parse_keyword_root("workspace_root");
+        auto ws_root = parse_keyword_root("workspace_root");
         if (not ws_root) {
-            return error_msg;
+            return std::move(ws_root).error();
         }
-        auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
+        auto info = RepositoryConfig::RepositoryInfo{*std::move(ws_root)};
 
         if (auto target_root = parse_keyword_root("target_root")) {
-            info.target_root = std::move(*target_root);
+            info.target_root = *std::move(target_root);
         }
         else {
-            return error_msg;
+            return std::move(target_root).error();
         }
 
         if (auto rule_root = parse_keyword_root("rule_root")) {
-            info.rule_root = std::move(*rule_root);
+            info.rule_root = *std::move(rule_root);
         }
         else {
-            return error_msg;
+            return std::move(rule_root).error();
         }
 
         if (auto expression_root = parse_keyword_root("expression_root")) {
-            info.expression_root = std::move(*expression_root);
+            info.expression_root = *std::move(expression_root);
         }
         else {
-            return error_msg;
+            return std::move(expression_root).error();
         }
 
         auto it_bindings = desc.find("bindings");
@@ -198,33 +196,35 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
             return fmt::format("Missing bindings for repository {}", repo);
         }
 
-        auto parse_keyword_file_name =
-            [&desc = desc, &repo = repo, &error_msg = error_msg](
-                std::string* keyword_file_name,
-                std::string const& keyword) -> bool {
+        auto parse_keyword_file_name = [&desc = desc, &repo = repo](
+                                           std::string* keyword_file_name,
+                                           std::string const& keyword)
+            -> expected<std::monostate, std::string> {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
                 *keyword_file_name = *it;
-                return true;
+                return std::monostate{};
             }
-            error_msg =
-                fmt::format("Missing {} for repository {}", keyword, repo);
-            return false;
+            return unexpected{
+                fmt::format("Missing {} for repository {}", keyword, repo)};
         };
 
-        if (not parse_keyword_file_name(&info.target_file_name,
-                                        "target_file_name")) {
-            return error_msg;
+        if (auto result = parse_keyword_file_name(&info.target_file_name,
+                                                  "target_file_name");
+            not result) {
+            return std::move(result).error();
         }
 
-        if (not parse_keyword_file_name(&info.rule_file_name,
-                                        "rule_file_name")) {
-            return error_msg;
+        if (auto result =
+                parse_keyword_file_name(&info.rule_file_name, "rule_file_name");
+            not result) {
+            return std::move(result).error();
         }
 
-        if (not parse_keyword_file_name(&info.expression_file_name,
-                                        "expression_file_name")) {
-            return error_msg;
+        if (auto result = parse_keyword_file_name(&info.expression_file_name,
+                                                  "expression_file_name");
+            not result) {
+            return std::move(result).error();
         }
 
         repository_config->SetInfo(repo, std::move(info));

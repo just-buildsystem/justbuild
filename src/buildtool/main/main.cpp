@@ -551,12 +551,12 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
         repos[main_repo] = nlohmann::json::object();
     }
 
-    std::string error_msg;
     for (auto const& [repo, desc] : repos.items()) {
         std::optional<FileRoot> ws_root{};
         bool const is_main_repo{repo == main_repo};
         auto it_ws = desc.find("workspace_root");
         if (it_ws != desc.end()) {
+            std::string error_msg;
             if (auto parsed_root = FileRoot::ParseRoot(
                     repo, "workspace_root", *it_ws, &error_msg)) {
                 ws_root = std::move(parsed_root->first);
@@ -589,14 +589,13 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
             std::exit(kExitFailure);
         }
         auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
-        auto parse_keyword_root = [&desc = desc,
-                                   &repo = repo,
-                                   &error_msg = error_msg,
-                                   is_main_repo](FileRoot* keyword_root,
-                                                 std::string const& keyword,
-                                                 auto const& keyword_carg) {
+        auto parse_keyword_root = [&desc = desc, &repo = repo, is_main_repo](
+                                      FileRoot* keyword_root,
+                                      std::string const& keyword,
+                                      auto const& keyword_carg) {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
+                std::string error_msg;
                 if (auto parsed_root =
                         FileRoot::ParseRoot(repo, keyword, *it, &error_msg)) {
                     (*keyword_root) = parsed_root->first;
