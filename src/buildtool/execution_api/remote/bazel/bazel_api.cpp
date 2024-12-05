@@ -246,7 +246,8 @@ auto BazelApi::CreateAction(
     std::vector<std::size_t> artifact_pos{};
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
-        if (alternative != nullptr and alternative->IsAvailable(info.digest)) {
+        if (alternative != nullptr and alternative != this and
+            alternative->IsAvailable(info.digest)) {
             if (not alternative->RetrieveToPaths({info}, {output_paths[i]})) {
                 return false;
             }
@@ -312,17 +313,51 @@ auto BazelApi::CreateAction(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,
     bool raw_tree,
-    IExecutionApi const* /*alternative*/) const noexcept -> bool {
-    auto dumper = StreamDumper<BazelNetworkReader>{network_->CreateReader()};
-    return CommonRetrieveToFds(
-        artifacts_info,
-        fds,
-        [&dumper, &raw_tree](Artifact::ObjectInfo const& info,
-                             gsl::not_null<FILE*> const& out) {
-            return dumper.DumpToStream(info, out, raw_tree);
-        },
-        std::nullopt  // remote can't fallback to Git
-    );
+    IExecutionApi const* alternative) const noexcept -> bool {
+    if (alternative == nullptr or alternative == this) {
+        auto dumper =
+            StreamDumper<BazelNetworkReader>{network_->CreateReader()};
+        return CommonRetrieveToFds(
+            artifacts_info,
+            fds,
+            [&dumper, &raw_tree](Artifact::ObjectInfo const& info,
+                                 gsl::not_null<FILE*> const& out) {
+                return dumper.DumpToStream(info, out, raw_tree);
+            },
+            std::nullopt  // no fallback
+        );
+    }
+
+    // We have an alternative, and, in fact, preferred API. So go
+    // through the artifacts one by one and first try the the preferred one,
+    // then fall back to retrieving ourselves.
+    if (artifacts_info.size() != fds.size()) {
+        Logger::Log(LogLevel::Error,
+                    "different number of digests and file descriptors.");
+        return false;
+    }
+    for (std::size_t i{}; i < artifacts_info.size(); ++i) {
+        auto fd = fds[i];
+        auto const& info = artifacts_info[i];
+        if (alternative->IsAvailable(info.digest)) {
+            if (not alternative->RetrieveToFds(
+                    std::vector<Artifact::ObjectInfo>{info},
+                    std::vector<int>{fd},
+                    raw_tree,
+                    nullptr)) {
+                return false;
+            }
+        }
+        else {
+            if (not RetrieveToFds(std::vector<Artifact::ObjectInfo>{info},
+                                  std::vector<int>{fd},
+                                  raw_tree,
+                                  nullptr)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 [[nodiscard]] auto BazelApi::RetrieveToCas(
