@@ -53,7 +53,7 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["chained-import", "deduplicate", "annotations"]
+        , "else": ["chained-import", "annotations"]
         }
       ]
     }
