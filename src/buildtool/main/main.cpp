@@ -556,16 +556,16 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
         bool const is_main_repo{repo == main_repo};
         auto it_ws = desc.find("workspace_root");
         if (it_ws != desc.end()) {
-            std::string error_msg;
-            if (auto parsed_root = FileRoot::ParseRoot(
-                    repo, "workspace_root", *it_ws, &error_msg)) {
-                ws_root = std::move(parsed_root->first);
-                if (is_main_repo and parsed_root->second.has_value()) {
-                    main_ws_root = std::move(parsed_root->second);
+            if (auto parsed_root =
+                    FileRoot::ParseRoot(repo, "workspace_root", *it_ws)) {
+                auto result = *std::move(parsed_root);
+                ws_root = std::move(result.first);
+                if (is_main_repo and result.second.has_value()) {
+                    main_ws_root = std::move(result.second);
                 }
             }
             else {
-                Logger::Log(LogLevel::Error, error_msg);
+                Logger::Log(LogLevel::Error, parsed_root.error());
                 std::exit(kExitFailure);
             }
         }
@@ -595,13 +595,12 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
                                       auto const& keyword_carg) {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
-                std::string error_msg;
                 if (auto parsed_root =
-                        FileRoot::ParseRoot(repo, keyword, *it, &error_msg)) {
-                    (*keyword_root) = parsed_root->first;
+                        FileRoot::ParseRoot(repo, keyword, *it)) {
+                    (*keyword_root) = std::move(parsed_root)->first;
                 }
                 else {
-                    Logger::Log(LogLevel::Error, error_msg);
+                    Logger::Log(LogLevel::Error, parsed_root.error());
                     std::exit(kExitFailure);
                 }
             }

@@ -112,11 +112,9 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
                 std::string const& keyword) -> expected<FileRoot, std::string> {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
-                std::string error_msg;
-                auto parsed_root =
-                    FileRoot::ParseRoot(repo, keyword, *it, &error_msg);
+                auto parsed_root = FileRoot::ParseRoot(repo, keyword, *it);
                 if (not parsed_root) {
-                    return unexpected{std::move(error_msg)};
+                    return unexpected{std::move(parsed_root).error()};
                 }
                 // check that root has absent-like format
                 if (not parsed_root->first.IsAbsent()) {
