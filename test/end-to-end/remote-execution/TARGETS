@@ -40,6 +40,12 @@
     , "out/stdout/local-raw"
     ]
   }
+, "install-cas-local":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["install-cas-local"]
+  , "test": ["install-cas-local.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
 , "dispatch":
   { "type": ["end-to-end", "with remote"]
   , "name": ["dispatch"]
@@ -85,6 +91,7 @@
         , "upload-test"
         , "install"
         , "install-cas"
+        , "install-cas-local"
         , "dispatch"
         , "execute"
         ]
