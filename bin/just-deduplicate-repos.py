@@ -31,85 +31,22 @@ def fail(s: str, exit_code: int = 1) -> NoReturn:
     sys.exit(exit_code)
 
 
-def roots_equal(a: Json, b: Json) -> bool:
-    if a["type"] != b["type"]:
-        return False
-    if a["type"] == "file":
-        return a["path"] == b["path"]
-    elif a["type"] in ["archive", "zip"]:
-        return (a["content"] == b["content"]
-                and a.get("subdir", ".") == b.get("subdir", "."))
-    elif a["type"] == "git":
-        return (a["commit"] == b["commit"]
-                and a.get("subdir", ".") == b.get("subdir", "."))
-    else:
-        # unknown repository type, the only safe way is to test
-        # for full equality
-        return a == b
-
-
-def get_root(repos: Json,
-             name: str,
-             *,
-             root_name: str = "repository",
-             default_root: Optional[Json] = None) -> Json:
-    root = repos[name].get(root_name)
-    if root is None:
-        if default_root is not None:
-            return default_root
-        else:
-            fail("Did not find mandatory root %s" % (name, ))
-    if isinstance(root, str):
-        return get_root(repos, root)
-    return root
-
-
-def local_repos_equal(repos: Json, name_a: str, name_b: str) -> bool:
-    if name_a == name_b:
-        return True
-    root_a = None
-    root_b = None
-    for root_name in [
-            "repository", "target_root", "rule_root", "expression_root"
-    ]:
-        root_a = get_root(repos,
-                          name_a,
-                          root_name=root_name,
-                          default_root=root_a)
-        root_b = get_root(repos,
-                          name_b,
-                          root_name=root_name,
-                          default_root=root_b)
-        if not roots_equal(root_a, root_b):
-            return False
-    for file_name, default_name in [("target_file_name", "TARGETS"),
-                                    ("rule_file_name", "RULES"),
-                                    ("expression_file_name", "EXPRESSIONS")]:
-        fname_a = repos[name_a].get(file_name, default_name)
-        fname_b = repos[name_b].get(file_name, default_name)
-        if fname_a != fname_b:
-            return False
-    open_names_a = set(repos[name_a].get("bindings", {}).keys())
-    open_names_b = set(repos[name_b].get("bindings", {}).keys())
-    if open_names_a != open_names_b:
-        return False
-    return True
-
-
 def bisimilar_repos(repos: Json) -> List[List[str]]:
     """Compute the maximal bisimulation between the repositories
     and return the bisimilarity classes."""
     bisim: Dict[Tuple[str, str], Json] = {}
 
     def is_different(name_a: str, name_b: str) -> bool:
-        return bisim.get((name_a, name_b), {}).get("different", False)
+        pos = (name_a, name_b) if name_a < name_b else (name_b, name_a)
+        return bisim.get(pos, {}).get("different", False)
 
     def mark_as_different(name_a: str, name_b: str):
         nonlocal bisim
-        entry = bisim.get((name_a, name_b), {})
+        pos = (name_a, name_b) if name_a < name_b else (name_b, name_a)
+        entry = bisim.get(pos, {})
         if entry.get("different"):
             return
-        bisim[(name_a, name_b)] = dict(entry, **{"different": True})
+        bisim[pos] = dict(entry, **{"different": True})
         also_different: List[Tuple[str, str]] = entry.get("different_if", [])
         for a, b in also_different:
             mark_as_different(a, b)
@@ -121,6 +58,77 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
         deps.append((dep_a, dep_b))
         bisim[pos] = dict(entry, **{"different_if": deps})
 
+    def roots_equal(a: Json, b: Json, name_a: str, name_b: str) -> bool:
+        if a["type"] != b["type"]:
+            return False
+        if a["type"] == "file":
+            return a["path"] == b["path"]
+        elif a["type"] in ["archive", "zip"]:
+            return (a["content"] == b["content"]
+                    and a.get("subdir", ".") == b.get("subdir", "."))
+        elif a["type"] == "git":
+            return (a["commit"] == b["commit"]
+                    and a.get("subdir", ".") == b.get("subdir", "."))
+        elif a["type"] == "computed":
+            if (a.get("config", {}) != b.get("config", {})
+                    or a["target"] != b["target"]):
+                return False
+            if a["repo"] == b["repo"]:
+                return True
+            elif is_different(a["repo"], b["repo"]):
+                return False
+            else:
+                # equality pending target repo equality
+                register_dependency(a["repo"], b["repo"], name_a, name_b)
+                return True
+        else:
+            # unknown repository type, the only safe way is to test
+            # for full equality
+            return a == b
+
+    def get_root(repos: Json,
+                 name: str,
+                 *,
+                 root_name: str = "repository",
+                 default_root: Optional[Json] = None) -> Json:
+        root = repos[name].get(root_name)
+        if root is None:
+            if default_root is not None:
+                return default_root
+            else:
+                fail("Did not find mandatory root %s" % (name, ))
+        if isinstance(root, str):
+            return get_root(repos, root)
+        return root
+
+    def repo_roots_equal(repos: Json, name_a: str, name_b: str) -> bool:
+        if name_a == name_b:
+            return True
+        root_a = None
+        root_b = None
+        for root_name in [
+                "repository", "target_root", "rule_root", "expression_root"
+        ]:
+            root_a = get_root(repos,
+                              name_a,
+                              root_name=root_name,
+                              default_root=root_a)
+            root_b = get_root(repos,
+                              name_b,
+                              root_name=root_name,
+                              default_root=root_b)
+            if not roots_equal(root_a, root_b, name_a, name_b):
+                return False
+        for file_name, default_name in [("target_file_name", "TARGETS"),
+                                        ("rule_file_name", "RULES"),
+                                        ("expression_file_name", "EXPRESSIONS")
+                                        ]:
+            fname_a = repos[name_a].get(file_name, default_name)
+            fname_b = repos[name_b].get(file_name, default_name)
+            if fname_a != fname_b:
+                return False
+        return True
+
     names = sorted(repos.keys())
     for j in range(len(names)):
         b = names[j]
@@ -128,11 +136,14 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
             a = names[i]
             if is_different(a, b):
                 continue
-            if not local_repos_equal(repos, names[i], names[j]):
-                mark_as_different(names[i], names[j])
+            if not repo_roots_equal(repos, a, b):
+                mark_as_different(a, b)
                 continue
             links_a = repos[a].get("bindings", {})
             links_b = repos[b].get("bindings", {})
+            if set(links_a.keys()) != set(links_b.keys()):
+                mark_as_different(a, b)
+                continue
             for link in links_a.keys():
                 next_a = links_a[link]
                 next_b = links_b[link]
@@ -141,6 +152,7 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
                         mark_as_different(a, b)
                         continue
                     else:
+                        # equality pending binding equality
                         register_dependency(next_a, next_b, a, b)
     classes: List[List[str]] = []
     done: Dict[str, bool] = {}
