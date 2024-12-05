@@ -70,8 +70,8 @@ auto CommonRetrieveToFds(
                     fd);
                 // locally we might be able to fallback to Git in native mode
                 try {
-                    if (fallback and not(*fallback)(info, fd)) {
-                        return false;
+                    if (fallback) {
+                        success = (*fallback)(info, fd);
                     }
                 } catch (std::exception const& ex) {
                     Logger::Log(LogLevel::Error,
@@ -82,6 +82,9 @@ auto CommonRetrieveToFds(
                                 ex.what());
                     return false;
                 }
+            }
+            if (not success) {
+                return false;
             }
         }
         else {
