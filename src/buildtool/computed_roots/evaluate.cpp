@@ -490,7 +490,7 @@ auto EvaluateComputedRoots(
         if (not GitRepo::InitAndOpen(storage_config.GitRoot(),
                                      /*is_bare=*/true)) {
             Logger::Log(LogLevel::Error,
-                        "Failed to init and open git respository {}",
+                        "Failed to init and open git repository {}",
                         storage_config.GitRoot().string());
             return false;
         }
@@ -529,7 +529,7 @@ auto EvaluateComputedRoots(
                 roots,
                 [&roots, &done](auto values) {
                     Logger::Log(LogLevel::Progress,
-                                "Computed roots evaluted, {} top level",
+                                "Computed roots evaluated, {} top level",
                                 roots.size());
                     Logger::Log(LogLevel::Debug, [&]() {
                         std::ostringstream msg{};
