@@ -48,16 +48,9 @@
     , "target_cache_entry.hpp"
     , "large_object_cas.hpp"
     , "large_object_cas.tpp"
-    , "compactifier.hpp"
     , "uplinker.hpp"
     ]
-  , "private-hdrs": ["compactification_task.hpp"]
-  , "srcs":
-    [ "target_cache_entry.cpp"
-    , "compactifier.cpp"
-    , "compactification_task.cpp"
-    , "uplinker.cpp"
-    ]
+  , "srcs": ["target_cache_entry.cpp", "uplinker.cpp"]
   , "deps":
     [ "config"
     , "file_chunker"
@@ -86,12 +79,7 @@
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":
-    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
-    , ["src/buildtool/crypto", "hasher"]
-    , ["src/buildtool/multithreading", "task_system"]
-    , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "path_hash"]
-    ]
+    [["src/buildtool/build_engine/expression", "expression_ptr_interface"]]
   }
 , "garbage_collector":
   { "type": ["@", "rules", "CC", "library"]
@@ -100,7 +88,8 @@
   , "srcs": ["garbage_collector.cpp"]
   , "deps": ["config", ["src/utils/cpp", "file_locking"]]
   , "private-deps":
-    [ "storage"
+    [ "compactifier"
+    , "storage"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "common"]
@@ -109,6 +98,30 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
+    ]
+  , "stage": ["src", "buildtool", "storage"]
+  }
+, "compactifier":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["compactifier"]
+  , "hdrs": ["compactifier.hpp"]
+  , "private-hdrs": ["compactification_task.hpp"]
+  , "srcs": ["compactifier.cpp", "compactification_task.cpp"]
+  , "deps": ["storage"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/crypto", "hasher"]
+    , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/multithreading", "task_system"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path_hash"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   }
