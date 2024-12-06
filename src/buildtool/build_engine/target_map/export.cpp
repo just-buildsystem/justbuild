@@ -148,13 +148,16 @@ void ExportRule(
         return;
     }
     context->statistics->IncrementExportsFoundCounter();
+
+    std::optional<TargetCacheKey> target_cache_key;
+#ifndef BOOTSTRAP_BUILD_TOOL
     auto const& target_name = key.target.GetNamedTarget();
     auto repo_key = context->repo_config->RepositoryKey(*context->storage,
                                                         target_name.repository);
-    auto target_cache_key = repo_key
-                                ? context->storage->TargetCache().ComputeKey(
+    target_cache_key = repo_key ? context->storage->TargetCache().ComputeKey(
                                       *repo_key, target_name, effective_config)
                                 : std::nullopt;
+#endif
 
     if (target_cache_key) {
         // first try to get value from local target cache
