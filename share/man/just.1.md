@@ -331,7 +331,7 @@ Build configuration options
 **`--action-timeout`** *`NUM`*  
 Action timeout in seconds. (Default: 300). The timeout is honored only
 for the remote build.  
-Supported by: build|install|rebuild|traverse.
+Supported by: analyse|build|install|rebuild|traverse.
 
 **`-c`**, **`--config`** *`PATH`*  
 Path to configuration file.  
@@ -383,7 +383,7 @@ Supported by: analyse|build|describe|install|rebuild.
 JSON array with the list of strings representing the launcher to prepend
 actions' commands before being executed locally. Default value:
 *`["env", "--"]`*  
-Supported by: build|install|rebuild|traverse|execute.
+Supported by: analyse|build|install|rebuild|traverse|execute.
 
 **`--local-build-root`** *`PATH`*  
 Root for local CAS, cache, and build directories. The path will be
@@ -557,7 +557,7 @@ Parallelism options
 
 **`-J`**, **`--build-jobs`** *`NUM`*  
 Number of jobs to run during build phase. Default: same as **`--jobs`**.  
-Supported by: build|install|rebuild|traverse.
+Supported by: analyse|build|install|rebuild|traverse.
 
 **`-j`**, **`--jobs`** *`NUM`*  
 Number of jobs to run. Default: Number of cores.  
