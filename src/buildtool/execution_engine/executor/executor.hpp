@@ -591,17 +591,15 @@ class ExecutorImpl {
         progress->TaskTracker().Stop(action->Content().Id());
 
         PrintInfo(logger, action, response);
+        bool action_failed = false;
         bool should_fail_outputs = false;
         for (auto const& [local_path, node] : action->Dependencies()) {
             should_fail_outputs |= node->Content().Info()->failed;
         }
         if (response->ExitCode() != 0) {
             if (action->MayFail()) {
-                logger.Emit(LogLevel::Warning,
-                            "{} (exit code {})",
-                            *(action->MayFail()),
-                            response->ExitCode());
                 should_fail_outputs = true;
+                action_failed = true;
             }
             else {
                 logger.Emit(LogLevel::Error,
@@ -625,23 +623,48 @@ class ExecutorImpl {
             not CheckOutputsExist(*artifacts.value(),
                                   action->OutputDirPaths(),
                                   action->Content().Cwd())) {
-            logger.Emit(LogLevel::Error, [&] {
-                std::string message{
-                    "action executed with missing outputs.\n"
-                    " Action outputs should be the following artifacts:"};
+            logger.Emit(LogLevel::Error, [&]() {
+                std::ostringstream message{};
+                if (action_failed) {
+                    message << *(action->MayFail()) << " (exit code "
+                            << response->ExitCode() << ")\nMoreover ";
+                }
+                message << "action executed with missing outputs.\nAction "
+                           "outputs should be the following artifacts:";
                 for (auto const& output : action->OutputFilePaths()) {
-                    message += "\n  - file: " + output;
+                    message << "\n  - file: " << output;
                 }
                 for (auto const& output : action->OutputDirPaths()) {
-                    message += "\n  - dir: " + output;
+                    message << "\n  - dir: " << output;
                 }
-                return message;
+                return message.str();
             });
             PrintError(logger, action, progress);
             return false;
         }
 
         SaveObjectInfo(*artifacts.value(), action, should_fail_outputs);
+        if (action_failed) {
+            logger.Emit(LogLevel::Warning, [&]() {
+                std::ostringstream message{};
+                auto base = action->Content().Cwd();
+                message << *(action->MayFail()) << " (exit code "
+                        << response->ExitCode() << "); outputs:";
+                for (auto const& [name, node] : action->OutputFiles()) {
+                    message << "\n - " << nlohmann::json(name).dump() << " "
+                            << artifacts.value()
+                                   ->at(RebasePathStringRelativeTo(base, name))
+                                   .ToString();
+                }
+                for (auto const& [name, node] : action->OutputDirs()) {
+                    message << "\n - " << nlohmann::json(name).dump() << " "
+                            << artifacts.value()
+                                   ->at(RebasePathStringRelativeTo(base, name))
+                                   .ToString();
+                }
+                return message.str();
+            });
+        }
 
         return true;
     }

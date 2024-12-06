@@ -91,6 +91,10 @@ cat > TARGETS <<'EOF'
 }
 EOF
 
+
+echo FAIL > "${TEST_TMPDIR}/result"
+FAIL_HASH=$("${JUST}" add-to-cas --local-build-root "${LBR}" "${TEST_TMPDIR}/result")
+
 "${JUST}" build --local-build-root "${LBR}" -f file.log \
           -L '["env", "PATH='"${PATH}"'"]' \
           --restrict-stderr-log-limit 1 2>console.log || :
@@ -120,7 +124,9 @@ grep TeStRuN console.log && exit 1 || :
 echo
 grep TeStFaIlUrE file.log
 grep TeStFaIlUrE console.log
-
+# Also, their outputs should be reported
+grep "RESULT.*${FAIL_HASH}" file.log
+grep "RESULT.*${FAIL_HASH}" console.log
 
 echo
 echo
@@ -211,6 +217,9 @@ grep TeStRuN console.log && exit 1 || :
 echo
 grep TeStFaIlUrE file.log
 grep TeStFaIlUrE console.log
+# Also, their outputs should be reported
+grep "RESULT.*${FAIL_HASH}" file.log
+grep "RESULT.*${FAIL_HASH}" console.log
 
 echo
 echo OK
