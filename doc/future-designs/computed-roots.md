@@ -175,3 +175,66 @@ parameters as a computed root. These repositories can be used as roots,
 like any other `just-mr` repository type. When generating the `just`
 multi-repository configuration, the definition of a `"computed"`
 repository is just forwarded as computed root.
+
+### Computed roots and `just serve`
+
+Due to the presence of `just serve`, roots can be absent. This
+affects computed roots in two ways,
+ - roots, in particular the target roots, of the repository referred
+   to can be absent, and
+ - a computed root can be absent itself.
+The latter has to be supported, as dependencies that should be
+delegated to `just serve` might contain computed roots themselves.
+In this case, we consider it acceptable to have one round of talking
+back and forth with the serve instance per computed root involved,
+however we do not want to fetch the artifacts of those intermediate
+roots. After all, whole point of the serve service was to use
+dependencies without having them locally.
+
+#### Sytnax for absent computed roots
+
+As for other roots, we let the user specify which roots are to be
+absent. Tools like `just-import-git` will extend their marking of absent
+dependencies (e.g., by the option `--absent` of `just-import-git`)
+to computed roots as well.
+
+In a `just-mr` repository config, `"pragma": {"absent": true}` can
+be used for computed roots as well. Also `just-mr` will also honor
+the passed absent specification (via `--absent` or implicitly via
+the rc file) for computed roots the same way as for other roots.
+
+In a `just` repository config, computed roots are given by the
+tuple `["computed", <repository>, <module>, <target>, <config>]`.
+Optionally, an additional entry can be added; that entry has to be
+an object. A computed root is absent if that additional argument
+is present and contains an entry for the value `"absent"` that
+is `true`. E.g., `["computed", "base", "", "", {}]` is a concrete
+computed root and `["computed", "base", "", "", {}, {"absent":
+true}]` is the same computed root considered absent.
+
+### Evaluation of computed roots in connection with absent roots
+
+If a computed root is absent then, regardless of whether the base
+repository is absent or not,
+ - serve will be asked for the result, and
+ - from the result the tree identifier of the root will be computed
+   in memory and the root set to that value, as absent; when building
+   in compatible mode, the necessary rehashing might have to fetch
+   certain artifacts, but this is accepted, as the main intended
+   use case is a native build.
+
+If a concrete computed root refers to a base repository with absent
+target root,
+ - the client will ask serve about the flexible variables of the
+   specified target, and
+ - with this information will compute locally the cache key and
+   inspect the local target-level cache. If not there, the root will
+   be built, installed to a local temporary directory and imported
+   into the git cas.
+
+In the remaining case of a concrete computed root with concrete
+target root of the referred base repository, the cache key can be
+computed locally and a local check for a cache hit can be performed;
+in this way, unnecessary IO-operations are avoided. If no cache
+hit is found, the target will be built, installed to a temporary
+directory and imported into the git cas.
