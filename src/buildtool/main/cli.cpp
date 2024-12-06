@@ -55,6 +55,8 @@ auto SetupAnalyseCommandArguments(
     SetupServeEndpointArguments(app, &clargs->serve);
     SetupCommonAuthArguments(app, &clargs->auth);
     SetupClientAuthArguments(app, &clargs->cauth);
+    SetupCommonBuildArguments(app, &clargs->build);
+    SetupBuildArguments(app, &clargs->build);
     SetupDiagnosticArguments(app, &clargs->diagnose);
     SetupProtocolArguments(app, &clargs->protocol);
     SetupRetryArguments(app, &clargs->retry);
@@ -75,6 +77,7 @@ auto SetupBuildCommandArguments(
     SetupClientAuthArguments(app, &clargs->cauth);
     SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
+    SetupExtendedBuildArguments(app, &clargs->build);
     SetupTCArguments(app, &clargs->tc);
     SetupProtocolArguments(app, &clargs->protocol);
     SetupRetryArguments(app, &clargs->retry);
@@ -138,6 +141,7 @@ auto SetupTraverseCommandArguments(
     SetupGraphArguments(app, &clargs->graph);  // instead of analysis
     SetupCommonBuildArguments(app, &clargs->build);
     SetupBuildArguments(app, &clargs->build);
+    SetupExtendedBuildArguments(app, &clargs->build);
     SetupStageArguments(app, &clargs->stage);
     SetupProtocolArguments(app, &clargs->protocol);
 }

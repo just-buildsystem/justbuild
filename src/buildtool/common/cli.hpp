@@ -514,6 +514,12 @@ static inline auto SetupBuildArguments(
            clargs->build_jobs,
            "Number of jobs to run during build phase (Default: same as jobs).")
         ->type_name("NUM");
+}
+
+static inline auto SetupExtendedBuildArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<BuildArguments*> const& clargs) {
+
     app->add_option("--dump-artifacts",
                     clargs->dump_artifacts,
                     "Dump artifacts to file (use - for stdout).")
