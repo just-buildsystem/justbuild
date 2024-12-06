@@ -64,6 +64,7 @@
     , ["src/buildtool/storage", "backend_description"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "file_chunker"]
+    , ["src/buildtool/storage", "garbage_collector"]
     , ["src/buildtool/storage", "storage"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
