@@ -578,6 +578,7 @@ class ExecutorImpl {
 
         if (not response) {
             logger.Emit(LogLevel::Trace, "response is empty");
+            PrintError(logger, action, progress);
             return false;
         }
 
