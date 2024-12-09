@@ -17,60 +17,146 @@
 import json
 import re
 from sys import argv
-from re import sub, match
+from typing import Union
 
-input_file = argv[1]
-param_file = argv[2]
-magic_string = argv[3]
-at_only = argv[4] == "true"
 
-with open(param_file) as f:
-    param = json.loads(f.read())
+def get_tokens(line: str, magic_string: str) -> tuple[Union[re.Match[str], None], bool]:
+    """Tokenize lines (strings) like the following
+    #cmakedefine FOO bar
+    #cmakedefine FOO @FOO@
+    #cmakedefine FOO ${FOO}
+    #cmakedefine01 FOO
 
-# In many cases, CMake simply defines some variables (without any associated
-# value). We handle this situation by assigning to the boolean True the empty
-# string. Note that no False value should be found, because the right way to set
-# a variable to False in the TARGETS file is to *do not mention* that variable
-# at all.
-for k, v in param.items():
-    if isinstance(v, bool):
-        param[k] = ""
+    where "cmakedefine" is the magic_string. Let us name "FOO" as the token_key,
+    and the corresponding value (i.e., bar, @FOO@, ${FOO}, the empty string) as
+    the token_value. The function handles any combination of spaces around the
+    magic_string, the token_key and the token_value.
+    """
+    x = re.search(
+        r"#(.*)(" + magic_string + r"[01]*" + r")([\s]*)([a-zA-Z0-9_]+)([\s]*)(.*)",
+        line,
+    )
+    if x:
+        return x, x.groups()[1] == f"{magic_string}01"
+    return None, False
 
-with open(input_file) as i:
-    with open("out", "w") as o:
-        for line in i.readlines():
-            if x := re.search(
-                    r"#(.*)(" + magic_string + r" )([ \t]*)([a-zA-Z0-9_]+)",
-                    line):
-                # get the VAR
-                key = x.groups()[-1]
-                if key in param:
-                    line = sub(
-                        f"{x.group()[1:]}",
-                        f"{x.groups()[0]}define {x.groups()[2]}{key} {param[key]}",
-                        line,
-                    )
-                else:
-                    line = f"/* #undef {x.groups()[-1]} */\n"
-            if x := re.search(
-                    r"#(.*)(" + magic_string + "01 )([ \t]*)([a-zA-Z0-9_]+)",
-                    line):
-                # get the VAR
-                key = x.groups()[-1]
-                line = sub(
-                    f"{x.group()[1:]}",
-                    f"{x.groups()[0]}define {x.groups()[2]}{key} " +
-                    str(1 if key in param else 0),
-                    line,
-                )
-            if match("#[ \t]*define", line):
-                if x := re.search(r"@([a-zA-Z0-9-_]+)@", line):
-                    key = x.groups()[0]
-                    line = sub(x.group(), param.get(key, ""), line)
-                if not at_only:
-                    if x := re.search(r"\${([a-zA-Z0-9-_]+)}", line):
-                        key = x.groups()[0]
-                        line = sub(r"\${" + key + r"}", param.get(key, ""),
-                                   line)
 
-            print(line, end="", file=o)
+def handle01(line: str, tokens: re.Match[str], defined: bool) -> str:
+    groups = tokens.groups()
+    return re.sub(
+        tokens.group()[1:],
+        groups[0]  # spaces
+        + "define"
+        + groups[2]  # spaces
+        + groups[3]  # token_key
+        + " "
+        + str(1 if defined else 0),
+        line,
+    )
+
+
+def undefine(tokens: re.Match[str]) -> str:
+    groups = tokens.groups()
+    return "/* #" + groups[0] + "undef" + groups[2] + groups[3] + " */"
+
+
+def replace_value(tokens: re.Match[str], key: str, value: str) -> str:
+    groups = tokens.groups()
+    return f"#{groups[0]}define{groups[2]}{key}{groups[4]}{value}"
+
+
+def compute_value(token_value: str, at_only: bool, param: dict[str, str]):
+    # example of possible token_values
+    #  - foo (a simple string)
+    #  - @FOO@
+    #  - ${FOO}
+    #  - any combination of the above
+
+    def replace_pattern_in_string(
+        pattern: str, line: str, param: dict[str, str]
+    ) -> str:
+
+        def get_value_for_match(match: re.Match[str]) -> str:
+            key = match.group(1)
+            return param.get(key, "")
+
+        return re.sub(pattern, get_value_for_match, line)
+
+    token_value = replace_pattern_in_string(r"@([A-Za-z0-9_]+)@", token_value, param)
+    if at_only:
+        return token_value
+    return replace_pattern_in_string(r"\${([A-Za-z0-9_]+)}", token_value, param)
+
+
+if __name__ == "__main__":
+    input_file = argv[1]
+    param_file = argv[2]
+    magic_string = argv[3]
+    at_only = argv[4] == "true"
+
+    with open(param_file) as f:
+        param = json.loads(f.read())
+
+    # In many cases, CMake simply defines some variables (without any associated
+    # value). We handle this situation by assigning to the boolean True the empty
+    # string. Note that no False value should be found, because the right way to set
+    # a variable to False in the TARGETS file is to *do not mention* that variable
+    # at all.
+    # If a value is deliberately set to null, we will drop that key
+    drop_keys: list[str] = []
+    for k, v in param.items():
+        if isinstance(v, bool):
+            param[k] = ""
+        if v == None:
+            drop_keys.append(k)
+    for k in drop_keys:
+        del param[k]
+
+    with open(input_file) as i:
+        with open("out", "w") as o:
+            for line in i.readlines():
+                # drop trailing '\n'
+                line = line[:-1]
+
+                tokens, is_01 = get_tokens(line, magic_string)
+                # no magic string
+                if not tokens:
+                    # it can be a simple comment, or a line without the magic string but with the @KEY@ or ${KEY} pattern
+                    line = compute_value(line, at_only, param)
+                    print(line, file=o)
+                    continue
+
+                # line contains magic_string
+                groups = tokens.groups()
+
+                token_key: str = groups[3]
+
+                if is_01:
+                    line = handle01(line, tokens, token_key in param)
+                    print(line, file=o)
+                    continue
+
+                if token_key not in param:
+                    line = undefine(tokens)
+                    print(line, file=o)
+                    continue
+
+                # we are in one of this situations
+                # cmakedefine FOO
+                # cmakedefine FOO "foo"
+                # cmakedefine FOO @FOO@${FOO}foo
+
+                # i.e., the token_value can be any combination of keys (defined
+                # as @key@ or ${key}) and strings
+
+                # therefore, we need to further tokenize the token_value
+
+                # it is convenient to first tokenize
+
+                token_value: str = groups[5]
+
+                value = compute_value(token_value, at_only, param)
+
+                line = replace_value(tokens, token_key, value)
+
+                print(line, file=o)
