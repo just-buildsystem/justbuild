@@ -81,7 +81,7 @@ std::map<std::string, JustSubCmdFlags> const kKnownJustSubcommands{
     {"analyse",
      {.config = true,
       .build_root = true,
-      .launch = false,
+      .launch = true,
       .defines = true,
       .remote = true,
       .remote_props = true,
