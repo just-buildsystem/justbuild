@@ -47,11 +47,18 @@
     , "out/derived-remote/out"
     ]
   }
+, "artifacts-only":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["artifacts-only"]
+  , "test": ["artifacts-only.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
   , "deps":
-    [ "basic"
+    [ "artifacts-only"
+    , "basic"
     , "basic remote build"
     , "error-reporting"
     , "mr_computed_setup"
