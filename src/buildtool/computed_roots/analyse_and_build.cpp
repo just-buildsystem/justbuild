@@ -15,9 +15,12 @@
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
 
 #include <functional>
+#include <map>
 #include <utility>
+#include <vector>
 
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
+#include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -61,14 +64,13 @@
         TaskSystem ts{jobs};
         analysis_result->result_map.Clear(&ts);
     }
+    auto extra_artifacts = CollectNonKnownArtifacts(cache_targets);
+    for (auto const& [name, desc] : runfiles) {
+        extra_artifacts.emplace_back(desc);
+    }
 
-    auto build_result =
-        traverser.BuildAndStage(artifacts,
-                                runfiles,
-                                actions,
-                                blobs,
-                                trees,
-                                CollectNonKnownArtifacts(cache_targets));
+    auto build_result = traverser.BuildAndStage(
+        artifacts, {}, actions, blobs, trees, std::move(extra_artifacts));
 
     if (not build_result) {
         if (logger != nullptr) {

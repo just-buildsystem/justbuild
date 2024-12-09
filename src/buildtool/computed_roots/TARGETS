@@ -15,6 +15,7 @@
   , "stage": ["src", "buildtool", "computed_roots"]
   , "private-deps":
     [ ["src/buildtool/build_engine/target_map", "result_map"]
+    , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/main", "build_utils"]
     , ["src/buildtool/multithreading", "task_system"]

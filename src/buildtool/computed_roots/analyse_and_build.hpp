@@ -31,6 +31,8 @@ struct AnalyseAndBuildResult {
     GraphTraverser::BuildResult build_result;
 };
 
+// Analyse and build a given target; however, install only the artifacts,
+// ignoring the runfiles.
 [[nodiscard]] auto AnalyseAndBuild(
     gsl::not_null<AnalyseContext*> const& analyse_context,
     GraphTraverser const& traverser,
