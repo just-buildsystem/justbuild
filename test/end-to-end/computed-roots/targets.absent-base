@@ -1,0 +1,20 @@
+{ "": {"type": "export", "target": "data", "flexible_config": ["COUNT"]}
+, "data":
+  { "type": "generic"
+  , "arguments_config": ["COUNT"]
+  , "out_dirs": ["data"]
+  , "cmds":
+    [ { "type": "join"
+      , "$1":
+        [ "COUNT="
+        , {"type": "join_cmd", "$1": [{"type": "var", "name": "COUNT"}]}
+        ]
+      }
+    , "mkdir -p data"
+    , "for i in `seq 1 $COUNT`"
+    , "do"
+    , "  seq 1 $i > data/count$i.txt"
+    , "done"
+    ]
+  }
+}

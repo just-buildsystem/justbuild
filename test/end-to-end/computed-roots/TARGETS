@@ -53,11 +53,21 @@
   , "test": ["artifacts-only.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "absent base of root (data)":
+  {"type": "install", "files": {"TARGETS": "targets.absent-base"}}
+, "absent base of root":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["absent-base"]
+  , "test": ["absent-base.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "repos": ["absent base of root (data)"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["computed-roots"]
   , "deps":
-    [ "artifacts-only"
+    [ "absent base of root"
+    , "artifacts-only"
     , "basic"
     , "basic remote build"
     , "error-reporting"
