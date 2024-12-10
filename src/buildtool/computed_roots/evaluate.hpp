@@ -23,11 +23,13 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
+#include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 
 auto EvaluateComputedRoots(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     std::string const& main_repo,
+    ServeApi const* serve,
     StorageConfig const& storage_config,
     std::optional<StorageConfig> const& git_storage_config,
     GraphTraverser::CommandLineArguments const& traverser_args,

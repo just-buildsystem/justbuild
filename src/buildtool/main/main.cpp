@@ -1048,8 +1048,11 @@ auto main(int argc, char* argv[]) -> int {
         if (need_rehash and (not git_storage_config)) {
             return kExitFailure;
         }
+        std::optional<ServeApi> serve = ServeApi::Create(
+            *serve_config, &local_context, &remote_context, &main_apis);
         if (not EvaluateComputedRoots(&repo_config,
                                       main_repo,
+                                      serve ? &*serve : nullptr,
                                       *storage_config,
                                       git_storage_config,
                                       traverse_args,
@@ -1057,9 +1060,6 @@ auto main(int argc, char* argv[]) -> int {
                                       eval_root_jobs)) {
             return kExitFailure;
         }
-
-        std::optional<ServeApi> serve = ServeApi::Create(
-            *serve_config, &local_context, &remote_context, &main_apis);
 #else
         std::optional<ServeApi> serve;
 #endif  // BOOTSTRAP_BUILD_TOOL

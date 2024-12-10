@@ -266,6 +266,7 @@ void ComputeAndFill(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     gsl::not_null<const GraphTraverser::CommandLineArguments*> const&
         traverser_args,
+    ServeApi const* serve,
     gsl::not_null<const ExecutionContext*> const& context,
     gsl::not_null<const StorageConfig*> const& storage_config,
     gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
@@ -292,7 +293,8 @@ void ComputeAndFill(
     AnalyseContext analyse_context{.repo_config = repository_config,
                                    .storage = &storage,
                                    .statistics = &statistics,
-                                   .progress = &progress};
+                                   .progress = &progress,
+                                   .serve = serve};
     Logger build_logger = Logger(
         target.ToString(),
         std::vector<LogSinkFactory>{LogSinkFile::CreateFactory(log_file)});
@@ -411,6 +413,7 @@ auto FillRoots(
     gsl::not_null<const GraphTraverser::CommandLineArguments*> const&
         traverser_args,
     gsl::not_null<const ExecutionContext*> const& context,
+    ServeApi const* serve,
     gsl::not_null<const StorageConfig*> const& storage_config,
     gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
     gsl::not_null<std::shared_mutex*> const& config_lock,
@@ -419,6 +422,7 @@ auto FillRoots(
                                         rehash,
                                         repository_config,
                                         traverser_args,
+                                        serve,
                                         context,
                                         config_lock,
                                         git_lock,
@@ -440,6 +444,7 @@ auto FillRoots(
              repository_config,
              traverser_args,
              context,
+             serve,
              storage_config,
              config_lock,
              rehash,
@@ -450,6 +455,7 @@ auto FillRoots(
                 ComputeAndFill(key,
                                repository_config,
                                traverser_args,
+                               serve,
                                context,
                                storage_config,
                                rehash,
@@ -469,6 +475,7 @@ auto FillRoots(
 auto EvaluateComputedRoots(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     std::string const& main_repo,
+    ServeApi const* serve,
     StorageConfig const& storage_config,
     std::optional<StorageConfig> const& git_storage_config,
     GraphTraverser::CommandLineArguments const& traverser_args,
@@ -516,6 +523,7 @@ auto EvaluateComputedRoots(
                                   repository_config,
                                   &traverser_args,
                                   context,
+                                  serve,
                                   &storage_config,
                                   &rehash,
                                   &repo_config_access,

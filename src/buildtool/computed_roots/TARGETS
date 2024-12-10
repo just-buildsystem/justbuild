@@ -57,6 +57,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/execution_engine/executor", "context"]
     , ["src/buildtool/graph_traverser", "graph_traverser"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     ]
   , "private-deps":
