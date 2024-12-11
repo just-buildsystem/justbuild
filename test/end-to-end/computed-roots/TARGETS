@@ -12,6 +12,13 @@
     , "out/log2"
     ]
   }
+, "build params":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["build-params"]
+  , "test": ["build-params.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/stdout", "out/stderr"]
+  }
 , "mr_computed_setup":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["mr_computed_setup"]
@@ -77,6 +84,7 @@
     , "artifacts-only"
     , "basic"
     , "basic remote build"
+    , "build params"
     , "error-remote"
     , "error-reporting"
     , "mr_computed_setup"
