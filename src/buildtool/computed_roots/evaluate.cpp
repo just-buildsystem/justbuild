@@ -35,17 +35,21 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
 #include "src/buildtool/computed_roots/lookup_cache.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/api_bundle.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
@@ -377,6 +381,18 @@ void ComputeAndFill(
     }
     else {
         log_desc = log_blob->hash();
+        if (not build_result) {
+            // synchronize the build log to a remote endpoint, if specified
+            if (not context->apis->local->RetrieveToCas(
+                    {Artifact::ObjectInfo{.digest = *log_blob,
+                                          .type = ObjectType::File,
+                                          .failed = false}},
+                    *context->apis->remote)) {
+                (*logger)(fmt::format("Failed to upload build log {} to remote",
+                                      log_desc),
+                          false);
+            }
+        }
     }
     if (not build_result) {
         (*logger)(fmt::format("Build failed, see {} for details", log_desc),
