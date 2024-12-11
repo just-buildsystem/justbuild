@@ -26,6 +26,13 @@
   , "keep":
     ["out/not-export.log", "out/not-content-fixed.log", "out/cycle.log"]
   }
+, "error-remote":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["error-remote"]
+  , "test": ["error-remote.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/build.log"]
+  }
 , "basic remote build":
   { "type": ["end-to-end", "with remote"]
   , "name": ["remote"]
@@ -70,6 +77,7 @@
     , "artifacts-only"
     , "basic"
     , "basic remote build"
+    , "error-remote"
     , "error-reporting"
     , "mr_computed_setup"
     , "remote sharding"
