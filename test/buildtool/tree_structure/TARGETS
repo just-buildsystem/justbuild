@@ -1,0 +1,32 @@
+{ "tree_structure":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["tree_structure"]
+  , "srcs": ["tree_structure.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/bazel_msg"
+      , "bazel_msg_factory"
+      ]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "garbage_collector"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/tree_structure", "tree_structure_cache"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
+    , ["", "catch-main"]
+    , ["utils", "large_object_utils"]
+    , ["utils", "test_storage_config"]
+    ]
+  , "stage": ["test", "buildtool", "tree_structure"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["tree_structure"]
+  , "deps": ["tree_structure"]
+  }
+}

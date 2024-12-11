@@ -15,6 +15,7 @@
     , ["./", "serve_api", "TESTS"]
     , ["./", "storage", "TESTS"]
     , ["./", "system", "TESTS"]
+    , ["./", "tree_structure", "TESTS"]
     ]
   }
 }
