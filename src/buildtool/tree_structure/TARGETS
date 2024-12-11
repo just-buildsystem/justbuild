@@ -21,4 +21,28 @@
     , ["src/utils/cpp", "expected"]
     ]
   }
+, "compute_tree_structure":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["compute_tree_structure"]
+  , "hdrs": ["compute_tree_structure.hpp"]
+  , "srcs": ["compute_tree_structure.cpp"]
+  , "deps":
+    [ "tree_structure_cache"
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  , "stage": ["src", "buildtool", "tree_structure"]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "git_repo"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "hex_string"]
+    , ["src/utils/cpp", "path"]
+    ]
+  }
 }
