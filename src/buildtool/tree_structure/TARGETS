@@ -1,0 +1,24 @@
+{ "tree_structure_cache":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["tree_structure_cache"]
+  , "hdrs": ["tree_structure_cache.hpp"]
+  , "srcs": ["tree_structure_cache.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/file_system", "file_storage"]
+    , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/storage", "config"]
+    ]
+  , "stage": ["src", "buildtool", "tree_structure"]
+  , "private-deps":
+    [ ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/storage", "storage"]
+    , ["src/utils/cpp", "expected"]
+    ]
+  }
+}
