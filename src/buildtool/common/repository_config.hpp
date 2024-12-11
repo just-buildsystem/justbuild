@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/buildtool/storage/storage.hpp"
 
@@ -61,8 +62,9 @@ class RepositoryConfig {
     }
 
     [[nodiscard]] auto SetGitCAS(
-        std::filesystem::path const& repo_path) noexcept {
-        git_cas_ = GitCAS::Open(repo_path);
+        std::filesystem::path const& repo_path,
+        LogLevel log_level = LogLevel::Warning) noexcept -> bool {
+        git_cas_ = GitCAS::Open(repo_path, log_level);
         return static_cast<bool>(git_cas_);
     }
 

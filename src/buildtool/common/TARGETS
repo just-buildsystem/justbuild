@@ -164,6 +164,7 @@
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/file_system", "git_tree"]
+    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "atomic_value"]
     , ["src/buildtool/storage", "storage"]
     ]
