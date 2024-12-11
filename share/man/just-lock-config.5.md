@@ -1,0 +1,145 @@
+% JUST-LOCK CONFIG(5) | File Formats Manual
+
+NAME
+====
+
+just-lock config - The format of the input configuration used by
+**`just-lock`**(1)
+
+DESCRIPTION
+===========
+
+In order for the **`just-lock`**(1) tool to generate a repository
+configuration file usable by the **`just-mr`**(1) launcher, it requires its own
+configuration file describing how that resulting configuration should be
+obtained.
+
+The file is read as JSON. Any other serialization describing the same
+JSON object is equivalent. It is assumed that in JSON objects keys occur
+at most once; it is implementation defined how repetitions of the same
+key are treated.
+
+Repository import description objects
+-------------------------------------
+
+One of the main functionalities of the **`just-lock`**(1) tool is to import
+dependencies from other Just projects, as described in their repositories
+configuration file. From each such project, one or more repositories can be
+imported (with their respective transitive dependencies).
+A *repository import description* is a JSON object describing one such
+repository to be imported.
+
+The following fields are supported:
+
+ - *`"repo"`* has a string value defining the name of the repository to be
+   imported. This entry is optional.
+
+ - *`"alias"`* has a string value defining the new name under which the
+   imported repository should be found in the output configuration. This entry
+   is optional. If not provided, the value for the key `"repo"` ***must*** exist
+   and its value is used instead.
+  
+ - *`"map"`* has as value a JSON object with string key-value pairs defining a
+   mapping  between repository names that would be brought in by this import
+   (possibly transitively) and already imported repositories. This mapping can
+   be used to avoid additional duplications of repositories from multiple
+   imports. This entry is optional.
+
+ - *`"pragma"`* has as value a JSON object. Currently, it supports the key
+   `"absent"` with a boolean value; if this field evaluates to `true`, it
+   informs that the imported repository and all transitive repositories imported
+   as a consequence should have the `{"absent": true}` pragma added to their
+   description in the output configuration. This entry is optional.
+
+Source objects
+--------------
+
+A *source* provides information about an operation that the **`just-lock`**(1)
+tool can perform in order to extend an initial repository description stub and
+obtain the output repository configuration. In most cases, this operation
+involves importing repositories from other Just projects, but a more general
+operation exists as well.
+
+Sources are given as JSON objects for which the string value to the mandatory
+key `"source"` defines a supported type. Each source type informs which other
+fields are available. Currently, the only source type supported is `"git"`.
+
+### *`"git"`*
+
+It defines an import operation of one or more dependencies from a Just project
+under Git version control.
+
+The following fields are supported:
+
+ - *`"source"`* defines the current *source* type. This entry is mandatory.
+
+ - *`"repos"`* has as value a JSON list where each entry is a
+   *repository import description*. This entry is mandatory. An empty list is
+   treated as if the current *source* object is missing.
+
+ - *`"url"`* has a string value defining the URL of the Git repository. This
+   entry is mandatory.
+
+ - *`"branch"`* has a string value providing the name of the branch to consider
+   from the Git repository. This entry is mandatory.
+
+ - *`"commit"`* has a string value providing the hash of the commit to be used.
+   This entry is optional. If provided, it has to be specified in hex encoding
+   and it must be a commit in the branch specified by the corresponding field.
+   If not provided, the `HEAD` commit of that branch is used.
+
+ - *`"mirrors"`* has as value a JSON list of strings defining alternative
+   locations for the Git repository to be used if the given URL fails to provide
+   it. This entry is optional.
+
+ - *`"inherit env"`* has as value a JSON list which will be recorded as the
+   value for the `"inherit env"` key in the output configuration for all
+   imported `"git"`-type repositories
+   (see **`just-mr-configuration-format`**(5)). This entry is optional.
+
+ - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+   informs **`just-lock`**(1) to consider the foreign repository configuration
+   to be the canonical one for a single repository. This can be useful if the
+   Git repository does not have a repository configuration or should be imported
+   as-is, without dependencies. This entry is optional.
+
+ - *`"config"`* has a string value defining the relative path of the foreign
+   repository configuration file to be considered from the Git repository. This
+   entry is optional. If not provided and the `"as_plain"` field does not
+   evaluate to `true`, **`just-lock`**(1) will search for a configuration file
+   in the same locations as **`just-mr`**(1) does when invoked with
+   **`--norc`** in the root directory of the Git repository.
+
+The just-lock configuration format
+----------------------------------
+
+The configuration format is structured as a JSON object. It is a superset of
+the **`just-mr-configuration-format`**(5), which is extended by two additional
+fields. Specifically, the following fields are supported:
+
+ - *`"main"`* has the syntax and semantics as described in
+   **`just-mr-configuration-format`**(5).
+
+ - *`"repositories"`* has the syntax and semantics as described in
+   **`just-mr-configuration-format`**(5).
+ 
+ - *`"imports"`* is a JSON list with each entry a *source* object.
+
+ - *`"keep"`* is a JSON list of strings defining the global names of
+   repositories to be kept, together with the `"main"` repository, in the
+   output configuration during the deduplication step of **`just-lock`**(1).
+
+Additional keys
+---------------
+
+Any JSON object described in this format might have additional keys
+besides the ones mentioned. The current strategy of **`just-lock`**(1) is
+to accept and ignore them. Users should be aware that future versions of
+this format might give specific meanings to these extra keys.
+
+See also
+========
+
+**`just-lock`**(1),
+**`just-mr`**(1),
+**`just-mr-configuration-format`**(5)
