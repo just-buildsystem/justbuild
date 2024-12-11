@@ -1016,7 +1016,8 @@ auto main(int argc, char* argv[]) -> int {
             ProgressReporter::Reporter(&stats, &progress)};
 
         if (arguments.cmd == SubCommand::kInstallCas) {
-            if (not repo_config.SetGitCAS(storage_config->GitRoot())) {
+            if (not repo_config.SetGitCAS(storage_config->GitRoot(),
+                                          LogLevel::Trace)) {
                 Logger::Log(LogLevel::Debug,
                             "Failed set Git CAS {}.",
                             storage_config->GitRoot().string());
@@ -1081,7 +1082,8 @@ auto main(int argc, char* argv[]) -> int {
                                 "--compatible");
                     return kExitFailure;
                 }
-                if (not repo_config.SetGitCAS(*arguments.graph.git_cas)) {
+                if (not repo_config.SetGitCAS(*arguments.graph.git_cas,
+                                              LogLevel::Debug)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed set Git CAS {}.",
                                 arguments.graph.git_cas->string());
