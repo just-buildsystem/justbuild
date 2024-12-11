@@ -305,6 +305,10 @@ void ComputeAndFill(
     auto root_build_args = *traverser_args;
     root_build_args.stage =
         StageArguments{.output_dir = root_dir, .remember = true};
+    root_build_args.rebuild = std::nullopt;
+    root_build_args.build.print_to_stdout = std::nullopt;
+    root_build_args.build.dump_artifacts = std::nullopt;
+    root_build_args.build.show_runfiles = false;
     auto root_exec_context = ExecutionContext{context->repo_config,
                                               context->apis,
                                               context->remote_context,
