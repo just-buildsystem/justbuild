@@ -18,7 +18,6 @@
 #include <mutex>
 
 #include "src/buildtool/file_system/git_context.hpp"
-#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -54,8 +53,8 @@ GitCAS::GitCAS() noexcept {
     GitContext::Create();
 }
 
-auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
-    -> GitCASPtr {
+auto GitCAS::Open(std::filesystem::path const& repo_path,
+                  LogLevel log_failure) noexcept -> GitCASPtr {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return nullptr;
 #else
@@ -70,7 +69,7 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
                                 GIT_REPOSITORY_OPEN_NO_SEARCH,
                                 nullptr) != 0 or
         repo_ptr == nullptr) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(log_failure,
                     "Opening git repository {} failed with:\n{}",
                     repo_path.string(),
                     GitLastError());
@@ -81,7 +80,7 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     git_odb* odb_ptr = nullptr;
     if (git_repository_odb(&odb_ptr, result->repo_.get()) != 0 or
         odb_ptr == nullptr) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(log_failure,
                     "Obtaining git object database {} failed with:\n{}",
                     repo_path.string(),
                     GitLastError());
@@ -97,7 +96,7 @@ auto GitCAS::Open(std::filesystem::path const& repo_path) noexcept
     try {
         result->git_path_ = std::filesystem::absolute(git_path);
     } catch (std::exception const& e) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(log_failure,
                     "Failed to obtain absolute path for {}: {}",
                     git_path.string(),
                     e.what());

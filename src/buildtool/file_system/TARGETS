@@ -70,12 +70,16 @@
   , "name": ["git_cas"]
   , "hdrs": ["git_cas.hpp"]
   , "srcs": ["git_cas.cpp"]
-  , "deps": ["git_utils", "object_type", ["@", "gsl", "", "gsl"]]
+  , "deps":
+    [ "git_utils"
+    , "object_type"
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/logging", "log_level"]
+    ]
   , "stage": ["src", "buildtool", "file_system"]
   , "private-deps":
     [ "git_context"
     , ["", "libgit2"]
-    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]

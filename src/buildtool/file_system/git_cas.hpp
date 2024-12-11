@@ -25,6 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/file_system/git_utils.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 class GitCAS;
 using GitCASPtr = std::shared_ptr<GitCAS const>;
@@ -33,7 +34,8 @@ using GitCASPtr = std::shared_ptr<GitCAS const>;
 class GitCAS {
   public:
     [[nodiscard]] static auto Open(
-        std::filesystem::path const& repo_path) noexcept -> GitCASPtr;
+        std::filesystem::path const& repo_path,
+        LogLevel log_failure = LogLevel::Warning) noexcept -> GitCASPtr;
 
     [[nodiscard]] static auto CreateEmpty() noexcept -> GitCASPtr;
 
