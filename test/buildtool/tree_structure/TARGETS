@@ -5,6 +5,7 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
@@ -13,10 +14,18 @@
       , "src/buildtool/execution_api/bazel_msg"
       , "bazel_msg_factory"
       ]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/file_system", "git_repo"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "garbage_collector"]
     , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/buildtool/tree_structure", "compute_tree_structure"]
     , ["@", "src", "src/buildtool/tree_structure", "tree_structure_cache"]
+    , ["@", "src", "src/utils/cpp", "expected"]
+    , ["@", "src", "src/utils/cpp", "hash_combine"]
+    , ["@", "src", "src/utils/cpp", "hex_string"]
+    , ["@", "src", "src/utils/cpp", "path"]
     , ["@", "src", "src/utils/cpp", "tmp_dir"]
     , ["", "catch-main"]
     , ["utils", "large_object_utils"]
