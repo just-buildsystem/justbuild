@@ -250,14 +250,21 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote: Dict[str,
                                                                  Any]) -> Json:
     """Rewrite \"file\"-type descriptions based on remote type."""
     if remote_type == "git":
-        # for imports from Git, file repos become type git with subdir
+        # for imports from Git, file repos become type 'git' with subdir
         changes = {}
         subdir = repo.get("path", ".")
         if subdir not in ["", "."]:
             changes["subdir"] = subdir
         return dict(remote, **changes)
-    else:
-        fail("Unsupported remote type!")
+    elif remote_type == "file":
+        # for imports from local checkouts, file repos remain type 'file'
+        changes = {}
+        root: str = remote["path"]
+        path = repo.get("path", ".")
+        if not Path(path).is_absolute():
+            changes["path"] = str(Path(root) / path)
+        return dict(repo, **changes)
+    fail("Unsupported remote type!")
 
 
 def rewrite_repo(repo_spec: Json,
@@ -543,6 +550,84 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
 
     # Clean up local fetch
     shutil.rmtree(to_clean_up)
+    return core_repos
+
+
+def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
+    """Handles imports from a local checkout."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"file\":\n"
+
+    # Get the repositories list
+    repos: List[Any] = imports_entry.get("repos", [])
+    if not isinstance(repos, list):
+        fail(fail_context +
+             "Expected field \"repos\" to be a list, but found:\n%r" %
+             (json.dumps(repos, indent=2), ))
+
+    # Check if anything is to be done
+    if not repos:  # empty
+        return core_repos
+
+    # Parse source config fields
+    path: str = imports_entry.get("path", None)
+    if not isinstance(path, str):
+        fail(fail_context +
+             "Expected field \"path\" to be a string, but found:\n%r" %
+             (json.dumps(path, indent=2), ))
+
+    as_plain: Optional[bool] = imports_entry.get("as_plain", False)
+    if as_plain is not None and not isinstance(as_plain, bool):
+        fail(fail_context +
+             "Expected field \"as_plain\" to be a bool, but found:\n%r" %
+             (json.dumps(as_plain, indent=2), ))
+
+    foreign_config_file: Optional[str] = imports_entry.get("config", None)
+    if foreign_config_file is not None and not isinstance(
+            foreign_config_file, str):
+        fail(fail_context +
+             "Expected field \"config\" to be a string, but found:\n%r" %
+             (json.dumps(foreign_config_file, indent=2), ))
+
+    # Read in the foreign config file
+    if foreign_config_file:
+        foreign_config_file = os.path.join(path, foreign_config_file)
+    else:
+        foreign_config_file = get_repository_config_file(
+            DEFAULT_JUSTMR_CONFIG_NAME, path)
+    foreign_config: Json = {}
+    if as_plain:
+        foreign_config = {"main": "", "repositories": DEFAULT_REPO}
+    else:
+        if (foreign_config_file):
+            try:
+                with open(foreign_config_file) as f:
+                    foreign_config = json.load(f)
+            except OSError:
+                fail(fail_context + "Failed to open foreign config file %s" %
+                     (foreign_config_file, ))
+            except Exception as ex:
+                fail(fail_context +
+                     "Reading foreign config file failed with:\n%r" % (ex, ))
+        else:
+            fail(fail_context +
+                 "Failed to find the repository configuration file!")
+    remote: Dict[str, Any] = {
+        "type": "file",
+        "path": path,
+    }
+
+    # Process the imported repositories, in order
+    for repo_entry in repos:
+        if not isinstance(repo_entry, dict):
+            fail(fail_context +
+                 "Expected \"repos\" entries to be objects, but found:\n%r" %
+                 (json.dumps(repo_entry, indent=2), ))
+        repo_entry = cast(Json, repo_entry)
+
+        core_repos = handle_import("file", remote, repo_entry, core_repos,
+                                   foreign_config, fail_context)
+
     return core_repos
 
 
@@ -864,8 +949,7 @@ def lock_config(input_file: str) -> Json:
         if source == "git":
             core_config["repositories"] = import_from_git(repositories, entry)
         elif source == "file":
-            # TODO(psarbu): Implement source "file"
-            warn("Import from source \"file\" not yet implemented!")
+            core_config["repositories"] = import_from_file(repositories, entry)
         elif source == "archive":
             # TODO(psarbu): Implement source "archive"
             warn("Import from source \"archive\" not yet implemented!")
