@@ -46,7 +46,7 @@ The following fields are supported:
    imports. This entry is optional.
 
  - *`"pragma"`* has as value a JSON object. Currently, it supports the key
-   `"absent"` with a boolean value; if this field evaluates to `true`, it
+   *`"absent"`* with a boolean value; if this field evaluates to `true`, it
    informs that the imported repository and all transitive repositories imported
    as a consequence should have the `{"absent": true}` pragma added to their
    description in the output configuration. This entry is optional.
@@ -61,8 +61,9 @@ involves importing repositories from other Just projects, but a more general
 operation exists as well.
 
 Sources are given as JSON objects for which the string value to the mandatory
-key `"source"` defines a supported type. Each source type informs which other
-fields are available. Currently, the only source type supported is `"git"`.
+key *`"source"`* defines a supported type. Each source type informs which other
+fields are available. Currently, the supported source types are *`"git"`* and
+*`"file"`*.
 
 ### *`"git"`*
 
@@ -96,6 +97,35 @@ The following fields are supported:
    value for the `"inherit env"` key in the output configuration for all
    imported `"git"`-type repositories
    (see **`just-mr-configuration-format`**(5)). This entry is optional.
+
+ - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+   informs **`just-lock`**(1) to consider the foreign repository configuration
+   to be the canonical one for a single repository. This can be useful if the
+   Git repository does not have a repository configuration or should be imported
+   as-is, without dependencies. This entry is optional.
+
+ - *`"config"`* has a string value defining the relative path of the foreign
+   repository configuration file to be considered from the Git repository. This
+   entry is optional. If not provided and the `"as_plain"` field does not
+   evaluate to `true`, **`just-lock`**(1) will search for a configuration file
+   in the same locations as **`just-mr`**(1) does when invoked with
+   **`--norc`** in the root directory of the Git repository.
+
+### *`"file"`*
+
+It defines an import operation of one or more dependencies from a Just project
+present as a local checkout.
+
+The following fields are supported:
+
+ - *`"source"`* defines the current *source* type. This entry is mandatory.
+
+ - *`"repos"`* has as value a JSON list where each entry is a
+   *repository import description*. This entry is mandatory. An empty list is
+   treated as if the current *source* object is missing.
+
+ - *`"path"`* has a string value defining the path to the local checkout. This
+   entry is mandatory.
 
  - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
    informs **`just-lock`**(1) to consider the foreign repository configuration
