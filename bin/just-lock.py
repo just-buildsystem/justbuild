@@ -68,12 +68,22 @@ def log(*args: str, **kwargs: Any) -> None:
 
 
 def fail(s: str, exit_code: int = 1) -> NoReturn:
-    log(f"ERROR: {s}")
+    """Log as error and exit. Matches the color scheme of 'just-mr'."""
+    # Color is fmt::color::red
+    log(f"\033[38;2;255;0;0mERROR:\033[0m {s}")
     sys.exit(exit_code)
 
 
+def warn(s: str) -> None:
+    """Log as warning. Matches the color scheme of 'just-mr'."""
+    # Color is fmt::color::orange
+    log(f"\033[38;2;255;0;0mWARN:\033[0m {s}")
+
+
 def report(s: Optional[str]) -> None:
-    log("" if s is None else f"INFO: {s}")
+    """Log as information message. Matches the color scheme of 'just-mr'."""
+    # Color is fmt::color::lime_green
+    log("" if s is None else f"\033[38;2;50;205;50mINFO:\033[0m {s}")
 
 
 def run_cmd(cmd: List[str],
@@ -407,7 +417,7 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
                          cwd=srcdir,
                          stdout=subprocess.PIPE,
                          fail_context=fail_context).decode('utf-8').strip()
-        log("Importing remote Git commit %s" % (commit, ))
+        report("Importing remote Git commit %s" % (commit, ))
     else:
         # To get a specified commit, clone the specified branch fully and reset
         run_cmd(g_LAUNCHER + [g_GIT, "clone", "-b", branch, url, "src"],
@@ -855,16 +865,16 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_git(repositories, entry)
         elif source == "file":
             # TODO(psarbu): Implement source "file"
-            print("Import from source \"file\" not yet implemented!")
+            warn("Import from source \"file\" not yet implemented!")
         elif source == "archive":
             # TODO(psarbu): Implement source "archive"
-            print("Import from source \"archive\" not yet implemented!")
+            warn("Import from source \"archive\" not yet implemented!")
         elif source == "git-tree":
             # TODO(psarbu): Implement source "git-tree"
-            print("Import from source \"git-tree\" not yet implemented!")
+            warn("Import from source \"git-tree\" not yet implemented!")
         elif source == "generic":
             # TODO(psarbu): Implement source "generic"
-            print("Import from source \"generic\" not yet implemented!")
+            warn("Import from source \"generic\" not yet implemented!")
         else:
             fail("Unknown source for import entry \n%r" %
                  (json.dumps(entry, indent=2), ))
