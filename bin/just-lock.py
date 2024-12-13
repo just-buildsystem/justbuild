@@ -20,7 +20,7 @@ import subprocess
 import sys
 import tempfile
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentError
 from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Set, Tuple, Union, cast
 
@@ -888,7 +888,9 @@ def lock_config(input_file: str) -> Json:
 def main():
     parser = ArgumentParser(
         prog="just-lock",
-        description="Generate or update a multi-repository configuration file")
+        description="Generate or update a multi-repository configuration file",
+        exit_on_error=False,  # catch parsing errors ourselves
+    )
     parser.add_argument("-C",
                         dest="input_file",
                         help="Input configuration file",
@@ -909,7 +911,12 @@ def main():
                         dest="launcher",
                         help="Local launcher to use for commands in imports",
                         metavar="JSON")
-    args = parser.parse_args()
+
+    try:
+        args = parser.parse_args()
+    except ArgumentError as err:
+        fail("Failed parsing command line arguments with:\n%s" %
+             (err.message, ))
 
     # Get the path of the input file
     if args.input_file:
