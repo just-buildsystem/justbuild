@@ -118,9 +118,12 @@ OPTIONS:
                       User must pass it also to `just-mr`.
   --launcher JSON     Local launcher to use for commands. Given as a JSON list of strings.
                       If missing, ["env", "--"] is used. User must pass it also to `just-mr`.
-  --clone JSON        Object with keys repository names and values paths relative to the current directory.
-                      Each specified repository will be cloned to its respective paths and the corresponding
-                      repository descriptions in the output configuration will be made to point to these clones.
+  --clone JSON        Mapping from filesystem path to pair of repository name and a list of bindings.
+                      For each map entry, the repository found by following the bindings from the given repository,
+                      after all repositories have been imported, will be cloned in the specified filesystem directory and
+                      its description in the output configuration made to point to this clone.
+                      The specified repository names must be known, i.e., an initial repository or declared import,
+                      and both the initial and target repositories will be kept during deduplication.
 ```
 
 - Notes:
@@ -133,6 +136,15 @@ OPTIONS:
   with the `--norc` option, but limited to the ones relative to the workspace
   root. This is done to better match the desired lock-file quality of the
   output file and also ensure `just-mr` can pick it up by default.
+
+  The specification for finding the target repository for the `--clone` option
+  uses the fact that the names of existing repositories and declared imports
+  are the only ones known to remain as such in the output configuration, prior
+  to deduplication, with all other repositories reachable from one such
+  repository via a defined sequence of bindings. The clone locations are
+  disjoint (as they are map keys), can be specified both absolute or relative
+  to the current directory, and the referred to directory will be created if
+  missing.
 
   The `--clone` option will produce an output configuration file meant for
   local development only. Therefore, it is not recommended for such a
@@ -192,11 +204,11 @@ repository aliases marked for import or the name of one of the repositories
 given by the `"repositories"` field.
 
 The value of the `"keep"` field is a list of strings stating which repositories,
-besides the one specified by `"main"`, are to be kept during the final
-_deduplication_ step, which takes place after all imports have been processed.
-This way, `just-lock` will include all the functionality
-`just-deduplicate-repos` provides. The output configuration file of `just-lock`
-will always have deduplicated entries.
+besides the one specified by `"main"` and those specified by option `--clone`,
+are to be kept during the final _deduplication_ step, which takes place after
+all imports have been processed. This way, `just-lock` will include all the
+functionality `just-deduplicate-repos` provides. The output configuration file
+of `just-lock` will always have deduplicated entries.
 
 #### Proposed source types
 
