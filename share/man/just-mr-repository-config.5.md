@@ -3,7 +3,7 @@
 NAME
 ====
 
-just-mr repository config - The format of the repository config used by
+just-mr-repository-config - The format of the repository config used by
 **`just-mr`**(1)
 
 DESCRIPTION

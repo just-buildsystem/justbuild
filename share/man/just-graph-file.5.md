@@ -3,7 +3,7 @@
 NAME
 ====
 
-just graph file - The format of the action graph used by **`just`**(1)
+just-graph-file - The format of the action graph used by **`just`**(1)
 
 DESCRIPTION
 ===========

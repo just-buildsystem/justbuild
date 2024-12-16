@@ -3,8 +3,7 @@
 NAME
 ====
 
-just-mr configuration - The format of the configuration used by
-**`just-mr`**(1)
+just-mrrc - The format of the configuration used by **`just-mr`**(1)
 
 DESCRIPTION
 ===========

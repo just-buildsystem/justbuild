@@ -3,8 +3,8 @@
 NAME
 ====
 
-**`just`** **`serve`** configuration - The format of the configuration used by
-the **`serve`** subcommand of **`just`**(1)
+just-serve-config - The format of the configuration used by the **`serve`**
+subcommand of **`just`**(1)
 
 DESCRIPTION
 ===========
