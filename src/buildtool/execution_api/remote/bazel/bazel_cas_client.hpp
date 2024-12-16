@@ -189,9 +189,9 @@ class BazelCasClient {
     template <typename TContent>
     struct RetryProcessBatchResponse {
         bool ok{false};
-        std::vector<TContent> result;
+        std::vector<TContent> result{};
         bool exit_retry_loop{false};
-        std::optional<std::string> error_msg;
+        std::optional<std::string> error_msg{};
     };
 
     // If this function is defined in the .cpp file, clang raises an error

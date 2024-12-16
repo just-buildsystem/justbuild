@@ -1874,7 +1874,11 @@ TEST_CASE("Expression hash computation", "[expression]") {
 
     CHECK_FALSE(result->ToHash().empty());
     CHECK(result->ToHash() == Expression{result_t{}}.ToHash());
-    CHECK_FALSE(result->ToHash() == Expression{result_t{boolean}}.ToHash());
+    CHECK_FALSE(
+        result->ToHash() ==
+        Expression{
+            result_t{.artifact_stage = boolean, .provides = {}, .runfiles = {}}}
+            .ToHash());
 
     CHECK_FALSE(list->ToHash().empty());
     CHECK(list->ToHash() == Expression{list_t{}}.ToHash());

@@ -35,6 +35,9 @@
 # readability-identifier-length: We would like to enable this check, but it
 # would require significant refactoring effort.
 
+# readability-redundant-member-init: Those are not redundant for structs, but
+# clang-tidy keeps reporting this as an error.
+
 FormatStyle: Google
 Checks: >-
   *,-abseil-*,-altera-*,-android-*,-boost-*,-cert-*,-darwin-*,-fuchsia-*,-linuxkernel-*,-llvm-*,-llvmlibc-*,-mpi-*,-objc-*,-zircon-*,
@@ -46,7 +49,7 @@ Checks: >-
   -misc-const-correctness,-misc-include-cleaner,-misc-use-anonymous-namespace,-misc-no-recursion,
   -modernize-return-braced-init-list,
   -performance-avoid-endl,
-  -readability-function-cognitive-complexity,-readability-identifier-length
+  -readability-function-cognitive-complexity,-readability-identifier-length,-readability-redundant-member-init
 WarningsAsErrors: '*'
 CheckOptions:
   - { key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic, value: '1' }

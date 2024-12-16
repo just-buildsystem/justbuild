@@ -106,12 +106,11 @@
         }
     }
     // populate struct
-    auto info = GitTreeInfo{.tree_hash = *std::move(repo_desc_hash_info),
-                            .env_vars = std::move(env),
-                            .inherit_env = std::move(inherit_env),
-                            .command = std::move(cmd)};
-    if (origin) {
-        info.origin = *std::move(origin);
-    }
+    auto info =
+        GitTreeInfo{.tree_hash = *std::move(repo_desc_hash_info),
+                    .env_vars = std::move(env),
+                    .inherit_env = std::move(inherit_env),
+                    .command = std::move(cmd),
+                    .origin = origin ? std::move(*origin) : std::string{}};
     return info;
 }

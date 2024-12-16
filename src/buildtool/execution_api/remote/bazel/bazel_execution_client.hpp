@@ -41,9 +41,9 @@ class BazelExecutionClient {
     struct ExecutionOutput {
         bazel_re::ActionResult action_result;
         bool cached_result{};
-        grpc::Status status;
-        std::unordered_map<std::string, bazel_re::Digest> server_logs;
-        std::string message;
+        grpc::Status status{};
+        std::unordered_map<std::string, bazel_re::Digest> server_logs{};
+        std::string message{};
     };
 
     struct ExecutionResponse {

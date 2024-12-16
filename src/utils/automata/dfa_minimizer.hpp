@@ -48,7 +48,7 @@ class DFAMinimizer {
     // Bucket of states with equal local properties (content and acceptance)
     struct Bucket {
         std::vector<std::string> symbols;
-        states_t states;
+        states_t states{};
     };
 
     // Key used for state pairs. Reordering names will result in the same key.

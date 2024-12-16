@@ -43,7 +43,7 @@ class RepositoryConfig {
         FileRoot target_root{workspace_root};
         FileRoot rule_root{target_root};
         FileRoot expression_root{rule_root};
-        std::map<std::string, std::string> name_mapping;
+        std::map<std::string, std::string> name_mapping{};
         std::string target_file_name{"TARGETS"};
         std::string rule_file_name{"RULES"};
         std::string expression_file_name{"EXPRESSIONS"};

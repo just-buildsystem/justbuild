@@ -101,7 +101,8 @@ auto BazelAction::Execute(Logger const* logger) noexcept
                     logger,
                     action->hash(),
                     network_,
-                    BazelExecutionClient::ExecutionOutput{*result, true});
+                    BazelExecutionClient::ExecutionOutput{
+                        .action_result = *result, .cached_result = true});
             }
         }
     }
