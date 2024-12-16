@@ -85,7 +85,7 @@ auto ServerImpl::Create(std::optional<std::string> interface,
     if (pid_file) {
         server.pid_file_ = std::move(*pid_file);
     }
-    return std::move(server);
+    return server;
 }
 
 auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,

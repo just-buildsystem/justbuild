@@ -98,7 +98,7 @@ auto ServeServerImpl::Create(std::optional<std::string> interface,
     if (pid_file) {
         server.pid_file_ = std::move(*pid_file);
     }
-    return std::move(server);
+    return server;
 }
 
 auto ServeServerImpl::Run(

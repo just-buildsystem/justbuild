@@ -93,8 +93,8 @@ auto ReadRehashedDigest(ArtifactDigest const& digest,
                 }
             }
         }
-        return std::move(compat_obj);  // not dereferenced to assist type
-                                       // deduction in variant
+        return compat_obj;  // not dereferenced to assist type deduction in
+                            // variant
     }
     // no mapping file found
     return std::optional<Artifact::ObjectInfo>{std::nullopt};

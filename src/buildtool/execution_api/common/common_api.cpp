@@ -125,7 +125,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
             // transfer size.
             if (not UpdateContainerAndUpload<ArtifactDigest>(
                     &container,
-                    std::move(node->Blob()),
+                    node->Blob(),
                     /*exception_is_fatal=*/false,
                     [&api](ArtifactBlobContainer&& blobs) -> bool {
                         return api.Upload(std::move(blobs),

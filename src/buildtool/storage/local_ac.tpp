@@ -191,7 +191,7 @@ auto LocalAC<kDoGlobalUplink>::ReadAction(ArtifactDigest const& cas_key)
 
     bazel_re::ActionResult action{};
     if (action.ParseFromString(*action_content)) {
-        return std::move(action);
+        return action;
     }
     return std::nullopt;
 }

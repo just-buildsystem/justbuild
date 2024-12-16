@@ -104,7 +104,7 @@ auto ExecutionServiceImpl::ToIExecutionAction(
     execution_action->SetCacheFlag(
         action.do_not_cache() ? IExecutionAction::CacheFlag::DoNotCacheOutput
                               : IExecutionAction::CacheFlag::CacheOutput);
-    return std::move(execution_action);
+    return execution_action;
 }
 
 auto ExecutionServiceImpl::ToBazelExecuteResponse(
@@ -160,7 +160,7 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
 
     // we run the action locally, so no communication issues should happen
     bazel_response.mutable_status()->set_code(grpc::StatusCode::OK);
-    return std::move(bazel_response);
+    return bazel_response;
 }
 
 void ExecutionServiceImpl::WriteResponse(
@@ -332,7 +332,7 @@ namespace {
         (*out_dir.mutable_tree_digest()) =
             ArtifactDigestFactory::ToBazel(*cas_digest);
     }
-    return std::move(out_dir);
+    return out_dir;
 }
 
 [[nodiscard]] auto ToBazelOutputSymlink(std::string path,
@@ -363,7 +363,7 @@ namespace {
     }
 
     *(out_link.mutable_target()) = *std::move(content);
-    return std::move(out_link);
+    return out_link;
 }
 
 [[nodiscard]] auto ToBazelOutputFile(std::string path,
@@ -419,7 +419,7 @@ namespace {
             result_files.Add(ToBazelOutputFile(path, info));
         }
     }
-    return std::move(result);
+    return result;
 }
 
 [[nodiscard]] auto ToBazelAction(ArtifactDigest const& action_digest,
@@ -454,7 +454,7 @@ namespace {
             fmt::format("could not retrieve input root {} from cas",
                         input_root_digest->hash())};
     }
-    return std::move(action);
+    return action;
 }
 
 [[nodiscard]] auto ToBazelCommand(bazel_re::Action const& action,
@@ -477,6 +477,6 @@ namespace {
         return unexpected{fmt::format("Failed to parse command from blob {}",
                                       command_digest->hash())};
     }
-    return std::move(c);
+    return c;
 }
 }  // namespace
