@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
+#include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/buildtool/storage/storage.hpp"
@@ -67,6 +68,11 @@ class RepositoryConfig {
         git_cas_ = GitCAS::Open(repo_path, log_level);
         return static_cast<bool>(git_cas_);
     }
+
+    /// \brief Replace all entries of the precomputed root with an exact root.
+    /// \param root     Root to be replaced.
+    /// \param value    Root to be used as a replacement.
+    void SetPrecomputedRoot(PrecomputedRoot const& root, FileRoot const& value);
 
     void SetComputedRoot(FileRoot::ComputedRoot const& root,
                          FileRoot const& value);

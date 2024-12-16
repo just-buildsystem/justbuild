@@ -14,6 +14,8 @@
 
 #include "src/buildtool/common/repository_config.hpp"
 
+#include <initializer_list>
+
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
@@ -149,6 +151,26 @@ auto RepositoryConfig::AddToGraphAndGetId(
         return repo_id;
     }
     return std::nullopt;
+}
+
+void RepositoryConfig::SetPrecomputedRoot(PrecomputedRoot const& root,
+                                          FileRoot const& value) {
+    for (auto const& [name, desc] : repos_) {
+        auto new_info = desc.info;
+        bool changed = false;
+        for (gsl::not_null<FileRoot*> candidate : {&new_info.workspace_root,
+                                                   &new_info.target_root,
+                                                   &new_info.rule_root,
+                                                   &new_info.expression_root}) {
+            if (candidate->GetPrecomputedDescription() == root) {
+                *candidate = value;
+                changed = true;
+            }
+        }
+        if (changed) {
+            SetInfo(name, std::move(new_info));
+        }
+    }
 }
 
 void RepositoryConfig::SetComputedRoot(FileRoot::ComputedRoot const& root,
