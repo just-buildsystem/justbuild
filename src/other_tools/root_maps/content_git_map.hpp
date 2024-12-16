@@ -51,7 +51,6 @@ using ContentGitMap =
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,
     gsl::not_null<Storage const*> const& native_storage,
-    Storage const* compat_storage,
     IExecutionApi const* local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,

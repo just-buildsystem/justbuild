@@ -24,7 +24,6 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 /// \brief Calls the ServeApi to check whether the serve endpoint has the given
 /// tree available to build against.
@@ -70,7 +69,6 @@
     std::filesystem::path const& repo_path,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,
-    Storage const* compat_storage,
     IExecutionApi const* local_api,
     IExecutionApi const* remote_api,
     AsyncMapConsumerLoggerPtr const& logger,

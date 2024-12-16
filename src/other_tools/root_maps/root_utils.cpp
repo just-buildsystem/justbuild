@@ -49,7 +49,6 @@ auto EnsureAbsentRootOnServe(
     std::filesystem::path const& repo_path,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,
-    Storage const* compat_storage,
     IExecutionApi const* local_api,
     IExecutionApi const* remote_api,
     AsyncMapConsumerLoggerPtr const& logger,
@@ -71,11 +70,8 @@ auto EnsureAbsentRootOnServe(
                 /*fatal=*/true);
             return false;
         }
-        auto git_api = MRGitApi{&repo,
-                                native_storage_config,
-                                compat_storage_config,
-                                compat_storage,
-                                local_api};
+        auto git_api = MRGitApi{
+            &repo, native_storage_config, compat_storage_config, local_api};
         if (not git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = *native_digest,
                                       .type = ObjectType::Tree}},

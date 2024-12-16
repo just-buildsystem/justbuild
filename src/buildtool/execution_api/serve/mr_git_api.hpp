@@ -30,7 +30,6 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/storage/config.hpp"
-#include "src/buildtool/storage/storage.hpp"
 
 /// \brief Multi-repo-specific implementation of the abstract Execution API.
 /// Handles interaction between the Git CAS and another api, irrespective of the
@@ -41,7 +40,6 @@ class MRGitApi final : public IExecutionApi {
     MRGitApi(gsl::not_null<RepositoryConfig const*> const& repo_config,
              gsl::not_null<StorageConfig const*> const& native_storage_config,
              StorageConfig const* compatible_storage_config = nullptr,
-             Storage const* compatible_storage = nullptr,
              IExecutionApi const* compatible_local_api = nullptr) noexcept;
 
     /// \brief Not supported.
@@ -136,7 +134,6 @@ class MRGitApi final : public IExecutionApi {
     // retain references to needed storages and configs
     gsl::not_null<StorageConfig const*> native_storage_config_;
     StorageConfig const* compat_storage_config_;
-    Storage const* compat_storage_;
 
     // an api accessing compatible storage, used purely to communicate with a
     // compatible remote; only instantiated if in compatible mode

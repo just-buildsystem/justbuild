@@ -26,12 +26,10 @@ MRGitApi::MRGitApi(
     gsl::not_null<RepositoryConfig const*> const& repo_config,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compatible_storage_config,
-    Storage const* compatible_storage,
     IExecutionApi const* compatible_local_api) noexcept
     : repo_config_{repo_config},
       native_storage_config_{native_storage_config},
       compat_storage_config_{compatible_storage_config},
-      compat_storage_{compatible_storage},
       compat_local_api_{compatible_local_api} {}
 
 auto MRGitApi::RetrieveToCas(

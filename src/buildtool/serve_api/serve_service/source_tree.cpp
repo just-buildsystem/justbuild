@@ -359,7 +359,6 @@ auto SourceTreeService::SyncGitEntryToCas(
         MRGitApi{&repo,
                  native_context_->storage_config,
                  is_compat ? &*compat_context_->storage_config : nullptr,
-                 is_compat ? &*compat_context_->storage : nullptr,
                  is_compat ? &*apis_.local : nullptr};
     if (not git_api.RetrieveToCas(
             {Artifact::ObjectInfo{.digest = *digest, .type = kType}},
