@@ -1836,7 +1836,6 @@ TEST_CASE("Expression hash computation", "[expression]") {
     using namespace std::string_literals;
     using path = std::filesystem::path;
     using number_t = Expression::number_t;
-    using artifact_t = Expression::artifact_t;
     using result_t = Expression::result_t;
     using list_t = Expression::list_t;
     using map_t = Expression::map_t;

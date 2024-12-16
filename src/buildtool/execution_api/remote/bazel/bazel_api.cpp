@@ -183,7 +183,7 @@ namespace {
         return std::nullopt;
     }
     return BazelBlobContainer{std::move(blobs)};
-};
+}
 
 }  // namespace
 

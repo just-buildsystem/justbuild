@@ -682,7 +682,7 @@ class ExecutorImpl {
         }
         auto const has_err = response->HasStdErr();
         auto const has_out = response->HasStdOut();
-        auto build_message = [has_err, has_out, &logger, &action, &response]() {
+        auto build_message = [has_err, has_out, &action, &response]() {
             using namespace std::string_literals;
             auto message = ""s;
             bool has_both = has_err and has_out;

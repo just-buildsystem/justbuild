@@ -26,6 +26,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -97,7 +98,6 @@
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 #include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
-#include "src/utils/cpp/gsl.hpp"
 #endif  // BOOTSTRAP_BUILD_TOOL
 
 namespace {
@@ -245,7 +245,6 @@ void SetupFileChunker() {
 /// \brief Write backend description (which determines the target cache shard)
 /// to CAS.
 void StoreTargetCacheShard(
-    StorageConfig const& storage_config,  // NOLINT(misc-unused-parameters)
     Storage const& storage,
     RemoteExecutionConfig const& remote_exec_config) noexcept {
     auto backend_description =
@@ -256,8 +255,7 @@ void StoreTargetCacheShard(
         Logger::Log(LogLevel::Error, backend_description.error());
         std::exit(kExitFailure);
     }
-    [[maybe_unused]] auto id = storage.CAS().StoreBlob(*backend_description);
-    EnsuresAudit(id and id->hash() == storage_config.backend_description_id);
+    std::ignore = storage.CAS().StoreBlob(*backend_description);
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -815,8 +813,7 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
-                StoreTargetCacheShard(
-                    *storage_config, storage, remote_exec_config);
+                StoreTargetCacheShard(storage, remote_exec_config);
 
                 // pack the local context instances to be passed as needed
                 LocalContext const local_context{
@@ -882,8 +879,7 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
-                StoreTargetCacheShard(
-                    *storage_config, storage, *remote_exec_config);
+                StoreTargetCacheShard(storage, *remote_exec_config);
 
                 // pack the local context instances to be passed as needed
                 LocalContext const local_context{
@@ -965,7 +961,7 @@ auto main(int argc, char* argv[]) -> int {
         auto const storage = Storage::Create(&*storage_config);
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-        StoreTargetCacheShard(*storage_config, storage, *remote_exec_config);
+        StoreTargetCacheShard(storage, *remote_exec_config);
 #endif  // BOOTSTRAP_BUILD_TOOL
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs

@@ -151,7 +151,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
                                     source_cas,
                                     source_cas)},
                 [&expected, &source_cas](auto const& values) {
-                    for (auto i = 0; i < kNumCases; ++i) {
+                    for (std::size_t i = 0; i < kNumCases; ++i) {
                         auto const& res = ResolvedGitObject{*values[i]};
                         CHECK(res.id == expected[i].id);
                         CHECK(res.type == expected[i].type);
@@ -207,7 +207,7 @@ TEST_CASE("Resolve symlinks", "[resolve_symlinks_map]") {
                                     source_cas,
                                     target_cas)},
                 [&expected, &target_cas](auto const& values) {
-                    for (auto i = 0; i < kNumCases; ++i) {
+                    for (std::size_t i = 0; i < kNumCases; ++i) {
                         auto const& res = ResolvedGitObject{*values[i]};
                         CHECK(res.id == expected[i].id);
                         CHECK(res.type == expected[i].type);

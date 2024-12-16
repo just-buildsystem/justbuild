@@ -33,8 +33,8 @@
 
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// \returns the content.
-[[nodiscard]] static auto NetworkFetch(std::string const& fetch_url,
-                                       CAInfoPtr const& ca_info) noexcept
+[[nodiscard]] static inline auto NetworkFetch(std::string const& fetch_url,
+                                              CAInfoPtr const& ca_info) noexcept
     -> std::optional<std::string> {
     auto curl_handle = CurlEasyHandle::Create(
         ca_info->no_ssl_verify, ca_info->ca_bundle, LogLevel::Debug);
@@ -47,7 +47,7 @@
 /// \brief Fetches a file from the internet and stores its content in memory.
 /// Tries not only a given remote, but also all associated remote locations.
 /// \returns The fetched data on success or an unexpected error as string.
-[[nodiscard]] static auto NetworkFetchWithMirrors(
+[[nodiscard]] static inline auto NetworkFetchWithMirrors(
     std::string const& fetch_url,
     std::vector<std::string> const& mirrors,
     CAInfoPtr const& ca_info,
@@ -89,8 +89,8 @@
 }
 
 template <Hasher::HashType kType>
-[[nodiscard]] static auto GetContentHash(std::string const& data) noexcept
-    -> std::string {
+[[nodiscard]] static inline auto GetContentHash(
+    std::string const& data) noexcept -> std::string {
     auto hasher = Hasher::Create(kType);
     hasher->Update(data);
     auto digest = std::move(*hasher).Finalize();

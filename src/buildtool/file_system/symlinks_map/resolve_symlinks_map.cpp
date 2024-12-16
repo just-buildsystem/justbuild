@@ -198,7 +198,7 @@ void ResolveKnownEntry(GitObjectToResolve const& obj,
                 GitRepo::tree_entries_t entries{};
                 auto num = resolved_entries.size();
                 entries.reserve(num);
-                for (auto i = 0; i < num; ++i) {
+                for (std::size_t i = 0; i < num; ++i) {
                     auto const& p = children_info[i].rel_path;
                     entries[*FromHexString(resolved_entries[i]->id)]
                         .emplace_back(

@@ -204,7 +204,7 @@ class TestProject {
                                         .progress = &progress};
 
     GraphTraverser const gt{
-        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -223,8 +223,9 @@ class TestProject {
 
     SECTION("Executable is retrieved as executable") {
         auto const clargs_exec = p.CmdLineArgs("_entry_points_get_executable");
-        GraphTraverser const gt_get_exec{
-            clargs_exec.gtargs, &exec_context, [](auto done, auto cv) {}};
+        GraphTraverser const gt_get_exec{clargs_exec.gtargs,
+                                         &exec_context,
+                                         [](auto /*done*/, auto /*cv*/) {}};
         auto const exec_result = gt_get_exec.BuildAndStage(
             clargs_exec.graph_description, clargs_exec.artifacts);
 
@@ -279,7 +280,7 @@ class TestProject {
                                         .progress = &progress};
 
     GraphTraverser const gt{
-        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -329,7 +330,7 @@ class TestProject {
                                         .progress = &progress};
 
     GraphTraverser const gt{
-        clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -338,8 +339,9 @@ class TestProject {
     CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
-    GraphTraverser const gt_full_build{
-        clargs_full_build.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser const gt_full_build{clargs_full_build.gtargs,
+                                       &exec_context,
+                                       [](auto /*done*/, auto /*cv*/) {}};
     auto const full_build_result = gt_full_build.BuildAndStage(
         clargs_full_build.graph_description, clargs_full_build.artifacts);
 
@@ -393,8 +395,9 @@ class TestProject {
         .statistics = &stats,
         .progress = &progress};
 
-    GraphTraverser const gt_upload{
-        clargs_update_cpp.gtargs, &full_context, [](auto done, auto cv) {}};
+    GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
+                                   &full_context,
+                                   [](auto /*done*/, auto /*cv*/) {}};
     auto const cpp_result = gt_upload.BuildAndStage(
         clargs_update_cpp.graph_description, clargs_update_cpp.artifacts);
 
@@ -421,7 +424,7 @@ class TestProject {
         .statistics = &stats,
         .progress = &progress};
     GraphTraverser const gt{
-        clargs.gtargs, &context_known, [](auto done, auto cv) {}};
+        clargs.gtargs, &context_known, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -473,7 +476,8 @@ static void TestBlobsUploadedAndUsed(
                                         .statistics = &stats,
                                         .progress = &progress};
 
-    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser gt{
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -530,7 +534,8 @@ static void TestEnvironmentVariablesSetAndUsed(
                                         .statistics = &stats,
                                         .progress = &progress};
 
-    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser gt{
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -587,7 +592,8 @@ static void TestTreesUsed(
                                         .statistics = &stats,
                                         .progress = &progress};
 
-    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser gt{
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -644,7 +650,8 @@ static void TestNestedTreesUsed(
                                         .statistics = &stats,
                                         .progress = &progress};
 
-    GraphTraverser gt{clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser gt{
+        clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
         gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -703,7 +710,7 @@ static void TestFlakyHelloWorldDetected(
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");
         GraphTraverser const gt{
-            clargs.gtargs, &exec_context, [](auto done, auto cv) {}};
+            clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
         auto const result =
             gt.BuildAndStage(clargs.graph_description, clargs.artifacts);
 
@@ -718,7 +725,7 @@ static void TestFlakyHelloWorldDetected(
     auto clargs_output = p.CmdLineArgs();
     clargs_output.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_output{
-        clargs_output.gtargs, &exec_context, [](auto done, auto cv) {}};
+        clargs_output.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     REQUIRE(gt_output.BuildAndStage(clargs_output.graph_description,
                                     clargs_output.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -729,8 +736,9 @@ static void TestFlakyHelloWorldDetected(
     // make_exe[flaky]->make_output[miss]->strip_time [miss]
     auto clargs_stripped = p.CmdLineArgs("_entry_points_stripped");
     clargs_stripped.gtargs.rebuild = RebuildArguments{};
-    GraphTraverser const gt_stripped{
-        clargs_stripped.gtargs, &exec_context, [](auto done, auto cv) {}};
+    GraphTraverser const gt_stripped{clargs_stripped.gtargs,
+                                     &exec_context,
+                                     [](auto /*done*/, auto /*cv*/) {}};
     REQUIRE(gt_stripped.BuildAndStage(clargs_stripped.graph_description,
                                       clargs_stripped.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 1);
@@ -742,7 +750,7 @@ static void TestFlakyHelloWorldDetected(
     auto clargs_ctimes = p.CmdLineArgs("_entry_points_ctimes");
     clargs_ctimes.gtargs.rebuild = RebuildArguments{};
     GraphTraverser const gt_ctimes{
-        clargs_ctimes.gtargs, &exec_context, [](auto done, auto cv) {}};
+        clargs_ctimes.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
     REQUIRE(gt_ctimes.BuildAndStage(clargs_ctimes.graph_description,
                                     clargs_ctimes.artifacts));
     CHECK(stats.ActionsFlakyCounter() == 2);

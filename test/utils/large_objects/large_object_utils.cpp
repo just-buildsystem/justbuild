@@ -55,7 +55,7 @@ class ChunkPool final {
 
     [[nodiscard]] auto operator[](std::size_t index) const noexcept
         -> std::string const& {
-        return gsl::at(pool_, index);
+        return gsl::at(pool_, gsl::narrow<gsl::index>(index));
     }
 
   private:
@@ -66,7 +66,7 @@ class ChunkPool final {
         Randomizer randomizer{1, std::numeric_limits<char>::max()};
 
         for (std::size_t i = 0; i < pool_.size(); ++i) {
-            auto& chunk = gsl::at(pool_, i);
+            auto& chunk = gsl::at(pool_, gsl::narrow<gsl::index>(i));
             chunk.resize(kChunkLength);
             for (std::size_t j = 0; j < kChunkLength; ++j) {
                 chunk[j] = randomizer.Get();

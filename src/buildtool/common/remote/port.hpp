@@ -30,7 +30,7 @@
 struct PortTag : TypeSafeArithmeticTag<std::uint16_t> {};
 using Port = TypeSafeArithmetic<PortTag>;
 
-[[nodiscard]] static auto ParsePort(int const port_num) noexcept
+[[nodiscard]] static inline auto ParsePort(int const port_num) noexcept
     -> std::optional<Port> {
     try {
         static constexpr int kMaxPortNumber{
@@ -44,7 +44,7 @@ using Port = TypeSafeArithmetic<PortTag>;
     return std::nullopt;
 }
 
-[[nodiscard]] static auto ParsePort(std::string const& port) noexcept
+[[nodiscard]] static inline auto ParsePort(std::string const& port) noexcept
     -> std::optional<Port> {
     try {
         auto port_num = std::stoi(port);

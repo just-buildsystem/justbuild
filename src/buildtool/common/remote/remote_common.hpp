@@ -43,8 +43,8 @@ struct ServerAddress {
 using ExecutionProperties = std::map<std::string, std::string>;
 using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
 
-[[nodiscard]] static auto ParseAddress(std::string const& address) noexcept
-    -> std::optional<ServerAddress> {
+[[nodiscard]] static inline auto ParseAddress(
+    std::string const& address) noexcept -> std::optional<ServerAddress> {
     std::istringstream iss(address);
     std::string host;
     std::string port;
@@ -58,7 +58,8 @@ using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
     return std::nullopt;
 }
 
-[[nodiscard]] static auto ParseProperty(std::string const& property) noexcept
+[[nodiscard]] static inline auto ParseProperty(
+    std::string const& property) noexcept
     -> std::optional<std::pair<std::string, std::string>> {
     std::istringstream pss(property);
     std::string key;
@@ -69,7 +70,7 @@ using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
     return std::make_pair(key, val);
 }
 
-[[nodiscard]] static auto ParseDispatch(
+[[nodiscard]] static inline auto ParseDispatch(
     std::string const& dispatch_info) noexcept
     -> expected<std::vector<DispatchEndpoint>, std::string> {
     nlohmann::json dispatch;

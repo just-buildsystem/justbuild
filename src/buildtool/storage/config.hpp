@@ -36,7 +36,7 @@
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
-class StorageConfig;
+struct StorageConfig;
 
 struct GenerationConfig final {
     gsl::not_null<StorageConfig const*> const storage_config;

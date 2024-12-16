@@ -1229,9 +1229,10 @@ class FileSystemManager {
                 ssize_t wlen{};
                 ssize_t written_len{};
                 while (written_len < len and
-                       (wlen = write(out.fd,
-                                     buf.data() + written_len,  // NOLINT
-                                     len - written_len)) > 0) {
+                       (wlen = write(
+                            out.fd,
+                            buf.data() + written_len,  // NOLINT
+                            static_cast<std::size_t>(len - written_len))) > 0) {
                     written_len += wlen;
                 }
                 if (wlen < 0) {
@@ -1260,7 +1261,7 @@ class FileSystemManager {
                 if (len < 0) {
                     return PackError(ERROR_WRITE_OUTPUT, errno);
                 }
-                pos += len;
+                pos += static_cast<std::size_t>(len);
             }
             return 0;
         }

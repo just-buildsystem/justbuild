@@ -93,7 +93,7 @@ class TransformedRange final {
 
     [[nodiscard]] auto ToVector() const -> std::vector<Result> {
         std::vector<Result> result;
-        result.reserve(size());
+        result.reserve(gsl::narrow<std::size_t>(size()));
         for (auto item : *this) {
             result.emplace_back(std::move(item));
         }

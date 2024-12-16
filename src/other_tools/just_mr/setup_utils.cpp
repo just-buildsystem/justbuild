@@ -218,7 +218,7 @@ auto ReadConfiguration(
                                 absent_file_opt->string());
                     std::exit(kExitConfigError);
                 }
-                absent_set.insert(repo);
+                absent_set.insert(repo.get<std::string>());
             }
             auto new_repos = nlohmann::json::object();
             auto repos = config.value("repositories", nlohmann::json::object());
