@@ -198,4 +198,17 @@
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
+, "precomputed_root":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["precomputed_root"]
+  , "hdrs": ["precomputed_root.hpp"]
+  , "srcs": ["precomputed_root.cpp"]
+  , "deps": [["@", "json", "", "json"], ["src/utils/cpp", "expected"]]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 }
