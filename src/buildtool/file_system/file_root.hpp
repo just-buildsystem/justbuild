@@ -42,6 +42,7 @@
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/concepts.hpp"
@@ -154,8 +155,11 @@ class FileRoot {
   private:
     // absent roots are defined by a tree hash with no witnessing repository
     using absent_root_t = std::string;
-    using root_t =
-        std::variant<fs_root_t, RootGit, absent_root_t, ComputedRoot>;
+    using root_t = std::variant<fs_root_t,
+                                RootGit,
+                                absent_root_t,
+                                ComputedRoot,
+                                PrecomputedRoot>;
 
   public:
     static constexpr auto kGitTreeMarker = "git tree";
@@ -387,6 +391,8 @@ class FileRoot {
                              std::move(target_module),
                              std::move(target_name),
                              std::move(config)}} {}
+    explicit FileRoot(PrecomputedRoot precomputed)
+        : root_{std::move(precomputed)} {}
 
     [[nodiscard]] static auto FromGit(std::filesystem::path const& repo_path,
                                       std::string const& git_tree_id,
@@ -683,6 +689,18 @@ class FileRoot {
             } catch (...) {
                 return std::nullopt;
             }
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto IsPrecomputed() const noexcept -> bool {
+        return std::holds_alternative<PrecomputedRoot>(root_);
+    }
+
+    [[nodiscard]] auto GetPrecomputedDescription() const noexcept
+        -> std::optional<PrecomputedRoot> {
+        if (auto const* precomputed = std::get_if<PrecomputedRoot>(&root_)) {
+            return *precomputed;
         }
         return std::nullopt;
     }

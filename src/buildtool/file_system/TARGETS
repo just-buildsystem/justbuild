@@ -180,6 +180,7 @@
     , "git_cas"
     , "git_tree"
     , "object_type"
+    , "precomputed_root"
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
