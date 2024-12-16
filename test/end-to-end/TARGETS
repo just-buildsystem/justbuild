@@ -74,6 +74,7 @@
     , ["./", "symlinks", "TESTS"]
     , ["./", "target-cache", "TESTS"]
     , ["./", "target-tests", "TESTS"]
+    , ["./", "tree-structure", "TESTS"]
     , ["./", "user-errors", "TESTS"]
     ]
   }
