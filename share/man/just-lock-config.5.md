@@ -3,7 +3,7 @@
 NAME
 ====
 
-just-lock config - The format of the input configuration used by
+just-lock-config - The format of the input configuration used by
 **`just-lock`**(1)
 
 DESCRIPTION
