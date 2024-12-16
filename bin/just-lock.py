@@ -431,10 +431,6 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
 
 def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
     """Handles imports from Git repositories."""
-    # Check if anything is to be done
-    if not imports_entry.get("repos", []):
-        return core_repos
-
     # Set granular logging message
     fail_context: str = "While importing from source \"git\":\n"
 
@@ -444,6 +440,10 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
         fail(fail_context +
              "Expected field \"repos\" to be a list, but found:\n%r" %
              (json.dumps(repos, indent=2), ))
+
+    # Check if anything is to be done
+    if not repos:  # empty
+        return core_repos
 
     # Parse source config fields
     url: str = imports_entry.get("url", None)
@@ -504,7 +504,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
             DEFAULT_JUSTMR_CONFIG_NAME, srcdir)
     foreign_config: Json = {}
     if as_plain:
-        foreign_config = {"main": "", **DEFAULT_REPO}
+        foreign_config = {"main": "", "repositories": DEFAULT_REPO}
     else:
         if (foreign_config_file):
             try:
