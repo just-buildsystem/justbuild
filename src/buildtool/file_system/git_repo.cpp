@@ -96,21 +96,6 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     }
 }
 
-[[nodiscard]] constexpr auto ObjectTypeToGitFileMode(ObjectType type) noexcept
-    -> git_filemode_t {
-    switch (type) {
-        case ObjectType::File:
-            return GIT_FILEMODE_BLOB;
-        case ObjectType::Executable:
-            return GIT_FILEMODE_BLOB_EXECUTABLE;
-        case ObjectType::Tree:
-            return GIT_FILEMODE_TREE;
-        case ObjectType::Symlink:
-            return GIT_FILEMODE_LINK;
-    }
-    return GIT_FILEMODE_UNREADABLE;  // make gcc happy
-}
-
 [[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept
     -> std::optional<ObjectType> {
     switch (type) {
