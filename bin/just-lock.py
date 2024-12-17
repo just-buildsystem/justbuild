@@ -426,39 +426,87 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
 
 
 ###
+# Git utils
+##
+
+
+def git_url_is_path(url: str) -> Optional[str]:
+    """Get the path a URL refers to if it is in a supported path format,
+    and None otherwise."""
+    if url.startswith('/'):
+        return url
+    if url.startswith('./'):
+        return url[len('./'):]
+    if url.startswith('file://'):
+        return url[len('file://'):]
+    return None
+
+
+###
 # Import from Git
 ##
 
 
 def git_checkout(url: str, branch: str, *, commit: Optional[str],
-                 mirrors: List[str],
-                 inherit_env: List[str]) -> Tuple[str, Dict[str, Any], str]:
+                 mirrors: List[str], inherit_env: List[str],
+                 fail_context: str) -> Tuple[str, Dict[str, Any], str]:
     """Clone a given remote Git repository and checkout a specified branch.
     Return the checkout location, the repository description stub to use for
     rewriting 'file'-type dependencies, and the temp dir to later clean up."""
     workdir: str = tempfile.mkdtemp()
     srcdir: str = os.path.join(workdir, "src")
+    fetch_url = git_url_is_path(url)
+    if fetch_url is None:
+        fetch_url = url
+    else:
+        fetch_url = os.path.abspath(fetch_url)
 
-    fail_context: str = "While checking out branch %r of %r:" % (branch, url)
+    fail_context += "While checking out branch %r of %r:\n" % (branch, url)
     if commit is None:
-        # If no commit given, do shallow clone and get HEAD commit
-        run_cmd(g_LAUNCHER +
-                [g_GIT, "clone", "-b", branch, "--depth", "1", url, "src"],
-                cwd=workdir,
-                fail_context=fail_context)
+        # If no commit given, do shallow clone and get HEAD commit from
+        # definitive source location
+        run_cmd(
+            g_LAUNCHER +
+            [g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"],
+            cwd=workdir,
+            fail_context=fail_context)
         commit = run_cmd(g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
                          cwd=srcdir,
                          stdout=subprocess.PIPE,
                          fail_context=fail_context)[0].decode('utf-8').strip()
         report("Importing remote Git commit %s" % (commit, ))
     else:
-        # To get a specified commit, clone the specified branch fully and reset
-        run_cmd(g_LAUNCHER + [g_GIT, "clone", "-b", branch, url, "src"],
-                cwd=workdir,
-                fail_context=fail_context)
-        run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
-                cwd=srcdir,
-                fail_context=fail_context)
+        # To get a specified commit, clone the specified branch fully and reset;
+        # Try mirrors first, as they are closer
+        cloned: bool = False
+        for source in mirrors:
+            fetch_source = git_url_is_path(source)
+            if fetch_source is None:
+                fetch_source = source
+            else:
+                fetch_source = os.path.abspath(fetch_source)
+            if (run_cmd(g_LAUNCHER +
+                        [g_GIT, "clone", "-b", branch, fetch_source, "src"],
+                        cwd=workdir,
+                        fail_context=None)[1] == 0
+                    and run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
+                                cwd=srcdir,
+                                fail_context=None)[1] == 0):
+                cloned = True
+                break
+        if not cloned:
+            # Try definitive source location
+            if (run_cmd(g_LAUNCHER +
+                        [g_GIT, "clone", "-b", branch, fetch_url, "src"],
+                        cwd=workdir,
+                        fail_context=None)[1] == 0
+                    and run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
+                                cwd=srcdir,
+                                fail_context=None)[1] != 0):
+                fail(fail_context +
+                     "Failed to clone Git repository.\nTried locations:\n%s" %
+                     ("\n".join(["\t%s" % (x, ) for x in mirrors + [url]]), ))
+
     # Prepare the description stub used to rewrite "file"-type dependencies
     repo_stub: Dict[str, Any] = {
         "type": "git",
@@ -538,7 +586,8 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                                                     branch,
                                                     commit=commit,
                                                     mirrors=mirrors,
-                                                    inherit_env=inherit_env)
+                                                    inherit_env=inherit_env,
+                                                    fail_context=fail_context)
 
     # Read in the foreign config file
     if foreign_config_file:
