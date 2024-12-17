@@ -15,7 +15,6 @@
 #include "src/buildtool/build_engine/base_maps/expression_map.hpp"
 
 #include <filesystem>
-#include <map>
 #include <optional>
 #include <string>
 #include <utility>  // std::move

@@ -16,11 +16,7 @@
 
 #include <algorithm>
 #include <compare>
-#include <functional>
-#include <unordered_map>
 #include <utility>  // std::move
-
-#include <grpcpp/support/status.h>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"

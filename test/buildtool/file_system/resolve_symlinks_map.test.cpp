@@ -15,6 +15,7 @@
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 
 #include <atomic>
+#include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
