@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 
 #include <cstddef>
+#include <filesystem>
 #include <functional>
 #include <iterator>
 #include <optional>
@@ -63,6 +64,13 @@ class BazelNetworkReader final {
     [[nodiscard]] auto DumpBlob(Artifact::ObjectInfo const& info,
                                 DumpCallback const& dumper) const noexcept
         -> bool;
+
+    // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+    [[nodiscard]] auto StageBlobTo(
+        Artifact::ObjectInfo const& /*info*/,
+        std::filesystem::path const& /*output*/) const noexcept -> bool {
+        return false;  // not implemented
+    }
 
     [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
 

@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_TREE_READER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_TREE_READER_HPP
 
+#include <cstddef>
 #include <filesystem>
 #include <optional>
 #include <utility>
@@ -105,6 +106,32 @@ class TreeReader final {
         } catch (...) {
             return std::nullopt;
         }
+    }
+
+    /// \brief Traverse a tree recursively and stage all artifacts to paths.
+    /// \param infos        Infos to be staged
+    /// \param outputs      Paths to be used for staging
+    /// \return True if outputs contain corresponding infos.
+    [[nodiscard]] auto StageTo(std::vector<Artifact::ObjectInfo> const& infos,
+                               std::vector<std::filesystem::path> const&
+                                   outputs) const noexcept -> bool {
+        if (infos.size() != outputs.size()) {
+            return false;
+        }
+
+        for (std::size_t i = 0; i < infos.size(); ++i) {
+            auto const& info = infos[i];
+            if (IsTreeObject(info.type)) {
+                auto result = RecursivelyReadTreeLeafs(info.digest, outputs[i]);
+                if (not result or not StageTo(result->infos, result->paths)) {
+                    return false;
+                }
+            }
+            else if (not impl_.StageBlobTo(info, outputs[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
   private:

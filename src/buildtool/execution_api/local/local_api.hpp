@@ -101,39 +101,13 @@ class LocalApi final : public IExecutionApi {
             return false;
         }
 
-        for (std::size_t i{}; i < artifacts_info.size(); ++i) {
+        auto const reader =
+            TreeReader<LocalCasReader>{&local_context_.storage->CAS()};
+        for (std::size_t i = 0; i < artifacts_info.size(); ++i) {
             auto const& info = artifacts_info[i];
-            if (IsTreeObject(info.type)) {
-                // read object infos from sub tree and call retrieve recursively
-                auto reader =
-                    TreeReader<LocalCasReader>{&local_context_.storage->CAS()};
-                auto const result = reader.RecursivelyReadTreeLeafs(
-                    info.digest, output_paths[i]);
-                if (not result) {
-                    if (git_api_ and not git_api_->RetrieveToPaths(
-                                         {info}, {output_paths[i]})) {
-                        return false;
-                    }
-                }
-                else if (not RetrieveToPaths(result->infos, result->paths)) {
-                    return false;
-                }
-            }
-            else {
-                auto const blob_path = local_context_.storage->CAS().BlobPath(
-                    info.digest, IsExecutableObject(info.type));
-                if (not blob_path) {
-                    if (git_api_ and not git_api_->RetrieveToPaths(
-                                         {info}, {output_paths[i]})) {
-                        return false;
-                    }
-                }
-                else if (not FileSystemManager::CreateDirectory(
-                             output_paths[i].parent_path()) or
-                         not FileSystemManager::CopyFileAs<
-                             /*kSetEpochTime=*/true,
-                             /*kSetWritable=*/true>(
-                             *blob_path, output_paths[i], info.type)) {
+            if (not reader.StageTo({info}, {output_paths[i]})) {
+                if (not git_api_ or
+                    not git_api_->RetrieveToPaths({info}, {output_paths[i]})) {
                     Logger::Log(LogLevel::Error,
                                 "staging to output path {} failed.",
                                 output_paths[i].string());

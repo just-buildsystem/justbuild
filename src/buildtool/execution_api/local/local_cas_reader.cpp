@@ -145,6 +145,23 @@ auto LocalCasReader::DumpBlob(Artifact::ObjectInfo const& info,
     return path ? DumpRaw(*path, dumper) : false;
 }
 
+auto LocalCasReader::StageBlobTo(
+    Artifact::ObjectInfo const& info,
+    std::filesystem::path const& output) const noexcept -> bool {
+    if (not IsBlobObject(info.type)) {
+        return false;
+    }
+    auto const blob_path =
+        cas_.BlobPath(info.digest, IsExecutableObject(info.type));
+    if (not blob_path) {
+        return false;
+    }
+    return FileSystemManager::CreateDirectory(output.parent_path()) and
+           FileSystemManager::CopyFileAs</*kSetEpochTime=*/true,
+                                         /*kSetWritable=*/true>(
+               *blob_path, output, info.type);
+}
+
 auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
                              DumpCallback const& dumper) noexcept -> bool {
     auto closer = [](gsl::owner<FILE*> file) -> void {

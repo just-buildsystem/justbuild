@@ -52,6 +52,10 @@ class LocalCasReader final {
                                 DumpCallback const& dumper) const noexcept
         -> bool;
 
+    [[nodiscard]] auto StageBlobTo(
+        Artifact::ObjectInfo const& info,
+        std::filesystem::path const& output) const noexcept -> bool;
+
     [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
 
   private:
