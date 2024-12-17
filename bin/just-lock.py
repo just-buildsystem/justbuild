@@ -947,9 +947,11 @@ def lock_config(input_file: str) -> Json:
                  (json.dumps(source, indent=2), ))
 
         if source == "git":
-            core_config["repositories"] = import_from_git(repositories, entry)
+            core_config["repositories"] = import_from_git(
+                core_config["repositories"], entry)
         elif source == "file":
-            core_config["repositories"] = import_from_file(repositories, entry)
+            core_config["repositories"] = import_from_file(
+                core_config["repositories"], entry)
         elif source == "archive":
             # TODO(psarbu): Implement source "archive"
             warn("Import from source \"archive\" not yet implemented!")
