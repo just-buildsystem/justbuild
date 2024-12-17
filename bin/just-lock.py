@@ -19,6 +19,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from argparse import ArgumentParser, ArgumentError
 from pathlib import Path
@@ -99,6 +100,17 @@ def run_cmd(cmd: List[str],
         s = "" if fail_context is None else "%s\n" % (fail_context, )
         fail("%sCommand %s in %s failed" % (s, cmd, cwd))
     return result.stdout
+
+
+def try_rmtree(tree: str) -> None:
+    """Safely remove a directory tree."""
+    for _ in range(10):
+        try:
+            shutil.rmtree(tree)
+            return
+        except:
+            time.sleep(1.0)
+    fail("Failed to remove %s" % (tree, ))
 
 
 ###
@@ -549,7 +561,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                                    foreign_config, fail_context)
 
     # Clean up local fetch
-    shutil.rmtree(to_clean_up)
+    try_rmtree(to_clean_up)
     return core_repos
 
 
