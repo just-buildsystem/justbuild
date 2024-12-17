@@ -26,7 +26,7 @@
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
 
-auto EvaluateComputedRoots(
+auto EvaluatePrecomputedRoots(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     std::string const& main_repo,
     ServeApi const* serve,

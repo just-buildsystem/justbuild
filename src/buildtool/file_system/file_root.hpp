@@ -827,25 +827,17 @@ class FileRoot {
                 FileRoot{std::string{root[1]}, /*ignore_special=*/true},
                 std::nullopt};
         }
-        if (root[0] == FileRoot::kComputedMarker) {
-            // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-            if (root.size() != 5 or (not root[1].is_string()) or
-                (not root[2].is_string()) or (not root[3].is_string()) or
-                (not root[4].is_object())) {
-                return unexpected{fmt::format(
-                    "{} scheme requires, in this order, the arugments root, "
-                    "module, name, config. However found {} for {} of "
-                    "repository {}",
-                    kComputedMarker,
-                    root.dump(),
-                    keyword,
-                    repo)};
+        if (PrecomputedRoot::IsPrecomputedMarker(root[0])) {
+            auto precomputed = PrecomputedRoot::Parse(root);
+            if (not precomputed) {
+                return unexpected{
+                    fmt::format("While parsing {} for {} of repository{}:\n{}",
+                                root.dump(),
+                                keyword,
+                                repo,
+                                std::move(precomputed).error())};
             }
-            return ResultType{FileRoot{std::string{root[1]},
-                                       std::string{root[2]},
-                                       std::string{root[3]},
-                                       root[4]},
-                              std::nullopt};
+            return ResultType{FileRoot{*std::move(precomputed)}, std::nullopt};
         }
         return unexpected{fmt::format(
             "Unknown scheme in the specification {} of {} of repository {}",

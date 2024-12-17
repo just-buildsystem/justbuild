@@ -50,6 +50,7 @@
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"
@@ -69,12 +70,11 @@
 namespace {
 // Add the description of a computed root to a vector, if the given
 // root is computed.
-void AddDescriptionIfComputed(
+void AddDescriptionIfPrecomputed(
     FileRoot const& root,
-    gsl::not_null<std::vector<FileRoot::ComputedRoot>*> croots) {
-    auto desc = root.GetComputedDescription();
-    if (desc) {
-        croots->emplace_back(*desc);
+    gsl::not_null<std::vector<PrecomputedRoot>*> croots) {
+    if (auto desc = root.GetPrecomputedDescription()) {
+        croots->emplace_back(*std::move(desc));
     }
 }
 
@@ -83,7 +83,7 @@ void AddDescriptionIfComputed(
 void TraverseRepoForComputedRoots(
     std::string const& name,
     gsl::not_null<RepositoryConfig*> const& repository_config,
-    gsl::not_null<std::vector<FileRoot::ComputedRoot>*> croots,
+    gsl::not_null<std::vector<PrecomputedRoot>*> roots,
     gsl::not_null<std::set<std::string>*> seen) {
     if (seen->contains(name)) {
         return;
@@ -97,12 +97,12 @@ void TraverseRepoForComputedRoots(
                     nlohmann::json(name).dump());
         return;
     }
-    AddDescriptionIfComputed(info->workspace_root, croots);
-    AddDescriptionIfComputed(info->target_root, croots);
-    AddDescriptionIfComputed(info->rule_root, croots);
-    AddDescriptionIfComputed(info->expression_root, croots);
+    AddDescriptionIfPrecomputed(info->workspace_root, roots);
+    AddDescriptionIfPrecomputed(info->target_root, roots);
+    AddDescriptionIfPrecomputed(info->rule_root, roots);
+    AddDescriptionIfPrecomputed(info->expression_root, roots);
     for (auto const& [k, v] : info->name_mapping) {
-        TraverseRepoForComputedRoots(v, repository_config, croots, seen);
+        TraverseRepoForComputedRoots(v, repository_config, roots, seen);
     }
 }
 
@@ -110,8 +110,8 @@ void TraverseRepoForComputedRoots(
 // upon
 auto GetRootDeps(std::string const& name,
                  gsl::not_null<RepositoryConfig*> const& repository_config)
-    -> std::vector<FileRoot::ComputedRoot> {
-    std::vector<FileRoot::ComputedRoot> result{};
+    -> std::vector<PrecomputedRoot> {
+    std::vector<PrecomputedRoot> result{};
     std::set<std::string> seen{};
     TraverseRepoForComputedRoots(name, repository_config, &result, &seen);
     sort_and_deduplicate(&result);
@@ -130,9 +130,9 @@ auto GetRootDeps(std::string const& name,
 // For each computed root, we have to determine the git tree identifier; it has
 // to be given as string, as this is the format needed to update a repository
 // root.
-using RootMap = AsyncMapConsumer<FileRoot::ComputedRoot, std::string>;
+using RootMap = AsyncMapConsumer<PrecomputedRoot, std::string>;
 
-auto WhileHandling(FileRoot::ComputedRoot const& root,
+auto WhileHandling(PrecomputedRoot const& root,
                    AsyncMapConsumerLoggerPtr const& logger)
     -> AsyncMapConsumerLoggerPtr {
     return std::make_shared<AsyncMapConsumerLogger>(
@@ -266,7 +266,7 @@ auto IsTreePresent(std::string const& tree_id,
 }
 
 void ComputeAndFill(
-    FileRoot::ComputedRoot const& key,
+    ComputedRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
     gsl::not_null<const GraphTraverser::CommandLineArguments*> const&
         traverser_args,
@@ -356,7 +356,8 @@ void ComputeAndFill(
             }
             {
                 std::unique_lock setting{*config_lock};
-                repository_config->SetComputedRoot(key, *root_result);
+                repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
+                                                      *root_result);
             }
             (*setter)(std::move(root));
             return;
@@ -422,7 +423,8 @@ void ComputeAndFill(
         // For setting, we need an exclusiver lock; so get one after we
         // dropped the shared one
         std::unique_lock setting{*config_lock};
-        repository_config->SetComputedRoot(key, *root_result);
+        repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
+                                              *root_result);
     }
     (*setter)(std::move(*result));
 }
@@ -446,17 +448,17 @@ auto FillRoots(
                                         context,
                                         config_lock,
                                         git_lock,
-                                        jobs](
-                                           auto /*ts*/,
-                                           auto setter,
-                                           auto logger,
-                                           auto subcaller,
-                                           FileRoot::ComputedRoot const& key) {
+                                        jobs](auto /*ts*/,
+                                              auto setter,
+                                              auto logger,
+                                              auto subcaller,
+                                              PrecomputedRoot const& key) {
         auto annotated_logger = WhileHandling(key, logger);
-        std::vector<FileRoot::ComputedRoot> roots{};
+        std::vector<PrecomputedRoot> roots{};
         {
             std::shared_lock reading{*config_lock};
-            roots = GetRootDeps(key.repository, repository_config);
+            roots =
+                GetRootDeps(key.GetReferencedRepository(), repository_config);
         }
         (*subcaller)(
             roots,
@@ -472,18 +474,20 @@ auto FillRoots(
              jobs,
              logger = annotated_logger,
              setter](auto /*values*/) {
-                ComputeAndFill(key,
-                               repository_config,
-                               traverser_args,
-                               serve,
-                               context,
-                               storage_config,
-                               rehash,
-                               config_lock,
-                               git_lock,
-                               jobs,
-                               logger,
-                               setter);
+                if (auto const computed = key.AsComputed()) {
+                    ComputeAndFill(*computed,
+                                   repository_config,
+                                   traverser_args,
+                                   serve,
+                                   context,
+                                   storage_config,
+                                   rehash,
+                                   config_lock,
+                                   git_lock,
+                                   jobs,
+                                   logger,
+                                   setter);
+                }
             },
             annotated_logger);
     };
@@ -492,7 +496,7 @@ auto FillRoots(
 
 }  // namespace
 
-auto EvaluateComputedRoots(
+auto EvaluatePrecomputedRoots(
     gsl::not_null<RepositoryConfig*> const& repository_config,
     std::string const& main_repo,
     ServeApi const* serve,
@@ -585,9 +589,8 @@ auto EvaluateComputedRoots(
             return false;
         }
         if (not done) {
-            const std::function<std::string(FileRoot::ComputedRoot const&)>
-                k_root_printer =
-                    [](FileRoot::ComputedRoot const& x) -> std::string {
+            const std::function k_root_printer =
+                [](PrecomputedRoot const& x) -> std::string {
                 return x.ToString();
             };
 

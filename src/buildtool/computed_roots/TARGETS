@@ -82,6 +82,7 @@
     , ["src/buildtool/file_system", "git_cas"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/file_system", "precomputed_root"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "analyse_context"]
