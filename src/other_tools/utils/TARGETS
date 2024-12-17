@@ -103,7 +103,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
-    , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/file_system", "precomputed_root"]
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":

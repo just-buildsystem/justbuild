@@ -74,9 +74,6 @@ class RepositoryConfig {
     /// \param value    Root to be used as a replacement.
     void SetPrecomputedRoot(PrecomputedRoot const& root, FileRoot const& value);
 
-    void SetComputedRoot(FileRoot::ComputedRoot const& root,
-                         FileRoot const& value);
-
     [[nodiscard]] auto Info(std::string const& repo) const noexcept
         -> RepositoryInfo const* {
         if (auto const* data = Data(repo)) {

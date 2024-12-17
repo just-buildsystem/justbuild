@@ -50,7 +50,7 @@ auto ComputedRootParser::GetTargetRepository() const
 }
 
 auto ComputedRootParser::GetResult() const
-    -> expected<FileRoot::ComputedRoot, std::string> {
+    -> expected<ComputedRoot, std::string> {
     auto const repo = GetTargetRepository();
     if (not repo) {
         return unexpected{repo.error()};
@@ -77,10 +77,10 @@ auto ComputedRootParser::GetResult() const
         return unexpected{fmt::format("Unsupported value {} for key \"config\"",
                                       config->ToString())};
     }
-    return FileRoot::ComputedRoot{.repository = *repo,
-                                  .target_module = target_module->String(),
-                                  .target_name = target_module->String(),
-                                  .config = config.IsNotNull()
-                                                ? config->ToJson()
-                                                : nlohmann::json::object()};
+    return ComputedRoot{.repository = *repo,
+                        .target_module = target_module->String(),
+                        .target_name = target_module->String(),
+                        .config = config.IsNotNull()
+                                      ? config->ToJson()
+                                      : nlohmann::json::object()};
 }

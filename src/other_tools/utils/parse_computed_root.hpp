@@ -20,7 +20,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
-#include "src/buildtool/file_system/file_root.hpp"
+#include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 class ComputedRootParser final {
@@ -36,8 +36,7 @@ class ComputedRootParser final {
     [[nodiscard]] auto GetTargetRepository() const
         -> expected<std::string, std::string>;
 
-    [[nodiscard]] auto GetResult() const
-        -> expected<FileRoot::ComputedRoot, std::string>;
+    [[nodiscard]] auto GetResult() const -> expected<ComputedRoot, std::string>;
 
   private:
     ExpressionPtr const& repository_;
