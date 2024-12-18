@@ -42,6 +42,11 @@ which determines the type and semantic of the subsequent elements:
    length 5, with the remaining arguments being the global repository name,
    the module name, the target name, and the configuration, in that order.
 
+ - *`"tree structure"`* refers to the directory structure of a file root.
+   The list has to have length of 2 and the second argument contains the
+   global name of the repository which workspace root gets taken for
+   computation.
+
 Repository description
 ----------------------
 
