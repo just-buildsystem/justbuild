@@ -42,6 +42,22 @@ struct ComputedRoot final {
     [[nodiscard]] auto ComputeHash() const -> std::size_t;
 };
 
+struct TreeStructureRoot final {
+    static constexpr auto kMarker = "tree structure";
+    static constexpr std::size_t kSchemeLength = 2;
+
+    std::string repository;
+
+    [[nodiscard]] auto operator==(TreeStructureRoot const& other) const noexcept
+        -> bool;
+
+    [[nodiscard]] auto operator<(TreeStructureRoot const& other) const noexcept
+        -> bool;
+
+    [[nodiscard]] auto ToString() const -> std::string;
+    [[nodiscard]] auto ComputeHash() const -> std::size_t;
+};
+
 namespace std {
 template <typename>
 struct hash;
@@ -51,7 +67,7 @@ struct hash;
 /// real build starts.
 class PrecomputedRoot final {
   public:
-    using root_t = std::variant<ComputedRoot>;
+    using root_t = std::variant<ComputedRoot, TreeStructureRoot>;
     explicit PrecomputedRoot() : PrecomputedRoot(ComputedRoot{}) {}
     explicit PrecomputedRoot(root_t root)
         : root_{std::move(root)}, hash_{ComputeHash(root_)} {}
@@ -61,7 +77,8 @@ class PrecomputedRoot final {
 
     [[nodiscard]] static auto IsPrecomputedMarker(
         std::string const& marker) noexcept -> bool {
-        return marker == ComputedRoot::kMarker;
+        return marker == ComputedRoot::kMarker or
+               marker == TreeStructureRoot::kMarker;
     }
 
     [[nodiscard]] auto operator==(PrecomputedRoot const& other) const noexcept
@@ -82,6 +99,17 @@ class PrecomputedRoot final {
     [[nodiscard]] auto AsComputed() const -> std::optional<ComputedRoot> {
         if (auto const* computed = std::get_if<ComputedRoot>(&root_)) {
             return *computed;
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto IsTreeStructure() const noexcept -> bool {
+        return std::holds_alternative<TreeStructureRoot>(root_);
+    }
+    [[nodiscard]] auto AsTreeStructure() const noexcept
+        -> std::optional<TreeStructureRoot> {
+        if (auto const* root = std::get_if<TreeStructureRoot>(&root_)) {
+            return *root;
         }
         return std::nullopt;
     }

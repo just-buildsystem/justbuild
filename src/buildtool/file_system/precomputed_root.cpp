@@ -86,6 +86,25 @@ template <>
                         .target_name = std::string{root[3]},
                         .config = root[4]};
 }
+
+template <>
+[[nodiscard]] auto ParseImpl<TreeStructureRoot>(nlohmann::json const& root)
+    -> expected<TreeStructureRoot, std::string> {
+    if (root.size() != TreeStructureRoot::kSchemeLength) {
+        return unexpected{
+            fmt::format("The root has a wrong number of arguments: {}\nThe "
+                        "scheme requires [<scheme>, <root>]",
+                        root.dump())};
+    }
+
+    if (not root[1].is_string()) {
+        return unexpected{fmt::format(
+            "The root has a wrong type of <root>. Expected a string, got {}",
+            root[1].dump())};
+    }
+
+    return TreeStructureRoot{.repository = std::string{root[1]}};
+}
 }  // namespace
 
 auto ComputedRoot::operator==(ComputedRoot const& other) const noexcept
@@ -126,6 +145,27 @@ auto ComputedRoot::ComputeHash() const -> std::size_t {
     return seed;
 }
 
+auto TreeStructureRoot::operator==(
+    TreeStructureRoot const& other) const noexcept -> bool {
+    return repository == other.repository;
+}
+
+auto TreeStructureRoot::operator<(TreeStructureRoot const& other) const noexcept
+    -> bool {
+    return repository < other.repository;
+}
+
+auto TreeStructureRoot::ToString() const -> std::string {
+    return fmt::format("[\"tree structure\", {}]",
+                       nlohmann::json(repository).dump());
+}
+auto TreeStructureRoot::ComputeHash() const -> std::size_t {
+    std::size_t seed{};
+    hash_combine<std::string>(&seed, kMarker);
+    hash_combine<std::string>(&seed, repository);
+    return seed;
+}
+
 auto PrecomputedRoot::Parse(nlohmann::json const& root) noexcept
     -> expected<PrecomputedRoot, std::string> {
     if ((not root.is_array()) or root.empty()) {
@@ -136,6 +176,9 @@ auto PrecomputedRoot::Parse(nlohmann::json const& root) noexcept
 
     if (root[0] == ComputedRoot::kMarker) {
         return ParsePrecomputed<ComputedRoot>(root);
+    }
+    if (root[0] == TreeStructureRoot::kMarker) {
+        return ParsePrecomputed<TreeStructureRoot>(root);
     }
 
     return unexpected{
