@@ -393,6 +393,25 @@ class FileRoot {
         return std::nullopt;
     }
 
+    [[nodiscard]] auto GetTreeHash() const noexcept
+        -> std::optional<std::string> {
+        if (auto const* root_git = std::get_if<RootGit>(&root_)) {
+            return root_git->tree->FileRootHash();
+        }
+        if (auto const* absent_root = std::get_if<absent_root_t>(&root_)) {
+            return *absent_root;
+        }
+        return std::nullopt;
+    }
+
+    [[nodiscard]] auto GetGitCasRoot() const noexcept
+        -> std::optional<std::filesystem::path> {
+        if (auto const* git_root = std::get_if<RootGit>(&root_)) {
+            return git_root->cas->GetPath();
+        }
+        return std::nullopt;
+    }
+
     // Indicates that subsequent calls to `Exists()`, `IsFile()`,
     // `IsDirectory()`, and `BlobType()` on contents of the same directory will
     // be served without any additional file system lookups.
