@@ -37,13 +37,21 @@
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
 #include "src/buildtool/computed_roots/lookup_cache.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/execution_api/common/tree_reader.hpp"
+#include "src/buildtool/execution_api/git/git_api.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
+#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -63,6 +71,8 @@
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/tree_structure/compute_tree_structure.hpp"
+#include "src/buildtool/tree_structure/tree_structure_cache.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "src/utils/cpp/vector.hpp"
@@ -429,6 +439,217 @@ void ComputeAndFill(
     (*setter)(std::move(*result));
 }
 
+void ComputeTreeStructureAndFill(
+    TreeStructureRoot const& key,
+    gsl::not_null<RepositoryConfig*> const& repository_config,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<std::shared_mutex*> const& config_lock,
+    gsl::not_null<std::mutex*> const& git_lock,
+    RootMap::LoggerPtr const& logger,
+    RootMap::SetterPtr const& setter) {
+    // Obtain the file root that the key root is referring to
+    FileRoot ref_root;
+    {
+        std::shared_lock lock{*config_lock};
+        auto const* root = repository_config->WorkspaceRoot(key.repository);
+        if (root == nullptr) {
+            std::invoke(
+                *logger,
+                fmt::format("Failed to get referenced repository for {}",
+                            key.ToString()),
+                /*fatal=*/true);
+            return;
+        }
+        ref_root = *root;
+    }
+
+    // TODO(denisov): absent roots
+    if (ref_root.IsAbsent()) {
+        std::invoke(*logger, "Absent roots aren't supported yet", true);
+        return;
+    }
+
+    auto const hash = ref_root.GetTreeHash();
+    if (not hash) {
+        std::invoke(*logger,
+                    fmt::format("Failed to get the hash of the referenced git "
+                                "tree for {}",
+                                key.ToString()),
+                    /*fatal=*/true);
+        return;
+    }
+
+    auto const digest =
+        ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                      *hash,
+                                      /*size_unknown=*/0,
+                                      /*is_tree=*/true);
+    if (not digest) {
+        std::invoke(*logger, digest.error(), /*fatal=*/true);
+        return;
+    }
+
+    // Create a native storage config if needed
+    // Since tree structure works with git trees, a native storage is required.
+    std::optional<StorageConfig> substitution_storage_config;
+    if (not ProtocolTraits::IsNative(storage_config->hash_function.GetType())) {
+        // Only build root and the hash_type are important:
+        auto config = StorageConfig::Builder{}
+                          .SetBuildRoot(storage_config->build_root)
+                          .SetNumGenerations(storage_config->num_generations)
+                          .SetHashType(HashFunction::Type::GitSHA1)
+                          .Build();
+        if (not config) {
+            std::invoke(
+                *logger,
+                fmt::format("Failed to create a native storage config for {}",
+                            key.ToString()),
+                /*fatal=*/true);
+            return;
+        }
+        substitution_storage_config.emplace(*config);
+    }
+    StorageConfig const& native_storage_config =
+        substitution_storage_config.has_value()
+            ? substitution_storage_config.value()
+            : *storage_config;
+
+    TreeStructureCache const tree_structure_cache(&native_storage_config);
+    std::optional<std::string> resolved_hash;
+
+    // Check the result is in cache already:
+    if (auto cache_entry = tree_structure_cache.Get(*digest)) {
+        auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
+            [&logger, &cache_entry](auto const& msg, bool fatal) {
+                (*logger)(fmt::format("While checking presence of tree {} in "
+                                      "local git repo:\n{}",
+                                      cache_entry->hash(),
+                                      msg),
+                          fatal);
+            });
+        auto const cached_hash = cache_entry->hash();
+        auto const tree_present =
+            IsTreePresent(cached_hash, &native_storage_config, wrapped_logger);
+        if (not tree_present) {
+            // fatal error; logger already called by IsTreePresent
+            return;
+        }
+
+        if (*tree_present) {
+            resolved_hash = cached_hash;
+        }
+    }
+
+    if (not resolved_hash) {
+        // If the tree is not in the storage, it must be added:
+        auto const storage = Storage::Create(&native_storage_config);
+        if (not storage.CAS().TreePath(*digest).has_value()) {
+            auto const path_to_git_cas = ref_root.GetGitCasRoot();
+            if (not path_to_git_cas) {
+                std::invoke(*logger,
+                            fmt::format("Failed to obtain the path to the git "
+                                        "cas for {}",
+                                        key.ToString()),
+                            true);
+                return;
+            }
+
+            RepositoryConfig root_config{};
+            if (not root_config.SetGitCAS(*path_to_git_cas)) {
+                std::invoke(
+                    *logger,
+                    fmt::format("Failed to set git cas for {}", key.ToString()),
+                    true);
+                return;
+            }
+
+            GitApi const git_api{&root_config};
+            LocalExecutionConfig const dummy_exec_config{};
+            LocalContext const local_context{
+                .exec_config = &dummy_exec_config,
+                .storage_config = &native_storage_config,
+                .storage = &storage};
+            LocalApi const local_api(&local_context, /*repo_config=*/nullptr);
+
+            if (not git_api.RetrieveToCas(
+                    {Artifact::ObjectInfo{*digest, ObjectType::Tree}},
+                    local_api) or
+                not storage.CAS().TreePath(*digest).has_value()) {
+                std::invoke(*logger,
+                            fmt::format("Failed to retrieve {} to CAS for {}",
+                                        digest->hash(),
+                                        key.ToString()),
+                            true);
+                return;
+            }
+        }
+
+        // Compute tree structure and add it to the cache:
+        auto const tree_structure =
+            ComputeTreeStructure(*digest, storage, tree_structure_cache);
+        if (not tree_structure) {
+            std::invoke(*logger, tree_structure.error(), /*fatal=*/true);
+            return;
+        }
+
+        auto const tmp_dir =
+            native_storage_config.CreateTypedTmpDir("stage_tree_structure");
+        if (tmp_dir == nullptr) {
+            std::invoke(
+                *logger,
+                fmt::format("Failed to create temporary directory for {}",
+                            key.ToString()),
+                true);
+            return;
+        }
+
+        // Stage the resulting tree structure to a temporary directory:
+        auto const root_dir = tmp_dir->GetPath() / "root";
+        if (auto reader = TreeReader<LocalCasReader>(&storage.CAS());
+            not reader.StageTo(
+                {Artifact::ObjectInfo{*tree_structure, ObjectType::Tree}},
+                {root_dir})) {
+            std::invoke(
+                *logger,
+                fmt::format("Failed to stage tree structure to a temporary "
+                            "location for {}.",
+                            key.ToString()),
+                true);
+            return;
+        }
+
+        // Import the result to git:
+        resolved_hash =
+            ImportToGitCas(root_dir, native_storage_config, git_lock, logger);
+    }
+
+    if (not resolved_hash) {
+        std::invoke(*logger,
+                    fmt::format("Failed to calculate tree structure for {}",
+                                key.ToString()),
+                    true);
+        return;
+    }
+
+    auto const root_result =
+        FileRoot::FromGit(native_storage_config.GitRoot(), *resolved_hash);
+    if (not root_result) {
+        (*logger)(
+            fmt::format("Failed to create git root for {}", *resolved_hash),
+            /*fatal=*/true);
+        return;
+    }
+
+    {
+        // For setting, we need an exclusive lock; so get one after we
+        // dropped the shared one
+        std::unique_lock setting{*config_lock};
+        repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
+                                              *root_result);
+    }
+    (*setter)(*std::move(resolved_hash));
+}
+
 auto FillRoots(
     std::size_t jobs,
     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -487,6 +708,15 @@ auto FillRoots(
                                    jobs,
                                    logger,
                                    setter);
+                }
+                if (auto const tree_structure = key.AsTreeStructure()) {
+                    ComputeTreeStructureAndFill(*tree_structure,
+                                                repository_config,
+                                                storage_config,
+                                                config_lock,
+                                                git_lock,
+                                                logger,
+                                                setter);
                 }
             },
             annotated_logger);
