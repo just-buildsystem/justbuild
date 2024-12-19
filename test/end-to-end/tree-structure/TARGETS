@@ -4,9 +4,15 @@
   , "test": ["basic.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "mr_setup":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["mr_setup"]
+  , "test": ["mr_setup.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["tree-structure"]
-  , "deps": ["basic"]
+  , "deps": ["basic", "mr_setup"]
   }
 }
