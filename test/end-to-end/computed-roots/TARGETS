@@ -25,6 +25,12 @@
   , "test": ["mr_computed_setup.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "mr_take_over":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["mr_take_over"]
+  , "test": ["mr_take_over.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "error-reporting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["error-reporting"]
@@ -88,6 +94,7 @@
     , "error-remote"
     , "error-reporting"
     , "mr_computed_setup"
+    , "mr_take_over"
     , "remote sharding"
     ]
   }
