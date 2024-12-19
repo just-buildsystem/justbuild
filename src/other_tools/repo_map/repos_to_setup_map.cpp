@@ -33,8 +33,8 @@
 #include "src/other_tools/ops_maps/content_cas_map.hpp"
 #include "src/other_tools/ops_maps/git_tree_fetch_map.hpp"
 #include "src/other_tools/utils/parse_archive.hpp"
-#include "src/other_tools/utils/parse_computed_root.hpp"
 #include "src/other_tools/utils/parse_git_tree.hpp"
+#include "src/other_tools/utils/parse_precomputed_root.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -637,45 +637,39 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
         });
 }
 
-void ComputedRootCheckout(ExpressionPtr const& repo_desc,
-                          ExpressionPtr&& repos,
-                          std::string const& repo_name,
-                          ReposToSetupMap::SetterPtr const& setter,
-                          ReposToSetupMap::SubCallerPtr const& subcaller,
-                          ReposToSetupMap::LoggerPtr const& logger) {
-    auto const parser = ComputedRootParser::Create(&repo_desc);
-    if (not parser) {
-        (*logger)(
-            fmt::format("ComputedRootCheckout: Not a computed repository: {}",
-                        nlohmann::json(repo_name).dump()),
-            /*fatal=*/true);
-        return;
-    }
-    auto result_root = parser->GetResult();
-    if (not result_root) {
-        (*logger)(fmt::format("ComputedRootCheckout: parsing repository {} "
-                              "failed with:\n{}",
+void PrecomputedRootCheckout(ExpressionPtr const& repo_desc,
+                             ExpressionPtr&& repos,
+                             std::string const& repo_name,
+                             ReposToSetupMap::SetterPtr const& setter,
+                             ReposToSetupMap::SubCallerPtr const& subcaller,
+                             ReposToSetupMap::LoggerPtr const& logger) {
+    auto precomputed = ParsePrecomputedRoot(repo_desc);
+    if (not precomputed) {
+        (*logger)(fmt::format("Checkout of precomputed root {} failed:\n{}",
                               nlohmann::json(repo_name).dump(),
-                              std::move(result_root).error()),
+                              std::move(precomputed).error()),
                   /*fatal=*/true);
         return;
     }
-    std::string target_repo = result_root->repository;
+
+    std::string target_repo = precomputed->GetReferencedRepository();
     (*subcaller)(
         {std::move(target_repo)},
         [setter,
          repos = std::move(repos),
          repo_name,
-         result = *std::move(result_root)](auto const& /*unused*/) {
+         result = *std::move(precomputed)](auto const& /*unused*/) {
             nlohmann::json cfg{};
             auto& ws_root = cfg["workspace_root"];
             SetReposTakeOver(&cfg, repos, repo_name);
 
-            ws_root.push_back("computed");
-            ws_root.push_back(result.repository);
-            ws_root.push_back(result.target_module);
-            ws_root.push_back(result.target_name);
-            ws_root.push_back(result.config);
+            if (auto computed = result.AsComputed()) {
+                ws_root.push_back(ComputedRoot::kMarker);
+                ws_root.push_back(computed->repository);
+                ws_root.push_back(computed->target_module);
+                ws_root.push_back(computed->target_name);
+                ws_root.push_back(computed->config);
+            }
             std::invoke(*setter, std::move(cfg));
         },
         logger);
@@ -867,12 +861,12 @@ auto CreateReposToSetupMap(
                     break;
                 }
                 case CheckoutType::Computed: {
-                    ComputedRootCheckout(*resolved_repo_desc,
-                                         std::move(repos),
-                                         key,
-                                         setter,
-                                         subcaller,
-                                         wrapped_logger);
+                    PrecomputedRootCheckout(*resolved_repo_desc,
+                                            std::move(repos),
+                                            key,
+                                            setter,
+                                            subcaller,
+                                            wrapped_logger);
                     break;
                 }
             }

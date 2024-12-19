@@ -95,14 +95,13 @@
     ]
   , "stage": ["src", "other_tools", "utils"]
   }
-, "parse_computed_root":
+, "parse_precomputed_root":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["parse_computed_root"]
-  , "hdrs": ["parse_computed_root.hpp"]
-  , "srcs": ["parse_computed_root.cpp"]
+  , "name": ["parse_precomputed_root"]
+  , "hdrs": ["parse_precomputed_root.hpp"]
+  , "srcs": ["parse_precomputed_root.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    [ ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/file_system", "precomputed_root"]
     , ["src/utils/cpp", "expected"]
     ]

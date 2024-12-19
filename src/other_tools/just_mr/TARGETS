@@ -103,9 +103,10 @@
     [ "exit_codes"
     , ["@", "json", "", "json"]
     , ["src/buildtool/file_system", "file_system_manager"]
+    , ["src/buildtool/file_system", "precomputed_root"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/other_tools/utils", "parse_computed_root"]
+    , ["src/other_tools/utils", "parse_precomputed_root"]
     , ["src/utils/cpp", "expected"]
     ]
   }

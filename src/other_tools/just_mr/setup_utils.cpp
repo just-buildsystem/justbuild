@@ -29,10 +29,11 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/other_tools/just_mr/exit_codes.hpp"
-#include "src/other_tools/utils/parse_computed_root.hpp"
+#include "src/other_tools/utils/parse_precomputed_root.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
@@ -58,16 +59,14 @@ void WarnUnknownKeys(std::string const& name, ExpressionPtr const& repo_def) {
     }
 }
 
-[[nodiscard]] auto GetTargetRepoIfComputed(ExpressionPtr const& repo)
+[[nodiscard]] auto GetTargetRepoIfPrecomputed(ExpressionPtr const& repo)
     -> std::optional<std::string> {
     if (not repo.IsNotNull() or not repo->IsMap()) {
         return std::nullopt;
     }
     auto const repository = repo->Get("repository", Expression::none_t{});
-    if (auto const crparser = ComputedRootParser::Create(&repository)) {
-        if (auto target_repo = crparser->GetTargetRepository()) {
-            return std::move(target_repo).value();
-        }
+    if (auto const precomputed = ParsePrecomputedRoot(repository)) {
+        return precomputed->GetReferencedRepository();
     }
     return std::nullopt;
 }
@@ -101,7 +100,8 @@ void ReachableRepositories(
         WarnUnknownKeys(repo_name, repos_repo_name);
 
         // If the current repo is a computed one, process its target repo
-        if (auto computed_target = GetTargetRepoIfComputed(repos_repo_name)) {
+        if (auto computed_target =
+                GetTargetRepoIfPrecomputed(repos_repo_name)) {
             to_process.push(*std::move(computed_target));
         }
 
@@ -125,7 +125,7 @@ void ReachableRepositories(
 
                 // If the overlay repo is a computed one, process its target
                 // repo
-                if (auto computed_target = GetTargetRepoIfComputed(
+                if (auto computed_target = GetTargetRepoIfPrecomputed(
                         repos->Get(layer_repo_name, Expression::none_t{}))) {
                     to_process.push(*std::move(computed_target));
                 }
