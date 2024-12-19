@@ -87,19 +87,32 @@ def report(s: Optional[str]) -> None:
     log("" if s is None else f"\033[38;2;50;205;50mINFO:\033[0m {s}")
 
 
-def run_cmd(cmd: List[str],
-            *,
-            env: Optional[Any] = None,
-            stdout: Optional[Any] = subprocess.DEVNULL,
-            stdin: Optional[Any] = None,
-            cwd: str,
-            fail_context: Optional[str] = None) -> bytes:
-    """Run a specific command. Use fail_context for context-specific logging."""
-    result = subprocess.run(cmd, cwd=cwd, env=env, stdout=stdout, stdin=stdin)
-    if result.returncode != 0:
-        s = "" if fail_context is None else "%s\n" % (fail_context, )
-        fail("%sCommand %s in %s failed" % (s, cmd, cwd))
-    return result.stdout
+def run_cmd(
+    cmd: List[str],
+    *,
+    env: Optional[Any] = None,
+    stdout: Optional[Any] = subprocess.DEVNULL,
+    stdin: Optional[Any] = None,
+    cwd: str,
+    attempts: int = 1,
+    fail_context: Optional[str] = None,
+) -> Tuple[bytes, int]:
+    """Run a specific command. If fail_context string given, exit on failure.
+    Expects fail_context to end in a newline."""
+    attempts = max(attempts, 1)  # at least one attempt
+    result: Any = None
+    for _ in range(attempts):
+        result = subprocess.run(cmd,
+                                cwd=cwd,
+                                env=env,
+                                stdout=stdout,
+                                stdin=stdin)
+        if result.returncode == 0:
+            return result.stdout, result.returncode  # return successful result
+    if fail_context is not None:
+        fail("%sCommand %s in %s failed after %d attempt%s" %
+             (fail_context, cmd, cwd, attempts, "" if attempts == 1 else "s"))
+    return result.stdout, result.returncode  # return result of last failure
 
 
 def try_rmtree(tree: str) -> None:
@@ -436,7 +449,7 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
         commit = run_cmd(g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
                          cwd=srcdir,
                          stdout=subprocess.PIPE,
-                         fail_context=fail_context).decode('utf-8').strip()
+                         fail_context=fail_context)[0].decode('utf-8').strip()
         report("Importing remote Git commit %s" % (commit, ))
     else:
         # To get a specified commit, clone the specified branch fully and reset
