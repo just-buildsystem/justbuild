@@ -670,6 +670,10 @@ void PrecomputedRootCheckout(ExpressionPtr const& repo_desc,
                 ws_root.push_back(computed->target_name);
                 ws_root.push_back(computed->config);
             }
+            else if (auto tree_structure = result.AsTreeStructure()) {
+                ws_root.push_back(TreeStructureRoot::kMarker);
+                ws_root.push_back(tree_structure->repository);
+            }
             std::invoke(*setter, std::move(cfg));
         },
         logger);
@@ -860,7 +864,7 @@ auto CreateReposToSetupMap(
                                     wrapped_logger);
                     break;
                 }
-                case CheckoutType::Computed: {
+                case CheckoutType::Precomputed: {
                     PrecomputedRootCheckout(*resolved_repo_desc,
                                             std::move(repos),
                                             key,
