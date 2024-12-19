@@ -637,6 +637,7 @@ void GitTreeCheckout(ExpressionPtr const& repo_desc,
 }
 
 void ComputedRootCheckout(ExpressionPtr const& repo_desc,
+                          ExpressionPtr&& repos,
                           std::string const& repo_name,
                           ReposToSetupMap::SetterPtr const& setter,
                           ReposToSetupMap::SubCallerPtr const& subcaller,
@@ -661,9 +662,14 @@ void ComputedRootCheckout(ExpressionPtr const& repo_desc,
     std::string target_repo = result_root->repository;
     (*subcaller)(
         {std::move(target_repo)},
-        [setter, result = *std::move(result_root)](auto const& /*unused*/) {
+        [setter,
+         repos = std::move(repos),
+         repo_name,
+         result = *std::move(result_root)](auto const& /*unused*/) {
             nlohmann::json cfg{};
             auto& ws_root = cfg["workspace_root"];
+            SetReposTakeOver(&cfg, repos, repo_name);
+
             ws_root.push_back("computed");
             ws_root.push_back(result.repository);
             ws_root.push_back(result.target_module);
@@ -861,6 +867,7 @@ auto CreateReposToSetupMap(
                 }
                 case CheckoutType::Computed: {
                     ComputedRootCheckout(*resolved_repo_desc,
+                                         std::move(repos),
                                          key,
                                          setter,
                                          subcaller,
