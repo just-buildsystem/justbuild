@@ -92,7 +92,8 @@ EOF
 echo
 cat repos.in.json
 
-"${JUST_LOCK}" -C repos.in.json -o repos.json
+echo
+"${JUST_LOCK}" -C repos.in.json -o repos.json --local-build-root "${LBR}" 2>&1
 
 echo
 cat repos.json

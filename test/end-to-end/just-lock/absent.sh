@@ -17,6 +17,7 @@
 set -eu
 
 readonly JUST_LOCK="${PWD}/bin/lock-tool-under-test"
+readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly REPO_DIRS="${TEST_TMPDIR}/repos"
 readonly WRKDIR="${PWD}"
 
@@ -85,7 +86,9 @@ cat > repos.in.json <<EOF
   ]
 }
 EOF
-"${JUST_LOCK}" -C repos.in.json -o repos.json
+echo
+"${JUST_LOCK}" -C repos.in.json -o repos.json --local-build-root "${LBR}" 2>&1
+echo
 cat repos.json
 echo
 

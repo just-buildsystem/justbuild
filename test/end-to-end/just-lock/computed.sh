@@ -98,8 +98,11 @@ cat > repos.in.json <<EOF
 }
 EOF
 
-"${JUST_LOCK}" -C repos.in.json -o repos.json
+echo
+"${JUST_LOCK}" -C repos.in.json -o repos.json --local-build-root "${LBR}" 2>&1
+echo
 cat repos.json
+echo
 
 cat > generate.py <<'EOF'
 import json
@@ -198,14 +201,17 @@ cat > repos.in.json <<EOF
   ]
 }
 EOF
-"${JUST_LOCK}" -C repos.in.json -o repos.json
-
+echo
+"${JUST_LOCK}" -C repos.in.json -o repos.json --local-build-root "${LBR}" 2>&1
 echo
 cat repos.json
-grep DoNotImport && exit 1 || :  # we should not bring in unneeded bindings
 echo
+
+grep DoNotImport && exit 1 || :  # we should not bring in unneeded bindings
+
 "${JUST_MR}" -C repos.json --norc --just "${JUST}" \
              --local-build-root "${LBR}" analyse \
              -L '["env", "PATH='"${PATH}"'"]' 2>&1
+echo
 
 echo "OK"
