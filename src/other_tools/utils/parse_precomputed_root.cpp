@@ -60,6 +60,15 @@ namespace {
                                       ? config->ToJson()
                                       : nlohmann::json::object()};
 }
+
+[[nodiscard]] auto ParseTreeStructureRoot(ExpressionPtr const& repository)
+    -> expected<TreeStructureRoot, std::string> {
+    auto const repo = repository->Get("repo", Expression::none_t{});
+    if (not repo.IsNotNull()) {
+        return unexpected<std::string>{"Mandatory key \"repo\" is missing"};
+    }
+    return TreeStructureRoot{.repository = repo->String()};
+}
 }  // namespace
 
 auto ParsePrecomputedRoot(ExpressionPtr const& repository)
@@ -84,6 +93,13 @@ auto ParsePrecomputedRoot(ExpressionPtr const& repository)
             return unexpected{std::move(computed).error()};
         }
         return PrecomputedRoot{*std::move(computed)};
+    }
+    if (type_marker == TreeStructureRoot::kMarker) {
+        auto tree_structure = ParseTreeStructureRoot(repository);
+        if (not tree_structure) {
+            return unexpected{std::move(tree_structure).error()};
+        }
+        return PrecomputedRoot{*std::move(tree_structure)};
     }
     return unexpected{
         fmt::format("Unknown type {} of precomputed repository", type_marker)};
