@@ -224,11 +224,9 @@ auto TargetService::ServeTarget(
     }
 
     // get a target cache instance with the correct computed shard
-    auto shard = remote_config->remote_address
-                     ? std::make_optional(execution_backend_dgst->hash())
-                     : std::nullopt;
-    auto const& tc = local_context_.storage->TargetCache().WithShard(shard);
-    auto const& tc_key =
+    auto const tc = local_context_.storage->TargetCache().WithShard(
+        execution_backend_dgst->hash());
+    auto const tc_key =
         TargetCacheKey{{*target_cache_key_digest, ObjectType::File}};
 
     // check if target-level cache entry has already been computed

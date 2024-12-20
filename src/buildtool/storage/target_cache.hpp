@@ -56,21 +56,26 @@ class TargetCache {
         gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
         GenerationConfig const& config,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker)
-        : cas_{*cas},
-          file_store_{config.target_cache /
-                      config.storage_config->backend_description_id},
-          uplinker_{*uplinker},
-          explicit_shard_{std::nullopt} {}
+        : TargetCache(cas,
+                      config.target_cache,
+                      uplinker,
+                      config.storage_config->backend_description_id) {}
 
     /// \brief Returns a new TargetCache backed by the same CAS, but the
-    /// FileStorage uses the given \p shard. This is particularly useful for the
-    /// just-serve server implementation, since the sharding must be performed
-    /// according to the client's request and not following the server
-    /// configuration. It is caller's responsibility to check that \p shard is a
-    /// valid path.
-    [[nodiscard]] auto WithShard(const std::optional<std::string>& shard) const
+    /// FileStorage uses the given \p backend_description 's hash. This is
+    /// particularly useful for the just-serve server implementation, since the
+    /// sharding must be performed according to the client's request and not
+    /// following the server configuration.
+    [[nodiscard]] auto WithShard(std::string backend_description) const
         -> TargetCache {
-        return shard ? TargetCache<kDoGlobalUplink>(*this, *shard) : *this;
+        if (backend_description_id_ == backend_description) {
+            return *this;
+        }
+
+        return TargetCache(&cas_,
+                           file_store_.StorageRoot().parent_path(),
+                           &uplinker_,
+                           std::move(backend_description));
     }
 
     TargetCache(TargetCache const&) = default;
@@ -131,15 +136,17 @@ class TargetCache {
                 /*kSetEpochTime=*/false>
         file_store_;
     Uplinker<kDoGlobalUplink> const& uplinker_;
-    std::optional<std::string> explicit_shard_{std::nullopt};
+    std::string const backend_description_id_;
 
-    explicit TargetCache(TargetCache const& other,
-                         std::string const& explicit_shard)
-        : cas_{other.cas_},
-          file_store_{other.file_store_.StorageRoot().parent_path() /
-                      explicit_shard},
-          uplinker_{other.uplinker_},
-          explicit_shard_{explicit_shard} {}
+    explicit TargetCache(
+        gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
+        std::filesystem::path const& root,
+        gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker,
+        std::string backend_description_id)
+        : cas_{*cas},
+          file_store_{root / backend_description_id},
+          uplinker_{*uplinker},
+          backend_description_id_{std::move(backend_description_id)} {}
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)
