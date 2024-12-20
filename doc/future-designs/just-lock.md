@@ -294,6 +294,9 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   being that the referenced source repository is not a Git remote, but an
   archive, such as a release tarball.
 
+  A field `"subdir"` is provided to account for the fact that source repository
+  root often is not the root directory of the unpacked archive.
+
   Proposed format:
   ``` jsonc
   { "source": "archive"
@@ -311,9 +314,13 @@ The type of a _source_ is defined by the string value of the mandatory subfield
     ]
   // fields related to obtaining source config
   , "fetch": "<URL>"          // mandatory
-  , "content": "<HASH>"       // optional; if missing, always fetch
-  , "sha256": "<HASH>"        // optional checksum
-  , "sha512": "<HASH>"        // optional checksum
+  , "type": "tar|zip"         // optional; type of archive in set ["tar", "zip"]; if missing, default to "tar"
+  , "mirrors": ["..."]        // optional
+  , "subdir": "<REL_PATH>"    // optional; relative path defining the actual root of the source repository;
+                              // if missing, the source root is the root directory of the unpacked archive
+  , "content": "<HASH>"       // optional; if missing, always fetch; if given, will be checked
+  , "sha256": "<HASH>"        // optional checksum; if given, will be checked
+  , "sha512": "<HASH>"        // optional checksum; if given, will be checked
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
   , "as_plain": false         // optional; corresponds to `plain` var (option --plain)
   }
