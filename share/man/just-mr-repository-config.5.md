@@ -190,6 +190,19 @@ The following fields are supported:
    the export target. This entry is optional and defaults to the
    empty map.
 
+### *`"tree structure"`*
+
+It evaluates to the given root but with all files and symlinks
+replaced by empty blobs. A tree structure root is given by a
+content-fixed workspace of a repository. Tree structure roots
+themselves are content fixed; the dependency of tree structure
+roots on one another must be cycle free.
+
+The following fields are supported:
+
+ - *`"repo"`* specifies the repository whose workspace root must
+   be evaluated. This entry is mandatory.
+
 ### Additional keys
 
 The key *`"pragma"`* is reserved for type-specific repository directives
