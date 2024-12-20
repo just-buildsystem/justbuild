@@ -87,7 +87,7 @@ The following fields are supported.
   the archive content for an *`"archive"`* repository.
 
 - *`"name"`* specifies the name the content should have in the defined root.
-  It has to be a plain file name without implicitly specified sudirs. This
+  It has to be a plain file name without implicitly specified subdirs. This
   field is mandatory.
 
 - *`"executable"`* is a boolean indicating whether the fetched file should
@@ -274,7 +274,7 @@ following fields are supported:
 
  - *`"main"`* contains a JSON string that determines which of the
    provided repositories is considered the main repository. This entry
-   is optional, and if ommitted, it will be ommitted in the generated
+   is optional, and if omitted, it will be omitted in the generated
    **`just-repository-config`**.
 
  - *`"repositories"`* contains a JSON object, where each key is the
