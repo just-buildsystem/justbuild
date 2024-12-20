@@ -14,6 +14,7 @@
 # limitations under the License.
 
 import fcntl
+import hashlib
 import json
 import os
 import shutil
@@ -324,6 +325,17 @@ def rewrite_file_repo(repo: Json, remote_type: str,
         if not Path(path).is_absolute():
             changes["path"] = str(Path(root) / path)
         return dict(repo, **changes)
+    elif remote_type in ["archive", "zip"]:
+        # for imports from archives, file repos become archive type with subdir;
+        # any path is prepended by the subdir provided in the input file, if any
+        changes = {}
+        subdir = repo.get("path", ".")
+        if subdir not in ["", "."]:
+            existing = remote_stub.get("subdir", ".")
+            if existing not in ["", "."]:
+                subdir = os.path.join(existing, subdir)
+            changes["subdir"] = subdir
+        return dict(remote_stub, **changes)
     fail("Unsupported remote type!")
 
 
@@ -552,6 +564,68 @@ def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
 
 
 ###
+# CAS utils
+##
+
+
+def gc_storage_lock_acquire(is_shared: bool = False) -> TextIO:
+    """Acquire garbage collector file lock for the local storage."""
+    # use same naming scheme as in Just
+    return lock_acquire(os.path.join(g_ROOT, "protocol-dependent", "gc.lock"),
+                        is_shared)
+
+
+def git_hash(content: bytes, type: str = "blob") -> Tuple[str, bytes]:
+    """Hash content as a Git object. Returns the hash, as well as the header to
+    be stored."""
+    header = "{} {}\0".format(type, len(content)).encode('utf-8')
+    h = hashlib.sha1()
+    h.update(header)
+    h.update(content)
+    return h.hexdigest(), header
+
+
+def add_to_cas(data: Union[str, bytes]) -> Tuple[str, str]:
+    """Add content to local file CAS and return its CAS location and hash."""
+    try:
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        h, _ = git_hash(data)
+        cas_root = os.path.join(
+            g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
+        basename = h[2:]
+        target = os.path.join(cas_root, basename)
+        tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
+
+        if os.path.exists(target):
+            return target, h
+
+        os.makedirs(cas_root, exist_ok=True)
+        with open(tempname, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.chmod(f.fileno(), 0o444)
+            os.fsync(f.fileno())
+        os.utime(tempname, (0, 0))
+        os.rename(tempname, target)
+        return target, h
+    except Exception as ex:
+        fail("Adding content to CAS failed with:\n%r" % (ex, ))
+
+
+def cas_path(h: str) -> str:
+    """Get path to local file CAS."""
+    return os.path.join(
+        g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}",
+        h[2:])
+
+
+def is_in_cas(h: str) -> bool:
+    """Check if content is in local file CAS."""
+    return os.path.exists(cas_path(h))
+
+
+###
 # Import from Git
 ##
 
@@ -751,6 +825,11 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
     return core_repos
 
 
+###
+# Import from file
+##
+
+
 def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
     """Handles imports from a local checkout."""
     # Set granular logging message
@@ -832,6 +911,282 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
                                    foreign_config,
                                    fail_context=fail_context)
 
+    return core_repos
+
+
+###
+# Import from archive
+##
+
+
+def archive_fetch(locations: List[str],
+                  *,
+                  content: Optional[str],
+                  sha256: Optional[str] = None,
+                  sha512: Optional[str] = None,
+                  fail_context: str) -> str:
+    """Make sure an archive is available in local CAS. Try all the remote
+    locations given. Return the content hash on success."""
+    if content is None or not is_in_cas(content):
+        fetched: bool = False
+        for source in locations:
+            data, err_code = run_cmd(g_LAUNCHER + ["wget", "-O", "-", source],
+                                     stdout=subprocess.PIPE,
+                                     cwd=os.getcwd())
+            if err_code == 0:
+                # Compare with checksums, if given
+                if sha256 is not None:
+                    actual_hash = hashlib.sha256(data).hexdigest()
+                    if sha256 != actual_hash:
+                        continue
+                if sha512 is not None:
+                    actual_hash = hashlib.sha512(data).hexdigest()
+                    if sha512 != actual_hash:
+                        continue
+                # Add to CAS and compare with expected content, if given
+                _, computed_hash = add_to_cas(data)
+                if content is not None:
+                    if content != computed_hash:
+                        continue
+                    fetched = True
+                    break
+                else:
+                    content = computed_hash
+                    fetched = True
+                    break
+
+        if not fetched:
+            fail(fail_context +
+                 "Failed to fetch archive.\nTried locations:\n%s" %
+                 ("\n".join(["\t%s" % (x, ) for x in locations]), ))
+
+    return cast(str, content)
+
+
+def unpack_archive(content_id: str, *, archive_type: str, unpack_to: str,
+                   fail_context: str) -> None:
+    """Unpack archive stored as a local CAS blob into a given directory."""
+    fail_context += "While unpacking archive %s:\n" % (cas_path(content_id), )
+    # ensure destination path is valid
+    if os.path.exists(unpack_to):
+        if not os.path.isdir(unpack_to):
+            fail(fail_context +
+                 "Unpack location %s exists and is not a directory!" %
+                 (unpack_to, ))
+        if os.listdir(unpack_to):
+            fail(fail_context + "Cannot unpack to nonempty directory %s" %
+                 (unpack_to, ))
+    else:
+        os.makedirs(unpack_to, exist_ok=True)
+    # unpack based on archive type
+    if archive_type == "zip":
+        # try as zip and 7z archives
+        if run_cmd(g_LAUNCHER + ["unzip", "-d", ".",
+                                 cas_path(content_id)],
+                   cwd=unpack_to,
+                   fail_context=None)[1] != 0 and run_cmd(
+                       g_LAUNCHER + ["7z", "x", cas_path(content_id)],
+                       cwd=unpack_to,
+                       fail_context=None)[1] != 0:
+            fail(fail_context + "Failed to extract zip-like archive %s" %
+                 (cas_path(content_id), ))
+    else:
+        # try as tarball
+        if run_cmd(g_LAUNCHER + ["tar", "xf", cas_path(content_id)],
+                   cwd=unpack_to,
+                   fail_context=None)[1] != 0:
+            fail(fail_context + "Failed to extract tarball %s" %
+                 (cas_path(content_id), ))
+    return
+
+
+def archive_checkout(fetch: str, *, archive_type: str, content: Optional[str],
+                     mirrors: List[str], sha256: Optional[str],
+                     sha512: Optional[str], subdir: Optional[str],
+                     fail_context: str) -> Tuple[str, Dict[str, Any], str]:
+    """Fetch a given remote archive to local CAS, unpack it, check content,
+    and return the checkout location."""
+    fail_context += "While checking out archive %r:\n" % (fetch)
+    if content is None:
+        # If content is not known, get it from the definitive source location
+        content = archive_fetch([fetch],
+                                content=None,
+                                sha256=sha256,
+                                sha512=sha512,
+                                fail_context=fail_context)
+    else:
+        # If content known, try the mirrors first, as they are closer
+        archive_fetch(mirrors + [fetch],
+                      content=content,
+                      sha256=sha256,
+                      sha512=sha512,
+                      fail_context=fail_context)
+
+    workdir: str = tempfile.mkdtemp()
+    unpack_archive(content,
+                   archive_type=archive_type,
+                   unpack_to=workdir,
+                   fail_context=fail_context)
+    srcdir = (workdir if subdir is None else os.path.join(workdir, subdir))
+
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    repo_stub: Dict[str, Any] = {
+        "type": "zip" if archive_type == "zip" else "archive",
+        "fetch": fetch,
+        "content": content,
+    }
+    if mirrors:
+        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
+    if sha256 is not None:
+        repo_stub = dict(repo_stub, **{"sha256": sha256})
+    if sha512 is not None:
+        repo_stub = dict(repo_stub, **{"sha512": sha512})
+    if subdir is not None:
+        repo_stub = dict(repo_stub, **{"subdir": subdir})
+    return srcdir, repo_stub, workdir
+
+
+def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
+    """Handles imports from archive-type repositories."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"archive\":\n"
+
+    # Get the repositories list
+    repos: List[Any] = imports_entry.get("repos", [])
+    if not isinstance(repos, list):
+        fail(fail_context +
+             "Expected field \"repos\" to be a list, but found:\n%r" %
+             (json.dumps(repos, indent=2), ))
+
+    # Check if anything is to be done
+    if not repos:  # empty
+        return core_repos
+
+    # Parse source config fields
+    fetch: str = imports_entry.get("fetch", None)
+    if not isinstance(fetch, str):
+        fail(fail_context +
+             "Expected field \"fetch\" to be a string, but found:\n%r" %
+             (json.dumps(fetch, indent=2), ))
+
+    archive_type: str = "archive"  # type according to 'just-mr'
+    tmp_type: Optional[str] = imports_entry.get("type", None)
+    if tmp_type is not None:
+        if not isinstance(tmp_type, str):
+            fail(fail_context +
+                 "Expected field \"type\" to be a string, but found:\n%r" %
+                 (json.dumps(tmp_type, indent=2), ))
+        if tmp_type not in ["tar", "zip"]:  # values expected in input file
+            warn(
+                fail_context +
+                "Field \"type\" has unsupported value %r\nTrying with default value 'tar'"
+                % (json.dumps(tmp_type), ))
+        else:
+            archive_type = "zip" if tmp_type == "zip" else "archive"
+
+    content: Optional[str] = imports_entry.get("content", None)
+    if content is not None and not isinstance(content, str):
+        fail(fail_context +
+             "Expected field \"content\" to be a string, but found:\n%r" %
+             (json.dumps(content, indent=2), ))
+
+    mirrors: Optional[List[str]] = imports_entry.get("mirrors", [])
+    if mirrors is not None and not isinstance(mirrors, list):
+        fail(fail_context +
+             "Expected field \"mirrors\" to be a list, but found:\n%r" %
+             (json.dumps(mirrors, indent=2), ))
+
+    sha256: Optional[str] = imports_entry.get("sha256", None)
+    if sha256 is not None and not isinstance(sha256, str):
+        fail(fail_context +
+             "Expected field \"sha256\" to be a string, but found:\n%r" %
+             (json.dumps(sha256, indent=2), ))
+
+    sha512: Optional[str] = imports_entry.get("sha512", None)
+    if sha512 is not None and not isinstance(sha512, str):
+        fail(fail_context +
+             "Expected field \"sha512\" to be a string, but found:\n%r" %
+             (json.dumps(sha512, indent=2), ))
+
+    subdir: Optional[str] = imports_entry.get("subdir", None)
+    if subdir is not None:
+        if not isinstance(subdir, str):
+            fail(fail_context +
+                 "Expected field \"subdir\" to be a string, but found:\n%r" %
+                 (json.dumps(subdir, indent=2), ))
+        if subdir in ["", "."]:
+            subdir = None  # treat as if missing
+        elif os.path.isabs(subdir):
+            fail(
+                fail_context +
+                "Expected field \"subdir\" to be a relative path, but found:\n%r"
+                % (json.dumps(subdir, indent=2), ))
+
+    as_plain: Optional[bool] = imports_entry.get("as_plain", False)
+    if as_plain is not None and not isinstance(as_plain, bool):
+        fail(fail_context +
+             "Expected field \"as_plain\" to be a bool, but found:\n%r" %
+             (json.dumps(as_plain, indent=2), ))
+
+    foreign_config_file: Optional[str] = imports_entry.get("config", None)
+    if foreign_config_file is not None and not isinstance(
+            foreign_config_file, str):
+        fail(fail_context +
+             "Expected field \"config\" to be a string, but found:\n%r" %
+             (json.dumps(foreign_config_file, indent=2), ))
+
+    # Fetch archive to local CAS and unpack
+    srcdir, remote_stub, to_clean_up = archive_checkout(
+        fetch,
+        archive_type=archive_type,
+        content=content,
+        mirrors=mirrors,
+        sha256=sha256,
+        sha512=sha512,
+        subdir=subdir,
+        fail_context=fail_context)
+
+    # Read in the foreign config file
+    if foreign_config_file:
+        foreign_config_file = os.path.join(srcdir, foreign_config_file)
+    else:
+        foreign_config_file = get_repository_config_file(
+            DEFAULT_JUSTMR_CONFIG_NAME, srcdir)
+    foreign_config: Json = {}
+    if as_plain:
+        foreign_config = {"main": "", "repositories": DEFAULT_REPO}
+    else:
+        if (foreign_config_file):
+            try:
+                with open(foreign_config_file) as f:
+                    foreign_config = json.load(f)
+            except OSError:
+                fail(fail_context + "Failed to open foreign config file %s" %
+                     (foreign_config_file, ))
+            except Exception as ex:
+                fail(fail_context +
+                     "Reading foreign config file failed with:\n%r" % (ex, ))
+        else:
+            fail(fail_context +
+                 "Failed to find the repository configuration file!")
+
+    # Process the imported repositories, in order
+    for repo_entry in repos:
+        if not isinstance(repo_entry, dict):
+            fail(fail_context +
+                 "Expected \"repos\" entries to be objects, but found:\n%r" %
+                 (json.dumps(repo_entry, indent=2), ))
+        repo_entry = cast(Json, repo_entry)
+
+        core_repos = handle_import(archive_type,
+                                   remote_stub,
+                                   repo_entry,
+                                   core_repos,
+                                   foreign_config,
+                                   fail_context=fail_context)
+
+    # Clean up local fetch
+    try_rmtree(to_clean_up)
     return core_repos
 
 
@@ -1140,6 +1495,7 @@ def lock_config(input_file: str) -> Json:
 
     # Acquire garbage collector locks
     git_gc_lock = gc_repo_lock_acquire(is_shared=True)
+    storage_gc_lock = gc_storage_lock_acquire(is_shared=True)
 
     # Handle imports
     for entry in imports:
@@ -1160,8 +1516,8 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_file(
                 core_config["repositories"], entry)
         elif source == "archive":
-            # TODO(psarbu): Implement source "archive"
-            warn("Import from source \"archive\" not yet implemented!")
+            core_config["repositories"] = import_from_archive(
+                core_config["repositories"], entry)
         elif source == "git-tree":
             # TODO(psarbu): Implement source "git-tree"
             warn("Import from source \"git-tree\" not yet implemented!")
@@ -1173,6 +1529,7 @@ def lock_config(input_file: str) -> Json:
                  (json.dumps(entry, indent=2), ))
 
     # Release garbage collector locks
+    lock_release(storage_gc_lock)
     lock_release(git_gc_lock)
 
     # Deduplicate output config
