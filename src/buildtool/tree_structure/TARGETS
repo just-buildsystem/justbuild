@@ -7,7 +7,6 @@
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
     , ["src/buildtool/file_system", "file_storage"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/storage", "config"]
