@@ -58,6 +58,16 @@
     , ["end-to-end", "lock-tool-under-test"]
     ]
   }
+, "archive-imports":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["archive-imports"]
+  , "test": ["archive-imports.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -69,7 +79,8 @@
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
-        , "else": ["git-imports", "computed", "file-imports"]
+        , "else":
+          ["git-imports", "computed", "file-imports", "archive-imports"]
         }
       ]
     }
