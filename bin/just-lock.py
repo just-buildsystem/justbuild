@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fcntl
 import json
 import os
 import shutil
@@ -23,7 +24,7 @@ import time
 
 from argparse import ArgumentParser, ArgumentError
 from pathlib import Path
-from typing import Any, Dict, List, NoReturn, Optional, Set, Tuple, Union, cast
+from typing import Any, Dict, List, NoReturn, Optional, Set, TextIO, Tuple, Union, cast
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -47,6 +48,17 @@ DEFAULT_INPUT_CONFIG_NAME: str = "repos.in.json"
 DEFAULT_JUSTMR_CONFIG_NAME: str = "repos.json"
 DEFAULT_CONFIG_DIRS: List[str] = [".", "./etc"]
 """Directories where to look for configuration file inside a root"""
+
+GIT_NOBODY_ENV: Dict[str, str] = {
+    "GIT_AUTHOR_DATE": "1970-01-01T00:00Z",
+    "GIT_AUTHOR_NAME": "Nobody",
+    "GIT_AUTHOR_EMAIL": "nobody@example.org",
+    "GIT_COMMITTER_DATE": "1970-01-01T00:00Z",
+    "GIT_COMMITTER_NAME": "Nobody",
+    "GIT_COMMITTER_EMAIL": "nobody@example.org",
+    "GIT_CONFIG_GLOBAL": "/dev/null",
+    "GIT_CONFIG_SYSTEM": "/dev/null",
+}
 
 ###
 # Global vars
@@ -124,6 +136,29 @@ def try_rmtree(tree: str) -> None:
         except:
             time.sleep(1.0)
     fail("Failed to remove %s" % (tree, ))
+
+
+def lock_acquire(fpath: str, is_shared: bool = False) -> TextIO:
+    """Acquire a lock on a file descriptor. It opens a stream with shared access
+    for given file path and returns it to keep it alive. The lock can only be
+    released by calling lock_release() on this stream."""
+    if os.path.exists(fpath):
+        if os.path.isdir(fpath):
+            fail("Lock path %s is a directory!" % (fpath, ))
+    else:
+        os.makedirs(Path(fpath).parent, exist_ok=True)
+    lockfile = open(fpath, "a+")  # allow shared read and create if on first try
+    fcntl.flock(lockfile.fileno(),
+                fcntl.LOCK_SH if is_shared else fcntl.LOCK_EX)
+    return lockfile
+
+
+def lock_release(lockfile: TextIO) -> None:
+    """Release lock on the file descriptor of the given open stream, then close
+    the stream. Expects the argument to be the output of a previous
+    lock_acquire() call."""
+    fcntl.flock(lockfile.fileno(), fcntl.LOCK_UN)
+    lockfile.close()
 
 
 ###
@@ -430,6 +465,64 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
 ##
 
 
+def gc_repo_lock_acquire(is_shared: bool = False) -> TextIO:
+    """Acquire garbage collector file lock for the Git cache."""
+    # use same naming scheme as in Just
+    return lock_acquire(os.path.join(g_ROOT, "repositories/gc.lock"), is_shared)
+
+
+def git_root(*, upstream: Optional[str]) -> str:
+    """Get the root of specified upstream repository. Passing None always
+    returns the root of the Git cache repository. No checks are made on the
+    returned path."""
+    return (os.path.join(g_ROOT, "repositories/generation-0/git")
+            if upstream is None else upstream)
+
+
+def git_keep(commit: str, *, upstream: Optional[str],
+             fail_context: str) -> None:
+    """Keep commit by tagging it."""
+    git_env = {**os.environ, **GIT_NOBODY_ENV}
+    run_cmd(g_LAUNCHER + [
+        g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
+        "keep-%s" % (commit, ), commit
+    ],
+            cwd=git_root(upstream=upstream),
+            env=git_env,
+            attempts=3,
+            fail_context=fail_context)
+
+
+def ensure_git_init(*,
+                    upstream: Optional[str],
+                    init_bare: bool = True,
+                    fail_context: str) -> None:
+    """Ensure Git repository given by upstream is initialized. Use an exclusive
+    lock to ensure the initialization happens only once."""
+    root: str = git_root(upstream=upstream)
+    # acquire exclusive lock; use same naming scheme as in Just
+    lockfile = lock_acquire(os.path.join(Path(root).parent, "init_open.lock"))
+    # do the critical work
+    if os.path.exists(root):
+        return
+    os.makedirs(root)
+    git_init_cmd: List[str] = [g_GIT, "init"]
+    if init_bare:
+        git_init_cmd += ["--bare"]
+    run_cmd(g_LAUNCHER + git_init_cmd, cwd=root, fail_context=fail_context)
+    # release the exclusive lock
+    lock_release(lockfile)
+
+
+def git_commit_present(commit: str, *, upstream: Optional[str]) -> bool:
+    """Check if commit is present in specified Git repository."""
+    result = subprocess.run(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            cwd=git_root(upstream=upstream))
+    return result.returncode == 0
+
+
 def git_url_is_path(url: str) -> Optional[str]:
     """Get the path a URL refers to if it is in a supported path format,
     and None otherwise."""
@@ -442,6 +535,22 @@ def git_url_is_path(url: str) -> Optional[str]:
     return None
 
 
+def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
+              fetchable: str, fail_context: Optional[str]) -> bool:
+    """Fetch from a given repository a fetchable object (branch or commit) into
+    another repository. A None value for a repository means the Git cache
+    repository is used. Returns success flag of fetch command."""
+    if from_repo is None:
+        from_repo = git_root(upstream=None)
+    else:
+        path_url = git_url_is_path(from_repo)
+        if path_url is not None:
+            from_repo = os.path.abspath(path_url)
+    return run_cmd(g_LAUNCHER + [g_GIT, "fetch", from_repo, fetchable],
+                   cwd=git_root(upstream=to_repo),
+                   fail_context=fail_context)[1] == 0
+
+
 ###
 # Import from Git
 ##
@@ -450,21 +559,21 @@ def git_url_is_path(url: str) -> Optional[str]:
 def git_checkout(url: str, branch: str, *, commit: Optional[str],
                  mirrors: List[str], inherit_env: List[str],
                  fail_context: str) -> Tuple[str, Dict[str, Any], str]:
-    """Clone a given remote Git repository and checkout a specified branch.
+    """Fetch a given remote Git repository and checkout a specified branch.
     Return the checkout location, the repository description stub to use for
     rewriting 'file'-type dependencies, and the temp dir to later clean up."""
     workdir: str = tempfile.mkdtemp()
     srcdir: str = os.path.join(workdir, "src")
-    fetch_url = git_url_is_path(url)
-    if fetch_url is None:
-        fetch_url = url
-    else:
-        fetch_url = os.path.abspath(fetch_url)
 
     fail_context += "While checking out branch %r of %r:\n" % (branch, url)
     if commit is None:
         # If no commit given, do shallow clone and get HEAD commit from
         # definitive source location
+        fetch_url = git_url_is_path(url)
+        if fetch_url is None:
+            fetch_url = url
+        else:
+            fetch_url = os.path.abspath(fetch_url)
         run_cmd(
             g_LAUNCHER +
             [g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"],
@@ -475,37 +584,46 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
                          stdout=subprocess.PIPE,
                          fail_context=fail_context)[0].decode('utf-8').strip()
         report("Importing remote Git commit %s" % (commit, ))
+        # Cache this commit by fetching it to Git cache and tagging it
+        ensure_git_init(upstream=None, fail_context=fail_context)
+        git_fetch(from_repo=srcdir,
+                  to_repo=None,
+                  fetchable=commit,
+                  fail_context=fail_context)
+        git_keep(commit, upstream=None, fail_context=fail_context)
     else:
-        # To get a specified commit, clone the specified branch fully and reset;
-        # Try mirrors first, as they are closer
-        cloned: bool = False
-        for source in mirrors:
-            fetch_source = git_url_is_path(source)
-            if fetch_source is None:
-                fetch_source = source
-            else:
-                fetch_source = os.path.abspath(fetch_source)
-            if (run_cmd(g_LAUNCHER +
-                        [g_GIT, "clone", "-b", branch, fetch_source, "src"],
-                        cwd=workdir,
-                        fail_context=None)[1] == 0
-                    and run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
-                                cwd=srcdir,
-                                fail_context=None)[1] == 0):
-                cloned = True
-                break
-        if not cloned:
-            # Try definitive source location
-            if (run_cmd(g_LAUNCHER +
-                        [g_GIT, "clone", "-b", branch, fetch_url, "src"],
-                        cwd=workdir,
-                        fail_context=None)[1] == 0
-                    and run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
-                                cwd=srcdir,
-                                fail_context=None)[1] != 0):
+        if not git_commit_present(commit, upstream=None):
+            # If commit not in Git cache repository, fetch witnessing branch
+            # from remote into the Git cache repository. Try mirrors first, as
+            # they are closer
+            ensure_git_init(upstream=None, fail_context=fail_context)
+            fetched: bool = False
+            for source in mirrors + [url]:
+                if git_fetch(from_repo=source,
+                             to_repo=None,
+                             fetchable=branch,
+                             fail_context=None) and git_commit_present(
+                                 commit, upstream=None):
+                    fetched = True
+                    break
+            if not fetched:
                 fail(fail_context +
-                     "Failed to clone Git repository.\nTried locations:\n%s" %
-                     ("\n".join(["\t%s" % (x, ) for x in mirrors + [url]]), ))
+                     "Failed to fetch commit %s.\nTried locations:\n%s" % (
+                         commit,
+                         "\n".join(["\t%s" % (x, ) for x in mirrors + [url]]),
+                     ))
+            git_keep(commit, upstream=None, fail_context=fail_context)
+        # Create checkout from commit in Git cache repository
+        ensure_git_init(upstream=srcdir,
+                        init_bare=False,
+                        fail_context=fail_context)
+        git_fetch(from_repo=None,
+                  to_repo=srcdir,
+                  fetchable=commit,
+                  fail_context=fail_context)
+        run_cmd(g_LAUNCHER + [g_GIT, "checkout", commit],
+                cwd=srcdir,
+                fail_context=fail_context)
 
     # Prepare the description stub used to rewrite "file"-type dependencies
     repo_stub: Dict[str, Any] = {
@@ -1020,6 +1138,9 @@ def lock_config(input_file: str) -> Json:
         core_config = dict(core_config, **{"main": main})
     core_config = dict(core_config, **{"repositories": repositories})
 
+    # Acquire garbage collector locks
+    git_gc_lock = gc_repo_lock_acquire(is_shared=True)
+
     # Handle imports
     for entry in imports:
         if not isinstance(entry, dict):
@@ -1050,6 +1171,9 @@ def lock_config(input_file: str) -> Json:
         else:
             fail("Unknown source for import entry \n%r" %
                  (json.dumps(entry, indent=2), ))
+
+    # Release garbage collector locks
+    lock_release(git_gc_lock)
 
     # Deduplicate output config
     core_config = deduplicate(core_config, keep)
