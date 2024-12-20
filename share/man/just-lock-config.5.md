@@ -62,8 +62,8 @@ operation exists as well.
 
 Sources are given as JSON objects for which the string value to the mandatory
 key *`"source"`* defines a supported type. Each source type informs which other
-fields are available. Currently, the supported source types are *`"git"`* and
-*`"file"`*.
+fields are available. Currently, the supported source types are *`"git"`*,
+*`"file"`*, and *`"archive"`*.
 
 ### *`"git"`*
 
@@ -139,6 +139,60 @@ The following fields are supported:
    evaluate to `true`, **`just-lock`**(1) will search for a configuration file
    in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the Git repository.
+
+### *`"archive"`*
+
+It defines an import operation of one or more dependencies from an archived
+Just project.
+
+The following fields are supported:
+
+ - *`"source"`* defines the current *source* type. This entry is mandatory.
+
+ - *`"repos"`* has as value a JSON list where each entry is a
+   *repository import description*. This entry is mandatory. An empty list is
+   treated as if the current *source* object is missing.
+
+ - *`"fetch"`* has a string value defining the URL of the archive. This entry is
+   mandatory.
+
+ - *`"type"`* has a string value providing a supported archive type. This entry
+   is mandatory. Available values are:
+
+    - `"tar"`: a tarball archive
+
+    - `"zip"`: a zip-like archive
+
+ - *`"content"`* has a string value providing the hash of the archive. This
+   entry is optional. If provided, it has to be specified in hex encoding and it
+   must be the Git blob identifier of the archive content. If not provided, it
+   is computed based on the fetched archive.
+
+ - *`"subdir"`* has a string value providing the relative path to the sources
+   root inside the archive. This entry is optional. If missing, the root
+   directory of the unpacked archive is used.
+
+ - *`"sha256"`*
+ - *`"sha512"`* have string values providing respective checksums for the
+   archive. These entries are optional. If provided, they have to be specified
+   in hex encoding and they will be checked for the fetched archive.
+
+ - *`"mirrors"`* has as value a JSON list of strings defining alternative
+   locations for the archive to be used if the given URL fails to provide it.
+   This entry is optional.
+
+ - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+   informs **`just-lock`**(1) to consider the foreign repository configuration
+   to be the canonical one for a single repository. This can be useful if the
+   archived repository does not have a configuration file or should be imported
+   as-is, without dependencies. This entry is optional.
+
+ - *`"config"`* has a string value defining the relative path of the foreign
+   repository configuration file to be considered from the unpacked archive
+   root. This entry is optional. If not provided and the `"as_plain"` field does
+   not evaluate to `true`, **`just-lock`**(1) will search for a configuration
+   file in the same locations as **`just-mr`**(1) does when invoked with
+   **`--norc`** in the root directory of the unpacked archive.
 
 The just-lock configuration format
 ----------------------------------
