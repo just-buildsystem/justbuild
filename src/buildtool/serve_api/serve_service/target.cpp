@@ -213,16 +213,6 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
     }
 
-    // add backend description to CAS
-    auto execution_backend_dgst =
-        local_context_.storage->CAS().StoreBlob(description->GetDescription());
-    if (not execution_backend_dgst) {
-        std::string err{
-            "Failed to store execution backend description in local CAS"};
-        logger_->Emit(LogLevel::Error, err);
-        return ::grpc::Status{::grpc::StatusCode::INTERNAL, err};
-    }
-
     // get a target cache instance with the correct computed shard
     auto const tc =
         local_context_.storage->TargetCache().WithShard(*description);

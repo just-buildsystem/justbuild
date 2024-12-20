@@ -30,6 +30,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -149,7 +150,35 @@ class TargetCache {
               root /
               backend_description.HashContent(cas->GetHashFunction()).hash()},
           uplinker_{*uplinker},
-          backend_description_{std::move(backend_description)} {}
+          backend_description_{std::move(backend_description)} {
+        if constexpr (kDoGlobalUplink) {
+            // Write backend description (which determines the target cache
+            // shard) to CAS. It needs to be added for informational purposes
+            // only, so it is not an error if insertion fails or returns an
+            // unexpected result.
+            auto const id = cas_.StoreBlob(
+                backend_description_.GetDescription(), /*is_executable=*/false);
+
+            auto const expected_hash =
+                file_store_.StorageRoot().filename().string();
+            if (not id) {
+                logger_->Emit(LogLevel::Debug,
+                              "TargetCache: Failed to add backend description "
+                              "{} to the storage:\n{}",
+                              expected_hash,
+                              backend_description_.GetDescription());
+            }
+            else if (id->hash() != expected_hash) {
+                logger_->Emit(LogLevel::Debug,
+                              "TargetCache: backend description was added to "
+                              "the storage with an unexpected hash. Expected "
+                              "{}, added with {}. Content:\n{}",
+                              expected_hash,
+                              id->hash(),
+                              backend_description_.GetDescription());
+            }
+        }
+    }
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)

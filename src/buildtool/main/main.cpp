@@ -26,7 +26,6 @@
 #include <optional>
 #include <set>
 #include <string>
-#include <tuple>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -246,23 +245,6 @@ void SetupLogging(LogArguments const& clargs) {
 
 void SetupFileChunker() {
     FileChunker::Initialize();
-}
-
-/// \brief Write backend description (which determines the target cache shard)
-/// to CAS.
-void StoreTargetCacheShard(
-    Storage const& storage,
-    RemoteExecutionConfig const& remote_exec_config) noexcept {
-    auto backend_description =
-        BackendDescription::Describe(remote_exec_config.remote_address,
-                                     remote_exec_config.platform_properties,
-                                     remote_exec_config.dispatch);
-    if (not backend_description) {
-        Logger::Log(LogLevel::Error, backend_description.error());
-        std::exit(kExitFailure);
-    }
-    std::ignore =
-        storage.CAS().StoreBlob(backend_description->GetDescription());
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -820,7 +802,6 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
-                StoreTargetCacheShard(storage, remote_exec_config);
 
                 // pack the local context instances to be passed as needed
                 LocalContext const local_context{
@@ -886,7 +867,6 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitFailure;
                 }
                 auto const storage = Storage::Create(&*storage_config);
-                StoreTargetCacheShard(storage, *remote_exec_config);
 
                 // pack the local context instances to be passed as needed
                 LocalContext const local_context{
@@ -966,10 +946,6 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
         auto const storage = Storage::Create(&*storage_config);
-
-#ifndef BOOTSTRAP_BUILD_TOOL
-        StoreTargetCacheShard(storage, *remote_exec_config);
-#endif  // BOOTSTRAP_BUILD_TOOL
 
         auto jobs = arguments.build.build_jobs > 0 ? arguments.build.build_jobs
                                                    : arguments.common.jobs;
