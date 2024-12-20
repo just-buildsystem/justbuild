@@ -79,7 +79,7 @@ auto TargetCache<kDoGlobalUplink>::Read(
     if constexpr (kDoGlobalUplink) {
         // Uplink any existing target cache entry in storage generations
         std::ignore =
-            uplinker_.UplinkTargetCacheEntry(key, backend_description_id_);
+            uplinker_.UplinkTargetCacheEntry(key, backend_description_);
     }
 
     auto const entry =

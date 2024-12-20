@@ -224,8 +224,8 @@ auto TargetService::ServeTarget(
     }
 
     // get a target cache instance with the correct computed shard
-    auto const tc = local_context_.storage->TargetCache().WithShard(
-        execution_backend_dgst->hash());
+    auto const tc =
+        local_context_.storage->TargetCache().WithShard(*description);
     auto const tc_key =
         TargetCacheKey{{*target_cache_key_digest, ObjectType::File}};
 

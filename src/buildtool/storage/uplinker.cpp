@@ -100,7 +100,7 @@ auto GlobalUplinker::UplinkActionCacheEntry(
 
 auto GlobalUplinker::UplinkTargetCacheEntry(
     TargetCacheKey const& key,
-    std::string const& backend_description) const noexcept -> bool {
+    BackendDescription const& backend_description) const noexcept -> bool {
     // Try to find target-cache entry in all generations.
     auto const& latest =
         generations_[Generation::kYoungest].TargetCache().WithShard(

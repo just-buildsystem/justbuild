@@ -60,18 +60,16 @@ class TargetCache {
         : TargetCache(cas,
                       config.target_cache,
                       uplinker,
-                      config.storage_config->backend_description
-                          .HashContent(cas->GetHashFunction())
-                          .hash()) {}
+                      config.storage_config->backend_description) {}
 
     /// \brief Returns a new TargetCache backed by the same CAS, but the
     /// FileStorage uses the given \p backend_description 's hash. This is
     /// particularly useful for the just-serve server implementation, since the
     /// sharding must be performed according to the client's request and not
     /// following the server configuration.
-    [[nodiscard]] auto WithShard(std::string backend_description) const
+    [[nodiscard]] auto WithShard(BackendDescription backend_description) const
         -> TargetCache {
-        if (backend_description_id_ == backend_description) {
+        if (backend_description_ == backend_description) {
             return *this;
         }
 
@@ -139,17 +137,19 @@ class TargetCache {
                 /*kSetEpochTime=*/false>
         file_store_;
     Uplinker<kDoGlobalUplink> const& uplinker_;
-    std::string const backend_description_id_;
+    BackendDescription const backend_description_;
 
     explicit TargetCache(
         gsl::not_null<LocalCAS<kDoGlobalUplink> const*> const& cas,
         std::filesystem::path const& root,
         gsl::not_null<Uplinker<kDoGlobalUplink> const*> const& uplinker,
-        std::string backend_description_id)
+        BackendDescription backend_description)
         : cas_{*cas},
-          file_store_{root / backend_description_id},
+          file_store_{
+              root /
+              backend_description.HashContent(cas->GetHashFunction()).hash()},
           uplinker_{*uplinker},
-          backend_description_id_{std::move(backend_description_id)} {}
+          backend_description_{std::move(backend_description)} {}
 
     template <bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)
