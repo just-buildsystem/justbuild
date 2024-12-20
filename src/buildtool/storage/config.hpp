@@ -154,14 +154,9 @@ struct StorageConfig final {
     };
 
     [[nodiscard]] auto DefaultBackendDescriptionId() noexcept -> std::string {
-        try {
-            return ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                       hash_function,
-                       DescribeBackend(std::nullopt, {}, {}).value())
-                .hash();
-        } catch (...) {
-            return std::string();
-        }
+        return ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                   hash_function, BackendDescription{}.GetDescription())
+            .hash();
     }
 };
 
@@ -225,12 +220,12 @@ class StorageConfig::Builder final {
 
         // Hash the execution backend description
         auto backend_description_id = default_config.backend_description_id;
-        auto desc = DescribeBackend(
+        auto desc = BackendDescription::Describe(
             remote_address_, remote_platform_properties_, remote_dispatch_);
         if (desc) {
             backend_description_id =
                 ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                    hash_function, *desc)
+                    hash_function, desc->GetDescription())
                     .hash();
         }
         else {

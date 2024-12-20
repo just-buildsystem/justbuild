@@ -202,9 +202,10 @@ auto TargetService::ServeTarget(
     }
 
     // get backend description
-    auto description = DescribeBackend(remote_config->remote_address,
-                                       remote_config->platform_properties,
-                                       remote_config->dispatch);
+    auto description =
+        BackendDescription::Describe(remote_config->remote_address,
+                                     remote_config->platform_properties,
+                                     remote_config->dispatch);
     if (not description) {
         auto err = fmt::format("Failed to create backend description:\n{}",
                                description.error());
@@ -214,7 +215,7 @@ auto TargetService::ServeTarget(
 
     // add backend description to CAS
     auto execution_backend_dgst =
-        local_context_.storage->CAS().StoreBlob(*description);
+        local_context_.storage->CAS().StoreBlob(description->GetDescription());
     if (not execution_backend_dgst) {
         std::string err{
             "Failed to store execution backend description in local CAS"};

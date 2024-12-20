@@ -162,10 +162,17 @@
   , "hdrs": ["backend_description.hpp"]
   , "srcs": ["backend_description.cpp"]
   , "deps":
-    [ ["src/buildtool/common/remote", "remote_common"]
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "storage"]
-  , "private-deps": [["@", "fmt", "", "fmt"], ["@", "json", "", "json"]]
+  , "private-deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/file_system", "object_type"]
+    ]
   }
 }

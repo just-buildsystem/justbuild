@@ -19,11 +19,24 @@
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 
-auto DescribeBackend(std::optional<ServerAddress> const& address,
-                     ExecutionProperties const& properties,
-                     std::vector<DispatchEndpoint> const& dispatch) noexcept
-    -> expected<std::string, std::string> {
+BackendDescription::BackendDescription() noexcept {
+    if (auto dummy = Describe(
+            /*address=*/std::nullopt, /*properties=*/{}, /*dispatch=*/{})) {
+        description_ = dummy->description_;
+    }
+    else {
+        description_ = std::make_shared<std::string>();
+    }
+}
+
+auto BackendDescription::Describe(
+    std::optional<ServerAddress> const& address,
+    ExecutionProperties const& properties,
+    std::vector<DispatchEndpoint> const& dispatch) noexcept
+    -> expected<BackendDescription, std::string> {
     nlohmann::json description;
     try {
         description["remote_address"] =
@@ -54,16 +67,32 @@ auto DescribeBackend(std::optional<ServerAddress> const& address,
                 "Failed to serialize endpoint dispatch list:\n{}", e.what())};
         }
     }
+
+    std::shared_ptr<std::string> result;
+    std::shared_ptr<std::string> sha256;
     try {
         // json::dump with json::error_handler_t::replace will not throw an
         // exception if invalid UTF-8 sequences are detected in the input.
         // Instead, it will replace them with the UTF-8 replacement
         // character, but still it needs to be inside a try-catch clause to
         // ensure the noexcept modifier of the enclosing function.
-        return description.dump(
-            2, ' ', false, nlohmann::json::error_handler_t::replace);
+        result = std::make_shared<std::string>(description.dump(
+            2, ' ', false, nlohmann::json::error_handler_t::replace));
+
+        std::string hash =
+            ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                HashFunction(HashFunction::Type::PlainSHA256), *result)
+                .hash();
+        sha256 = std::make_shared<std::string>(std::move(hash));
     } catch (std::exception const& e) {
         return unexpected{fmt::format(
             "Failed to dump backend description to JSON:\n{}", e.what())};
     }
+    return BackendDescription(std::move(result), std::move(sha256));
+}
+
+auto BackendDescription::HashContent(HashFunction hash_function) const noexcept
+    -> ArtifactDigest {
+    return ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+        hash_function, GetDescription());
 }

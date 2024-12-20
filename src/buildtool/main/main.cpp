@@ -248,14 +248,15 @@ void StoreTargetCacheShard(
     Storage const& storage,
     RemoteExecutionConfig const& remote_exec_config) noexcept {
     auto backend_description =
-        DescribeBackend(remote_exec_config.remote_address,
-                        remote_exec_config.platform_properties,
-                        remote_exec_config.dispatch);
+        BackendDescription::Describe(remote_exec_config.remote_address,
+                                     remote_exec_config.platform_properties,
+                                     remote_exec_config.dispatch);
     if (not backend_description) {
         Logger::Log(LogLevel::Error, backend_description.error());
         std::exit(kExitFailure);
     }
-    std::ignore = storage.CAS().StoreBlob(*backend_description);
+    std::ignore =
+        storage.CAS().StoreBlob(backend_description->GetDescription());
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
