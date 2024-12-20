@@ -358,8 +358,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     std::optional<LockFile> compat_lock = std::nullopt;
     IExecutionApi::Ptr compat_local_api = nullptr;
     if (common_args.compatible) {
-        auto config = StorageConfig::Builder{}
-                          .SetBuildRoot(native_storage_config.build_root)
+        auto config = StorageConfig::Builder::Rebuild(native_storage_config)
                           .SetHashType(HashFunction::Type::PlainSHA256)
                           .Build();
         if (not config) {

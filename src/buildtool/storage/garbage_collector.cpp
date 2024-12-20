@@ -220,15 +220,14 @@ auto GarbageCollector::Compactify(StorageConfig const& storage_config,
     // Compactification must be done for both native and compatible storages.
     static constexpr std::array kHashes = {HashFunction::Type::GitSHA1,
                                            HashFunction::Type::PlainSHA256};
-    auto builder = StorageConfig::Builder{}
-                       .SetBuildRoot(storage_config.build_root)
-                       .SetNumGenerations(storage_config.num_generations);
 
     return std::all_of(
         kHashes.begin(),
         kHashes.end(),
-        [threshold, &builder](HashFunction::Type hash_type) {
-            auto const config = builder.SetHashType(hash_type).Build();
+        [threshold, &storage_config](HashFunction::Type hash_type) {
+            auto const config = StorageConfig::Builder::Rebuild(storage_config)
+                                    .SetHashType(hash_type)
+                                    .Build();
             if (not config) {
                 return false;
             }

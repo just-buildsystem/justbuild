@@ -1019,22 +1019,12 @@ auto main(int argc, char* argv[]) -> int {
         std::size_t eval_root_jobs =
             std::lround(std::ceil(std::sqrt(arguments.common.jobs)));
 #ifndef BOOTSTRAP_BUILD_TOOL
-        const bool need_rehash =
-            arguments.protocol.hash_type != HashFunction::Type::GitSHA1;
-        const auto git_storage_config =
-            need_rehash ? CreateStorageConfig(arguments.endpoint,
-                                              HashFunction::Type::GitSHA1)
-                        : std::nullopt;
-        if (need_rehash and (not git_storage_config)) {
-            return kExitFailure;
-        }
         std::optional<ServeApi> serve = ServeApi::Create(
             *serve_config, &local_context, &remote_context, &main_apis);
         if (not EvaluatePrecomputedRoots(&repo_config,
                                          main_repo,
                                          serve ? &*serve : nullptr,
                                          *storage_config,
-                                         git_storage_config,
                                          traverse_args,
                                          &exec_context,
                                          eval_root_jobs)) {

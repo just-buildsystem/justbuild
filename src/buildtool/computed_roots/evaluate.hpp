@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_COMPUTED_ROOT_EVALUTE_HPP
 
 #include <cstddef>
-#include <optional>
 #include <string>
 
 #include "gsl/gsl"
@@ -31,7 +30,6 @@ auto EvaluatePrecomputedRoots(
     std::string const& main_repo,
     ServeApi const* serve,
     StorageConfig const& storage_config,
-    std::optional<StorageConfig> const& git_storage_config,
     GraphTraverser::CommandLineArguments const& traverser_args,
     gsl::not_null<const ExecutionContext*> const& context,
     std::size_t jobs) -> bool;

@@ -148,8 +148,7 @@ auto ServeServerImpl::Run(
     auto const is_compat = not ProtocolTraits::IsNative(hash_type);
     if (is_compat) {
         auto config =
-            StorageConfig::Builder{}
-                .SetBuildRoot(local_context->storage_config->build_root)
+            StorageConfig::Builder::Rebuild(*local_context->storage_config)
                 .SetHashType(HashFunction::Type::GitSHA1)
                 .Build();
         if (not config) {

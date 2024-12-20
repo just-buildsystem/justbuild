@@ -151,6 +151,20 @@ struct StorageConfig final {
 
 class StorageConfig::Builder final {
   public:
+    explicit Builder() = default;
+
+    /// \brief Create a configurable builder from an existing config.
+    /// Useful, for example, to make a copy of an existing config and change
+    /// the hash type.
+    [[nodiscard]] static auto Rebuild(StorageConfig const& config) noexcept
+        -> Builder {
+        return Builder{}
+            .SetBuildRoot(config.build_root)
+            .SetNumGenerations(config.num_generations)
+            .SetHashType(config.hash_function.GetType())
+            .SetBackendDescription(config.backend_description);
+    }
+
     auto SetBuildRoot(std::filesystem::path value) noexcept -> Builder& {
         build_root_ = std::move(value);
         return *this;

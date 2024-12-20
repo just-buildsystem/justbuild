@@ -493,10 +493,7 @@ void ComputeTreeStructureAndFill(
     // Since tree structure works with git trees, a native storage is required.
     std::optional<StorageConfig> substitution_storage_config;
     if (not ProtocolTraits::IsNative(storage_config->hash_function.GetType())) {
-        // Only build root and the hash_type are important:
-        auto config = StorageConfig::Builder{}
-                          .SetBuildRoot(storage_config->build_root)
-                          .SetNumGenerations(storage_config->num_generations)
+        auto config = StorageConfig::Builder::Rebuild(*storage_config)
                           .SetHashType(HashFunction::Type::GitSHA1)
                           .Build();
         if (not config) {
@@ -731,7 +728,6 @@ auto EvaluatePrecomputedRoots(
     std::string const& main_repo,
     ServeApi const* serve,
     StorageConfig const& storage_config,
-    std::optional<StorageConfig> const& git_storage_config,
     GraphTraverser::CommandLineArguments const& traverser_args,
     gsl::not_null<const ExecutionContext*> const& context,
     std::size_t jobs) -> bool {
@@ -757,15 +753,24 @@ auto EvaluatePrecomputedRoots(
         }
 
         // Prepare rehash-function, if rehashing is required
-        const bool needs_rehash =
-            git_storage_config and
-            (git_storage_config->hash_function.GetType() !=
-             storage_config.hash_function.GetType());
-        auto rehash =
-            needs_rehash
-                ? std::make_optional<RehashUtils::Rehasher>(
-                      storage_config, *git_storage_config, context->apis)
-                : std::nullopt;
+        std::optional<RehashUtils::Rehasher> rehash;
+        if (not ProtocolTraits::IsNative(
+                storage_config.hash_function.GetType())) {
+            auto native_storage_config =
+                StorageConfig::Builder::Rebuild(storage_config)
+                    .SetHashType(HashFunction::Type::GitSHA1)
+                    .Build();
+            if (not native_storage_config) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Failed to create native storage config for rehashing:\n{}",
+                    std::move(native_storage_config).error());
+                return false;
+            }
+            rehash.emplace(storage_config,
+                           *std::move(native_storage_config),
+                           context->apis);
+        }
 
         // Our RepositoryConfig is a bit problematic: it cannot be copied, hence
         // we have to change in place. Moreover, it is tread-safe for read
