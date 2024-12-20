@@ -9,7 +9,6 @@
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]

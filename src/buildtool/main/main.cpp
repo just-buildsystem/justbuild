@@ -134,16 +134,22 @@ void SetupLogging(LogArguments const& clargs) {
         builder.SetBuildRoot(*eargs.local_root);
     }
 
+    auto backend_description = BackendDescription::Describe(
+        remote_address, remote_platform_properties, remote_dispatch);
+    if (not backend_description) {
+        Logger::Log(LogLevel::Error, std::move(backend_description).error());
+        return std::nullopt;
+    }
+
     auto config =
         builder.SetHashType(hash_type)
-            .SetRemoteExecutionArgs(
-                remote_address, remote_platform_properties, remote_dispatch)
+            .SetBackendDescription(std::move(backend_description).value())
             .Build();
-    if (config) {
-        return *std::move(config);
+    if (not config) {
+        Logger::Log(LogLevel::Error, std::move(config).error());
+        return std::nullopt;
     }
-    Logger::Log(LogLevel::Error, config.error());
-    return std::nullopt;
+    return *std::move(config);
 }
 
 #ifndef BOOTSTRAP_BUILD_TOOL

@@ -59,11 +59,11 @@
   , "private-deps":
     [ "graph_traverser_tests"
     , ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/buildtool/storage", "backend_description"]
     , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["@", "src", "src/utils/cpp", "expected"]

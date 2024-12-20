@@ -20,14 +20,12 @@
 #include <optional>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -179,13 +177,8 @@ class StorageConfig::Builder final {
         return *this;
     }
 
-    auto SetRemoteExecutionArgs(std::optional<ServerAddress> address,
-                                ExecutionProperties properties,
-                                std::vector<DispatchEndpoint> dispatch) noexcept
-        -> Builder& {
-        remote_address_ = std::move(address);
-        remote_platform_properties_ = std::move(properties);
-        remote_dispatch_ = std::move(dispatch);
+    auto SetBackendDescription(BackendDescription value) noexcept -> Builder& {
+        backend_description_ = std::move(value);
         return *this;
     }
 
@@ -220,16 +213,11 @@ class StorageConfig::Builder final {
 
         // Hash the execution backend description
         auto backend_description_id = default_config.backend_description_id;
-        auto desc = BackendDescription::Describe(
-            remote_address_, remote_platform_properties_, remote_dispatch_);
-        if (desc) {
+        if (backend_description_) {
             backend_description_id =
                 ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                    hash_function, desc->GetDescription())
+                    hash_function, backend_description_->GetDescription())
                     .hash();
-        }
-        else {
-            return unexpected{desc.error()};
         }
 
         return StorageConfig{
@@ -243,11 +231,7 @@ class StorageConfig::Builder final {
     std::optional<std::filesystem::path> build_root_;
     std::optional<std::size_t> num_generations_;
     std::optional<HashFunction::Type> hash_type_;
-
-    // Fields for computing remote execution backend description
-    std::optional<ServerAddress> remote_address_;
-    ExecutionProperties remote_platform_properties_;
-    std::vector<DispatchEndpoint> remote_dispatch_;
+    std::optional<BackendDescription> backend_description_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_STORAGE_CONFIG_HPP

@@ -15,15 +15,15 @@
 #include <cstdlib>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <utility>
-#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -43,12 +43,19 @@
         std::exit(EXIT_FAILURE);
     }
 
+    auto backend_description =
+        BackendDescription::Describe(remote_config.remote_address,
+                                     remote_config.platform_properties,
+                                     remote_config.dispatch);
+    if (not backend_description) {
+        Logger::Log(LogLevel::Error, std::move(backend_description).error());
+        std::exit(EXIT_FAILURE);
+    }
+
     StorageConfig::Builder builder;
     auto config = builder.SetBuildRoot(cache_dir)
                       .SetHashType(TestHashType::ReadFromEnvironment())
-                      .SetRemoteExecutionArgs(remote_config.remote_address,
-                                              remote_config.platform_properties,
-                                              remote_config.dispatch)
+                      .SetBackendDescription(*std::move(backend_description))
                       .Build();
     if (not config) {
         Logger::Log(LogLevel::Error, config.error());
