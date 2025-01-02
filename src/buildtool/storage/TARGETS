@@ -6,12 +6,9 @@
     [ "backend_description"
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "tmp_dir"]
@@ -51,7 +48,8 @@
     ]
   , "srcs": ["target_cache_entry.cpp", "uplinker.cpp"]
   , "deps":
-    [ "config"
+    [ "backend_description"
+    , "config"
     , "file_chunker"
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]

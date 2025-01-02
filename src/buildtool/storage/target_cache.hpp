@@ -31,6 +31,7 @@
 #include "src/buildtool/file_system/file_storage.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/backend_description.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
 #include "src/buildtool/storage/target_cache_entry.hpp"
@@ -59,7 +60,9 @@ class TargetCache {
         : TargetCache(cas,
                       config.target_cache,
                       uplinker,
-                      config.storage_config->backend_description_id) {}
+                      config.storage_config->backend_description
+                          .HashContent(cas->GetHashFunction())
+                          .hash()) {}
 
     /// \brief Returns a new TargetCache backed by the same CAS, but the
     /// FileStorage uses the given \p backend_description 's hash. This is

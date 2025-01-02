@@ -23,12 +23,9 @@
 
 #include "fmt/core.h"
 #include "gsl/gsl"
-#include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/backend_description.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
@@ -65,7 +62,7 @@ struct StorageConfig final {
     HashFunction const hash_function{HashFunction::Type::GitSHA1};
 
     // Hash of the execution backend description
-    std::string const backend_description_id = DefaultBackendDescriptionId();
+    BackendDescription const backend_description;
 
     /// \brief Root directory of all storage generations.
     [[nodiscard]] auto CacheRoot() const noexcept -> std::filesystem::path {
@@ -150,12 +147,6 @@ struct StorageConfig final {
         bool is_native) -> std::filesystem::path {
         return dir / (is_native ? "git-sha1" : "compatible-sha256");
     };
-
-    [[nodiscard]] auto DefaultBackendDescriptionId() noexcept -> std::string {
-        return ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                   hash_function, BackendDescription{}.GetDescription())
-            .hash();
-    }
 };
 
 class StorageConfig::Builder final {
@@ -212,19 +203,16 @@ class StorageConfig::Builder final {
                                        : default_config.hash_function;
 
         // Hash the execution backend description
-        auto backend_description_id = default_config.backend_description_id;
+        auto backend_description = default_config.backend_description;
         if (backend_description_) {
-            backend_description_id =
-                ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                    hash_function, backend_description_->GetDescription())
-                    .hash();
+            backend_description = *backend_description_;
         }
 
         return StorageConfig{
             .build_root = std::move(build_root),
             .num_generations = num_generations,
             .hash_function = hash_function,
-            .backend_description_id = std::move(backend_description_id)};
+            .backend_description = std::move(backend_description)};
     }
 
   private:
