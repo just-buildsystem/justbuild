@@ -110,6 +110,24 @@ auto SymlinksResolveToPragmaSpecial(
 
 }  // namespace
 
+auto SourceTreeService::EnsureGitCacheRoot()
+    -> expected<std::monostate, std::string> {
+    // make sure the git root directory is properly initialized
+    if (not FileSystemManager::CreateDirectory(
+            native_context_->storage_config->GitRoot())) {
+        return unexpected{
+            fmt::format("Could not create Git cache root {}",
+                        native_context_->storage_config->GitRoot().string())};
+    }
+    if (not GitRepo::InitAndOpen(native_context_->storage_config->GitRoot(),
+                                 true)) {
+        return unexpected{
+            fmt::format("Could not initialize Git cache repository {}",
+                        native_context_->storage_config->GitRoot().string())};
+    }
+    return std::monostate{};
+}
+
 auto SourceTreeService::GetSubtreeFromCommit(
     std::filesystem::path const& repo_path,
     std::string const& commit,
@@ -213,6 +231,13 @@ auto SourceTreeService::ServeCommitTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ServeCommitTreeResponse* response) -> ::grpc::Status {
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ServeCommitTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // get lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
     if (not repo_lock) {
@@ -812,6 +837,13 @@ auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ServeArchiveTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
     if (not repo_lock) {
@@ -1014,14 +1046,6 @@ auto SourceTreeService::DistdirImportToGit(
         content_list,
     bool sync_tree,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
-    auto repo_lock = RepositoryGarbageCollector::SharedLock(
-        *native_context_->storage_config);
-    if (not repo_lock) {
-        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
-        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
-        return ::grpc::Status::OK;
-    }
-
     // create tmp directory for the distdir
     auto distdir_tmp_dir =
         native_context_->storage_config->CreateTypedTmpDir("distdir");
@@ -1104,6 +1128,20 @@ auto SourceTreeService::ServeDistdirTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // get gc lock for Git cache
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
+    if (not repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
     // acquire lock for native CAS
     auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
@@ -1351,6 +1389,13 @@ auto SourceTreeService::ServeContent(
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
 
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ServeContentResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1453,6 +1498,13 @@ auto SourceTreeService::ServeTree(
     ServeTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
 
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ServeTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1554,6 +1606,14 @@ auto SourceTreeService::CheckRootTree(
     const ::justbuild::just_serve::CheckRootTreeRequest* request,
     CheckRootTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
+
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1674,7 +1734,23 @@ auto SourceTreeService::GetRemoteTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::GetRemoteTreeRequest* request,
     GetRemoteTreeResponse* response) -> ::grpc::Status {
+
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     // acquire locks
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
+    if (not repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
     auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
     if (not lock) {
         logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");

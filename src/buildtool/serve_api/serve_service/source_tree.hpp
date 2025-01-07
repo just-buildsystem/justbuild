@@ -23,6 +23,7 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 
 #include <grpcpp/grpcpp.h>
 
@@ -141,6 +142,11 @@ class SourceTreeService final
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
     // symlinks resolver map
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};
+
+    /// \brief Ensure that the Git cache repository exists.
+    /// \returns Error message on failure.
+    [[nodiscard]] auto EnsureGitCacheRoot()
+        -> expected<std::monostate, std::string>;
 
     /// \brief Check if commit exists and tries to get the subtree if found.
     /// \returns The subtree hash on success or an unexpected error (fatal or
