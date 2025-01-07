@@ -9,8 +9,10 @@ A feature release on top of `1.4.0`, backwards compatible.
   result in a segmentation fault.
 - Git operations are now properly locked against each other, also
   between processes where necessary.
+- The Git cache root repository on a `just serve` endpoint is now
+  ensured to always exist and be initialized before being operated on.
 - `just install-cas` correctly exits with non-zero exit code on
-  failure, also if isntallation to stdout is requested.
+  failure, also if installation to stdout is requested.
 - `just traverse` now exits unconditionally after traversal, also
   in case of failure.
 - Missing entries in the documentation have been added.
