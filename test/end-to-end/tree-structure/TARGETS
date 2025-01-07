@@ -10,6 +10,12 @@
   , "test": ["mr_setup.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "precomputed_indirection":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["precomputed_indirection"]
+  , "test": ["precomputed_indirection.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["tree-structure"]
