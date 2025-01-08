@@ -179,7 +179,13 @@ EOF
 "${GIT_IMPORT}" -C repos.template.json --as foo -b foomaster "${REPO_DIRS}/foo" \
     | "${GIT_IMPORT}" -C - --as bar -b barmaster "${REPO_DIRS}/bar" \
     | "${GIT_IMPORT}" -C - -b barmaster "${REPO_DIRS}/bar" bar_root \
-    > repos-full.json
+    > repos-full.template.json
+
+# Test deduplication takes into account target repos of precomputed roots 
+# as well. 'repo' isn't used directly, but it can shadow 'bar_root/root' 
+# during deduplication:
+"${GIT_IMPORT}" -C repos-full.template.json -b barmaster "${REPO_DIRS}/bar" \
+  root > repos-full.json
 
 echo
 cat repos-full.json
