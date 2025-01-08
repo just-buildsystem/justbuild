@@ -494,6 +494,12 @@ Supported by: analyse|build|install.
 After building, print the specified artifact to stdout.  
 Supported by: build|install|rebuild|traverse.
 
+**`-p`**, **`--print-unique-artifact`**  
+After building, print the unique artifact to stdout, if any. If
+the option **`-P`** is given or the number of artifacts is not
+precisely one, this option has no effect.  
+Supported by: build|install|rebuild|traverse.
+
 **`-s`**, **`--show-runfiles`**  
 Do not omit runfiles in build report.  
 Supported by: build|install|rebuild|traverse.

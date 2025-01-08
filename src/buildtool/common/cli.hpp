@@ -114,6 +114,7 @@ struct BuildArguments {
     std::size_t build_jobs{};
     std::optional<std::string> dump_artifacts{std::nullopt};
     std::optional<std::string> print_to_stdout{std::nullopt};
+    bool print_unique{false};
     bool show_runfiles{false};
 };
 
@@ -533,6 +534,10 @@ static inline auto SetupExtendedBuildArguments(
                     clargs->print_to_stdout,
                     "After building, print the specified artifact to stdout.")
         ->type_name("LOGICAL_PATH");
+
+    app->add_flag("-p,--print-unique-artifact",
+                  clargs->print_unique,
+                  "Print the unique artifact, if any, to stdout.");
 }
 
 static inline auto SetupTCArguments(gsl::not_null<CLI::App*> const& app,

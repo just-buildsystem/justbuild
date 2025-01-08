@@ -44,6 +44,9 @@ cat out.json
 # Requesting foo/bar gives a human-readable description of the tree
 "${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo/bar  | grep baz
 
+# ... and so does asking for the unique artifact
+"${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -p | grep baz
+
 # going deepter into the tree we stil can get human-readable tree descriptions
 "${JUST}" build -L '["env", "PATH='"${PATH}"'"]' --local-build-root "${BUILDROOT}" -P foo/bar/baz/greeting  | grep hello.txt
 

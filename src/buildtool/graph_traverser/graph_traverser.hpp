@@ -158,7 +158,13 @@ class GraphTraverser {
                          rel_paths,
                          artifact_nodes,
                          runfile_descriptions);
-            MaybePrintToStdout(rel_paths, artifact_nodes);
+            MaybePrintToStdout(
+                rel_paths,
+                artifact_nodes,
+                artifact_descriptions.size() == 1
+                    ? std::optional<std::string>{artifact_descriptions.begin()
+                                                     ->first}
+                    : std::nullopt);
             return BuildResult{.output_paths = std::move(rel_paths),
                                .extra_infos = std::move(infos),
                                .failed_artifacts = failed_artifacts};
@@ -182,7 +188,13 @@ class GraphTraverser {
                      artifact_nodes,
                      runfile_descriptions);
 
-        MaybePrintToStdout(rel_paths, artifact_nodes);
+        MaybePrintToStdout(
+            rel_paths,
+            artifact_nodes,
+            artifact_descriptions.size() == 1
+                ? std::optional<std::string>{artifact_descriptions.begin()
+                                                 ->first}
+                : std::nullopt);
 
         return BuildResult{.output_paths = *output_paths,
                            .extra_infos = std::move(infos),
@@ -671,8 +683,8 @@ class GraphTraverser {
 
     void MaybePrintToStdout(
         std::vector<std::filesystem::path> const& paths,
-        std::vector<DependencyGraph::ArtifactNode const*> const& artifacts)
-        const {
+        std::vector<DependencyGraph::ArtifactNode const*> const& artifacts,
+        std::optional<std::string> const& unique_artifact) const {
         if (clargs_.build.print_to_stdout) {
             auto const& remote = *context_.apis->remote;
             for (std::size_t i = 0; i < paths.size(); i++) {
@@ -750,6 +762,38 @@ class GraphTraverser {
                         LogLevel::Warning,
                         "{} not a logical path of the specified target",
                         *(clargs_.build.print_to_stdout));
+        }
+        else if (clargs_.build.print_unique) {
+            if (unique_artifact) {
+                auto const& remote = *context_.apis->remote;
+                std::optional<Artifact::ObjectInfo> info = std::nullopt;
+                for (std::size_t i = 0; i < paths.size(); i++) {
+                    if (paths[i] == unique_artifact) {
+                        info = artifacts[i]->Content().Info();
+                    }
+                }
+                if (info) {
+                    if (not remote.RetrieveToFds({*info},
+                                                 {dup(fileno(stdout))},
+                                                 /*raw_tree=*/false,
+                                                 &*context_.apis->local)) {
+                        Logger::Log(logger_,
+                                    LogLevel::Error,
+                                    "Failed to retrieve {}",
+                                    *unique_artifact);
+                    }
+                }
+                else {
+                    Logger::Log(logger_,
+                                LogLevel::Error,
+                                "Failed to obtain object information for {}",
+                                *unique_artifact);
+                }
+                return;
+            }
+            Logger::Log(logger_,
+                        LogLevel::Info,
+                        "Target does not have precisely one artifact.");
         }
     }
 };
