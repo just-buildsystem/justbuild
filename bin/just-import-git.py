@@ -168,7 +168,7 @@ def get_repo_to_import(config: Json) -> str:
 
 def get_target_if_computed_repo(repo: Json) -> Optional[str]:
     """If repository is computed, return the target repository name."""
-    if repo.get("type") == "computed":
+    if repo.get("type") in ["computed", "tree structure"]:
         return cast(str, repo.get("repo"))
     return None
 
@@ -276,7 +276,7 @@ def rewrite_repo(repo_spec: Json,
         existing_repos: List[str] = repo.get("repositories", [])
         new_repos = [assign[k] for k in existing_repos]
         repo = dict(repo, **{"repositories": new_repos})
-    elif repo.get("type") == "computed":
+    elif repo.get("type") in ["computed", "tree structure"]:
         target: str = repo.get("repo", None)
         repo = dict(repo, **{"repo": assign[target]})
     if absent and isinstance(repo, dict):
