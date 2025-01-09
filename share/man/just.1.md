@@ -487,7 +487,7 @@ element per failure, where the element is a pair (array of length
 2) consisting of the configured target (serialized, as usual, as a
 pair of qualified target name an configuration) and a string with
 the hex representation of the blob identifier of the log; the log
-itself is guaranteed to be available on the remote-execution side.
+itself is guaranteed to be available on the remote-execution side.  
 Supported by: analyse|build|install.
 
 **`-P`**, **`--print-to-stdout`** *`LOGICAL_PATH`*  
