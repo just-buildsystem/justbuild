@@ -62,6 +62,7 @@
   , "deps":
     [ ["", "mr-tool-under-test"]
     , ["", "tool-under-test"]
+    , ["end-to-end", "deduplicate-tool-under-test"]
     , ["end-to-end", "git-import-under-test"]
     ]
   }

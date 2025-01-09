@@ -16,6 +16,7 @@
 set -e
 
 readonly ROOT="${PWD}"
+readonly DEDUPLICATE="${ROOT}/bin/deduplicate-tool-under-test"
 readonly GIT_IMPORT="${ROOT}/bin/git-import-under-test"
 readonly JUST="${ROOT}/bin/tool-under-test"
 readonly JUST_MR="${ROOT}/bin/mr-tool-under-test"
@@ -201,11 +202,35 @@ cat repos.template.json
 echo repos-full.json
 cat repos-full.json
 
-# Check the result can be built after imports:
+# Dump the graph before deduplication:
 echo
 "${JUST_MR}" -C repos-full.json --norc --just "${JUST}" \
+             --local-build-root "${LBR}" --main "result" analyse \
+             -L '["env", "PATH='"${PATH}"'"]' \
+             --dump-plain-graph actions-full.json 2>&1
+
+# Run deduplication:
+echo
+cat repos-full.json | "${DEDUPLICATE}" 2>&1 > repos.json
+cat repos.json
+echo
+
+# Dump the graph after deduplication:
+"${JUST_MR}" -C repos.json --norc --just "${JUST}" \
+             --local-build-root "${LBR}" --main "result" analyse \
+             -L '["env", "PATH='"${PATH}"'"]' \
+             --dump-plain-graph actions.json 2>&1
+
+# Verify that we reduced the number of repositories, but did
+# not change the action graph (except for the origins of the actions).
+[ $(jq -aM '.repositories | length' repos.json) -lt $(jq -aM '.repositories | length' repos-full.json) ]
+cmp actions-full.json actions.json
+
+# Check the result can be built after deduplication:
+echo
+"${JUST_MR}" -C repos.json --norc --just "${JUST}" \
              --local-build-root "${LBR}" --main "result" \
              install -L '["env", "PATH='"${PATH}"'"]' \
-             -o "${OUT}/result-full" 2>&1
+             -o "${OUT}/result" 2>&1
 
 echo OK
