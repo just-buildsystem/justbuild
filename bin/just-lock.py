@@ -258,8 +258,8 @@ def name_imports(to_import: List[str],
     return assign
 
 
-def rewrite_file_repo(repo: Json, remote_type: str, remote: Dict[str,
-                                                                 Any]) -> Json:
+def rewrite_file_repo(repo: Json, remote_type: str,
+                      remote_stub: Dict[str, Any]) -> Json:
     """Rewrite \"file\"-type descriptions based on remote type."""
     if remote_type == "git":
         # for imports from Git, file repos become type 'git' with subdir
@@ -267,11 +267,11 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote: Dict[str,
         subdir = repo.get("path", ".")
         if subdir not in ["", "."]:
             changes["subdir"] = subdir
-        return dict(remote, **changes)
+        return dict(remote_stub, **changes)
     elif remote_type == "file":
         # for imports from local checkouts, file repos remain type 'file'
         changes = {}
-        root: str = remote["path"]
+        root: str = remote_stub["path"]
         path = repo.get("path", ".")
         if not Path(path).is_absolute():
             changes["path"] = str(Path(root) / path)
@@ -282,7 +282,7 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote: Dict[str,
 def rewrite_repo(repo_spec: Json,
                  *,
                  remote_type: str,
-                 remote: Dict[str, Any],
+                 remote_stub: Dict[str, Any],
                  assign: Json,
                  absent: bool,
                  as_layer: bool = False) -> Json:
@@ -293,7 +293,7 @@ def rewrite_repo(repo_spec: Json,
         repo = assign[repo]
     elif repo.get("type") == "file":
         # "file"-type repositories need to be rewritten based on remote type
-        repo = rewrite_file_repo(repo, remote_type, remote)
+        repo = rewrite_file_repo(repo, remote_type, remote_stub)
     elif repo.get("type") == "distdir":
         existing_repos: List[str] = repo.get("repositories", [])
         new_repos = [assign[k] for k in existing_repos]
@@ -321,8 +321,8 @@ def rewrite_repo(repo_spec: Json,
     return new_spec
 
 
-def handle_import(remote_type: str, remote: Dict[str, Any], repo_desc: Json,
-                  core_repos: Json, foreign_config: Json,
+def handle_import(remote_type: str, remote_stub: Dict[str, Any],
+                  repo_desc: Json, core_repos: Json, foreign_config: Json, *,
                   fail_context: str) -> Json:
     """General handling of repository import from a foreign config."""
 
@@ -398,13 +398,13 @@ def handle_import(remote_type: str, remote: Dict[str, Any], repo_desc: Json,
     for repo in ordered_imports:
         core_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
                                                 remote_type=remote_type,
-                                                remote=remote,
+                                                remote_stub=remote_stub,
                                                 assign=total_assign,
                                                 absent=absent)
     for repo in extra_imports:
         core_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
                                                 remote_type=remote_type,
-                                                remote=remote,
+                                                remote_stub=remote_stub,
                                                 assign=total_assign,
                                                 absent=absent,
                                                 as_layer=True)
@@ -420,8 +420,9 @@ def handle_import(remote_type: str, remote: Dict[str, Any], repo_desc: Json,
 def git_checkout(url: str, branch: str, *, commit: Optional[str],
                  mirrors: List[str],
                  inherit_env: List[str]) -> Tuple[str, Dict[str, Any], str]:
-    """Clone a given remote Git repository, checkout a specified branch,
-    and return the checkout location."""
+    """Clone a given remote Git repository and checkout a specified branch.
+    Return the checkout location, the repository description stub to use for
+    rewriting 'file'-type dependencies, and the temp dir to later clean up."""
     workdir: str = tempfile.mkdtemp()
     srcdir: str = os.path.join(workdir, "src")
 
@@ -445,17 +446,18 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
         run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
                 cwd=srcdir,
                 fail_context=fail_context)
-    repo: Dict[str, Any] = {
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    repo_stub: Dict[str, Any] = {
         "type": "git",
         "repository": url,
         "branch": branch,
         "commit": commit,
     }
     if mirrors:
-        repo = dict(repo, **{"mirrors": mirrors})
+        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
     if inherit_env:
-        repo = dict(repo, **{"inherit env": inherit_env})
-    return srcdir, repo, workdir
+        repo_stub = dict(repo_stub, **{"inherit env": inherit_env})
+    return srcdir, repo_stub, workdir
 
 
 def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
@@ -519,11 +521,11 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
              (json.dumps(foreign_config_file, indent=2), ))
 
     # Fetch the source Git repository
-    srcdir, remote, to_clean_up = git_checkout(url,
-                                               branch,
-                                               commit=commit,
-                                               mirrors=mirrors,
-                                               inherit_env=inherit_env)
+    srcdir, remote_stub, to_clean_up = git_checkout(url,
+                                                    branch,
+                                                    commit=commit,
+                                                    mirrors=mirrors,
+                                                    inherit_env=inherit_env)
 
     # Read in the foreign config file
     if foreign_config_file:
@@ -557,8 +559,12 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import("git", remote, repo_entry, core_repos,
-                                   foreign_config, fail_context)
+        core_repos = handle_import("git",
+                                   remote_stub,
+                                   repo_entry,
+                                   core_repos,
+                                   foreign_config,
+                                   fail_context=fail_context)
 
     # Clean up local fetch
     try_rmtree(to_clean_up)
@@ -624,7 +630,9 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
         else:
             fail(fail_context +
                  "Failed to find the repository configuration file!")
-    remote: Dict[str, Any] = {
+
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    remote_stub: Dict[str, Any] = {
         "type": "file",
         "path": path,
     }
@@ -637,8 +645,12 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import("file", remote, repo_entry, core_repos,
-                                   foreign_config, fail_context)
+        core_repos = handle_import("file",
+                                   remote_stub,
+                                   repo_entry,
+                                   core_repos,
+                                   foreign_config,
+                                   fail_context=fail_context)
 
     return core_repos
 
