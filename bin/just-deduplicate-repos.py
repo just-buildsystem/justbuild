@@ -69,10 +69,11 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
         elif a["type"] == "git":
             return (a["commit"] == b["commit"]
                     and a.get("subdir", ".") == b.get("subdir", "."))
-        elif a["type"] == "computed":
-            if (a.get("config", {}) != b.get("config", {})
-                    or a["target"] != b["target"]):
-                return False
+        elif a["type"] in ["computed", "tree structure"]:
+            if a["type"] == "computed":
+                if (a.get("config", {}) != b.get("config", {})
+                        or a["target"] != b["target"]):
+                    return False
             if a["repo"] == b["repo"]:
                 return True
             elif is_different(a["repo"], b["repo"]):
@@ -280,7 +281,7 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
             # Update target repos of precomputed roots:
             if isinstance(desc.get("repository"), dict):
                 repo_root: Json = desc.get("repository")
-                if repo_root["type"] == "computed" and \
+                if repo_root["type"] in ["computed", "tree structure"] and \
                     repo_root["repo"] in renaming:
                     repo_root = \
                         dict(repo_root, **{"repo": renaming[repo_root["repo"]]})
