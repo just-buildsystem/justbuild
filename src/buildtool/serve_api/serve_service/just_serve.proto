@@ -312,6 +312,35 @@ message GetRemoteTreeResponse {
   GetRemoteTreeStatus status = 1;
 }
 
+// A request message for
+// [SourceTree.ComputeTreeStructure][justbuild.just_serve.SourceTree.ComputeTreeStructure].
+message ComputeTreeStructureRequest {
+  // The Git tree identifier of the tree to compute the tree structure for.
+  string tree = 1;
+}
+
+// A response message for
+// [SourceTree.ComputeTreeStructure][justbuild.just_serve.SourceTree.ComputeTreeStructure].
+message ComputeTreeStructureResponse {
+  enum ComputeTreeStructureStatus{
+    // All good.
+    OK = 0;
+    
+    // Tree not known.
+    NOT_FOUND = 1;
+
+    // An internal error occurred during the resolution of the request.
+    INTERNAL_ERROR = 2;
+  }
+
+  // If the status has a code `OK`, the tree structure is available locally in
+  // a location where this serve instance can build against.
+  ComputeTreeStructureStatus status = 1;
+
+  // The Git tree identifier of the tree structure.
+  string tree_structure_hash = 2;
+}
+
 // Service for improved interaction with the target-level cache.
 service SourceTree {
   // Retrieve the Git-subtree identifier from a given Git commit.
@@ -356,6 +385,12 @@ service SourceTree {
   //
   // There are no method-specific errors.
   rpc GetRemoteTree(GetRemoteTreeRequest) returns (GetRemoteTreeResponse) {}
+
+  // Compute the tree structure of the given tree and return the Git tree
+  // identifier of the resulting structure.
+  //
+  // There are no method-specific errors.
+  rpc ComputeTreeStructure(ComputeTreeStructureRequest) returns (ComputeTreeStructureResponse) {}
 }
 
 // A request message for
