@@ -19,6 +19,6 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["tree-structure"]
-  , "deps": ["basic", "mr_setup"]
+  , "deps": ["basic", "mr_setup", "precomputed_indirection"]
   }
 }
