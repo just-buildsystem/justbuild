@@ -2,6 +2,22 @@
 
 A feature release on top of `1.4.0`, backwards compatible.
 
+### Major new features
+
+- Added two new root types: `"computed"` and `"tree structure"`.
+  This allows to define roots as the artifacts of an export target
+  of an earlier-defined content-fixed repository, as well as the
+  underlying tree structure of an earlier-defined content-fixed
+  root. Both new root types are themselves content fixed.
+
+### New features
+
+- A new tool `just-lock` has been added that allows to define
+  `just-mr` repository configurations out of an abstract configuration
+  defining base repositories and a sequence of imports.
+- An option `-p` was added to the building subcommands to show the
+  unique artifact (if there is precisely one) on stdout.
+
 ### Fixes
 
 - Fixes ensuring proper pointer life time and access check.
