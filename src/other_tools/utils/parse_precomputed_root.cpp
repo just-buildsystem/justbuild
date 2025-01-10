@@ -84,9 +84,9 @@ namespace {
     return ComputedRoot{.repository = repo->String(),
                         .target_module = target_module->String(),
                         .target_name = target_module->String(),
-                        .config = config.IsNotNull()
-                                      ? config->ToJson()
-                                      : nlohmann::json::object()};
+                        .config = config.IsNotNull() ? config->ToJson()
+                                                     : nlohmann::json::object(),
+                        .absent = false};
 }
 
 [[nodiscard]] auto ParseTreeStructureRoot(ExpressionPtr const& repository)

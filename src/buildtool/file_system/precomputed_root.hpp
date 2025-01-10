@@ -33,6 +33,7 @@ struct ComputedRoot final {
     std::string target_module;
     std::string target_name;
     nlohmann::json config;
+    bool absent;
 
     [[nodiscard]] auto operator==(ComputedRoot const& other) const noexcept
         -> bool;
