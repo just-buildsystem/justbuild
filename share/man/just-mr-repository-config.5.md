@@ -184,7 +184,8 @@ part of a Git repository, its Git tree identifier is used; otherwise,
 the workspace root will be realized as a Git tree in the Git repository
 in **`just`**'s local build root.
 
-For all workspace roots except *`"distdir"`* the pragma key *`"special"`* is
+For all workspace roots except *`"distdir"`*, *`"computed"`*,
+and *`"tree structure"`*, the pragma key *`"special"`* is
 supported. If its value is *`"ignore"`* then it indicates that the workspace
 root should ignore all special (i.e., neither file, executable, nor tree)
 entries. For a *`"file"`* workspace root or for an *`"archive"`* workspace root
