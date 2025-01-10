@@ -677,6 +677,7 @@ void PrecomputedRootCheckout(ExpressionPtr const& repo_desc,
                 ws_root.push_back(computed->target_module);
                 ws_root.push_back(computed->target_name);
                 ws_root.push_back(computed->config);
+                absent = computed->absent;
             }
             else if (auto tree_structure = result.AsTreeStructure()) {
                 ws_root.push_back(TreeStructureRoot::kMarker);

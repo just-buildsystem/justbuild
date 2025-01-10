@@ -81,12 +81,18 @@ namespace {
         return unexpected{fmt::format(
             "Unsupported value for key \"config\":\n{}", config->ToString())};
     }
+
+    auto absent = ParseAbsent(repository);
+    if (not absent.has_value()) {
+        return unexpected{std::move(absent).error()};
+    }
+
     return ComputedRoot{.repository = repo->String(),
                         .target_module = target_module->String(),
                         .target_name = target_module->String(),
                         .config = config.IsNotNull() ? config->ToJson()
                                                      : nlohmann::json::object(),
-                        .absent = false};
+                        .absent = *absent};
 }
 
 [[nodiscard]] auto ParseTreeStructureRoot(ExpressionPtr const& repository)
