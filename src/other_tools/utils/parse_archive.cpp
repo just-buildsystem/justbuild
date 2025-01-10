@@ -121,6 +121,13 @@ auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
                                             ? repo_desc_subdir->String()
                                             : "")
                       .lexically_normal();
+    if (subdir.is_absolute()) {
+        (*logger)(fmt::format("ArchiveCheckout: Expected field \"subdir\" to "
+                              "be a relative path, but found {}",
+                              subdir.string()),
+                  /*fatal=*/true);
+        return std::nullopt;
+    }
 
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
