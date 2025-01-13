@@ -220,14 +220,6 @@ class SourceTreeService final
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
 
-    /// \brief Checks if a given tree is a repository.
-    /// \returns A status of tree presence, or nullopt if non-check-related
-    /// failure.
-    [[nodiscard]] static auto IsTreeInRepo(
-        std::string const& tree_id,
-        std::filesystem::path const& repo_path,
-        std::shared_ptr<Logger> const& logger) -> std::optional<bool>;
-
     [[nodiscard]] auto DistdirImportToGit(
         std::string const& tree_id,
         std::string const& content_id,

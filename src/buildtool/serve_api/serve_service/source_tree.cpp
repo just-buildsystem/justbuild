@@ -686,33 +686,6 @@ auto SourceTreeService::ArchiveImportToGit(
                               response);
 }
 
-auto SourceTreeService::IsTreeInRepo(std::string const& tree_id,
-                                     std::filesystem::path const& repo_path,
-                                     std::shared_ptr<Logger> const& logger)
-    -> std::optional<bool> {
-    if (auto git_cas = GitCAS::Open(repo_path)) {
-        if (auto repo = GitRepo::Open(git_cas)) {
-            // wrap logger for GitRepo call
-            auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-                [logger, repo_path, tree_id](auto const& msg, bool fatal) {
-                    if (fatal) {
-                        logger->Emit(LogLevel::Debug,
-                                     "While checking existence of tree {} in "
-                                     "repository {}:\n{}",
-                                     tree_id,
-                                     repo_path.string(),
-                                     msg);
-                    }
-                });
-            return repo->CheckTreeExists(tree_id, wrapped_logger);
-        }
-    }
-    // failed to open repository
-    logger->Emit(
-        LogLevel::Debug, "Failed to open repository {}", repo_path.string());
-    return std::nullopt;
-}
-
 auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
@@ -1205,13 +1178,14 @@ auto SourceTreeService::ServeDistdirTree(
         return ::grpc::Status::OK;
     }
     // check if tree is already in Git cache
-    auto has_tree = IsTreeInRepo(
-        tree_id, native_context_->storage_config->GitRoot(), logger_);
+    auto has_tree = GitRepo::IsTreeInRepo(
+        native_context_->storage_config->GitRoot(), tree_id);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
-                      "Failed while checking for tree {} in repository {}",
+                      "Failed while checking for tree {} in repository {}:\n{}",
                       tree_id,
-                      native_context_->storage_config->GitRoot().string());
+                      native_context_->storage_config->GitRoot().string(),
+                      std::move(has_tree).error());
         response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1234,12 +1208,14 @@ auto SourceTreeService::ServeDistdirTree(
     }
     // check if tree is in a known repository
     for (auto const& path : serve_config_.known_repositories) {
-        auto has_tree = IsTreeInRepo(tree_id, path, logger_);
+        auto has_tree = GitRepo::IsTreeInRepo(path, tree_id);
         if (not has_tree) {
-            logger_->Emit(LogLevel::Error,
-                          "Failed while checking for tree {} in repository {}",
-                          tree_id,
-                          path.string());
+            logger_->Emit(
+                LogLevel::Error,
+                "Failed while checking for tree {} in repository {}:\n{}",
+                tree_id,
+                path.string(),
+                *std::move(has_tree));
             response->set_status(ServeDistdirTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -1401,13 +1377,14 @@ auto SourceTreeService::ServeTree(
     }
 
     // check if tree is in Git cache
-    auto has_tree = IsTreeInRepo(
-        tree_id, native_context_->storage_config->GitRoot(), logger_);
+    auto has_tree = GitRepo::IsTreeInRepo(
+        native_context_->storage_config->GitRoot(), tree_id);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
-                      "Failed while checking for tree {} in repository {}",
+                      "Failed while checking for tree {} in repository {}:\n{}",
                       tree_id,
-                      native_context_->storage_config->GitRoot().string());
+                      native_context_->storage_config->GitRoot().string(),
+                      std::move(has_tree).error());
         response->set_status(ServeTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1424,12 +1401,14 @@ auto SourceTreeService::ServeTree(
     }
     // check if tree is in a known repository
     for (auto const& path : serve_config_.known_repositories) {
-        auto has_tree = IsTreeInRepo(tree_id, path, logger_);
+        auto has_tree = GitRepo::IsTreeInRepo(path, tree_id);
         if (not has_tree) {
-            logger_->Emit(LogLevel::Error,
-                          "Failed while checking for tree {} in repository {}",
-                          tree_id,
-                          path.string());
+            logger_->Emit(
+                LogLevel::Error,
+                "Failed while checking for tree {} in repository {}:\n{}",
+                tree_id,
+                path.string(),
+                std::move(has_tree).error());
             response->set_status(ServeTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
@@ -1508,13 +1487,14 @@ auto SourceTreeService::CheckRootTree(
     }
 
     // check first in the Git cache
-    auto has_tree = IsTreeInRepo(
-        tree_id, native_context_->storage_config->GitRoot(), logger_);
+    auto has_tree = GitRepo::IsTreeInRepo(
+        native_context_->storage_config->GitRoot(), tree_id);
     if (not has_tree) {
         logger_->Emit(LogLevel::Error,
-                      "Failed while checking for tree {} in repository {}",
+                      "Failed while checking for tree {} in repository {}:\n{}",
                       tree_id,
-                      native_context_->storage_config->GitRoot().string());
+                      native_context_->storage_config->GitRoot().string(),
+                      std::move(has_tree).error());
         response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
@@ -1525,12 +1505,14 @@ auto SourceTreeService::CheckRootTree(
     }
     // check if tree is in a known repository
     for (auto const& path : serve_config_.known_repositories) {
-        auto has_tree = IsTreeInRepo(tree_id, path, logger_);
+        auto has_tree = GitRepo::IsTreeInRepo(path, tree_id);
         if (not has_tree) {
-            logger_->Emit(LogLevel::Error,
-                          "Failed while checking for tree {} in repository {}",
-                          tree_id,
-                          path.string());
+            logger_->Emit(
+                LogLevel::Error,
+                "Failed while checking for tree {} in repository {}:\n{}",
+                tree_id,
+                path.string(),
+                std::move(has_tree).error());
             response->set_status(CheckRootTreeResponse::INTERNAL_ERROR);
             return ::grpc::Status::OK;
         }
