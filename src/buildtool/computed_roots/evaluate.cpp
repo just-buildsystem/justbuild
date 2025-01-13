@@ -153,107 +153,6 @@ auto WhileHandling(PrecomputedRoot const& root,
         });
 }
 
-auto ImportToGitCas(std::filesystem::path root_dir,
-                    StorageConfig const& storage_config,
-                    gsl::not_null<std::mutex*> const& git_lock,
-                    RootMap::LoggerPtr const& logger)
-    -> std::optional<std::string> {
-    auto tmp_dir = storage_config.CreateTypedTmpDir("import-repo");
-    if (not tmp_dir) {
-        (*logger)("Failed to create temporary directory", true);
-        return std::nullopt;
-    }
-    auto const& repo_path = tmp_dir->GetPath();
-    auto git_repo = GitRepo::InitAndOpen(repo_path, /*is_bare=*/false);
-    if (not git_repo) {
-        (*logger)(fmt::format("Could not initializie git repository {}",
-                              repo_path.string()),
-                  true);
-        return std::nullopt;
-    }
-    auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [logger, &root_dir, &repo_path](auto const& msg, bool fatal) {
-            (*logger)(fmt::format(
-                          "While commiting directory {} in repository {}:\n{}",
-                          root_dir.string(),
-                          repo_path.string(),
-                          msg),
-                      fatal);
-        });
-    auto commit_hash =
-        git_repo->CommitDirectory(root_dir, "computed root", wrapped_logger);
-    if (not commit_hash) {
-        return std::nullopt;
-    }
-    auto just_git_cas = GitCAS::Open(storage_config.GitRoot());
-    if (not just_git_cas) {
-        (*logger)(fmt::format("Failed to open Git ODB at {}",
-                              storage_config.GitRoot().string()),
-                  true);
-        return std::nullopt;
-    }
-    auto just_git_repo = GitRepo::Open(just_git_cas);
-    if (not just_git_repo) {
-        (*logger)(fmt::format("Failed to open Git repository at {}",
-                              storage_config.GitRoot().string()),
-                  true);
-        return std::nullopt;
-    }
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [logger, &storage_config](auto const& msg, bool fatal) {
-            (*logger)(fmt::format("While fetchting in repository {}:\n{}",
-                                  storage_config.GitRoot().string(),
-                                  msg),
-                      fatal);
-        });
-    if (not just_git_repo->LocalFetchViaTmpRepo(storage_config,
-                                                repo_path.string(),
-                                                /*branch=*/std::nullopt,
-                                                wrapped_logger)) {
-        return std::nullopt;
-    }
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [logger, &commit_hash, &storage_config](auto const& msg, bool fatal) {
-            (*logger)(
-                fmt::format("While tagging commit {} in repository {}:\n{}",
-                            *commit_hash,
-                            storage_config.GitRoot().string(),
-                            msg),
-                fatal);
-        });
-    {
-        std::unique_lock tagging{*git_lock};
-        auto git_repo = GitRepo::Open(storage_config.GitRoot());
-        if (not git_repo) {
-            (*logger)(fmt::format("Failed to open git CAS repository {}",
-                                  storage_config.GitRoot().string()),
-                      true);
-            return std::nullopt;
-        }
-        // Important: message must be consistent with just-mr!
-        if (not git_repo->KeepTag(
-                *commit_hash, "Keep referenced tree alive", wrapped_logger)) {
-            return std::nullopt;
-        }
-    }
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [logger, &commit_hash, &storage_config](auto const& msg, bool fatal) {
-            (*logger)(fmt::format("While retrieving tree id of commit {} in "
-                                  "repository {}:\n{}",
-                                  *commit_hash,
-                                  storage_config.GitRoot().string(),
-                                  msg),
-                      fatal);
-        });
-    auto res =
-        just_git_repo->GetSubtreeFromCommit(*commit_hash, ".", wrapped_logger);
-    if (not res) {
-        return std::nullopt;
-    }
-
-    return *std::move(res);
-}
-
 auto IsTreePresent(std::string const& tree_id,
                    gsl::not_null<const StorageConfig*> const& storage_config,
                    GitRepo::anon_logger_ptr const& logger)
@@ -415,8 +314,10 @@ void ComputeAndFill(
                   true);
         return;
     }
-    auto result = ImportToGitCas(root_dir, *storage_config, git_lock, logger);
+    auto result = GitRepo::ImportToGit(
+        *storage_config, root_dir, "computed root", git_lock);
     if (not result) {
+        (*logger)(std::move(result).error(), /*fatal=*/true);
         return;
     }
     Logger::Log(LogLevel::Performance,
@@ -437,7 +338,7 @@ void ComputeAndFill(
         repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
                                               *root_result);
     }
-    (*setter)(std::move(*result));
+    (*setter)(*std::move(result));
 }
 
 void ComputeTreeStructureAndFill(
@@ -617,8 +518,14 @@ void ComputeTreeStructureAndFill(
         }
 
         // Import the result to git:
-        resolved_hash =
-            ImportToGitCas(root_dir, native_storage_config, git_lock, logger);
+        auto result_tree = GitRepo::ImportToGit(
+            native_storage_config, root_dir, "tree structure", git_lock);
+        if (not result_tree) {
+            std::invoke(
+                *logger, std::move(result_tree).error(), /*fatal=*/true);
+            return;
+        }
+        resolved_hash = *std::move(result_tree);
     }
 
     if (not resolved_hash) {
