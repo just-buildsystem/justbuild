@@ -610,129 +610,6 @@ auto SourceTreeService::ResolveContentTree(
     return SyncArchive(tree_id, repo_path, sync_tree, response);
 }
 
-auto SourceTreeService::CommonImportToGit(
-    std::filesystem::path const& root_path,
-    std::string const& commit_message) -> expected<std::string, std::string> {
-    // the repository path that imports the content must be separate from the
-    // content path, to avoid polluting the entries
-    auto tmp_dir =
-        native_context_->storage_config->CreateTypedTmpDir("import-repo");
-    if (not tmp_dir) {
-        return unexpected{
-            std::string("Failed to create tmp path for import repository")};
-    }
-    auto const& repo_path = tmp_dir->GetPath();
-    // do the initial commit; no need to guard, as the tmp location is unique
-    auto git_repo = GitRepo::InitAndOpen(repo_path,
-                                         /*is_bare=*/false);
-    if (not git_repo) {
-        return unexpected{fmt::format("Could not initialize repository {}",
-                                      repo_path.string())};
-    }
-    // wrap logger for GitRepo call
-    std::string err;
-    auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [&root_path, &repo_path, &err](auto const& msg, bool fatal) {
-            if (fatal) {
-                err = fmt::format(
-                    "While committing directory {} in repository {}:\n{}",
-                    root_path.string(),
-                    repo_path.string(),
-                    msg);
-            }
-        });
-    // stage and commit all
-    auto commit_hash =
-        git_repo->CommitDirectory(root_path, commit_message, wrapped_logger);
-    if (not commit_hash) {
-        return unexpected{err};
-    }
-    // open the Git CAS repo
-    auto just_git_cas =
-        GitCAS::Open(native_context_->storage_config->GitRoot());
-    if (not just_git_cas) {
-        return unexpected{
-            fmt::format("Failed to open Git ODB at {}",
-                        native_context_->storage_config->GitRoot().string())};
-    }
-    auto just_git_repo = GitRepo::Open(just_git_cas);
-    if (not just_git_repo) {
-        return unexpected{
-            fmt::format("Failed to open Git repository {}",
-                        native_context_->storage_config->GitRoot().string())};
-    }
-    // wrap logger for GitRepo call
-    err.clear();
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [&err, storage_config = native_context_->storage_config](
-            auto const& msg, bool fatal) {
-            if (fatal) {
-                err = fmt::format("While fetching in repository {}:\n{}",
-                                  storage_config->GitRoot().string(),
-                                  msg);
-            }
-        });
-    // fetch the new commit into the Git CAS via tmp directory; the call is
-    // thread-safe, so it needs no guarding
-    if (not just_git_repo->LocalFetchViaTmpRepo(
-            *native_context_->storage_config,
-            repo_path.string(),
-            /*branch=*/std::nullopt,
-            wrapped_logger)) {
-        return unexpected{err};
-    }
-    // wrap logger for GitRepo call
-    err.clear();
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [commit_hash, storage_config = native_context_->storage_config, &err](
-            auto const& msg, bool fatal) {
-            if (fatal) {
-                err =
-                    fmt::format("While tagging commit {} in repository {}:\n{}",
-                                *commit_hash,
-                                storage_config->GitRoot().string(),
-                                msg);
-            }
-        });
-    // tag commit and keep it in Git CAS
-    {
-        // this is a non-thread-safe Git operation, so it must be guarded!
-        std::unique_lock slock{mutex_};
-        // open real repository at Git CAS location
-        auto git_repo =
-            GitRepo::Open(native_context_->storage_config->GitRoot());
-        if (not git_repo) {
-            return unexpected{fmt::format(
-                "Failed to open Git CAS repository {}",
-                native_context_->storage_config->GitRoot().string())};
-        }
-        // Important: message must be consistent with just-mr!
-        if (not git_repo->KeepTag(*commit_hash,
-                                  "Keep referenced tree alive",  // message
-                                  wrapped_logger)) {
-            return unexpected{err};
-        }
-    }
-    // wrap logger for GitRepo call
-    err.clear();
-    wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-        [commit_hash, &err](auto const& msg, bool fatal) {
-            if (fatal) {
-                err = fmt::format("While retrieving tree id of commit {}:\n{}",
-                                  *commit_hash,
-                                  msg);
-            }
-        });
-    // get the root tree of this commit; this is thread-safe
-    auto res =
-        just_git_repo->GetSubtreeFromCommit(*commit_hash, ".", wrapped_logger);
-    if (not res) {
-        return unexpected{err};
-    }
-    // return the root tree id
-    return *std::move(res);
-}
-
 auto SourceTreeService::ArchiveImportToGit(
     std::filesystem::path const& unpack_path,
     std::filesystem::path const& archive_tree_id_file,
@@ -743,9 +620,12 @@ auto SourceTreeService::ArchiveImportToGit(
     bool sync_tree,
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
     // Important: commit message must match that in just-mr!
-    auto commit_message =
-        fmt::format("Content of {} {}", archive_type, content);
-    auto res = CommonImportToGit(unpack_path, commit_message);
+    auto res = GitRepo::ImportToGit(
+        *native_context_->storage_config,
+        unpack_path,
+        /*commit_message=*/
+        fmt::format("Content of {} {}", archive_type, content),
+        &mutex_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1088,8 +968,11 @@ auto SourceTreeService::DistdirImportToGit(
         return ::grpc::Status::OK;
     }
     // Important: commit message must match that in just-mr!
-    auto commit_message = fmt::format("Content of distdir {}", content_id);
-    auto res = CommonImportToGit(tmp_path, commit_message);
+    auto res = GitRepo::ImportToGit(
+        *native_context_->storage_config,
+        tmp_path,
+        /*commit_message=*/fmt::format("Content of distdir {}", content_id),
+        &mutex_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1694,10 +1577,11 @@ auto SourceTreeService::CheckRootTree(
             return ::grpc::Status::OK;
         }
         // Import from tmp dir to Git cache
-        auto res = CommonImportToGit(
+        auto res = GitRepo::ImportToGit(
+            *native_context_->storage_config,
             tmp_dir->GetPath(),
-            fmt::format("Content of tree {}", tree_id)  // message
-        );
+            /*commit_message=*/fmt::format("Content of tree {}", tree_id),
+            &mutex_);
         if (not res) {
             // report the error
             logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1782,10 +1666,12 @@ auto SourceTreeService::GetRemoteTree(
         return ::grpc::Status::OK;
     }
     // Import from tmp dir to Git cache
-    auto res = CommonImportToGit(
+    auto res = GitRepo::ImportToGit(
+        *native_context_->storage_config,
         tmp_dir->GetPath(),
-        fmt::format("Content of tree {}", remote_digest->hash())  // message
-    );
+        /*commit_message=*/
+        fmt::format("Content of tree {}", remote_digest->hash()),
+        &mutex_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());

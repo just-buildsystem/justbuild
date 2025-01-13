@@ -210,13 +210,6 @@ class SourceTreeService final
         bool sync_tree,
         ServeArchiveTreeResponse* response) -> ::grpc::Status;
 
-    /// \brief Common import-to-git utility, used by both archives and distdirs.
-    /// \returns The root tree id on of the committed directory on success or an
-    /// unexpected error as string.
-    [[nodiscard]] auto CommonImportToGit(std::filesystem::path const& root_path,
-                                         std::string const& commit_message)
-        -> expected<std::string, std::string>;
-
     [[nodiscard]] auto ArchiveImportToGit(
         std::filesystem::path const& unpack_path,
         std::filesystem::path const& archive_tree_id_file,
