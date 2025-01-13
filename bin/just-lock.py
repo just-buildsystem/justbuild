@@ -325,28 +325,31 @@ def rewrite_file_repo(repo: Json, remote_type: str,
                       remote_stub: Dict[str, Any]) -> Json:
     """Rewrite \"file\"-type descriptions based on remote type."""
     if remote_type == "git":
-        # for imports from Git, file repos become type 'git' with subdir
+        # for imports from Git, file repos become type 'git' with subdir; the
+        # validity of the new subdir value is not checked
         changes = {}
-        subdir = repo.get("path", ".")
-        if subdir not in ["", "."]:
+        subdir: str = os.path.normpath(repo.get("path", "."))
+        if subdir != ".":
             changes["subdir"] = subdir
         return dict(remote_stub, **changes)
     elif remote_type == "file":
-        # for imports from local checkouts, file repos remain type 'file'
+        # for imports from local checkouts, file repos remain type 'file'; only
+        # relative paths get updated; paths are not checked for validity
         changes = {}
         root: str = remote_stub["path"]
-        path = repo.get("path", ".")
+        path: str = os.path.normpath(repo.get("path", "."))
         if not Path(path).is_absolute():
-            changes["path"] = str(Path(root) / path)
+            changes["path"] = os.path.join(root, path)
         return dict(repo, **changes)
     elif remote_type in ["archive", "zip"]:
         # for imports from archives, file repos become archive type with subdir;
-        # any path is prepended by the subdir provided in the input file, if any
+        # any path is prepended by the subdir provided in the input file,
+        # if any; the validity of the new subdir is not checked
         changes = {}
-        subdir = repo.get("path", ".")
-        if subdir not in ["", "."]:
-            existing = remote_stub.get("subdir", ".")
-            if existing not in ["", "."]:
+        subdir: str = os.path.normpath(repo.get("path", "."))
+        if subdir != ".":
+            existing: str = os.path.normpath(remote_stub.get("subdir", "."))
+            if existing != ".":
                 subdir = os.path.join(existing, subdir)
             changes["subdir"] = subdir
         return dict(remote_stub, **changes)
@@ -1130,13 +1133,14 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
             fail(fail_context +
                  "Expected field \"subdir\" to be a string, but found:\n%r" %
                  (json.dumps(subdir, indent=2), ))
-        if subdir in ["", "."]:
-            subdir = None  # treat as if missing
-        elif os.path.isabs(subdir):
+        if os.path.isabs(subdir) or subdir.startswith(".."):
             fail(
                 fail_context +
-                "Expected field \"subdir\" to be a relative path, but found:\n%r"
+                "Expected field \"subdir\" to be a relative non-upward path, but found:\n%r"
                 % (json.dumps(subdir, indent=2), ))
+        subdir = os.path.normpath(subdir)
+        if subdir == ".":
+            subdir = None  # treat as if missing
 
     as_plain: Optional[bool] = imports_entry.get("as_plain", False)
     if as_plain is not None and not isinstance(as_plain, bool):
