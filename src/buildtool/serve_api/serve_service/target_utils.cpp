@@ -29,43 +29,36 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/utils/cpp/expected.hpp"
 
-auto IsTreeInRepo(std::string const& tree_id,
-                  std::filesystem::path const& repo_path,
-                  std::shared_ptr<Logger> const& logger) -> bool {
-    if (auto git_cas = GitCAS::Open(repo_path)) {
-        if (auto repo = GitRepo::Open(git_cas)) {
-            // wrap logger for GitRepo call
-            auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-                [logger, repo_path, tree_id](auto const& msg, bool fatal) {
-                    if (fatal) {
-                        logger->Emit(LogLevel::Info,
-                                     "ServeTarget: While checking existence of "
-                                     "tree {} in repository {}:\n{}",
-                                     tree_id,
-                                     repo_path.string(),
-                                     msg);
-                    }
-                });
-            if (auto res = repo->CheckTreeExists(tree_id, wrapped_logger)) {
-                return *res;
-            }
-        }
-    }
-    return false;  // tree not found
-}
-
 auto GetServingRepository(RemoteServeConfig const& serve_config,
                           StorageConfig const& storage_config,
                           std::string const& tree_id,
                           std::shared_ptr<Logger> const& logger)
     -> std::optional<std::filesystem::path> {
     // try the Git cache repository
-    if (IsTreeInRepo(tree_id, storage_config.GitRoot(), logger)) {
+    auto in_git_cas = GitRepo::IsTreeInRepo(storage_config.GitRoot(), tree_id);
+    if (not in_git_cas.has_value()) {
+        logger->Emit(LogLevel::Info,
+                     "ServeTarget: While checking existence of "
+                     "tree {} in repository {}:\n{}",
+                     tree_id,
+                     storage_config.GitRoot().string(),
+                     std::move(in_git_cas).error());
+    }
+    else if (*in_git_cas) {
         return storage_config.GitRoot();
     }
     // check the known repositories
     for (auto const& path : serve_config.known_repositories) {
-        if (IsTreeInRepo(tree_id, path, logger)) {
+        auto in_repo = GitRepo::IsTreeInRepo(path, tree_id);
+        if (not in_repo.has_value()) {
+            logger->Emit(LogLevel::Info,
+                         "ServeTarget: While checking existence of "
+                         "tree {} in repository {}:\n{}",
+                         tree_id,
+                         path.string(),
+                         std::move(in_repo).error());
+        }
+        else if (*in_repo) {
             return path;
         }
     }
