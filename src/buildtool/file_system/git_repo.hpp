@@ -330,6 +330,13 @@ class GitRepo {
         gsl::not_null<std::mutex*> const& tagging_lock) noexcept
         -> expected<std::string, std::string>;
 
+    /// \brief Check that the given repository contains the given tree
+    /// \returns Flag reflecting whether the tree is present in the repository
+    /// or an error message on failure.
+    [[nodiscard]] static auto IsTreeInRepo(std::filesystem::path const& repo,
+                                           std::string const& tree_id) noexcept
+        -> expected<bool, std::string>;
+
   private:
     GitCASPtr git_cas_;
     // default to real repo, as that is non-thread-safe

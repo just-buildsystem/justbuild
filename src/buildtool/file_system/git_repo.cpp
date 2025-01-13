@@ -1744,6 +1744,35 @@ auto GitRepo::ImportToGit(
     return *std::move(result_tree);
 }
 
+auto GitRepo::IsTreeInRepo(std::filesystem::path const& repo,
+                           std::string const& tree_id) noexcept
+    -> expected<bool, std::string> {
+    auto git_cas = GitCAS::Open(repo);
+    if (git_cas == nullptr) {
+        return unexpected(
+            fmt::format("Failed to open Git ODB at {}", repo.string()));
+    }
+    auto git_repo = GitRepo::Open(git_cas);
+    if (not git_repo.has_value()) {
+        return unexpected{
+            fmt::format("Failed to open Git repository at {}", repo.string())};
+    }
+
+    std::string err;
+    auto logger = std::make_shared<GitRepo::anon_logger_t>(
+        [&err](auto const& msg, bool fatal) {
+            if (fatal) {
+                err = msg;
+            }
+        });
+
+    auto result = git_repo->CheckTreeExists(tree_id, logger);
+    if (not result.has_value()) {
+        return unexpected{std::move(err)};
+    }
+    return *result;
+}
+
 auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }
