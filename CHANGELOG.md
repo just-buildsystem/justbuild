@@ -31,6 +31,8 @@ A feature release on top of `1.4.0`, backwards compatible.
   failure, also if installation to stdout is requested.
 - `just traverse` now exits unconditionally after traversal, also
   in case of failure.
+- `just-mr` properly enforces that repository `subdir` entries are
+  non-upwards relative paths.
 - Missing entries in the documentation have been added.
 
 ## Release `1.4.0` (2024-11-04)
