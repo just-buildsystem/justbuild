@@ -104,9 +104,9 @@ void GitCheckout(ExpressionPtr const& repo_desc,
                                             ? repo_desc_subdir->String()
                                             : "")
                       .lexically_normal();
-    if (subdir.is_absolute()) {
+    if (not PathIsNonUpwards(subdir)) {
         (*logger)(fmt::format("GitCheckout: Expected field \"subdir\" to be a "
-                              "relative path, but found {}",
+                              "non-upwards path, but found {}",
                               subdir.string()),
                   /*fatal=*/true);
         return;

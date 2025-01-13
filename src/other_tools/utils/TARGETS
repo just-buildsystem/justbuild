@@ -63,7 +63,10 @@
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/crypto", "hash_info"]]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/crypto", "hash_info"]
+    , ["src/utils/cpp", "path"]
+    ]
   , "stage": ["src", "other_tools", "utils"]
   }
 , "parse_git_tree":
