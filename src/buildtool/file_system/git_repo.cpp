@@ -1642,6 +1642,108 @@ auto GitRepo::GetConfigSnapshot() const noexcept
     return nullptr;
 }
 
+auto GitRepo::ImportToGit(
+    StorageConfig const& storage_config,
+    std::filesystem::path const& source_dir,
+    std::string const& commit_message,
+    gsl::not_null<std::mutex*> const& tagging_lock) noexcept
+    -> expected<std::string, std::string> {
+    // the repository path that imports the content must be separate from the
+    // content path, to avoid polluting the entries
+    auto tmp_dir = storage_config.CreateTypedTmpDir("import_repo");
+    if (tmp_dir == nullptr) {
+        return unexpected{
+            std::string("Failed to create tmp path for import repository")};
+    }
+
+    // wrap logger for GitRepo call
+    std::string err;
+    auto logger = std::make_shared<GitRepo::anon_logger_t>(
+        [&err](auto const& msg, bool fatal) {
+            if (fatal) {
+                err = msg;
+            }
+        });
+
+    auto const& repo_path = tmp_dir->GetPath();
+    // do the initial commit; no need to guard, as the tmp location is unique
+    auto temp_repo = GitRepo::InitAndOpen(repo_path, /*is_bare=*/false);
+    if (not temp_repo.has_value()) {
+        return unexpected{fmt::format("Could not initialize repository {}",
+                                      repo_path.string())};
+    }
+
+    // stage and commit all
+    err.clear();
+    auto const commit_hash =
+        temp_repo->CommitDirectory(source_dir, commit_message, logger);
+    if (not commit_hash.has_value()) {
+        return unexpected{
+            fmt::format("While committing directory {} in repository {}:\n{}",
+                        source_dir.string(),
+                        repo_path.string(),
+                        std::move(err))};
+    }
+
+    // open the Git CAS repo
+    auto const just_git_cas = GitCAS::Open(storage_config.GitRoot());
+    if (just_git_cas == nullptr) {
+        return unexpected{fmt::format("Failed to open Git ODB at {}",
+                                      storage_config.GitRoot().string())};
+    }
+    auto just_git_repo = GitRepo::Open(just_git_cas);
+    if (not just_git_repo.has_value()) {
+        return unexpected{fmt::format("Failed to open Git repository {}",
+                                      storage_config.GitRoot().string())};
+    }
+    // fetch the new commit into the Git CAS via tmp directory; the call is
+    // thread-safe, so it needs no guarding
+    err.clear();
+    if (not just_git_repo->LocalFetchViaTmpRepo(storage_config,
+                                                repo_path.string(),
+                                                /*branch=*/std::nullopt,
+                                                logger)) {
+        return unexpected{fmt::format("While fetching in repository {}:\n{}",
+                                      storage_config.GitRoot().string(),
+                                      std::move(err))};
+    }
+
+    // tag commit and keep it in Git CAS
+    {
+        // this is a non-thread-safe Git operation, so it must be guarded!
+        std::unique_lock slock{*tagging_lock};
+        // open real repository at Git CAS location
+        auto git_repo = GitRepo::Open(storage_config.GitRoot());
+        if (not git_repo.has_value()) {
+            return unexpected{
+                fmt::format("Failed to open Git CAS repository {}",
+                            storage_config.GitRoot().string())};
+        }
+        // Important: message must be consistent with just-mr!
+        err.clear();
+        if (not git_repo->KeepTag(*commit_hash,
+                                  /*message=*/"Keep referenced tree alive",
+                                  logger)) {
+            return unexpected{
+                fmt::format("While tagging commit {} in repository {}:\n{}",
+                            *commit_hash,
+                            storage_config.GitRoot().string(),
+                            std::move(err))};
+        }
+    }
+    // get the root tree of this commit; this is thread-safe
+    err.clear();
+    auto result_tree =
+        just_git_repo->GetSubtreeFromCommit(*commit_hash, ".", logger);
+    if (not result_tree) {
+        return unexpected{
+            fmt::format("While retrieving tree id of commit {}:\n{}",
+                        *commit_hash,
+                        std::move(err))};
+    }
+    return *std::move(result_tree);
+}
+
 auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }
