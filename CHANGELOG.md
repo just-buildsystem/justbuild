@@ -2,6 +2,16 @@
 
 Bug fixes on top of `1.4.1`.
 
+### Fixes
+
+- A race condition in the use of `libgit2` was fixed that could
+  result in a segmentation fault.
+- The Git cache root repository on a `just serve` endpoint is now
+  ensured to always exist and be initialized before being operated on.
+- `just-mr` properly enforces that repository `subdir` entries are
+  non-upwards relative paths.
+- Various improvements in the documentation.
+
 ## Release `1.4.1` (2024-12-03)
 
 Bug fixes on top of `1.4.0`.
