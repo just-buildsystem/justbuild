@@ -364,14 +364,16 @@ def rewrite_repo(repo_spec: Json,
     if absent and isinstance(repo, dict):
         repo["pragma"] = dict(repo.get("pragma", {}), **{"absent": True})
     new_spec["repository"] = repo
-    for key in ["target_root", "rule_root", "expression_root"]:
-        if key in repo_spec:
-            new_spec[key] = assign[repo_spec[key]]
-    for key in ["target_file_name", "rule_file_name", "expression_file_name"]:
-        if key in repo_spec:
-            new_spec[key] = repo_spec[key]
-    # rewrite bindings, if actually needed to be imported
+    # rewrite other roots and bindings, if actually needed to be imported
     if not as_layer:
+        for key in ["target_root", "rule_root", "expression_root"]:
+            if key in repo_spec:
+                new_spec[key] = assign[repo_spec[key]]
+        for key in [
+                "target_file_name", "rule_file_name", "expression_file_name"
+        ]:
+            if key in repo_spec:
+                new_spec[key] = repo_spec[key]
         bindings = repo_spec.get("bindings", {})
         new_bindings = {}
         for k, v in bindings.items():
