@@ -1,3 +1,7 @@
+## Release `1.4.2` (UNRELEASED)
+
+Bug fixes on top of `1.4.1`.
+
 ## Release `1.4.1` (2024-12-03)
 
 Bug fixes on top of `1.4.0`.
