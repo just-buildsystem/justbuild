@@ -55,7 +55,6 @@
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
-#include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/file_system/precomputed_root.hpp"
@@ -153,27 +152,6 @@ auto WhileHandling(PrecomputedRoot const& root,
         });
 }
 
-auto IsTreePresent(std::string const& tree_id,
-                   gsl::not_null<const StorageConfig*> const& storage_config,
-                   GitRepo::anon_logger_ptr const& logger)
-    -> std::optional<bool> {
-    auto just_git_cas = GitCAS::Open(storage_config->GitRoot());
-    if (not just_git_cas) {
-        (*logger)(fmt::format("Failed to open Git ODB at {}",
-                              storage_config->GitRoot().string()),
-                  true);
-        return std::nullopt;
-    }
-    auto just_git_repo = GitRepo::Open(just_git_cas);
-    if (not just_git_repo) {
-        (*logger)(fmt::format("Failed to open Git repository at {}",
-                              storage_config->GitRoot().string()),
-                  true);
-        return std::nullopt;
-    }
-    return just_git_repo->CheckTreeExists(tree_id, logger);
-}
-
 void ComputeAndFill(
     ComputedRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -239,17 +217,14 @@ void ComputeAndFill(
     }
     if (*cache_lookup) {
         std::string root = **cache_lookup;
-        auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-            [&logger, &root](auto const& msg, bool fatal) {
-                (*logger)(fmt::format("While checking presence of tree {} in "
-                                      "local git repo:\n{}",
-                                      root,
-                                      msg),
-                          fatal);
-            });
-        auto tree_present = IsTreePresent(root, storage_config, wrapped_logger);
+        auto tree_present =
+            GitRepo::IsTreeInRepo(storage_config->GitRoot(), root);
         if (not tree_present) {
-            // fatal error; logger already called by IsTreePresent
+            (*logger)(fmt::format("While checking presence of tree {} in local "
+                                  "git repo:\n{}",
+                                  root,
+                                  std::move(tree_present).error()),
+                      /*fatal=*/true);
             return;
         }
         if (*tree_present) {
@@ -417,20 +392,17 @@ void ComputeTreeStructureAndFill(
     std::optional<std::string> resolved_hash;
 
     // Check the result is in cache already:
-    if (auto cache_entry = tree_structure_cache.Get(*digest)) {
-        auto wrapped_logger = std::make_shared<GitRepo::anon_logger_t>(
-            [&logger, &cache_entry](auto const& msg, bool fatal) {
-                (*logger)(fmt::format("While checking presence of tree {} in "
-                                      "local git repo:\n{}",
-                                      cache_entry->hash(),
-                                      msg),
-                          fatal);
-            });
+    if (auto const cache_entry = tree_structure_cache.Get(*digest)) {
         auto const cached_hash = cache_entry->hash();
-        auto const tree_present =
-            IsTreePresent(cached_hash, &native_storage_config, wrapped_logger);
+        auto tree_present =
+            GitRepo::IsTreeInRepo(native_storage_config.GitRoot(), cached_hash);
         if (not tree_present) {
-            // fatal error; logger already called by IsTreePresent
+            std::invoke(*logger,
+                        fmt::format("While checking presence of tree {} in "
+                                    "local git repo:\n{}",
+                                    cached_hash,
+                                    std::move(tree_present).error()),
+                        /*fatal=*/true);
             return;
         }
 
