@@ -133,6 +133,13 @@ class SourceTreeClient {
     [[nodiscard]] auto GetRemoteTree(
         ArtifactDigest const& digest) const noexcept -> bool;
 
+    /// \brief Compute tree structure of a tree
+    /// \param tree Tree to compute
+    /// \return Git digest of the tree structure computed for tree on
+    /// success or an unexpected error on failure (fatal or content not found).
+    [[nodiscard]] auto ComputeTreeStructure(ArtifactDigest const& tree)
+        const noexcept -> expected<ArtifactDigest, GitLookupError>;
+
   private:
     HashFunction const& hash_function_;  // hash function of the remote
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;

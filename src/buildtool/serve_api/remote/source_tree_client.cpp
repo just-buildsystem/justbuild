@@ -360,4 +360,41 @@ auto SourceTreeClient::GetRemoteTree(
     return true;
 }
 
+auto SourceTreeClient::ComputeTreeStructure(ArtifactDigest const& tree)
+    const noexcept -> expected<ArtifactDigest, GitLookupError> {
+    justbuild::just_serve::ComputeTreeStructureRequest request{};
+    request.set_tree(tree.hash());
+
+    grpc::ClientContext context;
+    justbuild::just_serve::ComputeTreeStructureResponse response;
+    grpc::Status status =
+        stub_->ComputeTreeStructure(&context, request, &response);
+
+    if (not status.ok()) {
+        LogStatus(&logger_, LogLevel::Debug, status);
+        return unexpected{GitLookupError::Fatal};
+    }
+    if (response.status() !=
+        ::justbuild::just_serve::ComputeTreeStructureResponse::OK) {
+        logger_.Emit(LogLevel::Debug,
+                     "ComputeTreeStructure response returned with {}",
+                     static_cast<int>(response.status()));
+        return unexpected{response.status() !=
+                                  ::justbuild::just_serve::
+                                      ComputeTreeStructureResponse::NOT_FOUND
+                              ? GitLookupError::Fatal
+                              : GitLookupError::NotFound};
+    }
+    // ComputeTreeStructure operates on git digests.
+    auto digest = ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                response.tree_structure_hash(),
+                                                /*size_unknown=*/0,
+                                                /*is_tree=*/true);
+    if (not digest) {
+        logger_.Emit(LogLevel::Debug, std::move(digest).error());
+        return unexpected{GitLookupError::Fatal};
+    }
+    return *std::move(digest);
+}
+
 #endif  // BOOTSTRAP_BUILD_TOOL

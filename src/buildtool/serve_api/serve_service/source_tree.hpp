@@ -59,6 +59,8 @@ class SourceTreeService final
         ::justbuild::just_serve::CheckRootTreeResponse;
     using GetRemoteTreeResponse =
         ::justbuild::just_serve::GetRemoteTreeResponse;
+    using ComputeTreeStructureResponse =
+        ::justbuild::just_serve::ComputeTreeStructureResponse;
 
     explicit SourceTreeService(
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
@@ -132,6 +134,15 @@ class SourceTreeService final
         ::grpc::ServerContext* context,
         const ::justbuild::just_serve::GetRemoteTreeRequest* request,
         GetRemoteTreeResponse* response) -> ::grpc::Status override;
+
+    // Compute the tree structure of the given tree and return the Git tree
+    // identifier of the resulting structure.
+    //
+    // There are no method-specific errors.
+    auto ComputeTreeStructure(
+        ::grpc::ServerContext* context,
+        const ::justbuild::just_serve::ComputeTreeStructureRequest* request,
+        ComputeTreeStructureResponse* response) -> ::grpc::Status override;
 
   private:
     RemoteServeConfig const& serve_config_;

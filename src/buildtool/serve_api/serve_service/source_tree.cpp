@@ -44,6 +44,7 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/repository_garbage_collector.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 #include "src/utils/archive/archive_ops.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/file_locking.hpp"
@@ -1666,6 +1667,72 @@ auto SourceTreeService::GetRemoteTree(
                   *res);
     // success!
     response->set_status(GetRemoteTreeResponse::OK);
+    return ::grpc::Status::OK;
+}
+
+auto SourceTreeService::ComputeTreeStructure(
+    ::grpc::ServerContext* /*context*/,
+    const ::justbuild::just_serve::ComputeTreeStructureRequest* request,
+    ComputeTreeStructureResponse* response) -> ::grpc::Status {
+    auto repo_lock = RepositoryGarbageCollector::SharedLock(
+        *native_context_->storage_config);
+    if (not repo_lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire repo gc SharedLock");
+        response->set_status(ComputeTreeStructureResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // ensure Git cache exists
+    if (auto done = EnsureGitCacheRoot(); not done) {
+        logger_->Emit(LogLevel::Error, std::move(done).error());
+        response->set_status(ComputeTreeStructureResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+    // get gc lock for native storage
+    auto lock = GarbageCollector::SharedLock(*native_context_->storage_config);
+    if (not lock) {
+        logger_->Emit(LogLevel::Error, "Could not acquire gc SharedLock");
+        response->set_status(ComputeTreeStructureResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
+    auto const tree_digest =
+        ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                      request->tree(),
+                                      /*size_unknown=*/0,
+                                      /*is_tree=*/true);
+    if (not tree_digest) {
+        logger_->Emit(LogLevel::Error, tree_digest.error());
+        response->set_status(ComputeTreeStructureResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
+    auto known_repositories = serve_config_.known_repositories;
+    known_repositories.push_back(native_context_->storage_config->GitRoot());
+
+    std::optional<ArtifactDigest> tree_structure;
+    if (auto from_local = TreeStructureUtils::ComputeStructureLocally(
+            *tree_digest,
+            known_repositories,
+            *native_context_->storage_config,
+            &mutex_)) {
+        tree_structure = std::move(from_local).value();
+    }
+    else {
+        // A critical error occurred:
+        logger_->Emit(LogLevel::Error, std::move(from_local).error());
+        response->set_status(ComputeTreeStructureResponse::INTERNAL_ERROR);
+        return ::grpc::Status::OK;
+    }
+
+    if (not tree_structure.has_value()) {
+        logger_->Emit(
+            LogLevel::Error, "Failed to find {}", tree_digest->hash());
+        response->set_status(ComputeTreeStructureResponse::NOT_FOUND);
+        return ::grpc::Status::OK;
+    }
+
+    response->set_tree_structure_hash(tree_structure->hash());
+    response->set_status(ComputeTreeStructureResponse::OK);
     return ::grpc::Status::OK;
 }
 

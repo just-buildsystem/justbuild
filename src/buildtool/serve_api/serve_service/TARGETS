@@ -50,6 +50,7 @@
     , ["src/buildtool/storage", "garbage_collector"]
     , ["src/buildtool/storage", "repository_garbage_collector"]
     , ["src/buildtool/storage", "storage"]
+    , ["src/buildtool/tree_structure", "tree_structure_utils"]
     , ["src/utils/archive", "archive_ops"]
     , ["src/utils/cpp", "file_locking"]
     , ["src/utils/cpp", "hex_string"]

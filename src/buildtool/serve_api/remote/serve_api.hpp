@@ -125,6 +125,11 @@ class ServeApi final {
         return stc_.GetRemoteTree(digest);
     }
 
+    [[nodiscard]] auto ComputeTreeStructure(ArtifactDigest const& digest)
+        const noexcept -> expected<ArtifactDigest, GitLookupError> {
+        return stc_.ComputeTreeStructure(digest);
+    }
+
     [[nodiscard]] auto ServeTargetVariables(std::string const& target_root_id,
                                             std::string const& target_file,
                                             std::string const& target)
