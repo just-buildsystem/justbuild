@@ -120,7 +120,7 @@ echo
 echo
 echo Sanity-check of the log
 echo
-grep '[Rr]oot.*base.*evaluted.*' "${OUT}/log"  > "${TMPDIR}/log_line"
+grep '[Rr]oot.*base.*evaluated.*' "${OUT}/log"  > "${TMPDIR}/log_line"
 cat "${TMPDIR}/log_line"
 sed -i 's/.*log //' "${TMPDIR}/log_line"
 "${JUST}" install-cas --local-build-root "${LBRDIR}" \

@@ -420,7 +420,7 @@ void ComputeAndFill(
         return;
     }
     Logger::Log(LogLevel::Performance,
-                "Root {} evaluted to {}, log {}",
+                "Root {} evaluated to {}, log {}",
                 target.ToString(),
                 *result,
                 log_desc);

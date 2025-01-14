@@ -137,7 +137,7 @@ echo Sanity-check of the log
 echo
 # As this target was never built before, there can't be a cache hit,
 # hence we expect a reference to an evaluation log.
-grep '[Rr]oot.*base.*evaluted.*' "${OUT}/log"  > "${TMPDIR}/log_line"
+grep '[Rr]oot.*base.*evaluated.*' "${OUT}/log"  > "${TMPDIR}/log_line"
 cat "${TMPDIR}/log_line"
 sed -i 's/.*log //' "${TMPDIR}/log_line"
 "${JUST}" install-cas --local-build-root "${LBRDIR}" \
