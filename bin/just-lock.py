@@ -212,6 +212,159 @@ def get_repository_config_file(filename: str,
 
 
 ###
+# Git utils
+##
+
+
+def gc_repo_lock_acquire(is_shared: bool = False) -> TextIO:
+    """Acquire garbage collector file lock for the Git cache."""
+    # use same naming scheme as in Just
+    return lock_acquire(os.path.join(g_ROOT, "repositories/gc.lock"), is_shared)
+
+
+def git_root(*, upstream: Optional[str]) -> str:
+    """Get the root of specified upstream repository. Passing None always
+    returns the root of the Git cache repository. No checks are made on the
+    returned path."""
+    return (os.path.join(g_ROOT, "repositories/generation-0/git")
+            if upstream is None else upstream)
+
+
+def git_keep(commit: str, *, upstream: Optional[str],
+             fail_context: str) -> None:
+    """Keep commit by tagging it."""
+    git_env = {**os.environ, **GIT_NOBODY_ENV}
+    run_cmd(g_LAUNCHER + [
+        g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
+        "keep-%s" % (commit, ), commit
+    ],
+            cwd=git_root(upstream=upstream),
+            env=git_env,
+            attempts=3,
+            fail_context=fail_context)
+
+
+def ensure_git_init(*,
+                    upstream: Optional[str],
+                    init_bare: bool = True,
+                    fail_context: str) -> None:
+    """Ensure Git repository given by upstream is initialized. Use an exclusive
+    lock to ensure the initialization happens only once."""
+    root: str = git_root(upstream=upstream)
+    # acquire exclusive lock; use same naming scheme as in Just
+    lockfile = lock_acquire(os.path.join(Path(root).parent, "init_open.lock"))
+    # do the critical work
+    if os.path.exists(root):
+        return
+    os.makedirs(root)
+    git_init_cmd: List[str] = [g_GIT, "init"]
+    if init_bare:
+        git_init_cmd += ["--bare"]
+    run_cmd(g_LAUNCHER + git_init_cmd, cwd=root, fail_context=fail_context)
+    # release the exclusive lock
+    lock_release(lockfile)
+
+
+def git_commit_present(commit: str, *, upstream: Optional[str]) -> bool:
+    """Check if commit is present in specified Git repository."""
+    result = subprocess.run(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
+                            stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL,
+                            cwd=git_root(upstream=upstream))
+    return result.returncode == 0
+
+
+def git_url_is_path(url: str) -> Optional[str]:
+    """Get the path a URL refers to if it is in a supported path format,
+    and None otherwise."""
+    if url.startswith('/'):
+        return url
+    if url.startswith('./'):
+        return url[len('./'):]
+    if url.startswith('file://'):
+        return url[len('file://'):]
+    return None
+
+
+def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
+              fetchable: str, fail_context: Optional[str]) -> bool:
+    """Fetch from a given repository a fetchable object (branch or commit) into
+    another repository. A None value for a repository means the Git cache
+    repository is used. Returns success flag of fetch command."""
+    if from_repo is None:
+        from_repo = git_root(upstream=None)
+    else:
+        path_url = git_url_is_path(from_repo)
+        if path_url is not None:
+            from_repo = os.path.abspath(path_url)
+    return run_cmd(g_LAUNCHER + [g_GIT, "fetch", from_repo, fetchable],
+                   cwd=git_root(upstream=to_repo),
+                   fail_context=fail_context)[1] == 0
+
+
+###
+# CAS utils
+##
+
+
+def gc_storage_lock_acquire(is_shared: bool = False) -> TextIO:
+    """Acquire garbage collector file lock for the local storage."""
+    # use same naming scheme as in Just
+    return lock_acquire(os.path.join(g_ROOT, "protocol-dependent", "gc.lock"),
+                        is_shared)
+
+
+def git_hash(content: bytes, type: str = "blob") -> Tuple[str, bytes]:
+    """Hash content as a Git object. Returns the hash, as well as the header to
+    be stored."""
+    header = "{} {}\0".format(type, len(content)).encode('utf-8')
+    h = hashlib.sha1()
+    h.update(header)
+    h.update(content)
+    return h.hexdigest(), header
+
+
+def add_to_cas(data: Union[str, bytes]) -> Tuple[str, str]:
+    """Add content to local file CAS and return its CAS location and hash."""
+    try:
+        if isinstance(data, str):
+            data = data.encode('utf-8')
+        h, _ = git_hash(data)
+        cas_root = os.path.join(
+            g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
+        basename = h[2:]
+        target = os.path.join(cas_root, basename)
+        tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
+
+        if os.path.exists(target):
+            return target, h
+
+        os.makedirs(cas_root, exist_ok=True)
+        with open(tempname, "wb") as f:
+            f.write(data)
+            f.flush()
+            os.chmod(f.fileno(), 0o444)
+            os.fsync(f.fileno())
+        os.utime(tempname, (0, 0))
+        os.rename(tempname, target)
+        return target, h
+    except Exception as ex:
+        fail("Adding content to CAS failed with:\n%r" % (ex, ))
+
+
+def cas_path(h: str) -> str:
+    """Get path to local file CAS."""
+    return os.path.join(
+        g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}",
+        h[2:])
+
+
+def is_in_cas(h: str) -> bool:
+    """Check if content is in local file CAS."""
+    return os.path.exists(cas_path(h))
+
+
+###
 # Imports utils
 ##
 
@@ -489,159 +642,6 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 as_layer=True)
 
     return core_repos
-
-
-###
-# Git utils
-##
-
-
-def gc_repo_lock_acquire(is_shared: bool = False) -> TextIO:
-    """Acquire garbage collector file lock for the Git cache."""
-    # use same naming scheme as in Just
-    return lock_acquire(os.path.join(g_ROOT, "repositories/gc.lock"), is_shared)
-
-
-def git_root(*, upstream: Optional[str]) -> str:
-    """Get the root of specified upstream repository. Passing None always
-    returns the root of the Git cache repository. No checks are made on the
-    returned path."""
-    return (os.path.join(g_ROOT, "repositories/generation-0/git")
-            if upstream is None else upstream)
-
-
-def git_keep(commit: str, *, upstream: Optional[str],
-             fail_context: str) -> None:
-    """Keep commit by tagging it."""
-    git_env = {**os.environ, **GIT_NOBODY_ENV}
-    run_cmd(g_LAUNCHER + [
-        g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
-        "keep-%s" % (commit, ), commit
-    ],
-            cwd=git_root(upstream=upstream),
-            env=git_env,
-            attempts=3,
-            fail_context=fail_context)
-
-
-def ensure_git_init(*,
-                    upstream: Optional[str],
-                    init_bare: bool = True,
-                    fail_context: str) -> None:
-    """Ensure Git repository given by upstream is initialized. Use an exclusive
-    lock to ensure the initialization happens only once."""
-    root: str = git_root(upstream=upstream)
-    # acquire exclusive lock; use same naming scheme as in Just
-    lockfile = lock_acquire(os.path.join(Path(root).parent, "init_open.lock"))
-    # do the critical work
-    if os.path.exists(root):
-        return
-    os.makedirs(root)
-    git_init_cmd: List[str] = [g_GIT, "init"]
-    if init_bare:
-        git_init_cmd += ["--bare"]
-    run_cmd(g_LAUNCHER + git_init_cmd, cwd=root, fail_context=fail_context)
-    # release the exclusive lock
-    lock_release(lockfile)
-
-
-def git_commit_present(commit: str, *, upstream: Optional[str]) -> bool:
-    """Check if commit is present in specified Git repository."""
-    result = subprocess.run(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            cwd=git_root(upstream=upstream))
-    return result.returncode == 0
-
-
-def git_url_is_path(url: str) -> Optional[str]:
-    """Get the path a URL refers to if it is in a supported path format,
-    and None otherwise."""
-    if url.startswith('/'):
-        return url
-    if url.startswith('./'):
-        return url[len('./'):]
-    if url.startswith('file://'):
-        return url[len('file://'):]
-    return None
-
-
-def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
-              fetchable: str, fail_context: Optional[str]) -> bool:
-    """Fetch from a given repository a fetchable object (branch or commit) into
-    another repository. A None value for a repository means the Git cache
-    repository is used. Returns success flag of fetch command."""
-    if from_repo is None:
-        from_repo = git_root(upstream=None)
-    else:
-        path_url = git_url_is_path(from_repo)
-        if path_url is not None:
-            from_repo = os.path.abspath(path_url)
-    return run_cmd(g_LAUNCHER + [g_GIT, "fetch", from_repo, fetchable],
-                   cwd=git_root(upstream=to_repo),
-                   fail_context=fail_context)[1] == 0
-
-
-###
-# CAS utils
-##
-
-
-def gc_storage_lock_acquire(is_shared: bool = False) -> TextIO:
-    """Acquire garbage collector file lock for the local storage."""
-    # use same naming scheme as in Just
-    return lock_acquire(os.path.join(g_ROOT, "protocol-dependent", "gc.lock"),
-                        is_shared)
-
-
-def git_hash(content: bytes, type: str = "blob") -> Tuple[str, bytes]:
-    """Hash content as a Git object. Returns the hash, as well as the header to
-    be stored."""
-    header = "{} {}\0".format(type, len(content)).encode('utf-8')
-    h = hashlib.sha1()
-    h.update(header)
-    h.update(content)
-    return h.hexdigest(), header
-
-
-def add_to_cas(data: Union[str, bytes]) -> Tuple[str, str]:
-    """Add content to local file CAS and return its CAS location and hash."""
-    try:
-        if isinstance(data, str):
-            data = data.encode('utf-8')
-        h, _ = git_hash(data)
-        cas_root = os.path.join(
-            g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}")
-        basename = h[2:]
-        target = os.path.join(cas_root, basename)
-        tempname = os.path.join(cas_root, "%s.%d" % (basename, os.getpid()))
-
-        if os.path.exists(target):
-            return target, h
-
-        os.makedirs(cas_root, exist_ok=True)
-        with open(tempname, "wb") as f:
-            f.write(data)
-            f.flush()
-            os.chmod(f.fileno(), 0o444)
-            os.fsync(f.fileno())
-        os.utime(tempname, (0, 0))
-        os.rename(tempname, target)
-        return target, h
-    except Exception as ex:
-        fail("Adding content to CAS failed with:\n%r" % (ex, ))
-
-
-def cas_path(h: str) -> str:
-    """Get path to local file CAS."""
-    return os.path.join(
-        g_ROOT, f"protocol-dependent/generation-0/git-sha1/casf/{h[0:2]}",
-        h[2:])
-
-
-def is_in_cas(h: str) -> bool:
-    """Check if content is in local file CAS."""
-    return os.path.exists(cas_path(h))
 
 
 ###
