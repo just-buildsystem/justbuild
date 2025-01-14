@@ -15,9 +15,13 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP
 
+#include <mutex>
 #include <string>
 
+#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/tree_structure/tree_structure_cache.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -38,6 +42,22 @@ class TreeStructureUtils final {
     [[nodiscard]] static auto Compute(ArtifactDigest const& tree,
                                       Storage const& storage,
                                       TreeStructureCache const& cache) noexcept
+        -> expected<ArtifactDigest, std::string>;
+
+    /// \brief Import a git tree from the given source to storage_config's git
+    /// repo.
+    /// \param tree           GitSHA1 tree to import
+    /// \param source_api     The source of the tree. Must be capable of
+    /// processing GitSHA1 trees.
+    /// \param target_config  Config with target git repo.
+    /// \param tagging_lock   Mutex to protect critical tagging operation
+    /// \return Digest of the tree that is available in the repo after the
+    /// call or an error message on failure.
+    [[nodiscard]] static auto ImportToGit(
+        ArtifactDigest const& tree,
+        IExecutionApi const& source_api,
+        StorageConfig const& target_config,
+        gsl::not_null<std::mutex*> const& tagging_lock) noexcept
         -> expected<ArtifactDigest, std::string>;
 };
 

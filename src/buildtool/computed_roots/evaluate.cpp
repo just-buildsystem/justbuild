@@ -46,12 +46,10 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
-#include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -387,33 +385,31 @@ void ComputeTreeStructureAndFill(
         substitution_storage_config.has_value()
             ? substitution_storage_config.value()
             : *storage_config;
+    auto const storage = Storage::Create(&native_storage_config);
+    LocalExecutionConfig const dummy_exec_config{};
+    LocalContext const local_context{.exec_config = &dummy_exec_config,
+                                     .storage_config = &native_storage_config,
+                                     .storage = &storage};
+    LocalApi const native_local_api(&local_context, /*repo_config=*/nullptr);
 
     TreeStructureCache const tree_structure_cache(&native_storage_config);
     std::optional<std::string> resolved_hash;
 
     // Check the result is in cache already:
     if (auto const cache_entry = tree_structure_cache.Get(*digest)) {
-        auto const cached_hash = cache_entry->hash();
-        auto tree_present =
-            GitRepo::IsTreeInRepo(native_storage_config.GitRoot(), cached_hash);
-        if (not tree_present) {
-            std::invoke(*logger,
-                        fmt::format("While checking presence of tree {} in "
-                                    "local git repo:\n{}",
-                                    cached_hash,
-                                    std::move(tree_present).error()),
-                        /*fatal=*/true);
+        // Ensure the entry is present in git. If it is in cache, it must be
+        // present in the CAS, so just import from CAS to git:
+        auto to_git = TreeStructureUtils::ImportToGit(
+            *cache_entry, native_local_api, native_storage_config, git_lock);
+        if (not to_git.has_value()) {
+            std::invoke(*logger, std::move(to_git).error(), /*fatal=*/true);
             return;
         }
-
-        if (*tree_present) {
-            resolved_hash = cached_hash;
-        }
+        resolved_hash = cache_entry->hash();
     }
 
     if (not resolved_hash) {
         // If the tree is not in the storage, it must be added:
-        auto const storage = Storage::Create(&native_storage_config);
         if (not storage.CAS().TreePath(*digest).has_value()) {
             auto const path_to_git_cas = ref_root.GetGitCasRoot();
             if (not path_to_git_cas) {
@@ -435,16 +431,9 @@ void ComputeTreeStructureAndFill(
             }
 
             GitApi const git_api{&root_config};
-            LocalExecutionConfig const dummy_exec_config{};
-            LocalContext const local_context{
-                .exec_config = &dummy_exec_config,
-                .storage_config = &native_storage_config,
-                .storage = &storage};
-            LocalApi const local_api(&local_context, /*repo_config=*/nullptr);
-
             if (not git_api.RetrieveToCas(
                     {Artifact::ObjectInfo{*digest, ObjectType::Tree}},
-                    local_api) or
+                    native_local_api) or
                 not storage.CAS().TreePath(*digest).has_value()) {
                 std::invoke(*logger,
                             fmt::format("Failed to retrieve {} to CAS for {}",
@@ -463,41 +452,13 @@ void ComputeTreeStructureAndFill(
             return;
         }
 
-        auto const tmp_dir =
-            native_storage_config.CreateTypedTmpDir("stage_tree_structure");
-        if (tmp_dir == nullptr) {
-            std::invoke(
-                *logger,
-                fmt::format("Failed to create temporary directory for {}",
-                            key.ToString()),
-                true);
+        auto to_git = TreeStructureUtils::ImportToGit(
+            *tree_structure, native_local_api, native_storage_config, git_lock);
+        if (not to_git.has_value()) {
+            std::invoke(*logger, std::move(to_git).error(), /*fatal=*/true);
             return;
         }
-
-        // Stage the resulting tree structure to a temporary directory:
-        auto const root_dir = tmp_dir->GetPath() / "root";
-        if (auto reader = TreeReader<LocalCasReader>(&storage.CAS());
-            not reader.StageTo(
-                {Artifact::ObjectInfo{*tree_structure, ObjectType::Tree}},
-                {root_dir})) {
-            std::invoke(
-                *logger,
-                fmt::format("Failed to stage tree structure to a temporary "
-                            "location for {}.",
-                            key.ToString()),
-                true);
-            return;
-        }
-
-        // Import the result to git:
-        auto result_tree = GitRepo::ImportToGit(
-            native_storage_config, root_dir, "tree structure", git_lock);
-        if (not result_tree) {
-            std::invoke(
-                *logger, std::move(result_tree).error(), /*fatal=*/true);
-            return;
-        }
-        resolved_hash = *std::move(result_tree);
+        resolved_hash = tree_structure->hash();
     }
 
     if (not resolved_hash) {

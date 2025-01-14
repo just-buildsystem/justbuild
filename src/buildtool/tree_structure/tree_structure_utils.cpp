@@ -15,13 +15,16 @@
 #include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 
 #include <algorithm>
+#include <filesystem>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -30,6 +33,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 auto TreeStructureUtils::Compute(ArtifactDigest const& tree,
                                  Storage const& storage,
@@ -132,4 +136,65 @@ auto TreeStructureUtils::Compute(ArtifactDigest const& tree,
             tree_structure->hash())};
     }
     return *std::move(tree_structure);
+}
+
+auto TreeStructureUtils::ImportToGit(
+    ArtifactDigest const& tree,
+    IExecutionApi const& source_api,
+    StorageConfig const& target_config,
+    gsl::not_null<std::mutex*> const& tagging_lock) noexcept
+    -> expected<ArtifactDigest, std::string> {
+    if (not tree.IsTree() or not ProtocolTraits::IsNative(tree.GetHashType())) {
+        return unexpected{fmt::format("Not a git tree: {}", tree.hash())};
+    }
+
+    // Check the source contains the tree:
+    if (not source_api.IsAvailable(tree)) {
+        return unexpected{
+            fmt::format("Source doesn't contain tree {}", tree.hash())};
+    }
+
+    // Check the tree is in the repository already:
+    if (auto in_repo =
+            GitRepo::IsTreeInRepo(target_config.GitRoot(), tree.hash())) {
+        if (*in_repo) {
+            return tree;
+        }
+    }
+    else {
+        return unexpected{std::move(in_repo).error()};
+    }
+
+    auto const tmp_dir =
+        target_config.CreateTypedTmpDir("import_from_cas_to_git");
+    if (tmp_dir == nullptr) {
+        return unexpected{fmt::format(
+            "Failed to create temporary directory for {}", tree.hash())};
+    }
+
+    // Stage the tree to a temporary directory:
+    if (not source_api.RetrieveToPaths(
+            {Artifact::ObjectInfo{tree, ObjectType::Tree}},
+            {tmp_dir->GetPath()})) {
+        return unexpected{fmt::format(
+            "Failed to stage {} to a temporary location.", tree.hash())};
+    }
+
+    // Import the result to git:
+    auto tree_hash = GitRepo::ImportToGit(
+        target_config,
+        tmp_dir->GetPath(),
+        /*commit_message=*/fmt::format("Import {}", tree.hash()),
+        tagging_lock);
+    if (not tree_hash) {
+        return unexpected{std::move(tree_hash).error()};
+    }
+    auto digest = ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                tree_hash.value(),
+                                                /*size_unknown=*/0,
+                                                /*is_tree=*/true);
+    if (not digest) {
+        return unexpected{std::move(digest).error()};
+    }
+    return *digest;
 }
