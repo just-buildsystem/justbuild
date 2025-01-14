@@ -1,0 +1,8 @@
+{ "cat":
+  { "type": "generic"
+  , "outs": ["out"]
+  , "cmds": ["cat *.txt > out"]
+  , "deps": [["data", ""]]
+  }
+, "": {"type": "export", "target": "cat"}
+}
