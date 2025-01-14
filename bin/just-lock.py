@@ -22,10 +22,12 @@ import subprocess
 import sys
 import tempfile
 import time
+import zlib
 
 from argparse import ArgumentParser, ArgumentError
 from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Set, TextIO, Tuple, Union, cast
+from enum import Enum
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -60,6 +62,14 @@ GIT_NOBODY_ENV: Dict[str, str] = {
     "GIT_CONFIG_GLOBAL": "/dev/null",
     "GIT_CONFIG_SYSTEM": "/dev/null",
 }
+
+
+class ObjectType(Enum):
+    FILE = 1
+    EXEC = 2
+    LINK = 3
+    DIR = 4
+
 
 ###
 # Global vars
@@ -302,6 +312,156 @@ def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
                    fail_context=fail_context)[1] == 0
 
 
+def type_to_perm(obj_type: ObjectType) -> str:
+    """Mapping from Git object type to filesystem permission string."""
+    if obj_type == ObjectType.DIR:
+        return "40000"
+    elif obj_type == ObjectType.LINK:
+        return "120000"
+    elif obj_type == ObjectType.EXEC:
+        return "100755"
+    elif obj_type == ObjectType.FILE:
+        return "100644"
+    fail("Unexpected object type %r" % (obj_type, ))
+
+
+def write_data_to_repo(repo_root: str, data: bytes, *, as_type: str) -> bytes:
+    """Write content of an object of certain type into given repository.
+    Returns the raw id of the written object."""
+    # Get hash and header to be stored
+    h, header = git_hash(data, type=as_type)
+
+    # Write repository object
+    obj_dir = "{}/.git/objects/{}".format(repo_root, h[0:2])
+    obj_file = "{}/{}".format(obj_dir, h[2:])
+    os.makedirs(obj_dir, exist_ok=True)
+    with open(obj_file, "wb") as f:
+        f.write(zlib.compress(header + data))
+
+    return bytes.fromhex(h)  # raw id
+
+
+def write_blob_to_repo(repo_root: str, data: bytes) -> bytes:
+    """Write blob into given Git repository."""
+    return write_data_to_repo(repo_root, data, as_type="blob")
+
+
+def write_tree_to_repo(repo_root: str,
+                       entries: Dict[str, Tuple[bytes, ObjectType]]) -> bytes:
+    """Write tree entries into given Git repository. Tree entries have as key
+    their filename and as value a tuple of raw id and object type. They must be
+    sorted by filename."""
+    tree_content: bytes = b""
+    for fname, entry in sorted(entries.items()):
+        if entry[1] == ObjectType.DIR:
+            # remove any trailing '/'
+            if fname[-1] == '/':
+                fname = fname[:-1]
+        tree_content += "{} {}\0".format(type_to_perm(entry[1]),
+                                         fname).encode('utf-8') + entry[0]
+    return write_data_to_repo(repo_root, tree_content, as_type="tree")
+
+
+def path_to_type(fpath: str) -> ObjectType:
+    """Get type of given filesystem entry."""
+    if os.path.islink(fpath):
+        return ObjectType.LINK
+    elif os.path.isdir(fpath):
+        return ObjectType.DIR
+    elif os.path.isfile(fpath):
+        if os.access(fpath, os.X_OK):
+            return ObjectType.EXEC
+        else:
+            return ObjectType.FILE
+    fail("Found unsupported filesystem entry %s" % (fpath, ))
+
+
+def get_tree_raw_id(source_dir: str, repo_root: str) -> bytes:
+    """Write the content of the directory recursively to the given repository
+    and return its SHA1 hash and its raw bytes representation."""
+    entries: Dict[str, Tuple[bytes, ObjectType]] = {}
+    for fname in os.listdir(source_dir):
+        fpath = source_dir + "/" + fname
+        obj_type = path_to_type(fpath)
+        raw_h: bytes = b""
+        if obj_type == ObjectType.DIR:
+            raw_h = get_tree_raw_id(fpath, repo_root)
+            fname = fname + '/'  # trailing '/' added for correct sorting
+        elif obj_type == ObjectType.LINK:
+            data = os.readlink(fpath).encode('utf-8')
+            raw_h = write_blob_to_repo(repo_root, data)
+        else:
+            with open(fpath, "rb") as f:
+                data = f.read()
+                raw_h = write_blob_to_repo(repo_root, data)
+        # Add entry to map
+        entries[fname] = (raw_h, obj_type)
+
+    return write_tree_to_repo(repo_root, entries)
+
+
+def import_to_git(target: str, *, repo_type: str, content_id: str,
+                  fail_context: str) -> str:
+    """Import directory into Git cache and return its Git-tree identifier."""
+    fail_context += "While importing to Git directory %s:\n" % (target, )
+
+    # In order to import content that might otherwise be ignored by Git, such
+    # as empty directories or magic-named files and folders (e.g., .git,
+    # .gitignore), add entries manually to the repository, which should be in
+    # its own separate location.
+    repo_tmp_dir = create_tmp_dir(type="import-to-git")
+
+    # Initialize repo to have access to its storage
+    run_cmd(g_LAUNCHER + [g_GIT, "init"],
+            cwd=repo_tmp_dir,
+            fail_context=fail_context)
+
+    # Get tree id of added directory
+    tree_id: str = get_tree_raw_id(target, repo_tmp_dir).hex()
+
+    # Commit the tree
+    git_env = {**os.environ, **GIT_NOBODY_ENV}
+    commit: str = run_cmd(g_LAUNCHER + [
+        g_GIT, "commit-tree", tree_id, "-m",
+        "Content of %s %r" % (repo_type, content_id)
+    ],
+                          stdout=subprocess.PIPE,
+                          cwd=repo_tmp_dir,
+                          env=git_env,
+                          fail_context=fail_context)[0].decode('utf-8').strip()
+
+    # Update the HEAD to make the tree fetchable
+    run_cmd(g_LAUNCHER + [g_GIT, "update-ref", "HEAD", commit],
+            cwd=repo_tmp_dir,
+            env=git_env,
+            fail_context=fail_context)
+
+    # Fetch commit into Git cache repository and tag it
+    ensure_git_init(upstream=None, fail_context=fail_context)
+    git_fetch(from_repo=repo_tmp_dir,
+              to_repo=None,
+              fetchable="",
+              fail_context=fail_context)
+    git_keep(commit, upstream=None, fail_context=fail_context)
+
+    return tree_id
+
+
+def git_subtree(*, tree: str, subdir: str, upstream: Optional[str],
+                fail_context: str) -> str:
+    """Get Git-tree identifier in a Git tree by subdirectory path."""
+    if os.path.normpath(subdir) == ".":
+        return tree
+    return run_cmd(
+        g_LAUNCHER +
+        [g_GIT, "rev-parse",
+         "%s:%s" % (tree, os.path.normpath(subdir))],
+        stdout=subprocess.PIPE,
+        cwd=git_root(upstream=upstream),
+        fail_context=fail_context,
+    )[0].decode('utf-8').strip()
+
+
 ###
 # CAS utils
 ##
@@ -474,8 +634,8 @@ def name_imports(to_import: List[str],
     return assign
 
 
-def rewrite_file_repo(repo: Json, remote_type: str,
-                      remote_stub: Dict[str, Any]) -> Json:
+def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
+                      *, fail_context: str) -> Json:
     """Rewrite \"file\"-type descriptions based on remote type."""
     if remote_type == "git":
         # for imports from Git, file repos become type 'git' with subdir; the
@@ -506,16 +666,38 @@ def rewrite_file_repo(repo: Json, remote_type: str,
                 subdir = os.path.join(existing, subdir)
             changes["subdir"] = subdir
         return dict(remote_stub, **changes)
+    elif remote_type == "git-tree":
+        # for imports from git-trees, file repos become 'git tree' types; the
+        # subtree Git identifier is computed relative to the root Git tree, so
+        # compute and validate the subtree path based on the source tree subdir
+        # passed in the remote stub; the final configuration must NOT have any
+        # subdir field
+        path = cast(str, repo.get("path", "."))
+        if Path(path).is_absolute():
+            fail(
+                fail_context +
+                "Cannot import transitive \"file\" dependency with absolute path %s"
+                % (path, ))
+        remote_desc = dict(remote_stub)  # keep remote_stub read-only!
+        root: str = remote_desc.pop("subdir", ".")  # remove 'subdir' key
+        subdir = os.path.join(root, path)
+        if os.path.normpath(subdir).startswith(".."):
+            fail(fail_context +
+                 "Transitive \"file\" dependency requests upward subtree %s" %
+                 (subdir, ))
+        if os.path.normpath(subdir) != ".":
+            # get the subtree Git identifier
+            remote_desc["id"] = git_subtree(tree=remote_desc["id"],
+                                            subdir=subdir,
+                                            upstream=None,
+                                            fail_context=fail_context)
+        return remote_desc
     fail("Unsupported remote type!")
 
 
-def rewrite_repo(repo_spec: Json,
-                 *,
-                 remote_type: str,
-                 remote_stub: Dict[str, Any],
-                 assign: Json,
-                 absent: bool,
-                 as_layer: bool = False) -> Json:
+def rewrite_repo(repo_spec: Json, *, remote_type: str,
+                 remote_stub: Dict[str, Any], assign: Json, absent: bool,
+                 as_layer: bool, fail_context: str) -> Json:
     """Rewrite description of imported repositories."""
     new_spec: Json = {}
     repo = repo_spec.get("repository", {})
@@ -523,7 +705,10 @@ def rewrite_repo(repo_spec: Json,
         repo = assign[repo]
     elif repo.get("type") == "file":
         # "file"-type repositories need to be rewritten based on remote type
-        repo = rewrite_file_repo(repo, remote_type, remote_stub)
+        repo = rewrite_file_repo(repo,
+                                 remote_type,
+                                 remote_stub,
+                                 fail_context=fail_context)
     elif repo.get("type") == "distdir":
         existing_repos: List[str] = repo.get("repositories", [])
         new_repos = [assign[k] for k in existing_repos]
@@ -557,6 +742,8 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                   repo_desc: Json, core_repos: Json, foreign_config: Json, *,
                   fail_context: str) -> Json:
     """General handling of repository import from a foreign config."""
+    fail_context += "While handling import from remote type \"%s\"\n" % (
+        remote_type, )
 
     # parse input description
     import_as: Optional[str] = repo_desc.get("alias", None)
@@ -632,14 +819,17 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
-                                                absent=absent)
+                                                absent=absent,
+                                                as_layer=False,
+                                                fail_context=fail_context)
     for repo in extra_imports:
         core_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
                                                 absent=absent,
-                                                as_layer=True)
+                                                as_layer=True,
+                                                fail_context=fail_context)
 
     return core_repos
 
@@ -1211,6 +1401,201 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
 
 
 ###
+# Import from Git tree
+##
+
+
+def git_tree_checkout(command: List[str], do_generate: bool, *,
+                      command_env: Json, subdir: Optional[str],
+                      inherit_env: List[str],
+                      fail_context: str) -> Tuple[str, Dict[str, Any], str]:
+    """Run a given command or the command generated by the given command and
+    import the obtained tree to Git cache. Return the checkout location, the
+    repository description stub to use for rewriting 'file'-type dependencies,
+    containing any additional needed data, and the temp dir to later clean up.
+    """
+    fail_context += "While checking out Git-tree:\n"
+
+    # Set the command environment
+    curr_env = os.environ
+    new_envs = {}
+    for envar in inherit_env:
+        if envar in curr_env:
+            new_envs[envar] = curr_env[envar]
+    command_env = dict(command_env, **new_envs)
+
+    # Generate the command to be run, if needed
+    if do_generate:
+        tmpdir: str = create_tmp_dir(
+            type="cmd-gen")  # to avoid polluting the current dir
+        data, _ = run_cmd(g_LAUNCHER + command,
+                          cwd=tmpdir,
+                          env=command_env,
+                          stdout=subprocess.PIPE,
+                          fail_context=fail_context)
+        command = json.loads(data)
+        try_rmtree(tmpdir)
+
+    # Generate the sources tree content; here we use the environment provided
+    workdir: str = create_tmp_dir(type="git-tree-checkout")
+    run_cmd(g_LAUNCHER + command,
+            cwd=workdir,
+            env=command_env,
+            fail_context=fail_context)
+
+    # Import root tree to Git cache; as we do not have the tree hash, identify
+    # commits by the hash of the generating command instead
+    tree_id = import_to_git(workdir,
+                            repo_type="git-tree",
+                            content_id=git_hash(
+                                json.dumps(command).encode('utf-8'))[0],
+                            fail_context=fail_context)
+
+    # Point the sources path for imports to the right subdirectory
+    srcdir = (workdir if subdir is None else os.path.join(workdir, subdir))
+
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    repo_stub: Dict[str, Any] = {
+        "type": "git tree",
+        "cmd": command,
+        "env": command_env,
+        "id": tree_id,  # the root tree id
+    }
+    if inherit_env:
+        repo_stub = dict(repo_stub, **{"inherit env": inherit_env})
+    # The subdir should not be part of the final description, but is needed for
+    # computing the subtree identifier
+    if subdir is not None:
+        repo_stub = dict(repo_stub, **{"subdir": subdir})
+    return srcdir, repo_stub, workdir
+
+
+def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
+    """Handles imports from general Git trees obtained by running a command
+    (explicitly given or generated by a given command)."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"git-tree\":\n"
+
+    # Get the repositories list
+    repos: List[Any] = imports_entry.get("repos", [])
+    if not isinstance(repos, list):
+        fail(fail_context +
+             "Expected field \"repos\" to be a list, but found:\n%r" %
+             (json.dumps(repos, indent=2), ))
+
+    # Check if anything is to be done
+    if not repos:  # empty
+        return core_repos
+
+    # Parse source config fields
+    command: Optional[List[str]] = imports_entry.get("cmd", None)
+    if command is not None and not isinstance(command, list):
+        fail(fail_context +
+             "Expected field \"cmd\" to be a list, but found:\n%r" %
+             (json.dumps(command, indent=2), ))
+    command_gen: Optional[List[str]] = imports_entry.get("cmd_gen", None)
+    if command_gen is not None and not isinstance(command_gen, list):
+        fail(fail_context +
+             "Expected field \"cmd_gen\" to be a list, but found:\n%r" %
+             (json.dumps(command_gen, indent=2), ))
+    if command is None == command_gen is None:
+        fail(fail_context +
+             "Only one of fields \"cmd\" and \"cmd_gen\" must be provided!")
+
+    subdir: Optional[str] = imports_entry.get("subdir", None)
+    if subdir is not None:
+        if not isinstance(subdir, str):
+            fail(fail_context +
+                 "Expected field \"subdir\" to be a string, but found:\n%r" %
+                 (json.dumps(subdir, indent=2), ))
+        if os.path.isabs(subdir) or subdir.startswith(".."):
+            fail(
+                fail_context +
+                "Expected field \"subdir\" to be a relative non-upward path, but found:\n%r"
+                % (json.dumps(subdir, indent=2), ))
+        subdir = os.path.normpath(subdir)
+        if subdir == ".":
+            subdir = None  # treat as if missing
+
+    command_env: Optional[Json] = imports_entry.get("env", {})
+    if command_env is not None and not isinstance(command_env, dict):
+        fail(fail_context +
+             "Expected field \"env\" to be a map, but found:\n%r" %
+             (json.dumps(command_env, indent=2), ))
+
+    inherit_env: Optional[List[str]] = imports_entry.get("inherit_env", [])
+    if inherit_env is not None and not isinstance(inherit_env, list):
+        fail(fail_context +
+             "Expected field \"inherit_env\" to be a list, but found:\n%r" %
+             (json.dumps(inherit_env, indent=2), ))
+
+    as_plain: Optional[bool] = imports_entry.get("as_plain", False)
+    if as_plain is not None and not isinstance(as_plain, bool):
+        fail(fail_context +
+             "Expected field \"as_plain\" to be a bool, but found:\n%r" %
+             (json.dumps(as_plain, indent=2), ))
+
+    foreign_config_file: Optional[str] = imports_entry.get("config", None)
+    if foreign_config_file is not None and not isinstance(
+            foreign_config_file, str):
+        fail(fail_context +
+             "Expected field \"config\" to be a string, but found:\n%r" %
+             (json.dumps(foreign_config_file, indent=2), ))
+
+    # Fetch the Git tree
+    srcdir, remote_stub, to_clean_up = git_tree_checkout(
+        command=cast(List[str], command_gen if command is None else command),
+        do_generate=command is None,
+        command_env=command_env,
+        subdir=subdir,
+        inherit_env=inherit_env,
+        fail_context=fail_context)
+
+    # Read in the foreign config file
+    if foreign_config_file:
+        foreign_config_file = os.path.join(srcdir, foreign_config_file)
+    else:
+        foreign_config_file = get_repository_config_file(
+            DEFAULT_JUSTMR_CONFIG_NAME, srcdir)
+    foreign_config: Json = {}
+    if as_plain:
+        foreign_config = {"main": "", "repositories": DEFAULT_REPO}
+    else:
+        if (foreign_config_file):
+            try:
+                with open(foreign_config_file) as f:
+                    foreign_config = json.load(f)
+            except OSError:
+                fail(fail_context + "Failed to open foreign config file %s" %
+                     (foreign_config_file, ))
+            except Exception as ex:
+                fail(fail_context +
+                     "Reading foreign config file failed with:\n%r" % (ex, ))
+        else:
+            fail(fail_context +
+                 "Failed to find the repository configuration file!")
+
+    # Process the imported repositories, in order
+    for repo_entry in repos:
+        if not isinstance(repo_entry, dict):
+            fail(fail_context +
+                 "Expected \"repos\" entries to be objects, but found:\n%r" %
+                 (json.dumps(repo_entry, indent=2), ))
+        repo_entry = cast(Json, repo_entry)
+
+        core_repos = handle_import("git-tree",
+                                   remote_stub,
+                                   repo_entry,
+                                   core_repos,
+                                   foreign_config,
+                                   fail_context=fail_context)
+
+    # Clean up local fetch
+    try_rmtree(to_clean_up)
+    return core_repos
+
+
+###
 # Deduplication logic
 ##
 
@@ -1539,8 +1924,8 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_archive(
                 core_config["repositories"], entry)
         elif source == "git-tree":
-            # TODO(psarbu): Implement source "git-tree"
-            warn("Import from source \"git-tree\" not yet implemented!")
+            core_config["repositories"] = import_from_git_tree(
+                core_config["repositories"], entry)
         elif source == "generic":
             # TODO(psarbu): Implement source "generic"
             warn("Import from source \"generic\" not yet implemented!")
