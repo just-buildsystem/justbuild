@@ -15,8 +15,10 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP
 
+#include <filesystem>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -59,6 +61,19 @@ class TreeStructureUtils final {
         StorageConfig const& target_config,
         gsl::not_null<std::mutex*> const& tagging_lock) noexcept
         -> expected<ArtifactDigest, std::string>;
+
+    /// \brief Export a tree from source git repositories to target api. Uses
+    /// regular GitApi for retrieval from git and doesn't perform rehashing.
+    /// \param tree           Tree to export
+    /// \param source_repos   Repositories to check
+    /// \param target_api     Api to export the tree to
+    /// \return True if target api contains tree after the call, false if none
+    /// of source repositories contain tree, or an error message on failure.
+    [[nodiscard]] static auto ExportFromGit(
+        ArtifactDigest const& tree,
+        std::vector<std::filesystem::path> const& source_repos,
+        IExecutionApi const& target_api) noexcept
+        -> expected<bool, std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP

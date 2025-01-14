@@ -78,7 +78,6 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/execution_api/git", "git"]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_api/local", "local"]

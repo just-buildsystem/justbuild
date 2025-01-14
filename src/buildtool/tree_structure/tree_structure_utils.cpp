@@ -15,6 +15,7 @@
 #include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -27,7 +28,9 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
+#include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -197,4 +200,39 @@ auto TreeStructureUtils::ImportToGit(
         return unexpected{std::move(digest).error()};
     }
     return *digest;
+}
+
+auto TreeStructureUtils::ExportFromGit(
+    ArtifactDigest const& tree,
+    std::vector<std::filesystem::path> const& source_repos,
+    IExecutionApi const& target_api) noexcept -> expected<bool, std::string> {
+    if (not tree.IsTree() or not ProtocolTraits::IsNative(tree.GetHashType())) {
+        return unexpected{fmt::format("Not a git tree: {}", tree.hash())};
+    }
+
+    // Find git repo that contains the tree:
+    std::filesystem::path const* repo = nullptr;
+    for (std::size_t i = 0; i < source_repos.size() and repo == nullptr; ++i) {
+        auto in_repo = GitRepo::IsTreeInRepo(source_repos[i], tree.hash());
+        if (not in_repo.has_value()) {
+            return unexpected{std::move(in_repo).error()};
+        }
+        if (*in_repo) {
+            repo = &source_repos[i];
+        }
+    }
+
+    // Check that at least one repo contains the tree:
+    if (repo == nullptr) {
+        return false;
+    }
+
+    RepositoryConfig repo_config{};
+    if (not repo_config.SetGitCAS(*repo)) {
+        return unexpected{
+            fmt::format("Failed to set git cas at {}", repo->string())};
+    }
+    auto const git_api = GitApi{&repo_config};
+    return git_api.RetrieveToCas({Artifact::ObjectInfo{tree, ObjectType::Tree}},
+                                 target_api);
 }
