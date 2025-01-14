@@ -381,7 +381,7 @@ void ComputeTreeStructureAndFill(
             ? substitution_storage_config.value()
             : *storage_config;
 
-    std::optional<std::string> resolved_hash;
+    std::optional<FileRoot> resolved_root;
     std::vector known_repositories{native_storage_config.GitRoot()};
     if (not ref_root.IsAbsent()) {
         auto const path_to_git_cas = ref_root.GetGitCasRoot();
@@ -401,7 +401,8 @@ void ComputeTreeStructureAndFill(
             *digest, known_repositories, native_storage_config, git_lock)) {
         std::optional<ArtifactDigest> const& tree_structure = *from_local;
         if (tree_structure.has_value()) {
-            resolved_hash = tree_structure->hash();
+            resolved_root = FileRoot::FromGit(native_storage_config.GitRoot(),
+                                              tree_structure->hash());
         }
     }
     else {
@@ -410,20 +411,11 @@ void ComputeTreeStructureAndFill(
         return;
     }
 
-    if (not resolved_hash) {
+    if (not resolved_root) {
         std::invoke(*logger,
                     fmt::format("Failed to calculate tree structure for {}",
                                 key.ToString()),
                     true);
-        return;
-    }
-
-    auto const root_result =
-        FileRoot::FromGit(native_storage_config.GitRoot(), *resolved_hash);
-    if (not root_result) {
-        (*logger)(
-            fmt::format("Failed to create git root for {}", *resolved_hash),
-            /*fatal=*/true);
         return;
     }
 
@@ -432,9 +424,9 @@ void ComputeTreeStructureAndFill(
         // dropped the shared one
         std::unique_lock setting{*config_lock};
         repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
-                                              *root_result);
+                                              *resolved_root);
     }
-    (*setter)(*std::move(resolved_hash));
+    (*setter)(*std::move(resolved_root)->GetTreeHash());
 }
 
 auto FillRoots(
