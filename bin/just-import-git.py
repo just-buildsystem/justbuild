@@ -268,8 +268,8 @@ def rewrite_repo(repo_spec: Json,
         repo = assign[repo]
     elif repo.get("type") == "file":
         changes = {}
-        subdir = repo.get("path", ".")
-        if subdir not in ["", "."]:
+        subdir: str = os.path.normpath(repo.get("path", "."))
+        if subdir != ".":
             changes["subdir"] = subdir
         repo = dict(remote, **changes)
     elif repo.get("type") == "distdir":
