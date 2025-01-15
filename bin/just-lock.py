@@ -163,6 +163,20 @@ def lock_release(lockfile: TextIO) -> None:
 
 
 ###
+# Storage utils
+##
+
+
+def create_tmp_dir(*, type: str) -> str:
+    """Create unique temporary directory inside the local build root and return
+    its path. Caller is responsible for deleting it and its content once not
+    needed anymore."""
+    root = os.path.join(g_ROOT, "tmp-workspaces", type)
+    os.makedirs(root, exist_ok=True)
+    return tempfile.mkdtemp(dir=root)
+
+
+###
 # Config utils
 ##
 
@@ -638,7 +652,7 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
     """Fetch a given remote Git repository and checkout a specified branch.
     Return the checkout location, the repository description stub to use for
     rewriting 'file'-type dependencies, and the temp dir to later clean up."""
-    workdir: str = tempfile.mkdtemp()
+    workdir: str = create_tmp_dir(type="git-checkout")
     srcdir: str = os.path.join(workdir, "src")
 
     fail_context += "While checking out branch %r of %r:\n" % (branch, url)
@@ -1024,7 +1038,7 @@ def archive_checkout(fetch: str, *, archive_type: str, content: Optional[str],
                       sha512=sha512,
                       fail_context=fail_context)
 
-    workdir: str = tempfile.mkdtemp()
+    workdir: str = create_tmp_dir(type="archive-checkout")
     unpack_archive(content,
                    archive_type=archive_type,
                    unpack_to=workdir,
