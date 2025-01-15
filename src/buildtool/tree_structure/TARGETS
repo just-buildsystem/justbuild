@@ -20,11 +20,11 @@
     , ["src/utils/cpp", "expected"]
     ]
   }
-, "compute_tree_structure":
+, "tree_structure_utils":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["compute_tree_structure"]
-  , "hdrs": ["compute_tree_structure.hpp"]
-  , "srcs": ["compute_tree_structure.cpp"]
+  , "name": ["tree_structure_utils"]
+  , "hdrs": ["tree_structure_utils.hpp"]
+  , "srcs": ["tree_structure_utils.cpp"]
   , "deps":
     [ "tree_structure_cache"
     , ["src/buildtool/common", "common"]

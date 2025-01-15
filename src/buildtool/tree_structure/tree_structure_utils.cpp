@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/buildtool/tree_structure/compute_tree_structure.hpp"
+#include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -31,9 +31,9 @@
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
 
-auto ComputeTreeStructure(ArtifactDigest const& tree,
-                          Storage const& storage,
-                          TreeStructureCache const& cache) noexcept
+auto TreeStructureUtils::Compute(ArtifactDigest const& tree,
+                                 Storage const& storage,
+                                 TreeStructureCache const& cache) noexcept
     -> expected<ArtifactDigest, std::string> {
     if (not tree.IsTree() or not ProtocolTraits::IsNative(tree.GetHashType())) {
         return unexpected{fmt::format("Not a git tree: {}", tree.hash())};
@@ -89,8 +89,7 @@ auto ComputeTreeStructure(ArtifactDigest const& tree,
                 if (not git_digest) {
                     return unexpected{git_digest.error()};
                 }
-                auto sub_tree =
-                    ComputeTreeStructure(*git_digest, storage, cache);
+                auto sub_tree = Compute(*git_digest, storage, cache);
                 if (not sub_tree) {
                     return sub_tree;
                 }

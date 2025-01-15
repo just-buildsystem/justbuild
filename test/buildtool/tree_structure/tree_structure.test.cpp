@@ -37,8 +37,8 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/tree_structure/compute_tree_structure.hpp"
 #include "src/buildtool/tree_structure/tree_structure_cache.hpp"
+#include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/hex_string.hpp"
@@ -134,7 +134,8 @@ TEST_CASE("compute", "[tree_structure]") {
     auto const tree = CreateComplexTestDirectory(storage_config.Get(), storage);
     REQUIRE(tree);
 
-    auto const tree_structure = ComputeTreeStructure(*tree, storage, ts_cache);
+    auto const tree_structure =
+        TreeStructureUtils::Compute(*tree, storage, ts_cache);
     REQUIRE(tree_structure);
 
     REQUIRE(ValidateTreeStructure(*tree_structure, storage));

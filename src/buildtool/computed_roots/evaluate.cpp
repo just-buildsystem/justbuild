@@ -70,8 +70,8 @@
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/tree_structure/compute_tree_structure.hpp"
 #include "src/buildtool/tree_structure/tree_structure_cache.hpp"
+#include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 #include "src/utils/cpp/vector.hpp"
@@ -457,7 +457,7 @@ void ComputeTreeStructureAndFill(
 
         // Compute tree structure and add it to the cache:
         auto const tree_structure =
-            ComputeTreeStructure(*digest, storage, tree_structure_cache);
+            TreeStructureUtils::Compute(*digest, storage, tree_structure_cache);
         if (not tree_structure) {
             std::invoke(*logger, tree_structure.error(), /*fatal=*/true);
             return;
