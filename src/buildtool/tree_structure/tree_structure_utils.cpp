@@ -31,6 +31,9 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/git/git_api.hpp"
+#include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -235,4 +238,76 @@ auto TreeStructureUtils::ExportFromGit(
     auto const git_api = GitApi{&repo_config};
     return git_api.RetrieveToCas({Artifact::ObjectInfo{tree, ObjectType::Tree}},
                                  target_api);
+}
+
+auto TreeStructureUtils::ComputeStructureLocally(
+    ArtifactDigest const& tree,
+    std::vector<std::filesystem::path> const& known_repositories,
+    StorageConfig const& storage_config,
+    gsl::not_null<std::mutex*> const& tagging_lock)
+    -> expected<std::optional<ArtifactDigest>, std::string> {
+    if (not ProtocolTraits::IsNative(tree.GetHashType()) or not tree.IsTree()) {
+        return unexpected{fmt::format("Not a git tree: {}", tree.hash())};
+    }
+
+    if (not ProtocolTraits::IsNative(storage_config.hash_function.GetType())) {
+        return unexpected{fmt::format("Not a native storage config")};
+    }
+
+    auto const storage = Storage::Create(&storage_config);
+    LocalExecutionConfig const dummy_exec_config{};
+    LocalContext const local_context{.exec_config = &dummy_exec_config,
+                                     .storage_config = &storage_config,
+                                     .storage = &storage};
+    LocalApi const local_api{&local_context};
+
+    // First check the result is in cache already:
+    TreeStructureCache const tree_structure_cache{&storage_config};
+    if (auto const from_cache = tree_structure_cache.Get(tree)) {
+        auto to_git =
+            ImportToGit(*from_cache, local_api, storage_config, tagging_lock);
+        if (not to_git.has_value()) {
+            return unexpected{fmt::format("While importing {} to git:\n{}",
+                                          from_cache->hash(),
+                                          std::move(to_git).error())};
+        }
+        return std::make_optional<ArtifactDigest>(std::move(to_git).value());
+    }
+
+    // If the tree is not in the storage, it must be present in git:
+    if (not storage.CAS().TreePath(tree).has_value()) {
+        auto in_cas = ExportFromGit(tree, known_repositories, local_api);
+        if (not in_cas.has_value()) {
+            return unexpected{
+                fmt::format("While exporting {} from git to CAS:\n{}",
+                            tree.hash(),
+                            std::move(in_cas).error())};
+        }
+
+        // If the tree hasn't been found neither in CAS, nor in git, there's
+        // nothing else to do:
+        if (not storage.CAS().TreePath(tree).has_value()) {
+            return std::optional<ArtifactDigest>{};
+        }
+    }
+
+    // Compute tree structure and add it to the storage and cache:
+    auto tree_structure = Compute(tree, storage, tree_structure_cache);
+    if (not tree_structure) {
+        return unexpected{
+            fmt::format("Failed to compute tree structure of {}:\n{}",
+                        tree.hash(),
+                        std::move(tree_structure).error())};
+    }
+
+    // Import the result to git:
+    auto to_git =
+        ImportToGit(*tree_structure, local_api, storage_config, tagging_lock);
+    if (not to_git.has_value()) {
+        return unexpected{fmt::format(
+            "While importing the resulting tree structure {} to git:\n{}",
+            tree_structure->hash(),
+            std::move(to_git).error())};
+    }
+    return std::make_optional<ArtifactDigest>(*std::move(tree_structure));
 }

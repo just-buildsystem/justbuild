@@ -46,9 +46,6 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/local/config.hpp"
-#include "src/buildtool/execution_api/local/context.hpp"
-#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -67,7 +64,6 @@
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/storage/storage.hpp"
-#include "src/buildtool/tree_structure/tree_structure_cache.hpp"
 #include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -384,72 +380,34 @@ void ComputeTreeStructureAndFill(
         substitution_storage_config.has_value()
             ? substitution_storage_config.value()
             : *storage_config;
-    auto const storage = Storage::Create(&native_storage_config);
-    LocalExecutionConfig const dummy_exec_config{};
-    LocalContext const local_context{.exec_config = &dummy_exec_config,
-                                     .storage_config = &native_storage_config,
-                                     .storage = &storage};
-    LocalApi const native_local_api(&local_context, /*repo_config=*/nullptr);
 
-    TreeStructureCache const tree_structure_cache(&native_storage_config);
     std::optional<std::string> resolved_hash;
-
-    // Check the result is in cache already:
-    if (auto const cache_entry = tree_structure_cache.Get(*digest)) {
-        // Ensure the entry is present in git. If it is in cache, it must be
-        // present in the CAS, so just import from CAS to git:
-        auto to_git = TreeStructureUtils::ImportToGit(
-            *cache_entry, native_local_api, native_storage_config, git_lock);
-        if (not to_git.has_value()) {
-            std::invoke(*logger, std::move(to_git).error(), /*fatal=*/true);
+    std::vector known_repositories{native_storage_config.GitRoot()};
+    if (not ref_root.IsAbsent()) {
+        auto const path_to_git_cas = ref_root.GetGitCasRoot();
+        if (not path_to_git_cas) {
+            std::invoke(
+                *logger,
+                fmt::format("Failed to get the path to the git cas for {}",
+                            key.ToString()),
+                true);
             return;
         }
-        resolved_hash = cache_entry->hash();
+        known_repositories.push_back(*path_to_git_cas);
     }
 
-    if (not resolved_hash) {
-        // If the tree is not in the storage, it must be added:
-        if (not storage.CAS().TreePath(*digest).has_value()) {
-            std::vector<std::filesystem::path> known_repos;
-            auto const path_to_git_cas = ref_root.GetGitCasRoot();
-            if (not path_to_git_cas) {
-                std::invoke(*logger,
-                            fmt::format("Failed to obtain the path to the git "
-                                        "cas for {}",
-                                        key.ToString()),
-                            true);
-                return;
-            }
-            known_repos.push_back(*path_to_git_cas);
-            known_repos.push_back(native_storage_config.GitRoot());
-
-            auto in_cas = TreeStructureUtils::ExportFromGit(
-                *digest, known_repos, native_local_api);
-            if (not in_cas.has_value()) {
-                std::invoke(*logger, std::move(in_cas).error(), /*fatal=*/true);
-                return;
-            }
-        }
-
-        if (storage.CAS().TreePath(*digest).has_value()) {
-            // Compute tree structure and add it to the cache:
-            auto const tree_structure = TreeStructureUtils::Compute(
-                *digest, storage, tree_structure_cache);
-            if (not tree_structure) {
-                std::invoke(*logger, tree_structure.error(), /*fatal=*/true);
-                return;
-            }
-
-            auto to_git = TreeStructureUtils::ImportToGit(*tree_structure,
-                                                          native_local_api,
-                                                          native_storage_config,
-                                                          git_lock);
-            if (not to_git.has_value()) {
-                std::invoke(*logger, std::move(to_git).error(), /*fatal=*/true);
-                return;
-            }
+    // Try to compute the tree structure locally:
+    if (auto from_local = TreeStructureUtils::ComputeStructureLocally(
+            *digest, known_repositories, native_storage_config, git_lock)) {
+        std::optional<ArtifactDigest> const& tree_structure = *from_local;
+        if (tree_structure.has_value()) {
             resolved_hash = tree_structure->hash();
         }
+    }
+    else {
+        // A critical error occurred:
+        std::invoke(*logger, std::move(from_local).error(), /*fatal=*/true);
+        return;
     }
 
     if (not resolved_hash) {

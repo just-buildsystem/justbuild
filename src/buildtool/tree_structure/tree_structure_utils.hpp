@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -74,6 +75,22 @@ class TreeStructureUtils final {
         std::vector<std::filesystem::path> const& source_repos,
         IExecutionApi const& target_api) noexcept
         -> expected<bool, std::string>;
+
+    /// \brief Find git tree locally and compute its tree structure.
+    /// \param tree                 Git tree to process
+    /// \param known_repositories   Known git repositories to check
+    /// \param storage_config       Storage to use for lookup and import.
+    /// \param tagging_lock         Mutex to protect critical git operations
+    /// \return Digest of the tree structure that is available in
+    /// storage_config's git repo and in storage_config's CAS; std::nullopt if
+    /// the search failed to locate the tree's sources locally; an error string
+    /// on critical failure.
+    [[nodiscard]] static auto ComputeStructureLocally(
+        ArtifactDigest const& tree,
+        std::vector<std::filesystem::path> const& known_repositories,
+        StorageConfig const& storage_config,
+        gsl::not_null<std::mutex*> const& tagging_lock)
+        -> expected<std::optional<ArtifactDigest>, std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_TREE_STRUCTURE_TREE_STRUCTURE_UTILS_HPP
