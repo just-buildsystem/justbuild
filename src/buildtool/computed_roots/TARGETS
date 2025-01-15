@@ -22,6 +22,36 @@
     , ["src/buildtool/storage", "storage"]
     ]
   }
+, "inquire_serve":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["inquire_serve"]
+  , "hdrs": ["inquire_serve.hpp"]
+  , "srcs": ["inquire_serve.cpp"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/build_engine/target_map", "configured_target"]
+    , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/main", "analyse_context"]
+    ]
+  , "private-deps":
+    [ "artifacts_root"
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
+    , ["src/buildtool/build_engine/base_maps", "module_name"]
+    , ["src/buildtool/build_engine/expression", "expression"]
+    , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "config"]
+    , ["src/buildtool/execution_api/utils", "rehash_utils"]
+    , ["src/buildtool/file_system", "file_root"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/multithreading", "async_map_consumer"]
+    , ["src/buildtool/serve_api/remote", "serve_api"]
+    , ["src/buildtool/storage", "storage"]
+    ]
+  , "stage": ["src", "buildtool", "computed_roots"]
+  }
 , "artifacts_root":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["artifacts_root"]
@@ -63,6 +93,7 @@
   , "private-deps":
     [ "analyse_and_build"
     , "artifacts_root"
+    , "inquire_serve"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]

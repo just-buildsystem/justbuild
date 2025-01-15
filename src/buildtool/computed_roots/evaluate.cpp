@@ -42,6 +42,7 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
+#include "src/buildtool/computed_roots/inquire_serve.hpp"
 #include "src/buildtool/computed_roots/lookup_cache.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
@@ -174,6 +175,7 @@ void ComputeAndFill(
     std::size_t jobs,
     RootMap::LoggerPtr const& logger,
     RootMap::SetterPtr const& setter) {
+
     auto tmpdir = storage_config->CreateTypedTmpDir("computed-root");
     if (not tmpdir) {
         (*logger)("Failed to create temporary directory", true);
@@ -257,6 +259,34 @@ void ComputeAndFill(
         }
     }
 
+    if (key.absent) {
+        if (storage_config->hash_function.GetType() !=
+            HashFunction::Type::GitSHA1) {
+            Logger::Log(LogLevel::Performance,
+                        "Computing root {} locally as rehahing would have to "
+                        "be done locally",
+                        key.ToString());
+        }
+        else {
+            auto serve_result = InquireServe(
+                &analyse_context, target, context->apis, &build_logger);
+            if (serve_result) {
+                auto root_result = FileRoot(*serve_result);
+                Logger::Log(LogLevel::Performance,
+                            "Absent root {} obtained from serve to be {}",
+                            target.ToString(),
+                            *serve_result);
+                {
+                    std::unique_lock setting{*config_lock};
+                    repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
+                                                          root_result);
+                }
+                (*setter)(std::move(*serve_result));
+                return;
+            }
+        }
+    }
+
     GraphTraverser traverser{
         root_build_args, &root_exec_context, reporter, &build_logger};
     std::optional<AnalyseAndBuildResult> build_result{};
@@ -313,6 +343,50 @@ void ComputeAndFill(
         (*logger)(fmt::format("Failed to create git root for {}", *result),
                   /*fatal=*/true);
         return;
+    }
+    if (key.absent) {
+        if (serve == nullptr) {
+            (*logger)(fmt::format("Requested root {} to be absent, without "
+                                  "providing serve endpoint",
+                                  key.ToString()),
+                      /*fatal=*/true);
+            return;
+        }
+        auto known = serve->CheckRootTree(*result);
+        if (known.has_value() and not *known) {
+            auto tree_digest =
+                ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                              *result,
+                                              /*size_unknown=*/0,
+                                              /*is_tree=*/true);
+            if (not tree_digest) {
+                (*logger)(
+                    fmt::format("Internal error getting digest for tree {}: {}",
+                                *known,
+                                tree_digest.error()),
+                    /*fatal=*/true);
+                return;
+            }
+            auto uploaded_to_serve = UploadToServe(*serve,
+                                                   *context->apis,
+                                                   *storage_config,
+                                                   *tree_digest,
+                                                   storage_config->GitRoot());
+            if (not uploaded_to_serve) {
+                (*logger)(fmt::format("Failed to sync {} to serve:{}",
+                                      *result,
+                                      uploaded_to_serve.error()),
+                          /*fatal=*/true);
+                return;
+            }
+            Logger::Log(LogLevel::Performance, "Uploaded {} to serve", *result);
+            known = true;
+        }
+        if (not known.has_value() or not *known) {
+            (*logger)(
+                fmt::format("Failed to ensure {} is known to serve", *result),
+                /*fatal=*/true);
+        }
     }
     {
         // For setting, we need an exclusiver lock; so get one after we

@@ -41,8 +41,6 @@ auto LookupCache(BuildMaps::Target::ConfiguredTarget const& ctarget,
     auto const* target_root =
         repository_config->TargetRoot(ctarget.target.ToModule().repository);
     if ((target_root == nullptr) or target_root->IsAbsent()) {
-        // TODO(aehlig): avoid local installing in case of absent target root of
-        // the base repository
         return expected<std::optional<std::string>, std::monostate>(
             std::nullopt);
     }
