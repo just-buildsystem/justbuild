@@ -21,6 +21,34 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 
 namespace {
+[[nodiscard]] auto ParseAbsent(ExpressionPtr const& repository)
+    -> expected<bool, std::string> {
+    auto const pragma = repository->Get("pragma", Expression::none_t{});
+    if (not pragma.IsNotNull()) {
+        // Missing "pragma", absent == false
+        return false;
+    }
+
+    if (not pragma->IsMap()) {
+        return unexpected{fmt::format(
+            "Key \"pragma\", if given, should be a map, but found {}",
+            pragma->ToString())};
+    }
+
+    auto const is_absent = pragma->Get("absent", Expression::none_t{});
+    if (not is_absent.IsNotNull()) {
+        // "pragma" doesn't contain "absent", absent == false
+        return false;
+    }
+
+    if (not is_absent->IsBool()) {
+        return unexpected{fmt::format(
+            "Expected pragma \"absent\" to be boolean, but found {}",
+            is_absent->ToString())};
+    }
+    return is_absent->Bool();
+}
+
 [[nodiscard]] auto ParseComputedRoot(ExpressionPtr const& repository)
     -> expected<ComputedRoot, std::string> {
     auto const repo = repository->Get("repo", Expression::none_t{});
@@ -67,7 +95,12 @@ namespace {
     if (not repo.IsNotNull()) {
         return unexpected<std::string>{"Mandatory key \"repo\" is missing"};
     }
-    return TreeStructureRoot{.repository = repo->String(), .absent = false};
+
+    auto absent = ParseAbsent(repository);
+    if (not absent.has_value()) {
+        return unexpected{std::move(absent).error()};
+    }
+    return TreeStructureRoot{.repository = repo->String(), .absent = *absent};
 }
 }  // namespace
 
