@@ -90,10 +90,12 @@ template <>
 template <>
 [[nodiscard]] auto ParseImpl<TreeStructureRoot>(nlohmann::json const& root)
     -> expected<TreeStructureRoot, std::string> {
-    if (root.size() != TreeStructureRoot::kSchemeLength) {
+    if (root.size() != TreeStructureRoot::kSchemeLength and
+        root.size() != TreeStructureRoot::kSchemePragmaLength) {
         return unexpected{
             fmt::format("The root has a wrong number of arguments: {}\nThe "
-                        "scheme requires [<scheme>, <root>]",
+                        "scheme requires [<scheme>, <root>] optionally "
+                        "followed by a pragma object",
                         root.dump())};
     }
 
@@ -103,7 +105,29 @@ template <>
             root[1].dump())};
     }
 
-    return TreeStructureRoot{.repository = std::string{root[1]}};
+    bool absent = false;
+    if (root.size() == TreeStructureRoot::kSchemePragmaLength) {
+        if (not root[2].is_object()) {
+            return unexpected{
+                fmt::format("The root has a wrong type of optional pragma "
+                            "argument. Expected a plain json object, got {}",
+                            root[2].dump())};
+        }
+        if (root[2].contains("absent")) {
+            auto const& absent_entry = root[2].at("absent");
+            if (not absent_entry.is_null() and not absent_entry.is_boolean()) {
+                return unexpected{
+                    fmt::format("Expected pragma entry \"absent\" to be "
+                                "boolean, but found {}",
+                                absent_entry.dump())};
+            }
+            absent =
+                absent_entry.is_boolean() and absent_entry.template get<bool>();
+        }
+    }
+
+    return TreeStructureRoot{.repository = root[1].template get<std::string>(),
+                             .absent = absent};
 }
 }  // namespace
 
@@ -147,22 +171,28 @@ auto ComputedRoot::ComputeHash() const -> std::size_t {
 
 auto TreeStructureRoot::operator==(
     TreeStructureRoot const& other) const noexcept -> bool {
-    return repository == other.repository;
+    return absent == other.absent and repository == other.repository;
 }
 
 auto TreeStructureRoot::operator<(TreeStructureRoot const& other) const noexcept
     -> bool {
+    if (absent != other.absent) {
+        return absent;
+    }
     return repository < other.repository;
 }
 
 auto TreeStructureRoot::ToString() const -> std::string {
-    return fmt::format("[\"tree structure\", {}]",
-                       nlohmann::json(repository).dump());
+    return fmt::format("[\"tree structure\", {}{}]",
+                       nlohmann::json(repository).dump(),
+                       absent ? ", {\"absent\": true}" : "");
 }
+
 auto TreeStructureRoot::ComputeHash() const -> std::size_t {
     std::size_t seed{};
     hash_combine<std::string>(&seed, kMarker);
     hash_combine<std::string>(&seed, repository);
+    hash_combine<bool>(&seed, absent);
     return seed;
 }
 

@@ -45,8 +45,10 @@ struct ComputedRoot final {
 struct TreeStructureRoot final {
     static constexpr auto kMarker = "tree structure";
     static constexpr std::size_t kSchemeLength = 2;
+    static constexpr std::size_t kSchemePragmaLength = 3;
 
     std::string repository;
+    bool absent;
 
     [[nodiscard]] auto operator==(TreeStructureRoot const& other) const noexcept
         -> bool;

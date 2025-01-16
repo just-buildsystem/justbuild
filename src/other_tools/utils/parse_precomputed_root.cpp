@@ -67,7 +67,7 @@ namespace {
     if (not repo.IsNotNull()) {
         return unexpected<std::string>{"Mandatory key \"repo\" is missing"};
     }
-    return TreeStructureRoot{.repository = repo->String()};
+    return TreeStructureRoot{.repository = repo->String(), .absent = false};
 }
 }  // namespace
 
