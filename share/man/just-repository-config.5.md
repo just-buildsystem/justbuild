@@ -43,9 +43,11 @@ which determines the type and semantic of the subsequent elements:
    the module name, the target name, and the configuration, in that order.
 
  - *`"tree structure"`* refers to the directory structure of a file root.
-   The list has to have length of 2 and the second argument contains the
+   The list has to have length 2 or 3. The second argument contains the
    global name of the repository which workspace root gets taken for
-   computation.
+   computation. The third argument is an optional pragma object. If the
+   pragma object contains the key `"absent"`, the entry must be a boolean.
+   If the entry is `true`, that root is considered absent, otherwise not.
 
 Repository description
 ----------------------
