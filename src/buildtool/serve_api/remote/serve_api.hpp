@@ -145,9 +145,10 @@ class ServeApi final {
     }
 
     [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
-                                   const ArtifactDigest& repo_key)
+                                   const ArtifactDigest& repo_key,
+                                   bool keep_artifact_root = false)
         const noexcept -> std::optional<serve_target_result_t> {
-        return tc_.ServeTarget(key, repo_key);
+        return tc_.ServeTarget(key, repo_key, keep_artifact_root);
     }
 
     [[nodiscard]] auto CheckServeRemoteExecution() const noexcept -> bool {

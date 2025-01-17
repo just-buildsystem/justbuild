@@ -67,7 +67,8 @@ class TargetClient {
     /// \returns A correspondingly populated result union, or nullopt if remote
     /// reported that the target was not found.
     [[nodiscard]] auto ServeTarget(const TargetCacheKey& key,
-                                   const ArtifactDigest& repo_key)
+                                   const ArtifactDigest& repo_key,
+                                   bool keep_artifact_root = false)
         const noexcept -> std::optional<serve_target_result_t>;
 
     /// \brief Retrieve the flexible config variables of an export target.

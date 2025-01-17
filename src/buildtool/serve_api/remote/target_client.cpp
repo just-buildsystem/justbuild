@@ -65,7 +65,8 @@ TargetClient::TargetClient(
 }
 
 auto TargetClient::ServeTarget(const TargetCacheKey& key,
-                               const ArtifactDigest& repo_key) const noexcept
+                               const ArtifactDigest& repo_key,
+                               bool keep_artifact_root) const noexcept
     -> std::optional<serve_target_result_t> {
     // make sure the blob containing the key is in the remote cas
     if (not apis_.local->RetrieveToCas({key.Id()}, *apis_.remote)) {
@@ -89,6 +90,8 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     justbuild::just_serve::ServeTargetRequest request{};
     *request.mutable_target_cache_key_id() =
         ArtifactDigestFactory::ToBazel(key.Id().digest);
+
+    request.set_keep_artifact_root(keep_artifact_root);
 
     // add execution properties to request
     for (auto const& [k, v] : exec_config_.platform_properties) {
