@@ -421,6 +421,8 @@ def bootstrap() -> None:
             dirs.remove('archive')
         if 'computed_roots' in dirs:
             dirs.remove('computed_roots')
+        if 'tree_structure' in dirs:
+            dirs.remove('tree_structure')
         for f in files:
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))
