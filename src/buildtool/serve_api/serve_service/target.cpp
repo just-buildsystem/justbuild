@@ -29,6 +29,7 @@
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/build_engine/target_map/result_map.hpp"
 #include "src/buildtool/common/artifact.hpp"
@@ -42,6 +43,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -62,6 +64,46 @@
 #include "src/buildtool/storage/target_cache_entry.hpp"
 #include "src/buildtool/storage/target_cache_key.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
+
+namespace {
+// Store the artifact root given by the target-cache entry. Return std::nullopt
+// on success and an error message on failure.
+auto KeepRoot(TargetCacheEntry const& target_entry,
+              LocalContext const& local_context,
+              gsl::not_null<IExecutionApi::Ptr> const& api,
+              gsl::not_null<std::mutex*> const& tagging_lock)
+    -> std::optional<std::string> {
+    auto cache_result = target_entry.ToResult();
+    if (not cache_result) {
+        return "Failed to get analysis result for target cache entry.";
+    }
+    auto tmp_dir =
+        local_context.storage_config->CreateTypedTmpDir("keep-artifacts-stage");
+    if (not tmp_dir) {
+        return "Failed to create a temporary directory for keeping stage.";
+    }
+    std::vector<std::filesystem::path> paths{};
+    std::vector<Artifact::ObjectInfo> object_infos{};
+    for (auto const& [rel_path, artifact] :
+         cache_result->artifact_stage->Map()) {
+        paths.push_back(tmp_dir->GetPath() / rel_path);
+        object_infos.push_back(*artifact->Artifact().ToArtifact().Info());
+    }
+    if (not api->RetrieveToPaths(object_infos, paths)) {
+        return fmt::format("Failed installing {} to temp dir {}.",
+                           cache_result->artifact_stage->ToString(),
+                           tmp_dir->GetPath().string());
+    }
+    auto import_result = GitRepo::ImportToGit(*local_context.storage_config,
+                                              tmp_dir->GetPath(),
+                                              "Keep artifact stage",
+                                              tagging_lock);
+    if (not import_result) {
+        return import_result.error();
+    }
+    return std::nullopt;  // No errors
+}
+}  // namespace
 
 auto TargetService::GetDispatchList(
     ArtifactDigest const& dispatch_digest) noexcept
@@ -240,6 +282,14 @@ auto TargetService::ServeTarget(
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, "{}", msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        }
+        if (request->keep_artifact_root()) {
+            auto keep = KeepRoot(
+                target_entry->first, local_context_, apis_.local, lock_);
+            if (keep) {
+                logger_->Emit(LogLevel::Error, "{}", *keep);
+                return ::grpc::Status{::grpc::StatusCode::INTERNAL, *keep};
+            }
         }
         // populate response with the target cache value
         (*response->mutable_target_value()) =
@@ -590,6 +640,15 @@ auto TargetService::ServeTarget(
                 target_entry->second.ToString());
             logger_->Emit(LogLevel::Error, "{}", msg);
             return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, msg};
+        }
+        if (request->keep_artifact_root()) {
+            auto keep_error = KeepRoot(
+                target_entry->first, local_context_, apis_.local, lock_);
+            if (keep_error) {
+                logger_->Emit(LogLevel::Error, "{}", *keep_error);
+                return ::grpc::Status{::grpc::StatusCode::INTERNAL,
+                                      *keep_error};
+            }
         }
         // populate response with the target cache value
         (*response->mutable_target_value()) =

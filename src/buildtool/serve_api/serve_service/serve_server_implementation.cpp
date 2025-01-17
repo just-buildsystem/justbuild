@@ -136,6 +136,7 @@ auto ServeServerImpl::Run(
                      local_context,
                      remote_context,
                      &apis,
+                     lock_,
                      serve ? &*serve : nullptr};
     ConfigurationService cs{hash_type, remote_context->exec_config};
 

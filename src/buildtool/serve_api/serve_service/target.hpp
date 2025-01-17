@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -44,11 +45,13 @@ class TargetService final : public justbuild::just_serve::Target::Service {
         gsl::not_null<LocalContext const*> const& local_context,
         gsl::not_null<RemoteContext const*> const& remote_context,
         gsl::not_null<ApiBundle const*> const& apis,
+        gsl::not_null<std::mutex*> const& lock,
         ServeApi const* serve = nullptr) noexcept
         : serve_config_{*serve_config},
           local_context_{*local_context},
           remote_context_{*remote_context},
           apis_{*apis},
+          lock_{lock},
           serve_{serve} {}
 
     // Given a target-level caching key, returns the computed value. In doing
@@ -131,6 +134,7 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     LocalContext const& local_context_;
     RemoteContext const& remote_context_;
     ApiBundle const& apis_;
+    gsl::not_null<std::mutex*> lock_;
     ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
