@@ -402,6 +402,10 @@ message ServeTargetRequest {
   // remote CAS.
   build.bazel.remote.execution.v2.Digest target_cache_key_id = 1;
 
+  // Request that serve keep the artifact stage as an additional root,
+  // so that susequent requests to serve a target can use this root.
+  bool keep_artifact_root = 4;
+
   // A single property of the remote-execution environment.
   message Property {
     // Property name.
