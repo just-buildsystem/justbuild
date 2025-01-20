@@ -471,6 +471,22 @@ def git_subtree(*, tree: str, subdir: str, upstream: Optional[str],
     )[0].decode('utf-8').strip()
 
 
+def try_read_object_from_repo(obj_id: str, obj_type: str, *,
+                              upstream: Optional[str]) -> Optional[bytes]:
+    """Return raw (binary) content of object referenced by identifier and type
+    if object is in given Git repository, or None otherwise. Does not require
+    the repository to exist, in which case it returns None. Expected obj_type
+    values match those of cat-file: 'blob', 'tree', 'commit', 'tag'."""
+    root: str = git_root(upstream=upstream)
+    if not os.path.exists(root):
+        return None
+    result = run_cmd(g_LAUNCHER + [g_GIT, "cat-file", obj_type, obj_id],
+                     stdout=subprocess.PIPE,
+                     cwd=root,
+                     fail_context=None)
+    return result[0] if result[1] == 0 else None
+
+
 ###
 # CAS utils
 ##
@@ -1146,6 +1162,13 @@ def archive_fetch(locations: List[str],
     """Make sure an archive is available in local CAS. Try all the remote
     locations given. Return the content hash on success."""
     if content is None or not is_in_cas(content):
+        # If content is in Git cache, move to CAS and return success
+        if content is not None:
+            data = try_read_object_from_repo(content, "blob", upstream=None)
+            if data is not None:
+                _, content = add_to_cas(data)
+                return content
+        # Fetch from remote
         fetched: bool = False
         for source in locations:
             data, err_code = run_cmd(g_LAUNCHER + ["wget", "-O", "-", source],
