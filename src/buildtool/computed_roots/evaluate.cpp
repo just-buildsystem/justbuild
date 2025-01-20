@@ -342,6 +342,11 @@ void ComputeAndFill(
 ///     2.3 If fails, downloads the tree from serve via the remote end point
 ///     (with a possible rehashing), and runs LOCAL-LOCAL on this tree_structure
 ///     to make the tree structure available for roots.
+/// 3. (ABSENT-ABSENT) Absent tree of an absent root:
+///     Compute absent tree structure on serve.
+/// 4. (ABSENT-LOCAL): Absent tree structure of a local root:
+///     Perform logic of LOCAL-LOCAL (compute tree structure locally) and
+///     upload the result of computation to serve.
 [[nodiscard]] auto ResolveTreeStructureRoot(
     TreeStructureRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -410,15 +415,18 @@ void ComputeAndFill(
         known_repositories.push_back(*path_to_git_cas);
     }
 
+    bool const compute_locally = not key.absent or not ref_root.IsAbsent();
+
     std::optional<ArtifactDigest> local_tree_structure;
     // Try to compute the tree structure locally:
-    if (auto from_local = TreeStructureUtils::ComputeStructureLocally(
-            *digest, known_repositories, native_storage_config, git_lock)) {
+    if (compute_locally) {
+        auto from_local = TreeStructureUtils::ComputeStructureLocally(
+            *digest, known_repositories, native_storage_config, git_lock);
+        if (not from_local.has_value()) {
+            // A critical error occurred:
+            return unexpected{std::move(from_local).error()};
+        }
         local_tree_structure = *from_local;
-    }
-    else {
-        // A critical error occurred:
-        return unexpected{std::move(from_local).error()};
     }
 
     // For absent roots ask serve to process the tree:
@@ -440,7 +448,7 @@ void ComputeAndFill(
     // Try to process an absent tree structure locally. It might be found in
     // CAS or git cache, so there'll be no need to download it from the
     // remote end point:
-    if (not local_tree_structure.has_value() and
+    if (compute_locally and not local_tree_structure.has_value() and
         absent_tree_structure.has_value()) {
         if (auto from_local = TreeStructureUtils::ComputeStructureLocally(
                 *absent_tree_structure,
@@ -488,6 +496,46 @@ void ComputeAndFill(
                         "Root {} has been taken from local cache",
                         key.ToString());
         }
+    }
+
+    if (key.absent and absent_tree_structure.has_value()) {
+        Logger::Log(LogLevel::Performance,
+                    "Root {} was computed on serve",
+                    key.ToString());
+        return FileRoot(absent_tree_structure->hash());
+    }
+
+    if (key.absent and local_tree_structure.has_value()) {
+        if (serve == nullptr) {
+            return unexpected{fmt::format(
+                "No serve end point is given to compute {}", key.ToString())};
+        }
+
+        // Make sure the tree structure is available on serve:
+        auto known = serve->CheckRootTree(local_tree_structure->hash());
+        if (known.has_value() and not *known) {
+            auto uploaded_to_serve =
+                UploadToServe(*serve,
+                              *execution_context->apis,
+                              *storage_config,
+                              *local_tree_structure,
+                              native_storage_config.GitRoot());
+            if (not uploaded_to_serve.has_value()) {
+                return unexpected{std::move(uploaded_to_serve).error()};
+            }
+            known = true;
+        }
+
+        if (not known.has_value() or not *known) {
+            return unexpected{
+                fmt::format("Failed to ensure that tree {} is "
+                            "available on serve",
+                            local_tree_structure->hash())};
+        }
+        Logger::Log(LogLevel::Performance,
+                    "Root {} was computed locally and uploaded to serve",
+                    key.ToString());
+        return FileRoot(local_tree_structure->hash());
     }
 
     if (local_tree_structure.has_value()) {
