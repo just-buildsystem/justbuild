@@ -1279,6 +1279,44 @@ def archive_fetch(locations: List[str],
     return cast(str, content)
 
 
+def archive_fetch_with_parse(repository: Json, *, fail_context: str) -> str:
+    """Utility on top of archive_fetch that does its own parsing. Returns the
+    Git identifier of the fetched content."""
+    # Parse fields
+    fetch: str = repository.get("fetch", None)
+    if not isinstance(fetch, str):
+        fail(fail_context +
+             "Expected field \"fetch\" to be a string, but found:\n%r" %
+             (json.dumps(fetch, indent=2), ))
+    content: str = repository.get("content", None)
+    if not isinstance(content, str):
+        fail(fail_context +
+             "Expected field \"content\" to be a string, but found:\n%r" %
+             (json.dumps(content, indent=2), ))
+    mirrors: Optional[List[str]] = repository.get("mirrors", [])
+    if mirrors is not None and not isinstance(mirrors, list):
+        fail(fail_context +
+             "Expected field \"mirrors\" to be a list, but found:\n%r" %
+             (json.dumps(mirrors, indent=2), ))
+    sha256: Optional[str] = repository.get("sha256", None)
+    if sha256 is not None and not isinstance(sha256, str):
+        fail(fail_context +
+             "Expected field \"sha256\" to be a string, but found:\n%r" %
+             (json.dumps(sha256, indent=2), ))
+    sha512: Optional[str] = repository.get("sha512", None)
+    if sha512 is not None and not isinstance(sha512, str):
+        fail(fail_context +
+             "Expected field \"sha512\" to be a string, but found:\n%r" %
+             (json.dumps(sha512, indent=2), ))
+    # Fetch the archive to local CAS
+    archive_fetch(mirrors + [fetch],
+                  content=content,
+                  sha256=sha256,
+                  sha512=sha512,
+                  fail_context=fail_context)
+    return content
+
+
 def unpack_archive(content_id: str, *, archive_type: str, unpack_to: str,
                    fail_context: str) -> None:
     """Unpack archive stored as a local CAS blob into a given directory."""
