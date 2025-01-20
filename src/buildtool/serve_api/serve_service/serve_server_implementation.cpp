@@ -76,9 +76,10 @@ auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
 auto ServeServerImpl::Create(std::optional<std::string> interface,
                              std::optional<int> port,
                              std::optional<std::string> info_file,
-                             std::optional<std::string> pid_file) noexcept
+                             std::optional<std::string> pid_file,
+                             gsl::not_null<std::mutex*> const& lock) noexcept
     -> std::optional<ServeServerImpl> {
-    ServeServerImpl server;
+    auto server = ServeServerImpl(lock);
     if (interface) {
         server.interface_ = std::move(*interface);
     }
@@ -182,7 +183,8 @@ auto ServeServerImpl::Run(
         &serve_config,
         &mr_apis,
         is_compat ? &*secondary_local_context
-                  : local_context,             // native_context
+                  : local_context,  // native_context
+        lock_,
         is_compat ? &*local_context : nullptr  // compat_context
     };
 

@@ -576,7 +576,7 @@ auto SourceTreeService::ResolveContentTree(
             });
         {
             // this is a non-thread-safe Git operation, so it must be guarded!
-            std::unique_lock slock{mutex_};
+            std::unique_lock slock{*lock_};
             // open real repository at Git CAS location
             auto git_repo =
                 GitRepo::Open(native_context_->storage_config->GitRoot());
@@ -626,7 +626,7 @@ auto SourceTreeService::ArchiveImportToGit(
         unpack_path,
         /*commit_message=*/
         fmt::format("Content of {} {}", archive_type, content),
-        &mutex_);
+        lock_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -946,7 +946,7 @@ auto SourceTreeService::DistdirImportToGit(
         *native_context_->storage_config,
         tmp_path,
         /*commit_message=*/fmt::format("Content of distdir {}", content_id),
-        &mutex_);
+        lock_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1564,7 +1564,7 @@ auto SourceTreeService::CheckRootTree(
             *native_context_->storage_config,
             tmp_dir->GetPath(),
             /*commit_message=*/fmt::format("Content of tree {}", tree_id),
-            &mutex_);
+            lock_);
         if (not res) {
             // report the error
             logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1654,7 +1654,7 @@ auto SourceTreeService::GetRemoteTree(
         tmp_dir->GetPath(),
         /*commit_message=*/
         fmt::format("Content of tree {}", remote_digest->hash()),
-        &mutex_);
+        lock_);
     if (not res) {
         // report the error
         logger_->Emit(LogLevel::Error, "{}", res.error());
@@ -1714,7 +1714,7 @@ auto SourceTreeService::ComputeTreeStructure(
             *tree_digest,
             known_repositories,
             *native_context_->storage_config,
-            &mutex_)) {
+            lock_)) {
         tree_structure = std::move(from_local).value();
     }
     else {

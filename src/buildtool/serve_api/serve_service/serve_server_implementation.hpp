@@ -16,6 +16,7 @@
 #define SERVE_SERVER_IMPLEMENTATION_HPP
 
 #include <cstdint>
+#include <mutex>
 #include <optional>
 #include <string>
 
@@ -32,7 +33,8 @@ class ServeServerImpl final {
         std::optional<std::string> interface,
         std::optional<int> port,
         std::optional<std::string> info_file,
-        std::optional<std::string> pid_file) noexcept
+        std::optional<std::string> pid_file,
+        gsl::not_null<std::mutex*> const& lock) noexcept
         -> std::optional<ServeServerImpl>;
 
     ~ServeServerImpl() noexcept = default;
@@ -58,7 +60,9 @@ class ServeServerImpl final {
              bool with_execute) -> bool;
 
   private:
-    ServeServerImpl() noexcept = default;
+    explicit ServeServerImpl(gsl::not_null<std::mutex*> lock) noexcept
+        : lock_{lock} {};
+    gsl::not_null<std::mutex*> lock_;
 
     std::string interface_{"127.0.0.1"};
     int port_{0};

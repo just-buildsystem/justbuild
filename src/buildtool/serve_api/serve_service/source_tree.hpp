@@ -66,9 +66,11 @@ class SourceTreeService final
         gsl::not_null<RemoteServeConfig const*> const& serve_config,
         gsl::not_null<ApiBundle const*> const& apis,
         gsl::not_null<LocalContext const*> const& native_context,
+        gsl::not_null<std::mutex*> const& lock,
         LocalContext const* compat_context = nullptr) noexcept
         : serve_config_{*serve_config},
           apis_{*apis},
+          lock_{lock},
           native_context_{native_context},
           compat_context_{compat_context} {}
 
@@ -147,9 +149,9 @@ class SourceTreeService final
   private:
     RemoteServeConfig const& serve_config_;
     ApiBundle const& apis_;
+    gsl::not_null<std::mutex*> lock_;
     gsl::not_null<LocalContext const*> native_context_;
     LocalContext const* compat_context_;
-    mutable std::mutex mutex_;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("serve-service")};
     // symlinks resolver map
     ResolveSymlinksMap resolve_symlinks_map_{CreateResolveSymlinksMap()};

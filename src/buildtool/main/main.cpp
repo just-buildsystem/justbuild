@@ -843,11 +843,13 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         if (arguments.cmd == SubCommand::kServe) {
+            std::mutex lock{};
             auto serve_server =
                 ServeServerImpl::Create(arguments.service.interface,
                                         arguments.service.port,
                                         arguments.service.info_file,
-                                        arguments.service.pid_file);
+                                        arguments.service.pid_file,
+                                        &lock);
             if (serve_server) {
                 // Set up remote execution config.
                 auto remote_exec_config = CreateRemoteExecutionConfig(
