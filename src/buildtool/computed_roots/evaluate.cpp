@@ -309,44 +309,43 @@ void ComputeAndFill(
     (*setter)(*std::move(result));
 }
 
-void ComputeTreeStructureAndFill(
+/// \brief Compute tree structure of the given root and return the resolved real
+/// root.
+/// There are a number of scenarios:
+/// 1. (LOCAL-LOCAL) Local tree structure of a local root:
+///     Finds the source tree locally and computes tree structure. After
+///     this evaluation the tree structure is present in local native CAS, in
+///     git repository, and in the TreeStructureCache.
+[[nodiscard]] auto ResolveTreeStructureRoot(
     TreeStructureRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
     gsl::not_null<StorageConfig const*> const& storage_config,
     gsl::not_null<std::shared_mutex*> const& config_lock,
-    gsl::not_null<std::mutex*> const& git_lock,
-    RootMap::LoggerPtr const& logger,
-    RootMap::SetterPtr const& setter) {
+    gsl::not_null<std::mutex*> const& git_lock)
+    -> expected<FileRoot, std::string> {
     // Obtain the file root that the key root is referring to
     FileRoot ref_root;
     {
         std::shared_lock lock{*config_lock};
         auto const* root = repository_config->WorkspaceRoot(key.repository);
         if (root == nullptr) {
-            std::invoke(
-                *logger,
-                fmt::format("Failed to get referenced repository for {}",
-                            key.ToString()),
-                /*fatal=*/true);
-            return;
+            return unexpected{fmt::format(
+                "Failed to get referenced repository for {}", key.ToString())};
         }
         ref_root = *root;
     }
 
     // TODO(denisov): absent roots
     if (ref_root.IsAbsent()) {
-        std::invoke(*logger, "Absent roots aren't supported yet", true);
-        return;
+        return unexpected<std::string>{"Absent roots aren't supported yet"};
     }
 
     auto const hash = ref_root.GetTreeHash();
     if (not hash) {
-        std::invoke(*logger,
-                    fmt::format("Failed to get the hash of the referenced git "
-                                "tree for {}",
-                                key.ToString()),
-                    /*fatal=*/true);
-        return;
+        return unexpected{
+            fmt::format("Failed to get the hash of the referenced git "
+                        "tree for {}",
+                        key.ToString())};
     }
 
     auto const digest =
@@ -355,8 +354,7 @@ void ComputeTreeStructureAndFill(
                                       /*size_unknown=*/0,
                                       /*is_tree=*/true);
     if (not digest) {
-        std::invoke(*logger, digest.error(), /*fatal=*/true);
-        return;
+        return unexpected{digest.error()};
     }
 
     // Create a native storage config if needed
@@ -367,12 +365,9 @@ void ComputeTreeStructureAndFill(
                           .SetHashType(HashFunction::Type::GitSHA1)
                           .Build();
         if (not config) {
-            std::invoke(
-                *logger,
+            return unexpected{
                 fmt::format("Failed to create a native storage config for {}",
-                            key.ToString()),
-                /*fatal=*/true);
-            return;
+                            key.ToString())};
         }
         substitution_storage_config.emplace(*config);
     }
@@ -381,41 +376,54 @@ void ComputeTreeStructureAndFill(
             ? substitution_storage_config.value()
             : *storage_config;
 
-    std::optional<FileRoot> resolved_root;
     std::vector known_repositories{native_storage_config.GitRoot()};
     if (not ref_root.IsAbsent()) {
         auto const path_to_git_cas = ref_root.GetGitCasRoot();
         if (not path_to_git_cas) {
-            std::invoke(
-                *logger,
+            return unexpected{
                 fmt::format("Failed to get the path to the git cas for {}",
-                            key.ToString()),
-                true);
-            return;
+                            key.ToString())};
         }
         known_repositories.push_back(*path_to_git_cas);
     }
 
+    std::optional<ArtifactDigest> local_tree_structure;
     // Try to compute the tree structure locally:
     if (auto from_local = TreeStructureUtils::ComputeStructureLocally(
             *digest, known_repositories, native_storage_config, git_lock)) {
-        std::optional<ArtifactDigest> const& tree_structure = *from_local;
-        if (tree_structure.has_value()) {
-            resolved_root = FileRoot::FromGit(native_storage_config.GitRoot(),
-                                              tree_structure->hash());
-        }
+        local_tree_structure = *from_local;
     }
     else {
         // A critical error occurred:
-        std::invoke(*logger, std::move(from_local).error(), /*fatal=*/true);
-        return;
+        return unexpected{std::move(from_local).error()};
     }
 
+    if (local_tree_structure.has_value()) {
+        auto resolved_root = FileRoot::FromGit(native_storage_config.GitRoot(),
+                                               local_tree_structure->hash());
+        if (not resolved_root) {
+            return unexpected{
+                fmt::format("Failed to create root for {}", key.ToString())};
+        }
+        return *resolved_root;
+    }
+
+    return unexpected{fmt::format("Failed to calculate tree structure for {}",
+                                  key.ToString())};
+}
+
+void ComputeTreeStructureAndFill(
+    TreeStructureRoot const& key,
+    gsl::not_null<RepositoryConfig*> const& repository_config,
+    gsl::not_null<StorageConfig const*> const& storage_config,
+    gsl::not_null<std::shared_mutex*> const& config_lock,
+    gsl::not_null<std::mutex*> const& git_lock,
+    RootMap::LoggerPtr const& logger,
+    RootMap::SetterPtr const& setter) {
+    auto resolved_root = ResolveTreeStructureRoot(
+        key, repository_config, storage_config, config_lock, git_lock);
     if (not resolved_root) {
-        std::invoke(*logger,
-                    fmt::format("Failed to calculate tree structure for {}",
-                                key.ToString()),
-                    true);
+        std::invoke(*logger, std::move(resolved_root).error(), /*fatal=*/true);
         return;
     }
 
