@@ -80,6 +80,13 @@ void AddDescriptionIfPrecomputed(
     }
 }
 
+[[nodiscard]] auto DownloadFromServe(ServeApi const& serve,
+                                     ApiBundle const& serve_apis,
+                                     StorageConfig const& serve_storage_config,
+                                     ArtifactDigest const& digest,
+                                     StorageConfig const& native_storage_config)
+    -> expected<ArtifactDigest, std::string>;
+
 // Traverse, starting from a given repository, in order to find the
 // computed roots it depends on.
 void TraverseRepoForComputedRoots(
@@ -634,3 +641,47 @@ auto EvaluatePrecomputedRoots(
     }
     return true;
 }
+
+namespace {
+[[nodiscard]] auto DownloadFromServe(ServeApi const& serve,
+                                     ApiBundle const& serve_apis,
+                                     StorageConfig const& serve_storage_config,
+                                     ArtifactDigest const& digest,
+                                     StorageConfig const& native_storage_config)
+    -> expected<ArtifactDigest, std::string> {
+    // Make digest available on the remote end point:
+    auto const on_remote = serve.TreeInRemoteCAS(digest.hash());
+    if (not on_remote.has_value()) {
+        return unexpected{
+            fmt::format("Failed to upload {} from serve to the remote end "
+                        "point.",
+                        digest.hash())};
+    }
+
+    Artifact::ObjectInfo const info{*on_remote, ObjectType::Tree};
+    // Download the artifact from the remote:
+    if (not serve_apis.remote->RetrieveToCas({info}, *serve_apis.local)) {
+        return unexpected{fmt::format(
+            "Failed to download {} from the remote end point.", digest.hash())};
+    }
+
+    // The remote end point may operate in the compatible mode. In such
+    // a case, a rehashing is needed:
+    if (ProtocolTraits::IsNative(serve_apis.hash_function.GetType())) {
+        return *on_remote;
+    }
+    auto rehashed = RehashUtils::RehashDigest(
+        {info}, serve_storage_config, native_storage_config, &serve_apis);
+    if (not rehashed.has_value()) {
+        return unexpected{fmt::format("Failed to rehash downloaded {}:\n{}",
+                                      on_remote->hash(),
+                                      std::move(rehashed).error())};
+    }
+    if (rehashed->size() != 1) {
+        return unexpected{
+            fmt::format("Failed to rehash downloaded {}", on_remote->hash())};
+    }
+    return rehashed->front().digest;
+}
+
+}  // namespace
