@@ -70,17 +70,12 @@ namespace {
 /// root if it was marked absent.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void EnsureRootAsAbsent(
-    std::string const& tree_id,
-    std::filesystem::path const& repo_root,
-    GitRepoInfo const& repo_info,
-    ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& /*native_storage_config*/,
-    StorageConfig const* /*compat_storage_config*/,
-    gsl::not_null<IExecutionApi const*> const& /*local_api*/,
-    IExecutionApi const* /*remote_api*/,
-    CommitGitMap::SetterPtr const& ws_setter,
-    CommitGitMap::LoggerPtr const& logger) {
+void EnsureRootAsAbsent(std::string const& tree_id,
+                        std::filesystem::path const& repo_root,
+                        GitRepoInfo const& repo_info,
+                        ServeApi const* serve,
+                        CommitGitMap::SetterPtr const& ws_setter,
+                        CommitGitMap::LoggerPtr const& logger) {
     // this is an absent root
     if (serve != nullptr) {
         // check if the serve endpoint has this root
@@ -532,7 +527,6 @@ void EnsureCommit(
     std::vector<std::string> const& launcher,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,
@@ -614,10 +608,6 @@ void EnsureCommit(
                     native_storage_config->GitRoot(), /*repo_root*/
                     repo_info,
                     serve,
-                    native_storage_config,
-                    compat_storage_config,
-                    local_api,
-                    remote_api,
                     ws_setter,
                     logger);
             }
@@ -1064,16 +1054,8 @@ void EnsureCommit(
         // set the workspace root
         if (repo_info.absent and not fetch_absent) {
             // try by all available means to generate and set the absent root
-            EnsureRootAsAbsent(subtree,
-                               repo_root,
-                               repo_info,
-                               serve,
-                               native_storage_config,
-                               compat_storage_config,
-                               local_api,
-                               remote_api,
-                               ws_setter,
-                               logger);
+            EnsureRootAsAbsent(
+                subtree, repo_root, repo_info, serve, ws_setter, logger);
         }
         else {
             // set root as present
@@ -1101,7 +1083,6 @@ auto CreateCommitGitMap(
     std::vector<std::string> const& launcher,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     bool fetch_absent,
@@ -1115,7 +1096,6 @@ auto CreateCommitGitMap(
                           launcher,
                           serve,
                           native_storage_config,
-                          compat_storage_config,
                           local_api,
                           remote_api,
                           fetch_absent,
@@ -1159,7 +1139,6 @@ auto CreateCommitGitMap(
              launcher,
              serve,
              native_storage_config,
-             compat_storage_config,
              local_api,
              remote_api,
              fetch_absent,
@@ -1195,7 +1174,6 @@ auto CreateCommitGitMap(
                              launcher,
                              serve,
                              native_storage_config,
-                             compat_storage_config,
                              local_api,
                              remote_api,
                              fetch_absent,

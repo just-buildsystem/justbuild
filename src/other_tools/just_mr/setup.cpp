@@ -332,21 +332,20 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
 
     auto resolve_symlinks_map = CreateResolveSymlinksMap();
 
-    auto commit_git_map = CreateCommitGitMap(
-        &critical_git_op_map,
-        &import_to_git_map,
-        common_args.just_mr_paths,
-        common_args.alternative_mirrors,
-        common_args.git_path->string(),
-        *common_args.local_launcher,
-        serve ? &*serve : nullptr,
-        &native_storage_config,
-        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
-        &(*apis.local),
-        has_remote_api ? &*apis.remote : nullptr,
-        common_args.fetch_absent,
-        &progress,
-        common_args.jobs);
+    auto commit_git_map =
+        CreateCommitGitMap(&critical_git_op_map,
+                           &import_to_git_map,
+                           common_args.just_mr_paths,
+                           common_args.alternative_mirrors,
+                           common_args.git_path->string(),
+                           *common_args.local_launcher,
+                           serve ? &*serve : nullptr,
+                           &native_storage_config,
+                           &(*apis.local),
+                           has_remote_api ? &*apis.remote : nullptr,
+                           common_args.fetch_absent,
+                           &progress,
+                           common_args.jobs);
 
     auto content_git_map = CreateContentGitMap(
         &content_cas_map,
