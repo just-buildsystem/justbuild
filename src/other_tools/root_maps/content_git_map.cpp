@@ -23,6 +23,8 @@
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -35,6 +37,7 @@
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/archive/archive_ops.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -65,9 +68,9 @@ void EnsureRootAsAbsent(
     ArchiveRepoInfo const& key,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
+    StorageConfig const* /*compat_storage_config*/,
+    IExecutionApi const* /*local_api*/,
+    IExecutionApi const* /*remote_api*/,
     bool is_cache_hit,
     ContentGitMap::SetterPtr const& ws_setter,
     ContentGitMap::LoggerPtr const& logger) {
@@ -116,28 +119,24 @@ void EnsureRootAsAbsent(
             if (not on_serve) {
                 // the tree is known locally, so we can upload it to remote CAS
                 // for the serve endpoint to retrieve it and set up the root
-                if (remote_api == nullptr) {
-                    (*logger)(
-                        fmt::format("Missing or incompatible remote-execution "
-                                    "endpoint needed to sync workspace root {} "
-                                    "with the serve endpoint.",
-                                    tree_id),
-                        /*fatal=*/true);
+                auto digest =
+                    ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                                  tree_id,
+                                                  /*size_unknown=*/0,
+                                                  /*is_tree=*/true);
+                if (not digest.has_value()) {
+                    (*logger)(std::move(digest).error(), /*fatal=*/true);
                     return;
                 }
+
                 // the tree is known locally, so we can upload it to remote
                 // CAS for the serve endpoint to retrieve it and set up the
                 // root
-                if (not EnsureAbsentRootOnServe(
-                        *serve,
-                        tree_id,
-                        native_storage_config->GitRoot(), /*repo_root*/
-                        native_storage_config,
-                        compat_storage_config,
-                        local_api,
-                        remote_api,
-                        logger,
-                        /*no_sync_is_fatal=*/true)) {
+                auto uploaded = serve->UploadTree(
+                    *digest, native_storage_config->GitRoot());
+                if (not uploaded.has_value()) {
+                    (*logger)(std::move(uploaded).error().Message(),
+                              /*fatal=*/true);
                     return;
                 }
             }
