@@ -228,23 +228,10 @@
   , "hdrs": ["root_utils.hpp"]
   , "srcs": ["root_utils.cpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/execution_api/common", "common"]
-    , ["src/buildtool/multithreading", "async_map_consumer"]
+    [ ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
-    , ["src/buildtool/storage", "config"]
     ]
   , "stage": ["src", "other_tools", "root_maps"]
-  , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/common", "common"]
-    , ["src/buildtool/common", "config"]
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/serve", "mr_git_api"]
-    , ["src/buildtool/execution_api/utils", "rehash_utils"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/utils/cpp", "expected"]
-    ]
+  , "private-deps": [["@", "fmt", "", "fmt"]]
   }
 }
