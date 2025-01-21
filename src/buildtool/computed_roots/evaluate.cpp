@@ -81,13 +81,6 @@ void AddDescriptionIfPrecomputed(
     }
 }
 
-[[nodiscard]] auto DownloadFromServe(ServeApi const& serve,
-                                     ApiBundle const& serve_apis,
-                                     StorageConfig const& serve_storage_config,
-                                     ArtifactDigest const& digest,
-                                     StorageConfig const& native_storage_config)
-    -> expected<ArtifactDigest, std::string>;
-
 // Traverse, starting from a given repository, in order to find the
 // computed roots it depends on.
 void TraverseRepoForComputedRoots(
@@ -414,7 +407,6 @@ void ComputeAndFill(
     TreeStructureRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
     ServeApi const* serve,
-    gsl::not_null<const ExecutionContext*> const& execution_context,
     gsl::not_null<StorageConfig const*> const& storage_config,
     gsl::not_null<std::shared_mutex*> const& config_lock,
     gsl::not_null<std::mutex*> const& git_lock)
@@ -528,13 +520,9 @@ void ComputeAndFill(
         // Failed to process absent tree structure locally, download artifacts
         // from remote:
         if (not local_tree_structure.has_value()) {
-            auto from_serve = DownloadFromServe(*serve,
-                                                *execution_context->apis,
-                                                *storage_config,
-                                                *absent_tree_structure,
-                                                native_storage_config);
-            if (not from_serve.has_value()) {
-                return unexpected{std::move(from_serve).error()};
+            auto downloaded = serve->DownloadTree(*absent_tree_structure);
+            if (not downloaded.has_value()) {
+                return unexpected{std::move(downloaded).error()};
             }
             Logger::Log(LogLevel::Performance,
                         "Root {} has been downloaded from the remote end point",
@@ -615,19 +603,13 @@ void ComputeTreeStructureAndFill(
     TreeStructureRoot const& key,
     gsl::not_null<RepositoryConfig*> const& repository_config,
     ServeApi const* serve,
-    gsl::not_null<const ExecutionContext*> const& execution_context,
     gsl::not_null<StorageConfig const*> const& storage_config,
     gsl::not_null<std::shared_mutex*> const& config_lock,
     gsl::not_null<std::mutex*> const& git_lock,
     RootMap::LoggerPtr const& logger,
     RootMap::SetterPtr const& setter) {
-    auto resolved_root = ResolveTreeStructureRoot(key,
-                                                  repository_config,
-                                                  serve,
-                                                  execution_context,
-                                                  storage_config,
-                                                  config_lock,
-                                                  git_lock);
+    auto resolved_root = ResolveTreeStructureRoot(
+        key, repository_config, serve, storage_config, config_lock, git_lock);
     if (not resolved_root) {
         std::invoke(*logger, std::move(resolved_root).error(), /*fatal=*/true);
         return;
@@ -706,7 +688,6 @@ auto FillRoots(
                     ComputeTreeStructureAndFill(*tree_structure,
                                                 repository_config,
                                                 serve,
-                                                context,
                                                 storage_config,
                                                 config_lock,
                                                 git_lock,
@@ -842,47 +823,3 @@ auto EvaluatePrecomputedRoots(
     }
     return true;
 }
-
-namespace {
-[[nodiscard]] auto DownloadFromServe(ServeApi const& serve,
-                                     ApiBundle const& serve_apis,
-                                     StorageConfig const& serve_storage_config,
-                                     ArtifactDigest const& digest,
-                                     StorageConfig const& native_storage_config)
-    -> expected<ArtifactDigest, std::string> {
-    // Make digest available on the remote end point:
-    auto const on_remote = serve.TreeInRemoteCAS(digest.hash());
-    if (not on_remote.has_value()) {
-        return unexpected{
-            fmt::format("Failed to upload {} from serve to the remote end "
-                        "point.",
-                        digest.hash())};
-    }
-
-    Artifact::ObjectInfo const info{*on_remote, ObjectType::Tree};
-    // Download the artifact from the remote:
-    if (not serve_apis.remote->RetrieveToCas({info}, *serve_apis.local)) {
-        return unexpected{fmt::format(
-            "Failed to download {} from the remote end point.", digest.hash())};
-    }
-
-    // The remote end point may operate in the compatible mode. In such
-    // a case, a rehashing is needed:
-    if (ProtocolTraits::IsNative(serve_apis.hash_function.GetType())) {
-        return *on_remote;
-    }
-    auto rehashed = RehashUtils::RehashDigest(
-        {info}, serve_storage_config, native_storage_config, &serve_apis);
-    if (not rehashed.has_value()) {
-        return unexpected{fmt::format("Failed to rehash downloaded {}:\n{}",
-                                      on_remote->hash(),
-                                      std::move(rehashed).error())};
-    }
-    if (rehashed->size() != 1) {
-        return unexpected{
-            fmt::format("Failed to rehash downloaded {}", on_remote->hash())};
-    }
-    return rehashed->front().digest;
-}
-
-}  // namespace
