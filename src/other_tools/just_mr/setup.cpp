@@ -382,9 +382,6 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         &resolve_symlinks_map,
         serve ? &*serve : nullptr,
         &native_storage_config,
-        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
-        has_remote_api ? &*apis.local : nullptr,  // only needed if remote given
-        has_remote_api ? &*apis.remote : nullptr,
         common_args.jobs,
         multi_repo_tool_name,
         common_args.just_path ? common_args.just_path->string()

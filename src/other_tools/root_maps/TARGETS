@@ -84,7 +84,6 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/buildtool/multithreading", "async_map_consumer"]

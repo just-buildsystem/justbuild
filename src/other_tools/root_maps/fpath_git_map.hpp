@@ -23,7 +23,6 @@
 
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
@@ -59,9 +58,6 @@ using FilePathGitMap = AsyncMapConsumer<FpathInfo, nlohmann::json>;
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
     std::size_t jobs,
     std::string const& multi_repo_tool_name,
     std::string const& build_tool_name) -> FilePathGitMap;

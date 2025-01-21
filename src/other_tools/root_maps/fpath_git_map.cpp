@@ -37,17 +37,12 @@ namespace {
 /// \brief Does the serve endpoint checks and sets the workspace root.
 /// It guarantees the logger is called exactly once with fatal on failure, and
 /// the setter on success.
-void CheckServeAndSetRoot(
-    std::string const& tree_id,
-    std::string const& repo_root,
-    bool absent,
-    ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& /*native_storage_config*/,
-    StorageConfig const* /*compat_storage_config*/,
-    IExecutionApi const* /*local_api*/,
-    IExecutionApi const* /*remote_api*/,
-    FilePathGitMap::SetterPtr const& ws_setter,
-    FilePathGitMap::LoggerPtr const& logger) {
+void CheckServeAndSetRoot(std::string const& tree_id,
+                          std::string const& repo_root,
+                          bool absent,
+                          ServeApi const* serve,
+                          FilePathGitMap::SetterPtr const& ws_setter,
+                          FilePathGitMap::LoggerPtr const& logger) {
     // if serve endpoint is given, try to ensure it has this tree available to
     // be able to build against it. If root is not absent, do not fail if we
     // don't have a suitable remote endpoint, but warn user nonetheless.
@@ -107,9 +102,6 @@ void ResolveFilePathTree(
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
     gsl::not_null<TaskSystem*> const& ts,
     FilePathGitMap::SetterPtr const& ws_setter,
     FilePathGitMap::LoggerPtr const& logger) {
@@ -134,10 +126,6 @@ void ResolveFilePathTree(
                                  native_storage_config->GitRoot().string(),
                                  absent,
                                  serve,
-                                 native_storage_config,
-                                 compat_storage_config,
-                                 local_api,
-                                 remote_api,
                                  ws_setter,
                                  logger);
         }
@@ -157,9 +145,6 @@ void ResolveFilePathTree(
                  absent,
                  serve,
                  native_storage_config,
-                 compat_storage_config,
-                 local_api,
-                 remote_api,
                  ts,
                  ws_setter,
                  logger](auto const& hashes) {
@@ -182,9 +167,6 @@ void ResolveFilePathTree(
                          absent,
                          serve,
                          native_storage_config,
-                         compat_storage_config,
-                         local_api,
-                         remote_api,
                          ws_setter,
                          logger](auto const& values) {
                             GitOpValue op_result = *values[0];
@@ -212,10 +194,6 @@ void ResolveFilePathTree(
                                 native_storage_config->GitRoot().string(),
                                 absent,
                                 serve,
-                                native_storage_config,
-                                compat_storage_config,
-                                local_api,
-                                remote_api,
                                 ws_setter,
                                 logger);
                         },
@@ -243,16 +221,8 @@ void ResolveFilePathTree(
         // tree needs no further processing;
         // if serve endpoint is given, try to ensure it has this tree available
         // to be able to build against it
-        CheckServeAndSetRoot(tree_hash,
-                             repo_root,
-                             absent,
-                             serve,
-                             native_storage_config,
-                             compat_storage_config,
-                             local_api,
-                             remote_api,
-                             ws_setter,
-                             logger);
+        CheckServeAndSetRoot(
+            tree_hash, repo_root, absent, serve, ws_setter, logger);
     }
 }
 
@@ -265,9 +235,6 @@ auto CreateFilePathGitMap(
     gsl::not_null<ResolveSymlinksMap*> const& resolve_symlinks_map,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
     std::size_t jobs,
     std::string const& multi_repo_tool_name,
     std::string const& build_tool_name) -> FilePathGitMap {
@@ -277,9 +244,6 @@ auto CreateFilePathGitMap(
                        resolve_symlinks_map,
                        serve,
                        native_storage_config,
-                       compat_storage_config,
-                       local_api,
-                       remote_api,
                        multi_repo_tool_name,
                        build_tool_name](auto ts,
                                         auto setter,
@@ -318,9 +282,6 @@ auto CreateFilePathGitMap(
                  resolve_symlinks_map,
                  serve,
                  native_storage_config,
-                 compat_storage_config,
-                 local_api,
-                 remote_api,
                  ts,
                  setter,
                  logger](auto const& values) {
@@ -381,9 +342,6 @@ auto CreateFilePathGitMap(
                          resolve_symlinks_map,
                          serve,
                          native_storage_config,
-                         compat_storage_config,
-                         local_api,
-                         remote_api,
                          ts,
                          setter,
                          logger](auto const& values) {
@@ -406,9 +364,6 @@ auto CreateFilePathGitMap(
                                 resolve_symlinks_map,
                                 serve,
                                 native_storage_config,
-                                compat_storage_config,
-                                local_api,
-                                remote_api,
                                 ts,
                                 setter,
                                 logger);
@@ -477,9 +432,6 @@ auto CreateFilePathGitMap(
                  resolve_symlinks_map,
                  serve,
                  native_storage_config,
-                 compat_storage_config,
-                 local_api,
-                 remote_api,
                  ts,
                  setter,
                  logger](auto const& values) {
@@ -505,9 +457,6 @@ auto CreateFilePathGitMap(
                         resolve_symlinks_map,
                         serve,
                         native_storage_config,
-                        compat_storage_config,
-                        local_api,
-                        remote_api,
                         ts,
                         setter,
                         logger);
