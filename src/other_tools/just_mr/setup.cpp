@@ -347,23 +347,19 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                            &progress,
                            common_args.jobs);
 
-    auto content_git_map = CreateContentGitMap(
-        &content_cas_map,
-        &import_to_git_map,
-        common_args.just_mr_paths,
-        common_args.alternative_mirrors,
-        common_args.ca_info,
-        &resolve_symlinks_map,
-        &critical_git_op_map,
-        serve ? &*serve : nullptr,
-        &native_storage_config,
-        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
-        &native_storage,
-        has_remote_api ? &*apis.local : nullptr,  // only needed if remote given
-        has_remote_api ? &*apis.remote : nullptr,
-        common_args.fetch_absent,
-        &progress,
-        common_args.jobs);
+    auto content_git_map = CreateContentGitMap(&content_cas_map,
+                                               &import_to_git_map,
+                                               common_args.just_mr_paths,
+                                               common_args.alternative_mirrors,
+                                               common_args.ca_info,
+                                               &resolve_symlinks_map,
+                                               &critical_git_op_map,
+                                               serve ? &*serve : nullptr,
+                                               &native_storage_config,
+                                               &native_storage,
+                                               common_args.fetch_absent,
+                                               &progress,
+                                               common_args.jobs);
 
     auto foreign_file_git_map =
         CreateForeignFileGitMap(&content_cas_map,

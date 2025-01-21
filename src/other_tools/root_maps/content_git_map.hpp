@@ -21,7 +21,6 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/user_structs.hpp"
-#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/symlinks_map/resolve_symlinks_map.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
@@ -49,10 +48,7 @@ using ContentGitMap =
     gsl::not_null<CriticalGitOpMap*> const& critical_git_op_map,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
     gsl::not_null<Storage const*> const& native_storage,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
     bool fetch_absent,
     gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> ContentGitMap;

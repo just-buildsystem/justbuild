@@ -122,7 +122,6 @@
     [ ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "user_structs"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
     , ["src/buildtool/multithreading", "async_map_consumer"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
