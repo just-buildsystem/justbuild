@@ -386,17 +386,16 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         common_args.just_path ? common_args.just_path->string()
                               : kDefaultJustPath);
 
-    auto distdir_git_map = CreateDistdirGitMap(
-        &content_cas_map,
-        &import_to_git_map,
-        &critical_git_op_map,
-        serve ? &*serve : nullptr,
-        &native_storage_config,
-        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
-        &native_storage,
-        &(*apis.local),
-        has_remote_api ? &*apis.remote : nullptr,
-        common_args.jobs);
+    auto distdir_git_map =
+        CreateDistdirGitMap(&content_cas_map,
+                            &import_to_git_map,
+                            &critical_git_op_map,
+                            serve ? &*serve : nullptr,
+                            &native_storage_config,
+                            &native_storage,
+                            &(*apis.local),
+                            has_remote_api ? &*apis.remote : nullptr,
+                            common_args.jobs);
 
     auto tree_id_git_map = CreateTreeIdGitMap(
         &git_tree_fetch_map,
