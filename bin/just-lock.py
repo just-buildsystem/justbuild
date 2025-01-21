@@ -683,12 +683,12 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
                 % (path, ))
         remote_desc = dict(remote_stub)  # keep remote_stub read-only!
         root: str = remote_desc.pop("subdir", ".")  # remove 'subdir' key
-        subdir = os.path.join(root, path)
-        if os.path.normpath(subdir).startswith(".."):
+        subdir = os.path.normpath(os.path.join(root, path))
+        if subdir.startswith(".."):
             fail(fail_context +
                  "Transitive \"file\" dependency requests upward subtree %s" %
                  (subdir, ))
-        if os.path.normpath(subdir) != ".":
+        if subdir != ".":
             # get the subtree Git identifier
             remote_desc["id"] = git_subtree(tree=remote_desc["id"],
                                             subdir=subdir,
@@ -1326,12 +1326,12 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
             fail(fail_context +
                  "Expected field \"subdir\" to be a string, but found:\n%r" %
                  (json.dumps(subdir, indent=2), ))
+        subdir = os.path.normpath(subdir)
         if os.path.isabs(subdir) or subdir.startswith(".."):
             fail(
                 fail_context +
                 "Expected field \"subdir\" to be a relative non-upward path, but found:\n%r"
                 % (json.dumps(subdir, indent=2), ))
-        subdir = os.path.normpath(subdir)
         if subdir == ".":
             subdir = None  # treat as if missing
 
@@ -1511,12 +1511,12 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
             fail(fail_context +
                  "Expected field \"subdir\" to be a string, but found:\n%r" %
                  (json.dumps(subdir, indent=2), ))
+        subdir = os.path.normpath(subdir)
         if os.path.isabs(subdir) or subdir.startswith(".."):
             fail(
                 fail_context +
                 "Expected field \"subdir\" to be a relative non-upward path, but found:\n%r"
                 % (json.dumps(subdir, indent=2), ))
-        subdir = os.path.normpath(subdir)
         if subdir == ".":
             subdir = None  # treat as if missing
 
