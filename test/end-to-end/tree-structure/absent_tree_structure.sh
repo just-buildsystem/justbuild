@@ -28,6 +28,13 @@ if [ "${COMPATIBLE:-}" = "YES" ]; then
   COMPAT="--compatible"
 fi
 
+readonly LOCAL_REPO="${ROOT}/local"
+mkdir -p "${LOCAL_REPO}/src/foo/nested_foo"
+echo foo > "${LOCAL_REPO}/src/foo/nested_foo/file.txt"
+
+mkdir -p "${LOCAL_REPO}/src/bar/nested_bar"
+echo bar > "${LOCAL_REPO}/src/bar/nested_bar/file.txt"
+
 readonly MAIN_REPO="${ROOT}/main"
 mkdir -p "${MAIN_REPO}"
 cd "${MAIN_REPO}"
@@ -89,6 +96,23 @@ cat > repo-config.json <<EOF
     }
   , "result_bar":
     { "repository": "structure_bar"
+    , "target_root": "targets"
+    }
+  , "local":
+    { "repository":
+      { "type": "file"
+      , "path": "${LOCAL_REPO}"
+      , "pragma": { "to_git": true }
+      }
+    }
+  , "structure_local":
+    { "repository":
+      { "type": "tree structure"
+      , "repo": "local"
+      }
+    }
+  , "result_local":
+    { "repository": "structure_local"
     , "target_root": "targets"
     }
   }
@@ -179,5 +203,30 @@ grep 'Root \["tree structure", "bar"\] has been taken from local cache' \
 
 echo
 cat "${OUT}/result_bar/result.txt"
+
+# Test absent tree structure root of a local root.
+# Set only tree structure absent:
+cat > absent.json <<'EOF'
+["structure_local"]
+EOF
+
+echo
+echo "Absent tree structure root of a local root."
+echo "Expected to be computed locally and uploaded to serve:"
+("${JUST_MR}" --rc "${RCFILE}" \
+    --local-build-root "${LBRDIR}/absent_local" -C repo-config.json \
+    -r "${REMOTE_EXECUTION_ADDRESS}" -R "${SERVE}" ${COMPAT} \
+    --main result_local -L '["env", "PATH='"${PATH}"'"]' --log-limit 4 \
+    --just "${JUST}" install -o "${OUT}/absent_local" 2>&1) \
+    > "${OUT}/log_absent_local"
+
+echo
+cat "${OUT}/log_absent_local"
+
+grep 'Root \["tree structure", "local", {"absent": true}\] was computed locally and uploaded to serve' \
+      "${OUT}/log_absent_local"
+
+echo
+cat "${OUT}/absent_local/result.txt"
 
 echo OK
