@@ -51,7 +51,9 @@ class ServeApi final {
                &local_context->storage_config->hash_function,
                remote_context},
           tc_{address, local_context->storage, remote_context, apis},
-          cc_{address, remote_context} {}
+          cc_{address, remote_context},
+          storage_config_{*local_context->storage_config},
+          apis_{*apis} {}
 
     ~ServeApi() noexcept = default;
     ServeApi(ServeApi const&) = delete;
@@ -166,6 +168,9 @@ class ServeApi final {
     TargetClient const tc_;
     // configuration service client
     ConfigurationClient const cc_;
+
+    StorageConfig const& storage_config_;
+    ApiBundle const& apis_;
 };
 
 #endif  // BOOTSTRAP_BUILD_TOOL
