@@ -99,6 +99,8 @@
   , "private-deps":
     [ "root_utils"
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_cas"]
@@ -106,6 +108,7 @@
     , ["src/buildtool/storage", "fs_utils"]
     , ["src/other_tools/git_operations", "git_ops_types"]
     , ["src/other_tools/git_operations", "git_repo_remote"]
+    , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }

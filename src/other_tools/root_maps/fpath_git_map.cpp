@@ -19,6 +19,8 @@
 #include <vector>
 
 #include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
@@ -27,6 +29,7 @@
 #include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 #include "src/other_tools/root_maps/root_utils.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -39,10 +42,10 @@ void CheckServeAndSetRoot(
     std::string const& repo_root,
     bool absent,
     ServeApi const* serve,
-    gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    IExecutionApi const* local_api,
-    IExecutionApi const* remote_api,
+    gsl::not_null<StorageConfig const*> const& /*native_storage_config*/,
+    StorageConfig const* /*compat_storage_config*/,
+    IExecutionApi const* /*local_api*/,
+    IExecutionApi const* /*remote_api*/,
     FilePathGitMap::SetterPtr const& ws_setter,
     FilePathGitMap::LoggerPtr const& logger) {
     // if serve endpoint is given, try to ensure it has this tree available to
@@ -54,29 +57,23 @@ void CheckServeAndSetRoot(
             return;  // fatal
         }
         if (not *has_tree) {
-            // only enforce root setup on the serve endpoint if root is absent
-            if (remote_api == nullptr) {
-                (*logger)(
-                    fmt::format("Missing or incompatible remote-execution "
-                                "endpoint needed to sync workspace root {} "
-                                "with the serve endpoint.",
-                                tree_id),
-                    /*fatal=*/absent);
-                if (absent) {
-                    return;
-                }
+            auto digest =
+                ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
+                                              tree_id,
+                                              /*size_unknown=*/0,
+                                              /*is_tree=*/true);
+            if (not digest) {
+                (*logger)(std::move(digest).error(), /*fatal=*/true);
+                return;
             }
-            else {
-                if (not EnsureAbsentRootOnServe(*serve,
-                                                tree_id,
-                                                repo_root,
-                                                native_storage_config,
-                                                compat_storage_config,
-                                                local_api,
-                                                remote_api,
-                                                logger,
-                                                /*no_sync_is_fatal=*/absent)) {
-                    return;  // fatal
+
+            auto uploaded = serve->UploadTree(*digest, repo_root);
+            // only enforce root setup on the serve endpoint if root is absent
+            if (not uploaded.has_value()) {
+                bool const fatal = absent or not uploaded.error().IsSyncError();
+                (*logger)(std::move(uploaded).error().Message(), fatal);
+                if (fatal) {
+                    return;
                 }
             }
         }
