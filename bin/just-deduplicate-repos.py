@@ -277,7 +277,7 @@ def dedup(repos: Json, user_keep: List[str]) -> Json:
                 if isinstance(root_val, str) and (root_val in renaming):
                     new_roots[root] = final_root_reference(root_val)
             desc = dict(desc, **new_roots)
-            
+
             # Update target repos of precomputed roots:
             if isinstance(desc.get("repository"), dict):
                 repo_root: Json = desc.get("repository")
