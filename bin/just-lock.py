@@ -277,11 +277,10 @@ def ensure_git_init(*,
 
 def git_commit_present(commit: str, *, upstream: Optional[str]) -> bool:
     """Check if commit is present in specified Git repository."""
-    result = subprocess.run(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
-                            stdout=subprocess.DEVNULL,
-                            stderr=subprocess.DEVNULL,
-                            cwd=git_root(upstream=upstream))
-    return result.returncode == 0
+    return run_cmd(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
+                   stdout=subprocess.DEVNULL,
+                   cwd=git_root(upstream=upstream),
+                   fail_context=None)[1] == 0
 
 
 def git_url_is_path(url: str) -> Optional[str]:
