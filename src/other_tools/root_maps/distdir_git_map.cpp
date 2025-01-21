@@ -417,17 +417,8 @@ auto CreateDistdirGitMap(
                     // remote CAS
                     if (digest and remote_api->IsAvailable({*digest})) {
                         // tell serve to set up the root from the remote CAS
-                        // tree; upload can be skipped
-                        if (EnsureAbsentRootOnServe(
-                                *serve,
-                                tree_id,
-                                /*repo_path=*/"",
-                                native_storage_config,
-                                /*compat_storage_config=*/nullptr,
-                                /*local_api=*/nullptr,
-                                /*remote_api=*/nullptr,
-                                logger,
-                                /*no_sync_is_fatal=*/true)) {
+                        // tree
+                        if (serve->GetTreeFromRemote(*digest)) {
                             // set workspace root as absent
                             (*setter)(std::pair(
                                 nlohmann::json::array(
@@ -457,17 +448,8 @@ auto CreateDistdirGitMap(
                             return;
                         }
                         // tell serve to set up the root from the remote CAS
-                        // tree; upload can be skipped
-                        if (EnsureAbsentRootOnServe(
-                                *serve,
-                                tree_id,
-                                /*repo_path=*/"",
-                                native_storage_config,
-                                /*compat_storage_config=*/nullptr,
-                                /*local_api=*/nullptr,
-                                /*remote_api=*/nullptr,
-                                logger,
-                                /*no_sync_is_fatal=*/true)) {
+                        // tree
+                        if (serve->GetTreeFromRemote(*digest)) {
                             // set workspace root as absent
                             (*setter)(std::pair(
                                 nlohmann::json::array(
