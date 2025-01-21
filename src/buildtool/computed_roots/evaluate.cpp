@@ -47,7 +47,6 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
-#include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -87,13 +86,6 @@ void AddDescriptionIfPrecomputed(
                                      StorageConfig const& serve_storage_config,
                                      ArtifactDigest const& digest,
                                      StorageConfig const& native_storage_config)
-    -> expected<ArtifactDigest, std::string>;
-
-[[nodiscard]] auto UploadToServe(ServeApi const& serve,
-                                 ApiBundle const& serve_apis,
-                                 StorageConfig const& serve_storage_config,
-                                 ArtifactDigest const& digest,
-                                 std::filesystem::path const& repo_path)
     -> expected<ArtifactDigest, std::string>;
 
 // Traverse, starting from a given repository, in order to find the
@@ -367,15 +359,12 @@ void ComputeAndFill(
                     /*fatal=*/true);
                 return;
             }
-            auto uploaded_to_serve = UploadToServe(*serve,
-                                                   *context->apis,
-                                                   *storage_config,
-                                                   *tree_digest,
-                                                   storage_config->GitRoot());
+            auto uploaded_to_serve =
+                serve->UploadTree(*tree_digest, storage_config->GitRoot());
             if (not uploaded_to_serve) {
                 (*logger)(fmt::format("Failed to sync {} to serve:{}",
                                       *result,
-                                      uploaded_to_serve.error()),
+                                      uploaded_to_serve.error().Message()),
                           /*fatal=*/true);
                 return;
             }
@@ -588,14 +577,10 @@ void ComputeAndFill(
         // Make sure the tree structure is available on serve:
         auto known = serve->CheckRootTree(local_tree_structure->hash());
         if (known.has_value() and not *known) {
-            auto uploaded_to_serve =
-                UploadToServe(*serve,
-                              *execution_context->apis,
-                              *storage_config,
-                              *local_tree_structure,
-                              native_storage_config.GitRoot());
-            if (not uploaded_to_serve.has_value()) {
-                return unexpected{std::move(uploaded_to_serve).error()};
+            auto uploaded = serve->UploadTree(*local_tree_structure,
+                                              native_storage_config.GitRoot());
+            if (not uploaded.has_value()) {
+                return unexpected{std::move(uploaded).error().Message()};
             }
             known = true;
         }
@@ -898,80 +883,6 @@ namespace {
             fmt::format("Failed to rehash downloaded {}", on_remote->hash())};
     }
     return rehashed->front().digest;
-}
-
-[[nodiscard]] auto UploadToServe(ServeApi const& serve,
-                                 ApiBundle const& serve_apis,
-                                 StorageConfig const& serve_storage_config,
-                                 ArtifactDigest const& digest,
-                                 std::filesystem::path const& repo_path)
-    -> expected<ArtifactDigest, std::string> {
-    RepositoryConfig repo;
-    if (not repo.SetGitCAS(repo_path)) {
-        return unexpected{
-            fmt::format("Failed to SetGitCAS at {}", repo_path.string())};
-    }
-
-    bool const with_rehashing = not ProtocolTraits::IsNative(
-        serve_storage_config.hash_function.GetType());
-
-    // Create a native storage config if rehashing is needed:
-    std::optional<StorageConfig> native_storage_config;
-    if (with_rehashing) {
-        auto config = StorageConfig::Builder::Rebuild(serve_storage_config)
-                          .SetHashType(HashFunction::Type::GitSHA1)
-                          .Build();
-        if (not config.has_value()) {
-            return unexpected{
-                fmt::format("Failed to rebuild storage for rehashing: {}",
-                            std::move(config).error())};
-        }
-        native_storage_config.emplace(*config);
-    }
-
-    std::shared_ptr<IExecutionApi> git_api;
-    if (with_rehashing) {
-        git_api = std::make_shared<MRGitApi>(&repo,
-                                             &*native_storage_config,
-                                             &serve_storage_config,
-                                             &*serve_apis.local);
-    }
-    else {
-        git_api = std::make_shared<MRGitApi>(&repo, &serve_storage_config);
-    }
-
-    if (not git_api->RetrieveToCas(
-            {Artifact::ObjectInfo{digest, ObjectType::Tree}},
-            *serve_apis.remote)) {
-        return unexpected{
-            fmt::format("Failed to sync tree {} from repository {}",
-                        digest.hash(),
-                        repo_path.string())};
-    }
-
-    ArtifactDigest result = digest;
-    if (with_rehashing) {
-        auto rehashed = RehashUtils::ReadRehashedDigest(digest,
-                                                        *native_storage_config,
-                                                        serve_storage_config,
-                                                        /*from_git=*/true);
-        if (not rehashed.has_value()) {
-            return unexpected{fmt::format("Failed to rehash {}:\n{}",
-                                          digest.hash(),
-                                          std::move(rehashed).error())};
-        }
-        if (not rehashed.value().has_value()) {
-            return unexpected{fmt::format(
-                "No digest provided to sync root tree {}.", digest.hash())};
-        }
-        result = rehashed.value()->digest;
-    }
-
-    if (not serve.GetTreeFromRemote(result)) {
-        return unexpected{fmt::format(
-            "Serve endpoint failed to sync root tree {}.", result.hash())};
-    }
-    return result;
 }
 
 }  // namespace
