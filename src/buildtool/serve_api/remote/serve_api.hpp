@@ -174,6 +174,14 @@ class ServeApi final {
                                   std::filesystem::path const& git_repo)
         const noexcept -> expected<std::monostate, UploadError>;
 
+    /// \brief Download a git tree from serve.
+    /// \param tree         Tree to download.
+    /// \return std::monostate if after the call the requested tree can be found
+    /// in the native CAS to which this serve instance is bound to, or an
+    /// unexpected error message on failure.
+    [[nodiscard]] auto DownloadTree(ArtifactDigest const& tree) const noexcept
+        -> expected<std::monostate, std::string>;
+
   private:
     // source tree service client
     SourceTreeClient const stc_;
