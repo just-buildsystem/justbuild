@@ -34,6 +34,12 @@
   , "test": ["git-cas-p.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "git cas fallback":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["git-cas-fallback"]
+  , "test": ["git-cas-fallback.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "just-mr reporting":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["just-mr-reporting"]
@@ -93,6 +99,7 @@
         , "build -P"
         , "analyse"
         , "git cas -P"
+        , "git cas fallback"
         , "install --archive"
         , "install archived repo"
         , "conflict report"
