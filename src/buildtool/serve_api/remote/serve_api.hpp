@@ -19,10 +19,13 @@
 class ServeApi final {};
 #else
 
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
+#include <variant>
 #include <vector>
 
 #include "gsl/gsl"
@@ -161,6 +164,16 @@ class ServeApi final {
         return cc_.IsCompatible();
     }
 
+    class UploadError;
+    /// \brief Upload a git tree from git repo to serve.
+    /// \param tree         Tree to upload.
+    /// \param git_repo     Git repository where the tree can be found.
+    /// \return std::monostate if the tree is available for this serve
+    /// instance after the call, or an unexpected UploadError on failure.
+    [[nodiscard]] auto UploadTree(ArtifactDigest const& tree,
+                                  std::filesystem::path const& git_repo)
+        const noexcept -> expected<std::monostate, UploadError>;
+
   private:
     // source tree service client
     SourceTreeClient const stc_;
@@ -171,6 +184,29 @@ class ServeApi final {
 
     StorageConfig const& storage_config_;
     ApiBundle const& apis_;
+};
+
+class ServeApi::UploadError final {
+  public:
+    [[nodiscard]] auto Message() const& noexcept -> std::string const& {
+        return message_;
+    }
+
+    [[nodiscard]] auto Message() && noexcept -> std::string {
+        return std::move(message_);
+    }
+
+    [[nodiscard]] auto IsSyncError() const noexcept -> bool {
+        return is_sync_error_;
+    }
+
+  private:
+    friend ServeApi;
+    explicit UploadError(std::string message, bool is_sync_error) noexcept
+        : message_{std::move(message)}, is_sync_error_{is_sync_error} {}
+
+    std::string message_;
+    bool is_sync_error_;
 };
 
 #endif  // BOOTSTRAP_BUILD_TOOL
