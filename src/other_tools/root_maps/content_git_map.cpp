@@ -81,6 +81,7 @@ void EnsureRootAsAbsent(
         if (not *has_tree) {
             // try to see if serve endpoint has the information to prepare the
             // root itself; this is redundant if root is not already cached
+            bool on_serve = false;
             if (is_cache_hit) {
                 auto const serve_result = serve->RetrieveTreeFromArchive(
                     key.archive.content_hash.Hash(),
@@ -99,46 +100,20 @@ void EnsureRootAsAbsent(
                                   /*fatal=*/true);
                         return;
                     }
+                    on_serve = true;
                 }
-                else {
-                    // check if serve failure was due to archive content not
-                    // being found or it is otherwise fatal
-                    if (serve_result.error() == GitLookupError::Fatal) {
-                        (*logger)(
-                            fmt::format("Serve endpoint failed to set up "
-                                        "root from known archive content {}",
-                                        key.archive.content_hash.Hash()),
-                            /*fatal=*/true);
-                        return;
-                    }
-                    if (remote_api == nullptr) {
-                        (*logger)(
-                            fmt::format(
-                                "Missing or incompatible remote-execution "
-                                "endpoint needed to sync workspace root {} "
-                                "with the serve endpoint.",
-                                tree_id),
-                            /*fatal=*/true);
-                        return;
-                    }
-                    // the tree is known locally, so we can upload it to remote
-                    // CAS for the serve endpoint to retrieve it and set up the
-                    // root
-                    if (not EnsureAbsentRootOnServe(
-                            *serve,
-                            tree_id,
-                            native_storage_config->GitRoot(), /*repo_path*/
-                            native_storage_config,
-                            compat_storage_config,
-                            local_api,
-                            remote_api,
-                            logger,
-                            /*no_sync_is_fatal=*/true)) {
-                        return;
-                    }
+
+                if (not serve_result.has_value() and
+                    serve_result.error() == GitLookupError::Fatal) {
+                    (*logger)(fmt::format("Serve endpoint failed to set up "
+                                          "root from known archive content {}",
+                                          key.archive.content_hash.Hash()),
+                              /*fatal=*/true);
+                    return;
                 }
             }
-            else {
+
+            if (not on_serve) {
                 // the tree is known locally, so we can upload it to remote CAS
                 // for the serve endpoint to retrieve it and set up the root
                 if (remote_api == nullptr) {
