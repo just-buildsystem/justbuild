@@ -107,6 +107,30 @@ echo
 echo mrrc.json:
 cat "${RCFILE}"
 
+# Test absent tree structure root of an absent root:
+# Set foo and structure foo absent:
+cat > absent.json <<'EOF'
+["foo", "structure_foo"]
+EOF
+
+echo
+echo "Absent tree structure root of an absent root. Expected to be computed on serve:"
+("${JUST_MR}" --rc "${RCFILE}" \
+    --local-build-root "${LBRDIR}/absent_absent" -C repo-config.json \
+    -r "${REMOTE_EXECUTION_ADDRESS}" -R "${SERVE}" ${COMPAT} \
+    --main result_foo -L '["env", "PATH='"${PATH}"'"]' --log-limit 4 \
+    --just "${JUST}" install -o "${OUT}/absent_absent" 2>&1) \
+    > "${OUT}/log_absent_absent"
+
+echo
+cat "${OUT}/log_absent_absent"
+
+grep 'Root \["tree structure", "foo", {"absent": true}\] was computed on serve' \
+      "${OUT}/log_absent_absent"
+
+echo
+cat "${OUT}/absent_absent/result.txt"
+
 # Test local tree structure of absent roots:
 # Set both source repositories foo and bar absent:
 cat > absent.json <<'EOF'
