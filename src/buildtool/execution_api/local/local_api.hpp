@@ -293,21 +293,29 @@ class LocalApi final : public IExecutionApi {
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final {
-        return static_cast<bool>(
+        auto found = static_cast<bool>(
             digest.IsTree()
                 ? local_context_.storage->CAS().TreePath(digest)
                 : local_context_.storage->CAS().BlobPath(digest, false));
+        if ((not found) and git_api_) {
+            if (git_api_->IsAvailable(digest)) {
+                auto plain_local = LocalApi(&local_context_);
+                auto obj_info = std::vector<Artifact::ObjectInfo>{};
+                obj_info.push_back(Artifact::ObjectInfo{
+                    digest,
+                    digest.IsTree() ? ObjectType::Tree : ObjectType::File,
+                    false});
+                found = git_api_->RetrieveToCas(obj_info, plain_local);
+            }
+        }
+        return found;
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
         const noexcept -> std::vector<ArtifactDigest> final {
         std::vector<ArtifactDigest> result;
         for (auto const& digest : digests) {
-            auto const path =
-                digest.IsTree()
-                    ? local_context_.storage->CAS().TreePath(digest)
-                    : local_context_.storage->CAS().BlobPath(digest, false);
-            if (not path) {
+            if (not IsAvailable(digest)) {
                 result.push_back(digest);
             }
         }
