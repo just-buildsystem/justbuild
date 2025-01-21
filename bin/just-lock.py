@@ -549,7 +549,7 @@ def get_repo_to_import(config: Json) -> str:
 
 def get_base_repo_if_computed(repo: Json) -> Optional[str]:
     """If repository is computed, return the base repository name."""
-    if repo.get("type") == "computed":
+    if repo.get("type") in ["computed", "tree structure"]:
         return cast(str, repo.get("repo"))
     return None
 
@@ -716,7 +716,7 @@ def rewrite_repo(repo_spec: Json, *, remote_type: str,
         existing_repos: List[str] = repo.get("repositories", [])
         new_repos = [assign[k] for k in existing_repos]
         repo = dict(repo, **{"repositories": new_repos})
-    elif repo.get("type") == "computed":
+    elif repo.get("type") in ["computed", "tree structure"]:
         target: str = repo.get("repo", None)
         repo = dict(repo, **{"repo": assign[target]})
     if absent and isinstance(repo, dict):
@@ -1642,9 +1642,10 @@ def bisimilar_repos(repos: Json) -> List[List[str]]:
         elif a["type"] == "git":
             return (a["commit"] == b["commit"]
                     and a.get("subdir", ".") == b.get("subdir", "."))
-        elif a["type"] == "computed":
-            if (a.get("config", {}) != b.get("config", {})
-                    or a["target"] != b["target"]):
+        elif a["type"] in ["computed", "tree structure"]:
+            if (a["type"] == "computed"
+                    and (a.get("config", {}) != b.get("config", {})
+                         or a["target"] != b["target"])):
                 return False
             if a["repo"] == b["repo"]:
                 return True
@@ -1857,7 +1858,7 @@ def deduplicate(repos: Json, user_keep: List[str]) -> Json:
             # Update target repos of precomputed roots
             if isinstance(desc.get("repository"), dict):
                 repo_root: Json = desc["repository"]
-                if repo_root["type"] == "computed" and \
+                if repo_root["type"] in ["computed", "tree structure"] and \
                     repo_root["repo"] in renaming:
                     repo_root = \
                         dict(repo_root, **{"repo": renaming[repo_root["repo"]]})
