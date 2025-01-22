@@ -69,7 +69,6 @@
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path_rebase.hpp"
 #include "src/utils/cpp/prefix.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
@@ -149,10 +148,10 @@ class ExecutorImpl {
         }
 
         auto base = action->Content().Cwd();
-        auto cwd_relative_output_files = RebasePathStringsRelativeTo(
-            base, action->OutputFilePaths().ToVector());
-        auto cwd_relative_output_dirs = RebasePathStringsRelativeTo(
-            base, action->OutputDirPaths().ToVector());
+        auto cwd_relative_output_files =
+            RebasePathStringsRelativeTo(base, action->OutputFilePaths());
+        auto cwd_relative_output_dirs =
+            RebasePathStringsRelativeTo(base, action->OutputDirPaths());
         auto remote_action = (alternative_api ? *alternative_api : api)
                                  .CreateAction(*root_digest,
                                                action->Command(),
@@ -554,7 +553,7 @@ class ExecutorImpl {
     /// are present in the artifacts map
     [[nodiscard]] static auto CheckOutputsExist(
         IExecutionResponse::ArtifactInfos const& artifacts,
-        DependencyGraph::ActionNode::LocalPaths const& outputs,
+        std::vector<Action::LocalPath> const& outputs,
         std::string base) noexcept -> bool {
         return std::all_of(
             outputs.begin(),
@@ -617,13 +616,14 @@ class ExecutorImpl {
             return false;
         }
 
+        auto const output_files = action->OutputFilePaths();
+        auto const output_dirs = action->OutputDirPaths();
+
         if (artifacts.value()->empty() or
-            not CheckOutputsExist(*artifacts.value(),
-                                  action->OutputFilePaths(),
-                                  action->Content().Cwd()) or
-            not CheckOutputsExist(*artifacts.value(),
-                                  action->OutputDirPaths(),
-                                  action->Content().Cwd())) {
+            not CheckOutputsExist(
+                *artifacts.value(), output_files, action->Content().Cwd()) or
+            not CheckOutputsExist(
+                *artifacts.value(), output_dirs, action->Content().Cwd())) {
             logger.Emit(LogLevel::Error, [&]() {
                 std::ostringstream message{};
                 if (action_failed) {
@@ -632,10 +632,10 @@ class ExecutorImpl {
                 }
                 message << "action executed with missing outputs.\nAction "
                            "outputs should be the following artifacts:";
-                for (auto const& output : action->OutputFilePaths()) {
+                for (auto const& output : output_files) {
                     message << "\n  - file: " << output;
                 }
-                for (auto const& output : action->OutputDirPaths()) {
+                for (auto const& output : output_dirs) {
                     message << "\n  - dir: " << output;
                 }
                 return message.str();
