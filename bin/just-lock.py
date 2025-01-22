@@ -18,6 +18,7 @@ import hashlib
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -76,6 +77,12 @@ class ObjectType(Enum):
     LINK = 3
     DIR = 4
 
+
+SUPPORTED_BLOB_TYPES: List[ObjectType] = [
+    ObjectType.FILE, ObjectType.EXEC, ObjectType.LINK
+]
+
+SHA1_SIZE_BYTES: int = 20
 
 ###
 # Global vars
@@ -339,6 +346,19 @@ def type_to_perm(obj_type: ObjectType) -> str:
     fail("Unexpected object type %r" % (obj_type, ))
 
 
+def type_to_string(obj_type: ObjectType) -> str:
+    """Mapping from Git object type to human-readable string."""
+    if obj_type == ObjectType.DIR:
+        return "DIR"
+    elif obj_type == ObjectType.LINK:
+        return "LINK"
+    elif obj_type == ObjectType.EXEC:
+        return "EXEC"
+    elif obj_type == ObjectType.FILE:
+        return "FILE"
+    fail("Unexpected object type %r" % (obj_type, ))
+
+
 def write_data_to_repo(repo_root: str, data: bytes, *, as_type: str) -> bytes:
     """Write content of an object of certain type into given repository.
     Returns the raw id of the written object."""
@@ -388,6 +408,20 @@ def path_to_type(fpath: str) -> ObjectType:
         else:
             return ObjectType.FILE
     fail("Found unsupported filesystem entry %s" % (fpath, ))
+
+
+def git_to_type(perm: str) -> ObjectType:
+    """Get type of given Git entry from permission mode."""
+    if perm == "40000":
+        return ObjectType.DIR
+    elif perm == "120000":
+        return ObjectType.LINK
+    elif perm == "100755":
+        return ObjectType.EXEC
+    elif perm == "100644":
+        return ObjectType.FILE
+    fail("Cannot assign object type for entry with permission code %s" %
+         (perm, ))
 
 
 def get_tree_raw_id(source_dir: str, repo_root: str) -> bytes:
@@ -465,10 +499,26 @@ def import_to_git(target: str, *, repo_type: str, content_id: str,
     return tree_id
 
 
+def git_tree(*, commit: str, subdir: str, upstream: Optional[str],
+             fail_context: str) -> str:
+    """Get Git-tree identifier based on commit. Fails if the commit is not part
+    of the repository. It is a user error if the referenced Git repository does
+    not exist."""
+    tree = run_cmd(["git", "log", "-n", "1", "--format=%T", commit],
+                   stdout=subprocess.PIPE,
+                   cwd=git_root(upstream=upstream),
+                   fail_context=fail_context)[0].decode('utf-8').strip()
+    return git_subtree(tree=tree,
+                       subdir=subdir,
+                       upstream=upstream,
+                       fail_context=fail_context)
+
+
 def git_subtree(*, tree: str, subdir: str, upstream: Optional[str],
                 fail_context: str) -> str:
-    """Get Git-tree identifier in a Git tree by subdirectory path. It is a user
-    error if the referenced Git repository does not exist."""
+    """Get Git-tree identifier in a Git tree by subdirectory path. Fails if the
+    tree is not part of the repository. It is a user error if the referenced Git
+    repository does not exist."""
     if os.path.normpath(subdir) == ".":
         return tree
     return run_cmd(
@@ -495,6 +545,44 @@ def try_read_object_from_repo(obj_id: str, obj_type: str, *,
                      cwd=root,
                      fail_context=None)
     return result[0] if result[1] == 0 else None
+
+
+def read_git_tree(tree_id: str, *, upstream: Optional[str],
+                  fail_context: str) -> Dict[str, Tuple[bytes, ObjectType]]:
+    """Reads a Git tree and returns a list of its entries. Tree entries have as
+    key their filename and as value a tuple of raw id and object type. Method
+    fails if the given tree is not part of the repository. It is a user error if
+    the referenced Git repository does not exist."""
+    raw_tree_content = try_read_object_from_repo(tree_id,
+                                                 "tree",
+                                                 upstream=upstream)
+    if raw_tree_content is None:
+        fail(fail_context + "Failed to read Git tree %s from %s" %
+             (tree_id, git_root(upstream=upstream)))
+
+    # Parse the raw content; the Git tree format is:
+    # "<perm> <filename>\0<binary_hash>[next entries...]"
+    # The hash size for SHA1 is 20 bytes
+    entries: Dict[str, Tuple[bytes, ObjectType]] = {}
+    curr_index = 0
+    while curr_index < len(raw_tree_content):
+        # get permission
+        perm_step = raw_tree_content[curr_index:].find(b' ')
+        perm: str = raw_tree_content[curr_index:curr_index +
+                                     perm_step].decode('utf-8')
+        curr_index += perm_step + 1
+        # get filename
+        name_step = raw_tree_content[curr_index:].find(b'\0')
+        filename: str = raw_tree_content[curr_index:curr_index +
+                                         name_step].decode('utf-8')
+        curr_index += name_step + 1
+        # get raw id
+        raw_id: bytes = raw_tree_content[curr_index:curr_index +
+                                         SHA1_SIZE_BYTES].hex().encode('utf-8')
+        curr_index += SHA1_SIZE_BYTES
+        # store current entry
+        entries[filename] = (raw_id, git_to_type(perm))
+    return entries
 
 
 ###
@@ -557,6 +645,80 @@ def cas_path(h: str) -> str:
 def is_in_cas(h: str) -> bool:
     """Check if content is in local file CAS."""
     return os.path.exists(cas_path(h))
+
+
+###
+# Staging utils
+##
+
+
+def stage_git_entry(*, fpath: str, obj_id: str, obj_type: ObjectType,
+                    upstream: Optional[str], fail_context: str) -> None:
+    """Stage specified Git entry, identified by id and object type, to a given
+    location. It is a user error if the referenced Git repository does not
+    exist."""
+    curr_fail_context = fail_context + "While staging entry %r:\n" % (
+        json.dumps({fpath: (obj_id, type_to_string(obj_type))}), )
+    # Trees need to get traversed
+    if obj_type == ObjectType.DIR:
+        os.makedirs(fpath)
+        entries = read_git_tree(obj_id,
+                                upstream=upstream,
+                                fail_context=curr_fail_context)
+        for key, val in entries.items():
+            stage_git_entry(
+                fpath=os.path.join(fpath, key),
+                obj_id=val[0].decode('utf-8'),
+                obj_type=val[1],
+                upstream=upstream,
+                fail_context=fail_context,  # limit log verbosity
+            )
+    # Blobs are read as-is; only do work for supported blob types
+    elif obj_type in SUPPORTED_BLOB_TYPES:
+        content = try_read_object_from_repo(obj_id, "blob", upstream=upstream)
+        if content is None:
+            fail(curr_fail_context + "Failed to read Git entry!")
+        try:
+            if obj_type == ObjectType.LINK:
+                os.symlink(src=content.decode('utf-8'), dst=fpath)
+            else:
+                with open(fpath, "wb") as f:
+                    fstat = os.stat(f.fileno())
+                    f.write(content)
+                    f.flush()
+                    if obj_type == ObjectType.EXEC:
+                        os.chmod(f.fileno(), fstat.st_mode | stat.S_IEXEC)
+                        os.fsync(f.fileno())
+        except OSError:
+            fail(curr_fail_context + "Failed to write entry")
+        except Exception as ex:
+            fail(curr_fail_context + "Writing entry failed with:\n%r" % (ex, ))
+    else:
+        # Warn if any unsupported entries were found
+        warn(curr_fail_context +
+             "Skipped staging of entry with unsupported type")
+    return
+
+
+def stage_git_commit(commit: str, *, upstream: Optional[str], stage_to: str,
+                     fail_context: str) -> None:
+    """Stage into a given directory the tree of a commit from given repository.
+    Fails if the commit is not part of the repository. It is a user error if the
+    referenced Git repository does not exist."""
+    fail_context += "While trying to stage commit %s\n" % (commit, )
+    # Stage underlying Git tree
+    tree = git_tree(commit=commit,
+                    subdir=".",
+                    upstream=upstream,
+                    fail_context=fail_context)
+    entries = read_git_tree(tree, upstream=upstream, fail_context=fail_context)
+    os.makedirs(stage_to, exist_ok=True)  # root dir can already exist
+    for key, val in entries.items():
+        stage_git_entry(fpath=os.path.join(stage_to, key),
+                        obj_id=val[0].decode('utf-8'),
+                        obj_type=val[1],
+                        upstream=upstream,
+                        fail_context=fail_context)
 
 
 ###
@@ -1777,6 +1939,15 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
 def rewrite_cloned_repo(repos: Json, *, clone_to: str, target_repo: str,
                         ws_root_repo: str) -> Json:
     """Rewrite description of a locally-cloned repository."""
+    # For Git repositories, the clone always contains the whole root tree,
+    # so the path will need to point to any given subdir; no validation of
+    # fields is needed, as it was already done pre-cloning
+    ws_root_desc: Json = repos[ws_root_repo]
+    if ws_root_desc["repository"]["type"] == "git":
+        subdir: Optional[str] = ws_root_desc["repository"].get("subdir", None)
+        if subdir is not None and os.path.normpath(subdir) != ".":
+            clone_to = os.path.join(clone_to, subdir)
+
     # Set workspace root description
     new_spec: Json = {
         "repository": {
@@ -1850,6 +2021,59 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                  (fpath, ex))
         return fpath
 
+    def process_git(repository: Json, *, clone_to: str,
+                    fail_context: str) -> str:
+        """Process a Git repository and return its commit id."""
+        # Parse fields
+        commit: str = repository.get("commit", None)
+        if not isinstance(commit, str):
+            fail(fail_context +
+                 "Expected field \"commit\" to be a string, but found:\n%r" %
+                 (json.dumps(commit, indent=2), ))
+        # If commit in Git cache, stage it and return
+        if git_commit_present(commit, upstream=None):
+            stage_git_commit(commit,
+                             upstream=None,
+                             stage_to=clone_to,
+                             fail_context=fail_context)
+            return commit
+        # Parse fields needed for
+        url: str = repository.get("repository", None)
+        if not isinstance(url, str):
+            fail(fail_context +
+                 "Expected field \"url\" to be a string, but found:\n%r" %
+                 (json.dumps(url, indent=2), ))
+        branch: str = repository.get("branch", None)
+        if not isinstance(branch, str):
+            fail(fail_context +
+                 "Expected field \"branch\" to be a string, but found:\n%r" %
+                 (json.dumps(branch, indent=2), ))
+        mirrors: Optional[List[str]] = repository.get("mirrors", [])
+        if mirrors is not None and not isinstance(mirrors, list):
+            fail(fail_context +
+                 "Expected field \"mirrors\" to be a list, but found:\n%r" %
+                 (json.dumps(mirrors, indent=2), ))
+        # Clone the branch fully and reset to specific commit; in this case, we
+        # are interested also in the Git history, so a simple commit checkout is
+        # not enough; try mirrors first, as they are closer
+        cloned: bool = False
+        sources = [url] if mirrors is None else mirrors + [url]
+        for source in sources:
+            if (run_cmd(g_LAUNCHER +
+                        [g_GIT, "clone", "-b", branch, source, clone_to],
+                        cwd=os.getcwd(),
+                        fail_context=None)[1] == 0
+                    and run_cmd(g_LAUNCHER + [g_GIT, "reset", "--hard", commit],
+                                cwd=clone_to,
+                                fail_context=None)[1] == 0):
+                cloned = True
+                break
+        if not cloned:
+            fail(fail_context +
+                 "Failed to clone Git repository.\nTried locations:\n%s" %
+                 ("\n".join(["\t%s" % (x, ) for x in sources]), ))
+        return commit
+
     def follow_binding(repos: Json, *, repo_name: str, dep_name: str,
                        fail_context: str) -> str:
         """Follow a named binding."""
@@ -1906,11 +2130,10 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         report("\tCloned file path %s to %s" % (fpath, clone_to))
 
     elif repo_type == "git":
-        #TODO(psarbu): Implement git cloning
-        warn(fail_context +
-             "Cloning from \"%s\" repositories not yet implemented!" %
-             (repo_type, ))
-        result = None
+        commit = process_git(repository,
+                             clone_to=clone_to,
+                             fail_context=fail_context)
+        report("\tCloned Git commit %s to %s" % (commit, clone_to))
 
     elif repo_type in ["archive", "zip"]:
         #TODO(psarbu): Implement archives cloning
