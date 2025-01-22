@@ -2259,6 +2259,78 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                        separators=(',', ':')).encode('utf-8'))
         return distdir_tree_id
 
+    def process_git_tree(repository: Json, *, clone_to: str,
+                         fail_context: str) -> str:
+        """Process a git tree repository and return the tree id."""
+        # Parse tree id
+        tree_id: str = repository.get("id", None)
+        if not isinstance(tree_id, str):
+            fail(fail_context +
+                 "Expected field \"id\" to be a string, but found:\n%r" %
+                 (json.dumps(tree_id, indent=2), ))
+        # If tree is in Git cache, stage it from there
+        if (try_read_object_from_repo(tree_id, "tree", upstream=None)
+                is not None):
+            os.makedirs(clone_to, exist_ok=True)
+            stage_git_entry(fpath=clone_to,
+                            obj_id=tree_id,
+                            obj_type=ObjectType.DIR,
+                            upstream=None,
+                            fail_context=fail_context)
+            return tree_id
+        # Parse the other needed fields
+        command: List[str] = repository.get("cmd", None)
+        if not isinstance(command, list):
+            fail(fail_context +
+                 "Expected field \"cmd\" to be a list, but found:\n%r" %
+                 (json.dumps(command, indent=2), ))
+        command_env: Optional[Json] = repository.get("env", {})
+        if command_env is not None and not isinstance(command_env, dict):
+            fail(fail_context +
+                 "Expected field \"env\" to be a map, but found:\n%r" %
+                 (json.dumps(command_env, indent=2), ))
+        inherit_env: Optional[List[str]] = repository.get("inherit env", [])
+        if inherit_env is not None and not isinstance(inherit_env, list):
+            fail(fail_context +
+                 "Expected field \"inherit env\" to be a list, but found:\n%r" %
+                 (json.dumps(inherit_env, indent=2), ))
+        # Get the actual command environment
+        curr_env = os.environ
+        new_envs = {}
+        for envar in inherit_env:
+            if envar in curr_env:
+                new_envs[envar] = curr_env[envar]
+        command_env = dict(command_env, **new_envs)
+        # Generate the content
+        os.makedirs(clone_to, exist_ok=True)
+        run_cmd(g_LAUNCHER + command,
+                cwd=clone_to,
+                env=command_env,
+                fail_context=fail_context)
+        # Cache the content; to not pollute the clone folder, do it via a
+        # temporary location
+        workdir: str = create_tmp_dir(type="git-tree-checkout")
+        try:
+            shutil.copytree(clone_to,
+                            workdir,
+                            symlinks=True,
+                            dirs_exist_ok=True)
+        except Exception as ex:
+            report("Copying file path %s failed with:\n%r" % (clone_to, ex))
+        imported_tree_id = import_to_git(workdir,
+                                         repo_type="git-tree",
+                                         content_id=tree_id,
+                                         fail_context=fail_context)
+        if imported_tree_id != tree_id:
+            # Allow, but give warning
+            warn(
+                fail_context +
+                "Tree mismatch in \"git tree\" repository: expected %s, got %s\n"
+                % (tree_id, imported_tree_id))
+        try_rmtree(workdir)
+        # Always report the id of the actual content
+        return imported_tree_id
+
     def follow_binding(repos: Json, *, repo_name: str, dep_name: str,
                        fail_context: str) -> str:
         """Follow a named binding."""
@@ -2341,11 +2413,10 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         report("\tCloned distdir %s to %s" % (content_id, clone_to))
 
     elif repo_type == "git tree":
-        #TODO(psarbu): Implement git tree cloning
-        warn(fail_context +
-             "Cloning from \"%s\" repositories not yet implemented!" %
-             (repo_type, ))
-        result = None
+        tree_id = process_git_tree(repository,
+                                   clone_to=clone_to,
+                                   fail_context=fail_context)
+        report("\tCloned git tree %s to %s" % (tree_id, clone_to))
 
     elif repo_type in ["computed", "tree structure"]:
         warn(fail_context + "Cloning not supported for type %r. Skipping" %
