@@ -2195,6 +2195,70 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
             os.chmod(abs_name, os.stat(abs_name).st_mode | stat.S_IEXEC)
         return content
 
+    def process_distdir(repository: Json, repos: Json, *, clone_to: str,
+                        fail_context: str) -> str:
+        """Process a distdir repository and return its content tree id."""
+
+        # Helper method
+        def get_distfile(desc: Json, *, fail_context: str) -> str:
+            distfile: str = desc.get("distfile", None)
+            if distfile is None:
+                fetch: str = desc.get("fetch", None)
+                if not isinstance(fetch, str):
+                    fail(
+                        fail_context +
+                        "Expected field \"fetch\" to be a string, but found:\n%r"
+                        % (json.dumps(fetch, indent=2), ))
+                distfile = os.path.basename(cast(str, desc.get("fetch")))
+            return distfile
+
+        # Parse fields
+        distdir_list: List[str] = repository.get("repositories", None)
+        if not isinstance(distdir_list, list):
+            fail(
+                fail_context +
+                "Expected field \"repositories\" to be a list, but found:\n%r" %
+                (json.dumps(distdir_list, indent=2), ))
+        # Gather the distdirs
+        content: Dict[str, str] = {}
+        to_fetch: List[str] = []
+        for repo in distdir_list:
+            repo_fail_context: str = fail_context + (
+                "While processing distdir entry \"%s\"" % (repo, ))
+            # If repo does not exist, fail
+            if repo not in repos:
+                fail(repo_fail_context + "Distdir repository not found")
+            repo_desc: Json = repos[repo].get("repository", {})
+            repo_desc_type = repo_desc.get("type")
+            # Only do work for archived types
+            if repo_desc_type in ["archive", "zip"]:
+                content_id: str = repo_desc.get("content", None)
+                if not isinstance(content_id, str):
+                    fail(
+                        repo_fail_context +
+                        "Expected field \"content\" to be a list, but found:\n%r"
+                        % (json.dumps(content_id, indent=2), ))
+                # Store distfile-to-content map and witnessing repository entry
+                content[get_distfile(
+                    repo_desc, fail_context=repo_fail_context)] = content_id
+                to_fetch.append(repo)
+        # Ensure distfiles are in CAS
+        for repo in to_fetch:
+            repo_fail_context: str = fail_context + (
+                "While processing distdir entry \"%s\"" % (repo, ))
+            repo_desc: Json = repos[repo].get("repository", {})
+            archive_fetch_with_parse(repo_desc, fail_context=repo_fail_context)
+        # Stage the distfiles
+        os.makedirs(clone_to, exist_ok=True)
+        for name, content_id in content.items():
+            abs_name = os.path.join(clone_to, name)
+            shutil.copyfile(cas_path(content_id), abs_name)
+        # Hash the content map as unique id for the distdir repo entry
+        distdir_tree_id, _ = git_hash(
+            json.dumps(content, sort_keys=True,
+                       separators=(',', ':')).encode('utf-8'))
+        return distdir_tree_id
+
     def follow_binding(repos: Json, *, repo_name: str, dep_name: str,
                        fail_context: str) -> str:
         """Follow a named binding."""
@@ -2270,11 +2334,11 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         report("\tCloned foreign file %s to %s" % (content_id, clone_to))
 
     elif repo_type == "distdir":
-        #TODO(psarbu): Implement distdir cloning
-        warn(fail_context +
-             "Cloning from \"%s\" repositories not yet implemented!" %
-             (repo_type, ))
-        result = None
+        content_id = process_distdir(repository,
+                                     repos,
+                                     clone_to=clone_to,
+                                     fail_context=fail_context)
+        report("\tCloned distdir %s to %s" % (content_id, clone_to))
 
     elif repo_type == "git tree":
         #TODO(psarbu): Implement git tree cloning
