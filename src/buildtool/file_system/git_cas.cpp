@@ -134,7 +134,9 @@ auto GitCAS::CreateEmpty() noexcept -> GitCASPtr {
 #endif
 }
 
-auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
+auto GitCAS::ReadObject(std::string const& id,
+                        bool is_hex_id,
+                        LogLevel log_failure) const noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
     return std::nullopt;
@@ -150,7 +152,7 @@ auto GitCAS::ReadObject(std::string const& id, bool is_hex_id) const noexcept
 
     git_odb_object* obj = nullptr;
     if (git_odb_read(&obj, odb_.get(), &oid.value()) != 0) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(log_failure,
                     "reading git object {} from database failed with:\n{}",
                     is_hex_id ? id : ToHexString(id),
                     GitLastError());

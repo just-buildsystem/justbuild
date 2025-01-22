@@ -82,9 +82,12 @@ class RepositoryConfig {
         return nullptr;
     }
 
-    [[nodiscard]] auto ReadBlobFromGitCAS(std::string const& hex_id)
-        const noexcept -> std::optional<std::string> {
-        return git_cas_ ? git_cas_->ReadObject(hex_id, /*is_hex_id=*/true)
+    [[nodiscard]] auto ReadBlobFromGitCAS(
+        std::string const& hex_id,
+        LogLevel log_failure = LogLevel::Warning) const noexcept
+        -> std::optional<std::string> {
+        return git_cas_ ? git_cas_->ReadObject(
+                              hex_id, /*is_hex_id=*/true, log_failure)
                         : std::nullopt;
     }
 

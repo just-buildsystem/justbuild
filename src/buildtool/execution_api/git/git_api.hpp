@@ -323,7 +323,8 @@ class GitApi final : public IExecutionApi {
 
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool override {
-        return repo_config_->ReadBlobFromGitCAS(digest.hash()).has_value();
+        return repo_config_->ReadBlobFromGitCAS(digest.hash(), LogLevel::Trace)
+            .has_value();
     }
 
     [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)

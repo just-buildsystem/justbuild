@@ -63,9 +63,13 @@ class GitCAS {
     }
 
     /// \brief Read object from CAS.
-    /// \param id         The object id.
-    /// \param is_hex_id  Specify whether `id` is hex string or raw.
-    [[nodiscard]] auto ReadObject(std::string const& id, bool is_hex_id = false)
+    /// \param id          The object id.
+    /// \param is_hex_id   Specify whether `id` is hex string or raw.
+    /// \param log_failure Log level at which to log failures accessing the
+    /// object.
+    [[nodiscard]] auto ReadObject(std::string const& id,
+                                  bool is_hex_id = false,
+                                  LogLevel log_failure = LogLevel::Warning)
         const noexcept -> std::optional<std::string>;
 
     /// \brief Read object header from CAS.
