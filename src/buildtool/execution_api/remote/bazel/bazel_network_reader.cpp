@@ -226,6 +226,16 @@ auto BazelNetworkReader::BatchReadBlobs(
     return artifacts;
 }
 
+auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
+    -> bool {
+    auto rehashed = blob.digest.IsTree()
+                        ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
+                              hash_function_, *blob.data)
+                        : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                              hash_function_, *blob.data);
+    return rehashed == blob.digest;
+}
+
 auto BazelNetworkReader::Validate(BazelBlob const& blob) const noexcept
     -> std::optional<HashInfo> {
     // validate digest

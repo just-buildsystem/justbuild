@@ -100,6 +100,9 @@ class BazelNetworkReader final {
         std::vector<ArtifactDigest> const& digests) const noexcept
         -> std::vector<ArtifactBlob>;
 
+    [[nodiscard]] auto Validate(ArtifactBlob const& blob) const noexcept
+        -> bool;
+
     [[nodiscard]] auto Validate(BazelBlob const& blob) const noexcept
         -> std::optional<HashInfo>;
 };
