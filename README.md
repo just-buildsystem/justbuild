@@ -40,6 +40,8 @@ taken from user-defined rules described by functional expressions.
 - [Cache Pragma and Testing](doc/concepts/cache-pragma.md)
 - [Anonymous Targets](doc/concepts/anonymous-targets.md)
 - [Target-Level Caching](doc/concepts/target-cache.md)
+- [Target-Level Caching as a Service](doc/concepts/service-target-cache.md)
 - [Garbage Collection](doc/concepts/garbage.md)
 - [Symbolic links](doc/concepts/symlinks.md)
 - [Execution properties](doc/concepts/execution-properties.md)
+- [Computed roots](doc/concepts/computed-roots.md)

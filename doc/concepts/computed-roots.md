@@ -1,44 +1,8 @@
 Computed roots
 ==============
 
-Status quo
-----------
-
-As of version `1.0.0`, the `just` build tool requires the repository
-configuration, including all roots, to be specified ahead of time. This
-has a couple of consequences.
-
-### Flexible source views, thanks to staging
-
-For source files, the flexibility of using them in a layout different
-from how they occur in the source tree is gained through staging. If a
-different view of sources is needed, instead of a source target, a
-defined target can be used that rearranges the sources as desired. In
-this way, also programmatic transformations of source files can be
-carried out (while the result is still visible at the original
-location), as is done, e.g., by the `["patch", "file"]` rule of the
-`just` main repository.
-
-### Restricted flexibility in target-definitions via globbing
-
-When defining targets, the general principle is that the definition of
-target and action graph only depends on the description (given by the
-target files, the rules and expressions, and the configuration). There
-is, however, a single exception to that rule: a target file may use the
-`GLOB` built-in construct and in this way depend on the index of the
-respective source directory. This allows, e.g., to define a separate
-action for every source file and, in this way, get good incrementality
-and parallelism, while still having a concise target description.
-
-### Modularity in rules through expressions
-
-Rules might share common tasks. For example, for both `C` binaries and
-`C` libraries, the source files have to be compiled to object files. To
-avoid duplication of descriptions, expressions can be called (also from
-expressions themselves).
-
-Use cases that require more flexibility
----------------------------------------
+Use cases for computed build descriptions
+-----------------------------------------
 
 ### Generated target files
 
@@ -77,28 +41,28 @@ Moreover, using JSON encoding of abstract syntax trees is an
 unambiguously readable and easy to automatically process format, but
 people argue that it is hard to write by hand. However, it is unlikely
 to get agreement on which syntax is best to use. Now, if rule and
-expression files could be generated, this argument would not be
+expression files can be generated, this argument is not
 necessary. Moreover, rules are typically versioned and infrequently
 changed, so the step of generating the official syntax from the
 convenient one would typically be in cache.
 
-Proposal: Support computed roots
---------------------------------
+Root types depending on computation
+-----------------------------------
 
-We propose computed roots as a clean principle to add the needed (and a
+There are two additional types of roots that are defined through
+computation. They allow a clean principle to add the needed (and a
 lot more) flexibility for the described use cases, while ensuring that
 all computations of roots are properly cacheable at high level. In this
 way, we do not compromise efficient builds, as the price of the
-additional flexibility, in the typical case, is just a single cache
+additional flexibility; in the typical case, is just a single cache
 lookup. Of course, it is up to the user to ensure that this case really
 is the typical one, in the same way as it is their responsibility to
 describe the targets in a way to have proper incrementality.
 
-### New root type `"computed"`
+### Root type `"computed"`
 
-The `just` multi-repository configuration will allow a new type of root
-(besides `"file"` and `"git tree"` and variants thereof), called
-`"computed"`. A `"computed"` root is given by
+The `just` multi-repository configuration allows a type of root,
+called `"computed"`. A `"computed"` root is given by
 
  - the (global) name of a repository
  - the name of a target (in `["module", "target"]` format), and
@@ -113,18 +77,18 @@ such that for each computed root, the referenced repository as well as
 all repositories reachable from that one via the `"bindings"` map only
 contain computed roots earlier in that order.
 
-### New root type `"tree structure"`
+### Root type `"tree structure"`
 
 In the described use case of generated target files, the tree of
 target files only depends on the structure of the workspace root. To
-avoid unnecessary actions, an additional new root type is defined,
+avoid unnecessary actions, an additional root type is defined,
 that of a `"tree structure"`. Such a root is given by precisely
 one root. It evaluates to that root but with all files replaced
 by empty files. Obviously, this computation can be done without
 spawning actions and is cachable.
 
-The serve functionality is extended to also answer queries for the
-tree structure of a given tree.
+The serve functionality also allows to answer queries for the
+tree structure of a given tree known to serve.
 
 ### Strict evaluation of roots as artifact tree
 
@@ -158,23 +122,15 @@ target, the provided serve endpoint (if any) is consulted first.
 Only if it is not aware of the root, a local evaluation is carried
 out. This strategy is also applied for tree-stucture roots.
 
-### Computed roots available to the user
+### `just-mr` support for computed roots
 
-As computed roots are defined by export targets, the respective
-artifacts are stored in the local CAS anyway. Additionally, the tree
-that forms the root will be added to CAS as well. Moreover, an option
-will be added to specify a log file that contains, in machine-readable
-way, all the tree identifiers of all computed roots used in this build,
-together with their definition.
-
-### `just-mr` to support computed roots
-
-To allow simply setting up a `just` configuration using computed roots,
-`just-mr` will allow a repository type `"computed"` with the same
-parameters as a computed root. These repositories can be used as roots,
-like any other `just-mr` repository type. When generating the `just`
-multi-repository configuration, the definition of a `"computed"`
-repository is just forwarded as computed root.
+To allow simply setting up a `just` configuration using computed
+roots, `just-mr` allows a repository type `"computed"` with the same
+parameters as a computed root, as well as a repository type `"tree
+structure"` with another root as parameter. These repositories can
+be used as roots, like any other `just-mr` repository type. When
+generating the `just` multi-repository configuration, the definition
+of a `"computed"` repository is just forwarded as computed root.
 
 ### Computed roots and `just serve`
 
@@ -212,16 +168,13 @@ is `true`. E.g., `["computed", "base", "", "", {}]` is a concrete
 computed root and `["computed", "base", "", "", {}, {"absent":
 true}]` is the same computed root considered absent.
 
-### Evaluation of computed roots in connection with absent roots
+#### Evaluation of computed roots in connection with absent roots
 
-If a computed root is absent then, regardless of whether the base
-repository is absent or not,
+If a computed root is absent then, in native mode, regardless of whether
+the base repository is absent or not,
  - serve will be asked for the result, and
  - from the result the tree identifier of the root will be computed
-   in memory and the root set to that value, as absent; when building
-   in compatible mode, the necessary rehashing might have to fetch
-   certain artifacts, but this is accepted, as the main intended
-   use case is a native build.
+   in memory and the root set to that value, as absent.
 
 If a concrete computed root refers to a base repository with absent
 target root,
