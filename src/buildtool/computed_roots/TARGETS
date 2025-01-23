@@ -75,6 +75,22 @@
     , ["src/utils/cpp", "hex_string"]
     ]
   }
+, "roots_progress":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["roots_progress"]
+  , "hdrs": ["roots_progress.hpp"]
+  , "srcs": ["roots_progress.cpp"]
+  , "stage": ["src", "buildtool", "computed_roots"]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/progress_reporting", "base_progress_reporter"]
+    , ["src/buildtool/progress_reporting", "task_tracker"]
+    ]
+  , "private-deps":
+    [["@", "fmt", "", "fmt"], ["src/buildtool/logging", "log_level"]]
+  }
 , "evaluate":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["evaluate"]
