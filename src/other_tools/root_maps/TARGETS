@@ -216,16 +216,4 @@
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
-, "root_utils":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["root_utils"]
-  , "hdrs": ["root_utils.hpp"]
-  , "srcs": ["root_utils.cpp"]
-  , "deps":
-    [ ["src/buildtool/multithreading", "async_map_consumer"]
-    , ["src/buildtool/serve_api/remote", "serve_api"]
-    ]
-  , "stage": ["src", "other_tools", "root_maps"]
-  , "private-deps": [["@", "fmt", "", "fmt"]]
-  }
 }
