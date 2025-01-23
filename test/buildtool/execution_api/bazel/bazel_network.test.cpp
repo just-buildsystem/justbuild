@@ -26,12 +26,14 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
@@ -70,25 +72,34 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, content_foo),
-                  content_foo,
-                  /*is_exec=*/false};
-    BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, content_bar),
-                  content_bar,
-                  /*is_exec=*/false};
-    BazelBlob baz{BazelDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, content_baz),
-                  content_baz,
-                  /*is_exec=*/false};
+    ArtifactBlob foo{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                         hash_function, content_foo),
+                     content_foo,
+                     /*is_exec=*/false};
+    ArtifactBlob bar{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                         hash_function, content_bar),
+                     content_bar,
+                     /*is_exec=*/false};
+    ArtifactBlob baz{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                         hash_function, content_baz),
+                     content_baz,
+                     /*is_exec=*/false};
+    BazelBlob bazel_foo{ArtifactDigestFactory::ToBazel(foo.digest),
+                        foo.data,
+                        /*is_exec=*/false};
+    BazelBlob bazel_bar{ArtifactDigestFactory::ToBazel(bar.digest),
+                        content_bar,
+                        /*is_exec=*/false};
+    BazelBlob bazel_baz{ArtifactDigestFactory::ToBazel(baz.digest),
+                        content_baz,
+                        /*is_exec=*/false};
 
     // Search blobs via digest
-    REQUIRE(network.UploadBlobs({foo, bar, baz}));
+    REQUIRE(network.UploadBlobs({bazel_foo, bazel_bar, bazel_baz}));
 
     // Read blobs in order
     auto reader = network.CreateReader();
-    std::vector<bazel_re::Digest> to_read{
+    std::vector<ArtifactDigest> to_read{
         foo.digest, bar.digest, baz.digest, bar.digest, foo.digest};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(to_read)) {
@@ -133,25 +144,30 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    BazelBlob foo{BazelDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, content_foo),
-                  content_foo,
-                  /*is_exec=*/false};
-    BazelBlob bar{BazelDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, content_bar),
-                  content_bar,
-                  /*is_exec=*/false};
+    auto const info_foo =
+        HashInfo::HashData(hash_function, content_foo, /*is_tree=*/false);
+    auto const info_bar =
+        HashInfo::HashData(hash_function, content_bar, /*is_tree=*/false);
+
+    ArtifactBlob foo{ArtifactDigest(info_foo, /*size_unknown=*/0),
+                     content_foo,
+                     /*is_exec=*/false};
+    ArtifactBlob bar{ArtifactDigest(info_bar, /*size_unknown=*/0),
+                     content_bar,
+                     /*is_exec=*/false};
+    BazelBlob bazel_foo{ArtifactDigestFactory::ToBazel(foo.digest),
+                        foo.data,
+                        /*is_exec=*/false};
+    BazelBlob bazel_bar{ArtifactDigestFactory::ToBazel(bar.digest),
+                        content_bar,
+                        /*is_exec=*/false};
 
     // Upload blobs
-    REQUIRE(network.UploadBlobs({foo, bar}));
-
-    // Set size to unknown
-    foo.digest.set_size_bytes(0);
-    bar.digest.set_size_bytes(0);
+    REQUIRE(network.UploadBlobs({bazel_foo, bazel_bar}));
 
     // Read blobs
     auto reader = network.CreateReader();
-    std::vector<bazel_re::Digest> to_read{foo.digest, bar.digest};
+    std::vector<ArtifactDigest> to_read{foo.digest, bar.digest};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());

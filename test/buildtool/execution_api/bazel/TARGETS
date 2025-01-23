@@ -82,12 +82,14 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "grpc", "", "grpc"]
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/crypto", "hash_info"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , [ "@"
       , "src"

@@ -74,18 +74,12 @@ class BazelNetworkReader final {
 
     [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
 
-    [[nodiscard]] auto ReadSingleBlob(bazel_re::Digest const& digest)
-        const noexcept -> std::optional<ArtifactBlob>;
-
     [[nodiscard]] auto ReadSingleBlob(ArtifactDigest const& digest)
         const noexcept -> std::optional<ArtifactBlob>;
 
     [[nodiscard]] auto ReadIncrementally(
         std::vector<ArtifactDigest> const& digests) const noexcept
         -> IncrementalReader;
-
-    [[nodiscard]] auto ReadIncrementally(std::vector<bazel_re::Digest> digests)
-        const noexcept -> IncrementalReader;
 
   private:
     using DirectoryMap =
@@ -100,9 +94,15 @@ class BazelNetworkReader final {
         std::vector<bazel_re::Directory>&& full_tree) const noexcept
         -> std::optional<DirectoryMap>;
 
+    [[nodiscard]] auto ReadSingleBlob(bazel_re::Digest const& digest)
+        const noexcept -> std::optional<ArtifactBlob>;
+
     [[nodiscard]] auto BatchReadBlobs(
         std::vector<bazel_re::Digest> const& blobs) const noexcept
         -> std::vector<ArtifactBlob>;
+
+    [[nodiscard]] auto ReadIncrementally(std::vector<bazel_re::Digest> digests)
+        const noexcept -> IncrementalReader;
 
     [[nodiscard]] auto Validate(BazelBlob const& blob) const noexcept
         -> std::optional<HashInfo>;

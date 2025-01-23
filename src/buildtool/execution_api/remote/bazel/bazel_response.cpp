@@ -14,12 +14,10 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <functional>
-#include <iterator>
 #include <unordered_set>
 #include <vector>
 
@@ -66,9 +64,13 @@ auto ProcessDirectoryMessage(HashFunction hash_function,
 
 auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     -> std::string {
-    auto reader = network_->CreateReader();
-    if (auto blob = reader.ReadSingleBlob(id)) {
-        return *blob->data;
+    auto digest = ArtifactDigestFactory::FromBazel(
+        network_->GetHashFunction().GetType(), id);
+    if (digest.has_value()) {
+        auto reader = network_->CreateReader();
+        if (auto blob = reader.ReadSingleBlob(*digest)) {
+            return *blob->data;
+        }
     }
     Logger::Log(LogLevel::Warning,
                 "reading digest {} from action response failed",
@@ -221,13 +223,17 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     }
 
     // obtain tree digests for output directories
-    std::vector<bazel_re::Digest> tree_digests{};
+    std::vector<ArtifactDigest> tree_digests{};
     tree_digests.reserve(
         gsl::narrow<std::size_t>(action_result.output_directories_size()));
-    std::transform(action_result.output_directories().begin(),
-                   action_result.output_directories().end(),
-                   std::back_inserter(tree_digests),
-                   [](auto dir) { return dir.tree_digest(); });
+    for (auto const& directory : action_result.output_directories()) {
+        auto digest = ArtifactDigestFactory::FromBazel(
+            network_->GetHashFunction().GetType(), directory.tree_digest());
+        if (not digest) {
+            return std::move(digest).error();
+        }
+        tree_digests.push_back(*std::move(digest));
+    }
 
     // collect root digests from trees and store them
     auto reader = network_->CreateReader();
