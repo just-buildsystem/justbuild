@@ -110,6 +110,7 @@
     [ "analyse_and_build"
     , "artifacts_root"
     , "inquire_serve"
+    , "roots_progress"
     , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
@@ -139,6 +140,7 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/buildtool/progress_reporting", "base_progress_reporter"]
     , ["src/buildtool/progress_reporting", "progress"]
+    , ["src/buildtool/progress_reporting", "task_tracker"]
     , ["src/buildtool/storage", "storage"]
     , ["src/buildtool/tree_structure", "tree_structure_utils"]
     , ["src/utils/cpp", "expected"]

@@ -15,6 +15,8 @@
 #include "src/buildtool/computed_roots/evaluate.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <condition_variable>
 #include <cstddef>
 #include <filesystem>
 #include <functional>
@@ -25,6 +27,7 @@
 #include <set>
 #include <shared_mutex>
 #include <sstream>
+#include <thread>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -44,6 +47,7 @@
 #include "src/buildtool/computed_roots/analyse_and_build.hpp"
 #include "src/buildtool/computed_roots/inquire_serve.hpp"
 #include "src/buildtool/computed_roots/lookup_cache.hpp"
+#include "src/buildtool/computed_roots/roots_progress.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -64,6 +68,7 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -157,6 +162,8 @@ void ComputeAndFill(
     gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
     gsl::not_null<std::shared_mutex*> const& config_lock,
     gsl::not_null<std::mutex*> const& git_lock,
+    gsl::not_null<Statistics*> const& root_stats,
+    gsl::not_null<TaskTracker*> const& root_tasks,
     std::size_t jobs,
     RootMap::LoggerPtr const& logger,
     RootMap::SetterPtr const& setter) {
@@ -181,6 +188,8 @@ void ComputeAndFill(
                                    .statistics = &statistics,
                                    .progress = &progress,
                                    .serve = serve};
+    root_tasks->Start(target.ToString());
+    root_stats->IncrementActionsQueuedCounter();
     Logger build_logger = Logger(
         target.ToString(),
         std::vector<LogSinkFactory>{LogSinkFile::CreateFactory(log_file)});
@@ -211,6 +220,10 @@ void ComputeAndFill(
         return;
     }
     if (*cache_lookup) {
+
+        root_stats->IncrementActionsCachedCounter();
+        root_tasks->Stop(target.ToString());
+
         std::string root = **cache_lookup;
         auto tree_present =
             GitRepo::IsTreeInRepo(storage_config->GitRoot(), root);
@@ -266,6 +279,10 @@ void ComputeAndFill(
                     repository_config->SetPrecomputedRoot(PrecomputedRoot{key},
                                                           root_result);
                 }
+
+                root_stats->IncrementExportsServedCounter();
+                root_tasks->Stop(target.ToString());
+
                 (*setter)(std::move(*serve_result));
                 return;
             }
@@ -318,6 +335,10 @@ void ComputeAndFill(
         (*logger)(std::move(result).error(), /*fatal=*/true);
         return;
     }
+
+    root_stats->IncrementActionsExecutedCounter();
+    root_tasks->Stop(target.ToString());
+
     Logger::Log(LogLevel::Performance,
                 "Root {} evaluated to {}, log {}",
                 target.ToString(),
@@ -635,7 +656,9 @@ auto FillRoots(
     gsl::not_null<const StorageConfig*> const& storage_config,
     gsl::not_null<std::optional<RehashUtils::Rehasher>*> const& rehash,
     gsl::not_null<std::shared_mutex*> const& config_lock,
-    gsl::not_null<std::mutex*> const& git_lock) -> RootMap {
+    gsl::not_null<std::mutex*> const& git_lock,
+    gsl::not_null<Statistics*> const& stats,
+    gsl::not_null<TaskTracker*> const& tasks) -> RootMap {
     RootMap::ValueCreator fill_roots = [storage_config,
                                         rehash,
                                         repository_config,
@@ -644,6 +667,8 @@ auto FillRoots(
                                         context,
                                         config_lock,
                                         git_lock,
+                                        stats,
+                                        tasks,
                                         jobs](auto /*ts*/,
                                               auto setter,
                                               auto logger,
@@ -668,6 +693,8 @@ auto FillRoots(
              rehash,
              git_lock,
              jobs,
+             stats,
+             tasks,
              logger = annotated_logger,
              setter](auto /*values*/) {
                 if (auto const computed = key.AsComputed()) {
@@ -680,6 +707,8 @@ auto FillRoots(
                                    rehash,
                                    config_lock,
                                    git_lock,
+                                   stats,
+                                   tasks,
                                    jobs,
                                    logger,
                                    setter);
@@ -757,6 +786,8 @@ auto EvaluatePrecomputedRoots(
         // bound.
         std::shared_mutex repo_config_access{};
         std::mutex git_access{};
+        Statistics stats{};
+        TaskTracker root_tasks{};
         auto root_map = FillRoots(jobs,
                                   repository_config,
                                   &traverser_args,
@@ -765,21 +796,27 @@ auto EvaluatePrecomputedRoots(
                                   &storage_config,
                                   &rehash,
                                   &repo_config_access,
-                                  &git_access);
-        bool failed = false;
-        bool done = false;
+                                  &git_access,
+                                  &stats,
+                                  &root_tasks);
+        std::atomic<bool> done = false;
+        std::atomic<bool> failed = false;
+
+        std::atomic<bool> build_done = false;
+        std::condition_variable cv{};
+        auto reporter = RootsProgress::Reporter(&stats, &root_tasks);
+        auto observer = std::thread(
+            [&reporter, &build_done, &cv] { reporter(&build_done, &cv); });
         {
             TaskSystem ts{jobs};
             root_map.ConsumeAfterKeysReady(
                 &ts,
                 roots,
                 [&roots, &done](auto values) {
-                    Logger::Log(LogLevel::Progress,
-                                "Computed roots evaluated, {} top level",
-                                roots.size());
                     Logger::Log(LogLevel::Debug, [&]() {
                         std::ostringstream msg{};
-                        msg << "Top-level computed roots";
+                        msg << "Root building completed; top-level computed "
+                               "roots";
                         for (int i = 0; i < roots.size(); i++) {
                             auto const& root = roots[i];
                             msg << "\n - " << root.ToString()
@@ -799,6 +836,10 @@ auto EvaluatePrecomputedRoots(
 
             );
         }
+        build_done = true;
+        cv.notify_all();
+        observer.join();
+
         if (failed) {
             return false;
         }
