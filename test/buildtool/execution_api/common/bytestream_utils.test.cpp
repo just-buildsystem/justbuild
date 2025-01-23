@@ -18,26 +18,29 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 TEST_CASE("ReadRequest", "[common]") {
     static constexpr auto* kInstanceName = "instance_name";
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
-    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+    auto const digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, "test_string");
 
     std::string const request =
         ByteStreamUtils::ReadRequest{kInstanceName, digest}.ToString();
     auto const parsed = ByteStreamUtils::ReadRequest::FromString(request);
+    auto parsed_digest = parsed->GetDigest(hash_function.GetType());
     REQUIRE(parsed);
+    REQUIRE(parsed_digest);
     CHECK(parsed->GetInstanceName() == kInstanceName);
-    CHECK(std::equal_to<bazel_re::Digest>{}(parsed->GetDigest(), digest));
+    CHECK(parsed_digest.value() == digest);
 }
 
 TEST_CASE("WriteRequest", "[common]") {
@@ -48,14 +51,16 @@ TEST_CASE("WriteRequest", "[common]") {
     REQUIRE(id);
     std::string const uuid = CreateUUIDVersion4(*id);
 
-    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+    auto const digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, "test_string");
 
     std::string const request =
         ByteStreamUtils::WriteRequest{kInstanceName, uuid, digest}.ToString();
     auto const parsed = ByteStreamUtils::WriteRequest::FromString(request);
+    auto parsed_digest = parsed->GetDigest(hash_function.GetType());
     REQUIRE(parsed);
+    REQUIRE(parsed_digest.has_value());
     CHECK(parsed->GetInstanceName() == kInstanceName);
     CHECK(parsed->GetUUID() == uuid);
-    CHECK(std::equal_to<bazel_re::Digest>{}(parsed->GetDigest(), digest));
+    CHECK(parsed_digest.value() == digest);
 }

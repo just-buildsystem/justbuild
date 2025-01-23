@@ -58,7 +58,7 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "grpc", "", "grpc"]
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]

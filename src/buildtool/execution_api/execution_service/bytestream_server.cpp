@@ -24,8 +24,6 @@
 #include "fmt/core.h"
 #include "google/protobuf/stubs/port.h"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/execution_service/cas_utils.hpp"
@@ -48,8 +46,8 @@ auto BytestreamServiceImpl::Read(
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
-    auto const read_digest = ArtifactDigestFactory::FromBazel(
-        storage_config_.hash_function.GetType(), read_request->GetDigest());
+    auto const read_digest =
+        read_request->GetDigest(storage_config_.hash_function.GetType());
     if (not read_digest) {
         logger_.Emit(LogLevel::Debug, "{}", read_digest.error());
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
@@ -115,8 +113,8 @@ auto BytestreamServiceImpl::Write(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    auto const write_digest = ArtifactDigestFactory::FromBazel(
-        storage_config_.hash_function.GetType(), write_request->GetDigest());
+    auto const write_digest =
+        write_request->GetDigest(storage_config_.hash_function.GetType());
     if (not write_digest) {
         logger_.Emit(LogLevel::Debug, "{}", write_digest.error());
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,

@@ -22,7 +22,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
@@ -53,7 +53,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string content("foobar");
 
         // digest of "foobar"
-        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
         CHECK(stream.Write(
@@ -74,7 +74,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string other_content("This is a differnt string");
 
         // Valid digest, but for a different string
-        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, other_content);
 
         CHECK(not stream.Write(
@@ -93,7 +93,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         // digest of "instance_nameinstance_nameinstance_..."
-        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
         CHECK(stream.Write(

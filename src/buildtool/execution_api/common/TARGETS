@@ -40,8 +40,16 @@
   , "name": ["bytestream_utils"]
   , "hdrs": ["bytestream_utils.hpp"]
   , "srcs": ["bytestream_utils.cpp"]
+  , "deps":
+    [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/utils/cpp", "expected"]
+    ]
   , "private-deps":
-    [["@", "fmt", "", "fmt"], ["src/buildtool/common", "bazel_types"]]
+    [ ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "bazel_types"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "api_bundle":
