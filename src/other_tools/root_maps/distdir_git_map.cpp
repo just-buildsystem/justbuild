@@ -31,7 +31,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_ops_types.hpp"
-#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -209,9 +208,14 @@ auto CreateDistdirGitMap(
                     if (key.absent) {
                         if (serve != nullptr) {
                             // check if serve endpoint has this root
-                            auto has_tree = CheckServeHasAbsentRoot(
-                                *serve, distdir_tree_id, logger);
+                            auto const has_tree =
+                                serve->CheckRootTree(distdir_tree_id);
                             if (not has_tree) {
+                                (*logger)(fmt::format("Checking that the serve "
+                                                      "endpoint knows tree "
+                                                      "{} failed.",
+                                                      distdir_tree_id),
+                                          /*fatal=*/true);
                                 return;
                             }
                             if (not *has_tree) {
@@ -350,9 +354,13 @@ auto CreateDistdirGitMap(
             if (key.absent) {
                 if (serve != nullptr) {
                     // first check if serve endpoint has tree
-                    auto has_tree =
-                        CheckServeHasAbsentRoot(*serve, tree_id, logger);
+                    auto const has_tree = serve->CheckRootTree(tree_id);
                     if (not has_tree) {
+                        (*logger)(fmt::format("Checking that the serve "
+                                              "endpoint knows tree "
+                                              "{} failed.",
+                                              tree_id),
+                                  /*fatal=*/true);
                         return;
                     }
                     if (*has_tree) {

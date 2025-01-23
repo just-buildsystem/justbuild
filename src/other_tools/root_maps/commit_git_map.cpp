@@ -35,7 +35,6 @@
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
@@ -79,8 +78,12 @@ void EnsureRootAsAbsent(std::string const& tree_id,
     // this is an absent root
     if (serve != nullptr) {
         // check if the serve endpoint has this root
-        auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
+        auto const has_tree = serve->CheckRootTree(tree_id);
         if (not has_tree) {
+            (*logger)(fmt::format("Checking that the serve endpoint knows tree "
+                                  "{} failed.",
+                                  tree_id),
+                      /*fatal=*/true);
             return;
         }
         if (not *has_tree) {

@@ -30,7 +30,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -198,9 +197,14 @@ auto CreateTreeIdGitMap(
         if (key.absent and not fetch_absent) {
             if (serve != nullptr) {
                 // check serve endpoint
-                auto has_tree = CheckServeHasAbsentRoot(
-                    *serve, key.tree_info.tree_hash.Hash(), logger);
+                auto const has_tree =
+                    serve->CheckRootTree(key.tree_info.tree_hash.Hash());
                 if (not has_tree) {
+                    (*logger)(fmt::format(
+                                  "Checking that the serve endpoint knows tree "
+                                  "{} failed.",
+                                  key.tree_info.tree_hash.Hash()),
+                              /*fatal=*/true);
                     return;
                 }
                 if (*has_tree) {

@@ -28,7 +28,6 @@
 #include "src/buildtool/storage/fs_utils.hpp"
 #include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
-#include "src/other_tools/root_maps/root_utils.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
@@ -47,9 +46,13 @@ void CheckServeAndSetRoot(std::string const& tree_id,
     // be able to build against it. If root is not absent, do not fail if we
     // don't have a suitable remote endpoint, but warn user nonetheless.
     if (serve != nullptr) {
-        auto has_tree = CheckServeHasAbsentRoot(*serve, tree_id, logger);
+        auto const has_tree = serve->CheckRootTree(tree_id);
         if (not has_tree) {
-            return;  // fatal
+            (*logger)(fmt::format("Checking that the serve endpoint knows tree "
+                                  "{} failed.",
+                                  tree_id),
+                      /*fatal=*/true);
+            return;
         }
         if (not *has_tree) {
             auto digest =
