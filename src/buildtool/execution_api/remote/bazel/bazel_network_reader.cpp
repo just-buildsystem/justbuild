@@ -15,9 +15,9 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 
 #include <algorithm>
-#include <cstdint>
 #include <filesystem>
 #include <memory>
+#include <utility>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
@@ -87,7 +87,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     auto check_symlinks = [this](std::vector<ArtifactDigest> const& ids) {
         size_t const size = ids.size();
         size_t count = 0;
-        for (auto blobs : ReadIncrementally(ids)) {
+        for (auto blobs : ReadIncrementally(&ids)) {
             if (count + blobs.size() > size) {
                 Logger::Log(LogLevel::Debug,
                             "received more blobs than requested.");
@@ -193,29 +193,25 @@ auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
 }
 
 auto BazelNetworkReader::ReadIncrementally(
+    gsl::not_null<std::vector<ArtifactDigest> const*> const& digests)
+    const noexcept -> IncrementalReader {
+    return IncrementalReader{*this, digests};
+}
+
+auto BazelNetworkReader::BatchReadBlobs(
     std::vector<ArtifactDigest> const& digests) const noexcept
-    -> IncrementalReader {
+    -> std::vector<ArtifactBlob> {
     std::vector<bazel_re::Digest> bazel_digests;
     bazel_digests.reserve(digests.size());
     std::transform(digests.begin(),
                    digests.end(),
                    std::back_inserter(bazel_digests),
-                   [](ArtifactDigest const& d) {
-                       return ArtifactDigestFactory::ToBazel(d);
+                   [](ArtifactDigest const& digest) {
+                       return ArtifactDigestFactory::ToBazel(digest);
                    });
-    return ReadIncrementally(std::move(bazel_digests));
-}
 
-auto BazelNetworkReader::ReadIncrementally(
-    std::vector<bazel_re::Digest> digests) const noexcept -> IncrementalReader {
-    return IncrementalReader{*this, std::move(digests)};
-}
-
-auto BazelNetworkReader::BatchReadBlobs(
-    std::vector<bazel_re::Digest> const& blobs) const noexcept
-    -> std::vector<ArtifactBlob> {
-    std::vector<BazelBlob> const result =
-        cas_.BatchReadBlobs(instance_name_, blobs.begin(), blobs.end());
+    std::vector<BazelBlob> const result = cas_.BatchReadBlobs(
+        instance_name_, bazel_digests.begin(), bazel_digests.end());
 
     std::vector<ArtifactBlob> artifacts;
     artifacts.reserve(result.size());
@@ -259,11 +255,11 @@ auto BazelNetworkReader::Validate(BazelBlob const& blob) const noexcept
 
 namespace {
 [[nodiscard]] auto FindBorderIterator(
-    std::vector<bazel_re::Digest>::const_iterator const& begin,
-    std::vector<bazel_re::Digest>::const_iterator const& end) noexcept {
-    std::int64_t size = 0;
+    std::vector<ArtifactDigest>::const_iterator const& begin,
+    std::vector<ArtifactDigest>::const_iterator const& end) noexcept {
+    std::size_t size = 0;
     for (auto it = begin; it != end; ++it) {
-        std::int64_t const blob_size = it->size_bytes();
+        std::size_t const blob_size = it->size();
         size += blob_size;
         if (blob_size == 0 or size > kMaxBatchTransferSize) {
             return it;
@@ -273,8 +269,8 @@ namespace {
 }
 
 [[nodiscard]] auto FindCurrentIterator(
-    std::vector<bazel_re::Digest>::const_iterator const& begin,
-    std::vector<bazel_re::Digest>::const_iterator const& end) noexcept {
+    std::vector<ArtifactDigest>::const_iterator const& begin,
+    std::vector<ArtifactDigest>::const_iterator const& end) noexcept {
     auto it = FindBorderIterator(begin, end);
     if (it == begin and begin != end) {
         ++it;
@@ -285,8 +281,8 @@ namespace {
 
 BazelNetworkReader::IncrementalReader::Iterator::Iterator(
     BazelNetworkReader const& owner,
-    std::vector<bazel_re::Digest>::const_iterator begin,
-    std::vector<bazel_re::Digest>::const_iterator end) noexcept
+    std::vector<ArtifactDigest>::const_iterator begin,
+    std::vector<ArtifactDigest>::const_iterator end) noexcept
     : owner_{owner}, begin_{begin}, end_{end} {
     current_ = FindCurrentIterator(begin_, end_);
 }
@@ -295,7 +291,7 @@ auto BazelNetworkReader::IncrementalReader::Iterator::operator*() const noexcept
     -> value_type {
     if (begin_ != current_) {
         if (std::distance(begin_, current_) > 1) {
-            std::vector<bazel_re::Digest> request{begin_, current_};
+            std::vector<ArtifactDigest> request{begin_, current_};
             return owner_.BatchReadBlobs(request);
         }
         if (auto blob = owner_.ReadSingleBlob(*begin_)) {

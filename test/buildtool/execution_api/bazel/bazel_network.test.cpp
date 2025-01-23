@@ -102,7 +102,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::vector<ArtifactDigest> to_read{
         foo.digest, bar.digest, baz.digest, bar.digest, foo.digest};
     std::vector<ArtifactBlob> blobs{};
-    for (auto next : reader.ReadIncrementally(to_read)) {
+    for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
     }
 
@@ -169,7 +169,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     auto reader = network.CreateReader();
     std::vector<ArtifactDigest> to_read{foo.digest, bar.digest};
     std::vector<ArtifactBlob> blobs{};
-    for (auto next : reader.ReadIncrementally(to_read)) {
+    for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
     }
 

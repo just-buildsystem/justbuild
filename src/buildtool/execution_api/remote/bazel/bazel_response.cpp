@@ -238,7 +238,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     // collect root digests from trees and store them
     auto reader = network_->CreateReader();
     int pos = 0;
-    for (auto tree_blobs : reader.ReadIncrementally(tree_digests)) {
+    for (auto tree_blobs : reader.ReadIncrementally(&tree_digests)) {
         for (auto const& tree_blob : tree_blobs) {
             try {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(

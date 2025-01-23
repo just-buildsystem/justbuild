@@ -64,7 +64,7 @@ namespace {
     auto reader = network->CreateReader();
     std::size_t count{};
     std::unordered_set<ArtifactBlob> container{};
-    for (auto blobs : reader.ReadIncrementally(digests)) {
+    for (auto blobs : reader.ReadIncrementally(&digests)) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
@@ -248,7 +248,7 @@ auto BazelApi::CreateAction(
     auto size = file_digests.size();
     auto reader = network_->CreateReader();
     std::size_t count{};
-    for (auto blobs : reader.ReadIncrementally(file_digests)) {
+    for (auto blobs : reader.ReadIncrementally(&file_digests)) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
@@ -556,7 +556,7 @@ auto BazelApi::CreateAction(
             gsl::not_null<std::vector<std::string>*> const& targets) {
             auto reader = network->CreateReader();
             targets->reserve(digests.size());
-            for (auto blobs : reader.ReadIncrementally(digests)) {
+            for (auto blobs : reader.ReadIncrementally(&digests)) {
                 for (auto const& blob : blobs) {
                     targets->emplace_back(*blob.data);
                 }
