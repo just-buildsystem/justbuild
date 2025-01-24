@@ -125,7 +125,11 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["content_blob_container"]
   , "hdrs": ["content_blob_container.hpp"]
-  , "deps": [["@", "gsl", "", "gsl"], ["src/utils/cpp", "transformed_range"]]
+  , "deps":
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "transformed_range"]
+    ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "artifact_blob_container":

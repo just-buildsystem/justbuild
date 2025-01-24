@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_CONTENT_BLOB_CONTAINER_HPP
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -23,6 +24,7 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/transformed_range.hpp"
 
 template <typename TDigest>
@@ -37,10 +39,29 @@ struct ContentBlob final {
                 bool is_exec) noexcept
         : digest{std::move(mydigest)}, data(mydata), is_exec{is_exec} {}
 
+    [[nodiscard]] auto operator==(ContentBlob const& other) const noexcept
+        -> bool {
+        return std::equal_to<TDigest>{}(digest, other.digest) and
+               is_exec == other.is_exec;
+    }
+
     TDigest digest;
     std::shared_ptr<std::string> data;
     bool is_exec = false;
 };
+
+namespace std {
+template <typename TDigest>
+struct hash<ContentBlob<TDigest>> {
+    [[nodiscard]] auto operator()(
+        ContentBlob<TDigest> const& blob) const noexcept -> std::size_t {
+        std::size_t seed{};
+        hash_combine(&seed, blob.digest);
+        hash_combine(&seed, blob.is_exec);
+        return seed;
+    }
+};
+}  // namespace std
 
 template <typename TDigest>
 class ContentBlobContainer final {
