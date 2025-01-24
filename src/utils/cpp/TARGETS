@@ -113,4 +113,11 @@
   , "hdrs": ["expected.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "back_map":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["back_map"]
+  , "hdrs": ["back_map.hpp"]
+  , "deps": [["@", "gsl", "", "gsl"]]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
