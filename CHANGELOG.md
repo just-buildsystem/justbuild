@@ -20,6 +20,7 @@ A feature release on top of `1.4.0`, backwards compatible.
 
 ### Fixes
 
+- The "generic" rule now properly detects staging conflicts.
 - Fixes ensuring proper pointer life time and access check.
 - A race condition in the use of `libgit2` was fixed that could
   result in a segmentation fault.
