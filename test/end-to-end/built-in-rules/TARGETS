@@ -11,6 +11,13 @@
   , "keep": ["null.json", "empty.json", "custom.json"]
   , "deps": [["", "tool-under-test"]]
   }
+, "generic_conflict":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["generic_conflict"]
+  , "test": ["generic_conflict.sh"]
+  , "keep": ["log"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "filegen_config":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["filegen_config"]
@@ -41,6 +48,7 @@
   , "deps":
     [ "export_counting"
     , "filegen_config"
+    , "generic_conflict"
     , "generic_out_dirs"
     , "generic_sh"
     , "symlink_config"
