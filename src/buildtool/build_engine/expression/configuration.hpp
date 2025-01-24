@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_EXPRESSION_CONFIGURATION_HPP
 
 #include <algorithm>
+#include <compare>
 #include <cstddef>
 #include <functional>
 #include <optional>
@@ -90,6 +91,10 @@ class Configuration {
 
     [[nodiscard]] auto operator==(const Configuration& other) const -> bool {
         return expr_ == other.expr_;
+    }
+
+    [[nodiscard]] auto operator<(const Configuration& other) const -> bool {
+        return expr_->ToHash() < other.expr_->ToHash();
     }
 
     [[nodiscard]] auto hash() const noexcept -> std::size_t {

@@ -48,6 +48,17 @@ struct ConfiguredTarget {
             target.ToString(),
             AbbreviateJson(PruneJson(config.ToJson()), config_length));
     }
+
+    [[nodiscard]] auto operator<(ConfiguredTarget const& other) const noexcept
+        -> bool {
+        if (target < other.target) {
+            return true;
+        }
+        if (other.target < target) {
+            return false;
+        }
+        return config < other.config;
+    }
 };
 
 using ConfiguredTargetPtr = std::shared_ptr<ConfiguredTarget>;

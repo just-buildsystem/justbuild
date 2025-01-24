@@ -228,8 +228,8 @@ class ResultTargetMap {
                 std::sort(origin_map[i.first].begin(),
                           origin_map[i.first].end(),
                           [](auto const& left, auto const& right) {
-                              auto left_target = left.first.ToString();
-                              auto right_target = right.first.ToString();
+                              auto const& left_target = left.first;
+                              auto const& right_target = right.first;
                               return (left_target < right_target) or
                                      (left_target == right_target and
                                       left.second < right.second);

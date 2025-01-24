@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_ENTITY_NAME_DATA_HPP
 #define INCLUDED_SRC_BUILDTOOL_BUILD_ENGINE_BASE_MAPS_ENTITY_NAME_DATA_HPP
 
+#include <compare>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -37,6 +38,16 @@ struct AnonymousTarget {
     [[nodiscard]] auto operator==(AnonymousTarget const& other) const noexcept
         -> bool {
         return rule_map == other.rule_map and target_node == other.target_node;
+    }
+    [[nodiscard]] auto operator<(AnonymousTarget const& other) const noexcept
+        -> bool {
+        if (rule_map < other.rule_map) {
+            return true;
+        }
+        if (other.rule_map < rule_map) {
+            return false;
+        }
+        return target_node < other.target_node;
     }
 };
 
@@ -80,6 +91,19 @@ struct NamedTarget {
                                          NamedTarget const& y) -> bool {
         return not(x == y);
     }
+    [[nodiscard]] auto operator<(NamedTarget const& other) const noexcept
+        -> bool {
+        if (auto const res = repository <=> other.repository; res != 0) {
+            return res < 0;
+        }
+        if (auto const res = module <=> other.module; res != 0) {
+            return res < 0;
+        }
+        if (auto const res = name <=> other.name; res != 0) {
+            return res < 0;
+        }
+        return reference_t < other.reference_t;
+    }
 };
 
 class EntityName {
@@ -106,6 +130,9 @@ class EntityName {
 
     friend auto operator==(EntityName const& a, EntityName const& b) -> bool {
         return a.entity_name_ == b.entity_name_;
+    }
+    friend auto operator<(EntityName const& a, EntityName const& b) -> bool {
+        return a.entity_name_ < b.entity_name_;
     }
     [[nodiscard]] auto IsAnonymousTarget() const -> bool {
         return std::holds_alternative<AnonymousTarget>(entity_name_);
