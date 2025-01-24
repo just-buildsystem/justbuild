@@ -102,18 +102,18 @@ echo
 cd "${ROOT}/${variant}"
 
 "${JUST}" analyse --local-build-root "${LBRDIR}" --dump-graph graph-null.json 2>&1
-action_configs=$(cat graph-null.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.PROPERTIES ]] | sort')
+action_configs=$(cat graph-null.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.PROPERTIES ] | sort] | sort')
 echo "${action_configs}"
 [ "${action_configs}" = '[[null,{}]]' ]
 
 echo
 "${JUST}" analyse --local-build-root "${LBRDIR}" -D '{"PROPERTIES": {}}' --dump-graph graph-empty.json 2>&1
-action_configs=$(cat graph-empty.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.PROPERTIES ]] | sort')
+action_configs=$(cat graph-empty.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.PROPERTIES ] | sort ] | sort')
 echo "${action_configs}"
 [ "${action_configs}" = '[[null,{}]]' ]
 
 "${JUST}" analyse --local-build-root "${LBRDIR}" -D '{"PROPERTIES": {"foo": "bar"}}' --dump-graph graph-set.json 2>&1
-action_configs=$(cat graph-set.json | jq -acM '.actions | [ .[] | .origins | [ .[] | .config.PROPERTIES ]] | sort')
+action_configs=$(cat graph-set.json | jq -acM '.actions | [ .[] | .origins | sort | [ .[] | .config.PROPERTIES ] | sort] | sort')
 echo "${action_configs}"
 [ "${action_configs}" = '[[null,{}],[{"foo":"bar"}]]' ]
 
