@@ -416,7 +416,11 @@ def import_to_git(target: str, *, repo_type: str, content_id: str,
             fail_context=fail_context)
 
     # Get tree id of added directory
-    tree_id: str = get_tree_raw_id(target, repo_tmp_dir).hex()
+    try:
+        tree_id: str = get_tree_raw_id(target, repo_tmp_dir).hex()
+    except Exception as ex:
+        fail(fail_context +
+             "Writing tree to temporary repository failed with:\n%r" % (ex, ))
 
     # Commit the tree
     git_env = {**os.environ, **GIT_NOBODY_ENV}
