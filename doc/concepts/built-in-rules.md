@@ -86,10 +86,12 @@ choice.
 
 The `"deps"` argument is evaluated and has to evaluate to a list of
 target names. The runfiles and artifacts of these targets form the
-inputs of the action. Conflicts are not an error and resolved by giving
-precedence to the artifacts over the runfiles; conflicts within
-artifacts or runfiles are resolved in a latest-wins fashion using the
-order of the targets in the evaluated `"deps"` argument.
+inputs of the action. Conflicting definitions for individual paths
+are not an error and resolved by giving precedence to the artifacts
+over the runfiles; conflicts within artifacts or runfiles are
+resolved in a latest-wins fashion using the order of the targets in
+the evaluated `"deps"` argument. However, the input stage obtained
+by those resolution rules has to be free of semantic conflicts.
 
 The fields `"cmds"`, `"cwd"`, `"sh -c"`, `"out_dirs"`, `"outs"`, and `"env"`
 are evaluated fields where `"cmds"`, `"out_dirs"`, and `"outs"`

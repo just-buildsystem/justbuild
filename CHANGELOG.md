@@ -2,6 +2,10 @@
 
 Bug fixes on top of `1.4.2`.
 
+### Fixes
+
+- The "generic" rule now properly detects staging conflicts.
+
 ## Release `1.4.2` (2025-01-13)
 
 Bug fixes on top of `1.4.1`.
