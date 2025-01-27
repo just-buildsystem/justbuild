@@ -2170,6 +2170,31 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
 
         return content
 
+    def process_foreign_file(repository: Json, *, clone_to: str,
+                             fail_context: str) -> str:
+        """Process a foreign-file repository and return its content id."""
+        # Parse fields not in common with archive-type repositories
+        name: str = repository.get("name", None)
+        if not isinstance(name, str):
+            fail(fail_context +
+                 "Expected field \"name\" to be a string, but found:\n%r" %
+                 (json.dumps(name, indent=2), ))
+        exec: Optional[bool] = repository.get("executable", None)
+        if exec is not None and not isinstance(exec, bool):
+            fail(fail_context +
+                 "Expected field \"exec\" to be a boolean, but found:\n%r" %
+                 (json.dumps(exec, indent=2), ))
+        # Fetch the foreign file to local CAS
+        content = archive_fetch_with_parse(repository,
+                                           fail_context=fail_context)
+        # stage the file under the provided name in the clone directory
+        os.makedirs(clone_to, exist_ok=True)
+        abs_name = os.path.join(clone_to, name)
+        shutil.copyfile(cas_path(content), abs_name)
+        if exec == True:
+            os.chmod(abs_name, os.stat(abs_name).st_mode | stat.S_IEXEC)
+        return content
+
     def follow_binding(repos: Json, *, repo_name: str, dep_name: str,
                        fail_context: str) -> str:
         """Follow a named binding."""
@@ -2239,11 +2264,10 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         report("\tCloned archive-like content %s to %s" % (content, clone_to))
 
     elif repo_type == "foreign file":
-        #TODO(psarbu): Implement foreign file cloning
-        warn(fail_context +
-             "Cloning from \"%s\" repositories not yet implemented!" %
-             (repo_type, ))
-        result = None
+        content_id = process_foreign_file(repository,
+                                          clone_to=clone_to,
+                                          fail_context=fail_context)
+        report("\tCloned foreign file %s to %s" % (content_id, clone_to))
 
     elif repo_type == "distdir":
         #TODO(psarbu): Implement distdir cloning
