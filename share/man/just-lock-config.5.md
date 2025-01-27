@@ -63,7 +63,7 @@ operation exists as well.
 Sources are given as JSON objects for which the string value to the mandatory
 key *`"source"`* defines a supported type. Each source type informs which other
 fields are available. Currently, the supported source types are *`"git"`*,
-*`"file"`*, and *`"archive"`*.
+*`"file"`*, *`"archive"`*, and *`"git tree"`*.
 
 ### *`"git"`*
 
@@ -193,6 +193,55 @@ The following fields are supported:
    not evaluate to `true`, **`just-lock`**(1) will search for a configuration
    file in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the unpacked archive.
+
+### *`"git tree"`*
+
+It defines an import operation of one or more dependencies from a Just project
+given as the result of running a command. This can be used, for example, to
+import projects found under a version control system other than Git.
+
+The following fields are supported:
+
+ - *`"source"`* defines the current *source* type. This entry is mandatory.
+
+ - *`"repos"`* has as value a JSON list where each entry is a
+   *repository import description*. This entry is mandatory. An empty list is
+   treated as if the current *source* object is missing.
+
+ - *`"cmd"`* provides a list of strings forming a command that, when executed in
+   an empty directory (anywhere in the file system), creates the tree of the
+   source Just project to use for the import. This entry is optional. One and
+   only one of the fields `"cmd"` and `"cmd gen"` must be provided.
+
+ - *`"cmd gen"`* provides a list of strings forming a command that, when
+   executed in an empty directory (anywhere in the file system), prints to
+   stdout a string giving a JSON serialization of a valid input for the field
+   `"cmd"` to be used. This entry is optional. One and only one of the fields
+   `"cmd"` and `"cmd gen"` must be provided.
+
+ - *`"env"`* provides a map of envariables to be set for executing the
+   command and the command generator, if given. This entry is optional.
+
+ - *`"inherit env"`* provides a list of variables to be inherited from the
+   environment `just-lock` is called within, if set there. This entry is
+   optional.
+
+ - *`"subdir"`* has a string value providing the relative path to the sources
+   root inside the generated tree. This entry is optional. If missing, the root
+   directory of the generated tree is considered.
+
+ - *`"as plain"`* has a boolean value. If the field evaluates to `true`, it
+   informs **`just-lock`**(1) to consider the foreign repository configuration
+   to be the canonical one for a single repository. This can be useful if the
+   Git repository does not have a repository configuration or should be imported
+   as-is, without dependencies. This entry is optional.
+
+ - *`"config"`* has a string value defining the relative path of the foreign
+   repository configuration file to be considered from the Git repository. This
+   entry is optional. If not provided and the `"as plain"` field does not
+   evaluate to `true`, **`just-lock`**(1) will search for a configuration file
+   in the same locations as **`just-mr`**(1) does when invoked with
+   **`--norc`** in the root directory of the Git repository.
 
 The just-lock configuration format
 ----------------------------------
