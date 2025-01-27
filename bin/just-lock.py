@@ -1962,13 +1962,13 @@ def rewrite_cloned_repo(repos: Json, *, clone_to: str, target_repo: str,
         }
     }
 
-    # Keep any existing "special" or "to_git" pragmas from the workspace root
-    # repository
+    # Keep relevant pragmas from the workspace root repository
     pragma: Json = {}
     existing: Json = repos[ws_root_repo]["repository"].get("pragma", {})
-    special = existing.get("special", None)
-    if special:
-        pragma["special"] = special
+    if ws_root_desc["repository"]["type"] not in ["archive", "zip"]:
+        special = existing.get("special", None)
+        if special:
+            pragma["special"] = special
     to_git = existing.get("to_git", False)
     if to_git:
         pragma["to_git"] = True
