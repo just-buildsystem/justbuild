@@ -119,6 +119,16 @@
     , ["end-to-end/just-mr", "create_test_archives"]
     ]
   }
+, "clone-git-tree":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["clone-git-tree"]
+  , "test": ["clone/git-tree-repos.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -140,6 +150,7 @@
           , "clone-file"
           , "clone-git"
           , "clone-archive"
+          , "clone-git-tree"
           ]
         }
       ]
