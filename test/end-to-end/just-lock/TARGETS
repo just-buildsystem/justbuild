@@ -88,6 +88,16 @@
     , ["end-to-end", "lock-tool-under-test"]
     ]
   }
+, "clone-file":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["clone-file"]
+  , "test": ["clone/file-repos.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -106,6 +116,7 @@
           , "archive-imports"
           , "git-tree-imports"
           , "plain-imports"
+          , "clone-file"
           ]
         }
       ]
