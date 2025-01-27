@@ -251,9 +251,9 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "branch": "master"    // mandatory (as we have no sane default value between "master" and "main");
                           // corresponds to `branch` var (option -b)
   , "commit": "<HASH>"    // optional; if missing, take HEAD commit of branch
-  , "inherit_env": [...]                  // optional; corresponds to `inherit_env` var (option --inherit-env)
+  , "inherit env": [...]                  // optional; corresponds to `inherit_env` var (option --inherit-env)
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
-  , "as_plain": false     // optional; corresponds to `plain` var (option --plain)
+  , "as plain": false     // optional; corresponds to `plain` var (option --plain)
   }
   ```
 
@@ -284,7 +284,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   // fields related to obtaining source config
   , "path": "<source/repo/path>"          // mandatory
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
-  , "as_plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "as plain": false         // optional; corresponds to `plain` var (option --plain)
   }
   ```
 
@@ -322,28 +322,28 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "sha256": "<HASH>"        // optional checksum; if given, will be checked
   , "sha512": "<HASH>"        // optional checksum; if given, will be checked
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
-  , "as_plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "as plain": false         // optional; corresponds to `plain` var (option --plain)
   }
   ```
 
-- **git-tree**
+- **git tree**
 
   This _source_ type proposed to be the canonical way of importing *justbuild*
   dependencies under version control systems other than Git.
 
   The command that produces the tree is either given explicitly (field `"cmd"`)
-  or indirectly by a command-generating command (field `"cmd_gen"`). The tool
+  or indirectly by a command-generating command (field `"cmd gen"`). The tool
   will run the so-given command to produce the content in a temporary directory,
   it will import the given subdirectory to Git, and it will generate a
-  corresponding `"git-tree"`-type repository description to be added to the
+  corresponding `"git tree"`-type repository description to be added to the
   configuration.
 
-  The fields `"cmd"`, `"env"`, `"inherit_env"` have the same meaning as those
+  The fields `"cmd"`, `"env"`, `"inherit env"` have the same meaning as those
   of the `"git tree"`-type repository (as per `just-mr-repository-config`).
 
   **IMPORTANT:** The user has to be the one to ensure that the environment in
   which `just-lock` is run matches the one intended for running `just-mr` with
-  respect to all the provided envariables in the `"inherit_env"` list. This is
+  respect to all the provided envariables in the `"inherit env"` list. This is
   because `just-lock` and `just-mr` must produce the same tree when running the
   same command.
 
@@ -356,7 +356,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
 
   Proposed format:
   ``` jsonc
-  { "source": "git-tree"
+  { "source": "git tree"
   // "source"-specific fields
   , "repos":                      // mandatory; list of entries describing repositories to import
     [ { "alias": "<name>"         // mandatory; same meaning as `import_as` var
@@ -371,12 +371,12 @@ The type of a _source_ is defined by the string value of the mandatory subfield
                               // command as list of strings
   , "subdir": "<subdir>"      // optional; default is "."; subdir to consider as main entry point
   , "env": {...}              // optional; map of envariables needed by "cmd"
-  , "inherit_env": [...]      // optional; list of envariables to inherit
-  , "cmd_gen": [...]          // one and only one of {"cmd", "cmd_gen"} must be provided;
+  , "inherit env": [...]      // optional; list of envariables to inherit
+  , "cmd gen": [...]          // one and only one of {"cmd", "cmd_gen"} must be provided;
                               // command producing the "cmd" value to use, as list of strings
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
                                           // searched for in the "subdir" tree
-  , "as_plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "as plain": false         // optional; corresponds to `plain` var (option --plain)
   }
   ```
 

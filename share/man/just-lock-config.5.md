@@ -98,7 +98,7 @@ The following fields are supported:
    imported `"git"`-type repositories
    (see **`just-mr-configuration-format`**(5)). This entry is optional.
 
- - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+ - *`"as plain"`* has a boolean value. If the field evaluates to `true`, it
    informs **`just-lock`**(1) to consider the foreign repository configuration
    to be the canonical one for a single repository. This can be useful if the
    Git repository does not have a repository configuration or should be imported
@@ -106,7 +106,7 @@ The following fields are supported:
 
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the Git repository. This
-   entry is optional. If not provided and the `"as_plain"` field does not
+   entry is optional. If not provided and the `"as plain"` field does not
    evaluate to `true`, **`just-lock`**(1) will search for a configuration file
    in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the Git repository.
@@ -127,7 +127,7 @@ The following fields are supported:
  - *`"path"`* has a string value defining the path to the local checkout. This
    entry is mandatory.
 
- - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+ - *`"as plain"`* has a boolean value. If the field evaluates to `true`, it
    informs **`just-lock`**(1) to consider the foreign repository configuration
    to be the canonical one for a single repository. This can be useful if the
    Git repository does not have a repository configuration or should be imported
@@ -135,7 +135,7 @@ The following fields are supported:
 
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the Git repository. This
-   entry is optional. If not provided and the `"as_plain"` field does not
+   entry is optional. If not provided and the `"as plain"` field does not
    evaluate to `true`, **`just-lock`**(1) will search for a configuration file
    in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the Git repository.
@@ -181,7 +181,7 @@ The following fields are supported:
    locations for the archive to be used if the given URL fails to provide it.
    This entry is optional.
 
- - *`"as_plain"`* has a boolean value. If the field evaluates to `true`, it
+ - *`"as plain"`* has a boolean value. If the field evaluates to `true`, it
    informs **`just-lock`**(1) to consider the foreign repository configuration
    to be the canonical one for a single repository. This can be useful if the
    archived repository does not have a configuration file or should be imported
@@ -189,7 +189,7 @@ The following fields are supported:
 
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the unpacked archive
-   root. This entry is optional. If not provided and the `"as_plain"` field does
+   root. This entry is optional. If not provided and the `"as plain"` field does
    not evaluate to `true`, **`just-lock`**(1) will search for a configuration
    file in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the unpacked archive.

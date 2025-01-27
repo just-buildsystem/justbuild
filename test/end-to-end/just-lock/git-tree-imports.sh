@@ -89,12 +89,12 @@ cat > repos.in.json <<EOF
     }
   }
   , "imports":
-  [ { "source": "git-tree"
+  [ { "source": "git tree"
     , "repos": [{"alias": "foo"}]
     , "cmd": ["mock-vcs", "checkout"]
-    , "inherit_env": ["PATH", "CREDENTIAL_PATH"]
+    , "inherit env": ["PATH", "CREDENTIAL_PATH"]
     , "subdir": "data"
-    , "as_plain": true
+    , "as plain": true
     }
   ]
 }
@@ -119,12 +119,12 @@ cat > repos.in.json <<EOF
     }
   }
   , "imports":
-  [ { "source": "git-tree"
+  [ { "source": "git tree"
     , "repos": [{"alias": "foo"}]
-    , "cmd_gen": ["mock-vcs-gen"]
-    , "inherit_env": ["PATH", "CREDENTIAL_PATH"]
+    , "cmd gen": ["mock-vcs-gen"]
+    , "inherit env": ["PATH", "CREDENTIAL_PATH"]
     , "subdir": "data"
-    , "as_plain": true
+    , "as plain": true
     }
   ]
 }
