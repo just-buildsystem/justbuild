@@ -64,10 +64,9 @@ class BazelCasClient {
     /// \returns The digests of blobs successfully updated
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
-        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const&
-            begin,
-        std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& end)
-        const noexcept -> std::size_t;
+        std::unordered_set<BazelBlob>::const_iterator const& begin,
+        std::unordered_set<BazelBlob>::const_iterator const& end) const noexcept
+        -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance

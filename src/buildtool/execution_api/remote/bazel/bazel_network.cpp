@@ -14,9 +14,7 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
-#include <algorithm>
 #include <functional>
-#include <iterator>
 #include <utility>
 
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
@@ -75,34 +73,38 @@ auto BazelNetwork::BlobSpliceSupport() const noexcept -> bool {
     return cas_->BlobSpliceSupport(hash_function_, instance_name_);
 }
 
-template <class TIter>
-auto BazelNetwork::DoUploadBlobs(TIter const& first,
-                                 TIter const& last) noexcept -> bool {
+auto BazelNetwork::DoUploadBlobs(std::unordered_set<BazelBlob> blobs) noexcept
+    -> bool {
+    if (blobs.empty()) {
+        return true;
+    }
+
     try {
-        // Partition the blobs according to their size. The first group collects
-        // all the blobs that can be uploaded in batch, the second group gathers
-        // blobs whose size exceeds the kMaxBatchTransferSize threshold.
-        //
-        // The blobs belonging to the second group are uploaded via the
-        // bytestream api.
-        std::vector<gsl::not_null<BazelBlob const*>> sorted;
-        sorted.reserve(std::distance(first, last));
-        std::transform(
-            first, last, std::back_inserter(sorted), [](BazelBlob const& b) {
-                return &b;
-            });
+        // Partition the blobs according to their size.
+        // The first group collects all the blobs that must use bytestream api
+        // because of their size:
+        using IteratorType = decltype(blobs)::iterator;
+        std::vector<IteratorType> to_stream;
+        to_stream.reserve(blobs.size());
+        for (auto it = blobs.begin(); it != blobs.end(); ++it) {
+            if (it->data->size() > kMaxBatchTransferSize) {
+                to_stream.push_back(it);
+            }
+        }
 
-        auto it = std::stable_partition(
-            sorted.begin(), sorted.end(), [](BazelBlob const* x) {
-                return x->data->size() <= kMaxBatchTransferSize;
-            });
-        auto digests_count =
-            cas_->BatchUpdateBlobs(instance_name_, sorted.begin(), it);
+        for (auto const& it : to_stream) {
+            if (not cas_->UpdateSingleBlob(instance_name_, *it)) {
+                return false;
+            }
+            blobs.erase(it);
+        }
+        to_stream.clear();
 
-        return digests_count == std::distance(sorted.begin(), it) &&
-               std::all_of(it, sorted.end(), [this](BazelBlob const* x) {
-                   return cas_->UpdateSingleBlob(instance_name_, *x);
-               });
+        // After uploading via stream api, only small blobs that may be uploaded
+        // using batch are in the container:
+        return cas_->BatchUpdateBlobs(
+                   instance_name_, blobs.begin(), blobs.end()) == blobs.size();
+
     } catch (...) {
         Logger::Log(LogLevel::Warning, "Unknown exception");
         return false;
@@ -111,26 +113,17 @@ auto BazelNetwork::DoUploadBlobs(TIter const& first,
 
 auto BazelNetwork::UploadBlobs(std::unordered_set<BazelBlob>&& blobs,
                                bool skip_find_missing) noexcept -> bool {
-    if (skip_find_missing) {
-        return DoUploadBlobs(blobs.begin(), blobs.end());
-    }
+    if (not skip_find_missing) {
+        auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
+            &blobs, [](BazelBlob const& blob) { return blob.digest; });
+        if (not back_map.has_value()) {
+            return false;
+        }
 
-    auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
-        &blobs, [](BazelBlob const& blob) { return blob.digest; });
-    if (not back_map.has_value()) {
-        return false;
+        // back_map becomes invalid after this call:
+        blobs = back_map->GetValues(FindMissingBlobs(back_map->GetKeys()));
     }
-
-    // find digests of blobs missing in CAS
-    auto missing_digests =
-        cas_->FindMissingBlobs(instance_name_, back_map->GetKeys());
-
-    if (not missing_digests.empty()) {
-        // update missing blobs
-        auto missing_blobs = back_map->GetValues(missing_digests);
-        return DoUploadBlobs(missing_blobs.begin(), missing_blobs.end());
-    }
-    return true;
+    return DoUploadBlobs(std::move(blobs));
 }
 
 auto BazelNetwork::ExecuteBazelActionSync(

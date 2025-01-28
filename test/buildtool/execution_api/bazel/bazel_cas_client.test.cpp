@@ -68,7 +68,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
         if (not digests.empty()) {
             // Upload blob, if not found
-            std::vector<gsl::not_null<BazelBlob const*>> to_upload{&blob};
+            std::unordered_set<BazelBlob> to_upload{blob};
             CHECK(cas_client.BatchUpdateBlobs(
                       instance_name, to_upload.begin(), to_upload.end()) == 1U);
         }
@@ -97,7 +97,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
                   .size() == 1);
 
         // Try upload faulty blob
-        std::vector<gsl::not_null<BazelBlob const*>> to_upload{&faulty_blob};
+        std::unordered_set<BazelBlob> to_upload{faulty_blob};
         CHECK(cas_client.BatchUpdateBlobs(
                   instance_name, to_upload.begin(), to_upload.end()) == 0U);
 

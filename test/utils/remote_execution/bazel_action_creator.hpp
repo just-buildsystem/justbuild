@@ -16,11 +16,13 @@
 #define INCLUDED_SRC_TEST_UTILS_REMOTE_EXECUTION_ACTION_CREATOR_HPP
 
 #include <algorithm>  // std::transform, std::copy
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "google/protobuf/repeated_ptr_field.h"
@@ -51,7 +53,7 @@
         *(platform->add_properties()) = property;
     }
 
-    std::vector<BazelBlob> blobs;
+    std::unordered_set<BazelBlob> blobs;
 
     bazel_re::Command cmd;
     cmd.set_allocated_platform(platform.release());
@@ -71,13 +73,13 @@
     auto cmd_data = cmd.SerializeAsString();
     auto cmd_id = BazelDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, cmd_data);
-    blobs.emplace_back(cmd_id, cmd_data, /*is_exec=*/false);
+    blobs.emplace(cmd_id, cmd_data, /*is_exec=*/false);
 
     bazel_re::Directory empty_dir;
     auto dir_data = empty_dir.SerializeAsString();
     auto dir_id = BazelDigestFactory::HashDataAs<ObjectType::Tree>(
         hash_function, dir_data);
-    blobs.emplace_back(dir_id, dir_data, /*is_exec=*/false);
+    blobs.emplace(dir_id, dir_data, /*is_exec=*/false);
 
     bazel_re::Action action;
     (*action.mutable_command_digest()) = cmd_id;
@@ -87,7 +89,7 @@
     auto action_data = action.SerializeAsString();
     auto action_id = BazelDigestFactory::HashDataAs<ObjectType::File>(
         hash_function, action_data);
-    blobs.emplace_back(action_id, action_data, /*is_exec=*/false);
+    blobs.emplace(action_id, action_data, /*is_exec=*/false);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     if (not auth_config) {
@@ -106,16 +108,8 @@
                               &*auth_config,
                               &retry_config);
 
-    std::vector<gsl::not_null<BazelBlob const*>> blob_ptrs;
-    blob_ptrs.reserve(blobs.size());
-    std::transform(blobs.begin(),
-                   blobs.end(),
-                   std::back_inserter(blob_ptrs),
-                   [](BazelBlob const& b) { return &b; });
-
-    if (cas_client.BatchUpdateBlobs(instance_name,
-                                    blob_ptrs.begin(),
-                                    blob_ptrs.end()) == blobs.size()) {
+    if (cas_client.BatchUpdateBlobs(
+            instance_name, blobs.begin(), blobs.end()) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(action_id);
     }
     return nullptr;

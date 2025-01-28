@@ -33,6 +33,7 @@
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -481,9 +482,9 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
 
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
-    std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& begin,
-    std::vector<gsl::not_null<BazelBlob const*>>::const_iterator const& end)
-    const noexcept -> std::size_t {
+    std::unordered_set<BazelBlob>::const_iterator const& begin,
+    std::unordered_set<BazelBlob>::const_iterator const& end) const noexcept
+    -> std::size_t {
     if (begin == end) {
         return 0;
     }
@@ -496,9 +497,9 @@ auto BazelCasClient::BatchUpdateBlobs(
                 end,
                 "BatchUpdateBlobs",
                 [](bazel_re::BatchUpdateBlobsRequest* request,
-                   BazelBlob const* x) {
+                   BazelBlob const& x) {
                     *(request->add_requests()) =
-                        BazelCasClient::CreateUpdateBlobsSingleRequest(*x);
+                        BazelCasClient::CreateUpdateBlobsSingleRequest(x);
                 });
         result.reserve(std::distance(begin, end));
         auto batch_update_blobs =
@@ -550,8 +551,8 @@ auto BazelCasClient::BatchUpdateBlobs(
     logger_.Emit(LogLevel::Trace, [begin, end, &result]() {
         std::ostringstream oss{};
         oss << "upload blobs" << std::endl;
-        std::for_each(begin, end, [&oss](BazelBlob const* blob) {
-            oss << fmt::format(" - {}", blob->digest.hash()) << std::endl;
+        std::for_each(begin, end, [&oss](BazelBlob const& blob) {
+            oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
         });
         oss << "received blobs" << std::endl;
         std::for_each(
@@ -571,12 +572,12 @@ auto BazelCasClient::BatchUpdateBlobs(
         logger_.Emit(LogLevel::Trace, "Retrying with missing blobs");
         auto received_digests =
             std::unordered_set<bazel_re::Digest>{result.begin(), result.end()};
-        auto missing_blobs = std::vector<gsl::not_null<BazelBlob const*>>{};
+        auto missing_blobs = std::unordered_set<BazelBlob>{};
         missing_blobs.reserve(missing);
         std::for_each(
             begin, end, [&received_digests, &missing_blobs](auto const& blob) {
-                if (not received_digests.contains(blob->digest)) {
-                    missing_blobs.emplace_back(blob);
+                if (not received_digests.contains(blob.digest)) {
+                    missing_blobs.emplace(blob);
                 }
             });
         return result.size() + BatchUpdateBlobs(instance_name,
@@ -591,7 +592,7 @@ auto BazelCasClient::BatchUpdateBlobs(
         std::size_t count = 0;
         std::for_each(
             begin, end, [this, &count, &instance_name](auto const& blob) {
-                if (UpdateSingleBlob(instance_name, *blob)) {
+                if (UpdateSingleBlob(instance_name, blob)) {
                     count += 1;
                 }
             });
