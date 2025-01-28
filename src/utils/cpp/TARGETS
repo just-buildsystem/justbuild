@@ -94,13 +94,6 @@
   , "hdrs": ["path_hash.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
-, "transformed_range":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["transformed_range"]
-  , "hdrs": ["transformed_range.hpp"]
-  , "deps": [["@", "gsl", "", "gsl"]]
-  , "stage": ["src", "utils", "cpp"]
-  }
 , "prefix":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["prefix"]
