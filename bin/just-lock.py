@@ -242,7 +242,8 @@ def git_root(*, upstream: Optional[str]) -> str:
 
 def git_keep(commit: str, *, upstream: Optional[str],
              fail_context: str) -> None:
-    """Keep commit by tagging it."""
+    """Keep commit by tagging it. It is a user error if the referenced Git
+    repository does not exist."""
     git_env = {**os.environ, **GIT_NOBODY_ENV}
     run_cmd(g_LAUNCHER + [
         g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
@@ -276,11 +277,14 @@ def ensure_git_init(*,
 
 
 def git_commit_present(commit: str, *, upstream: Optional[str]) -> bool:
-    """Check if commit is present in specified Git repository."""
-    return run_cmd(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
-                   stdout=subprocess.DEVNULL,
-                   cwd=git_root(upstream=upstream),
-                   fail_context=None)[1] == 0
+    """Check if commit is present in specified Git repository. Does not require
+    the repository to exist, in which case it returns false."""
+    root: str = git_root(upstream=upstream)
+    return (os.path.exists(root)
+            and run_cmd(g_LAUNCHER + [g_GIT, "show", "--oneline", commit],
+                        stdout=subprocess.DEVNULL,
+                        cwd=root,
+                        fail_context=None)[1] == 0)
 
 
 def git_url_is_path(url: str) -> Optional[str]:
@@ -299,7 +303,8 @@ def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
               fetchable: str, fail_context: Optional[str]) -> bool:
     """Fetch from a given repository a fetchable object (branch or commit) into
     another repository. A None value for a repository means the Git cache
-    repository is used. Returns success flag of fetch command."""
+    repository is used. Returns success flag of fetch command. It is a user
+    error if the referenced Git repositories do not exist."""
     if from_repo is None:
         from_repo = git_root(upstream=None)
     else:
@@ -452,7 +457,8 @@ def import_to_git(target: str, *, repo_type: str, content_id: str,
 
 def git_subtree(*, tree: str, subdir: str, upstream: Optional[str],
                 fail_context: str) -> str:
-    """Get Git-tree identifier in a Git tree by subdirectory path."""
+    """Get Git-tree identifier in a Git tree by subdirectory path. It is a user
+    error if the referenced Git repository does not exist."""
     if os.path.normpath(subdir) == ".":
         return tree
     return run_cmd(
