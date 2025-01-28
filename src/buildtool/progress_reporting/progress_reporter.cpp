@@ -14,6 +14,7 @@
 
 #include "src/buildtool/progress_reporting/progress_reporter.hpp"
 
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -21,6 +22,7 @@
 #include <vector>
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name_data.hpp"
 #include "src/buildtool/build_engine/target_map/configured_target.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -40,18 +42,33 @@ auto ProgressReporter::Reporter(gsl::not_null<Statistics*> const& stats,
         int active = queued - run - cached;
         std::string now_msg;
         if (active > 0 and not sample.empty()) {
+            std::string output_info{};
+            auto const& output_map = progress->OutputMap();
+            auto output = output_map.find(sample);
+            if (output != output_map.end()) {
+                output_info = fmt::format(
+                    " {}",
+                    nlohmann::json(std::filesystem::path(output->second)
+                                       .filename()
+                                       .string())
+                        .dump());
+            }
+
             auto const& origin_map = progress->OriginMap();
             auto origins = origin_map.find(sample);
             if (origins != origin_map.end() and not origins->second.empty()) {
                 auto const& origin = origins->second[0];
-                now_msg = fmt::format(" ({}#{}{})",
+                now_msg = fmt::format(" ({}#{}{}{})",
                                       origin.first.target.ToString(),
                                       origin.second,
+                                      output_info,
                                       active > 1 ? ", ..." : "");
             }
             else {
-                now_msg =
-                    fmt::format(" ({}{})", sample, active > 1 ? ", ..." : "");
+                now_msg = fmt::format(" ({}{}{})",
+                                      nlohmann::json(sample).dump(),
+                                      output_info,
+                                      active > 1 ? ", ..." : "");
             }
         }
         constexpr int kOneHundred{100};

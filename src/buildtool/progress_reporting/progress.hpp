@@ -41,6 +41,13 @@ class Progress {
         return origin_map_;
     }
 
+    // Return a reference to the output map. It is the responsibility of the
+    // caller to ensure that access only happens in a single-threaded context.
+    [[nodiscard]] auto OutputMap() noexcept
+        -> std::unordered_map<std::string, std::string>& {
+        return output_map_;
+    }
+
   private:
     ::TaskTracker task_tracker_{};
     std::unordered_map<
@@ -48,6 +55,7 @@ class Progress {
         std::vector<
             std::pair<BuildMaps::Target::ConfiguredTarget, std::size_t>>>
         origin_map_;
+    std::unordered_map<std::string, std::string> output_map_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_PROGRESS_REPORTING_PROGRESS_HPP

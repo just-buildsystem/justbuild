@@ -309,6 +309,31 @@ class ResultTargetMap {
                             }
                         });
         result.actions.erase(lastaction, result.actions.end());
+        auto& output_map = progress->OutputMap();
+        output_map.clear();
+        output_map.reserve(na);
+        if constexpr (kIncludeOrigins) {
+            for (auto const& action : result.actions) {
+                if (not action.desc->OutputFiles().empty()) {
+                    output_map[action.desc->Id()] =
+                        action.desc->OutputFiles()[0];
+                }
+                else if (not action.desc->OutputDirs().empty()) {
+                    output_map[action.desc->Id()] =
+                        action.desc->OutputDirs()[0];
+                }
+            }
+        }
+        else {
+            for (auto const& action : result.actions) {
+                if (not action->OutputFiles().empty()) {
+                    output_map[action->Id()] = action->OutputFiles()[0];
+                }
+                else if (not action->OutputDirs().empty()) {
+                    output_map[action->Id()] = action->OutputDirs()[0];
+                }
+            }
+        }
 
         int trees_traversed = stats->TreesAnalysedCounter();
         if (trees_traversed > 0) {

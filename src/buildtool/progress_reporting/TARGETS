@@ -34,6 +34,7 @@
   , "private-deps":
     [ "task_tracker"
     , ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/logging", "log_level"]
