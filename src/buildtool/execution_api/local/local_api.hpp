@@ -136,7 +136,7 @@ class LocalApi final : public IExecutionApi {
             },
             [&git_api = git_api_, &raw_tree](Artifact::ObjectInfo const& info,
                                              int fd) {
-                return not git_api or
+                return git_api and git_api->IsAvailable(info.digest) and
                        git_api->RetrieveToFds({info}, {fd}, raw_tree);
             });
     }
