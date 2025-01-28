@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <functional>
 #include <iterator>
-#include <unordered_set>
 #include <vector>
 
 #include "fmt/core.h"
@@ -41,7 +40,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 
 namespace {
 
@@ -278,11 +276,7 @@ auto BazelResponse::UploadTreeMessageDirectories(
     bazel_re::Tree const& tree) const -> expected<ArtifactDigest, std::string> {
     auto const upload_callback =
         [&network = *network_](BazelBlobContainer&& blobs) -> bool {
-        std::unordered_set<BazelBlob> bazel_blobs;
-        for (auto const& blob : blobs.Blobs()) {
-            bazel_blobs.emplace(blob);
-        }
-        return network.UploadBlobs(std::move(bazel_blobs));
+        return network.UploadBlobs(std::move(blobs));
     };
     auto const hash_function = network_->GetHashFunction();
     BazelBlobContainer dir_blobs{};

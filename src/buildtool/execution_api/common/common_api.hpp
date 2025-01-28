@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_COMMON_API_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_COMMON_API_HPP
 
+#include <cstddef>
 #include <cstdio>
 #include <exception>
 #include <functional>
@@ -122,10 +123,11 @@ template <typename TValue, typename TIterator>
 /// \returns Returns true on success, false otherwise (failures or exceptions).
 template <typename TDigest>
 auto UpdateContainerAndUpload(
-    gsl::not_null<ContentBlobContainer<TDigest>*> const& container,
+    gsl::not_null<std::unordered_set<ContentBlob<TDigest>>*> const& container,
     ContentBlob<TDigest>&& blob,
     bool exception_is_fatal,
-    std::function<bool(ContentBlobContainer<TDigest>&&)> const& uploader,
+    std::function<bool(std::unordered_set<ContentBlob<TDigest>>&&)> const&
+        uploader,
     Logger const* logger = nullptr) noexcept -> bool {
     // Optimize upload of blobs with respect to the maximum transfer limit, such
     // that we never store unnecessarily more data in the container than we need
@@ -133,24 +135,32 @@ auto UpdateContainerAndUpload(
     try {
         if (blob.data->size() > kMaxBatchTransferSize) {
             // large blobs use individual stream upload
-            if (not uploader(ContentBlobContainer<TDigest>{{blob}})) {
+            if (not uploader(std::unordered_set<ContentBlob<TDigest>>{
+                    {std::move(blob)}})) {
                 return false;
             }
         }
         else {
-            if (container->ContentSize() + blob.data->size() >
-                kMaxBatchTransferSize) {
-                // swap away from original container to allow move during upload
-                ContentBlobContainer<TDigest> tmp_container{};
-                std::swap(*container, tmp_container);
-                // if we would surpass the transfer limit, upload the current
-                // container and clear it before adding more blobs
-                if (not uploader(std::move(tmp_container))) {
-                    return false;
+            if (not container->contains(blob)) {
+                std::size_t content_size = 0;
+                for (auto const& blob : *container) {
+                    content_size += blob.data->size();
                 }
+
+                if (content_size + blob.data->size() > kMaxBatchTransferSize) {
+                    // swap away from original container to allow move during
+                    // upload
+                    std::unordered_set<ContentBlob<TDigest>> tmp_container{};
+                    std::swap(*container, tmp_container);
+                    // if we would surpass the transfer limit, upload the
+                    // current container and clear it before adding more blobs
+                    if (not uploader(std::move(tmp_container))) {
+                        return false;
+                    }
+                }
+                // add current blob to container
+                container->emplace(std::move(blob));
             }
-            // add current blob to container
-            container->Emplace(std::move(blob));
         }
     } catch (std::exception const& ex) {
         if (exception_is_fatal) {

@@ -58,7 +58,6 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
@@ -223,9 +222,8 @@ class TestApi : public IExecutionApi {
     }
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool /*unused*/) const noexcept -> bool final {
-        auto blob_range = blobs.Blobs();
         return std::all_of(
-            blob_range.begin(), blob_range.end(), [this](auto const& blob) {
+            blobs.begin(), blobs.end(), [this](auto const& blob) {
                 // for local artifacts
                 auto it1 = config_.artifacts.find(*blob.data);
                 if (it1 != config_.artifacts.end() and it1->second.uploads) {

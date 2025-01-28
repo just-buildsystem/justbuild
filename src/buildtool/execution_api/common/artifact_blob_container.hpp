@@ -15,10 +15,12 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP
 
+#include <unordered_set>
+
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 
 using ArtifactBlob = ContentBlob<ArtifactDigest>;
-using ArtifactBlobContainer = ContentBlobContainer<ArtifactDigest>;
+using ArtifactBlobContainer = std::unordered_set<ArtifactBlob>;
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP

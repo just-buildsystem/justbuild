@@ -60,7 +60,6 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 
 /// \brief API for local execution.
 class LocalApi final : public IExecutionApi {
@@ -250,10 +249,9 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
                               bool /*skip_find_missing*/) const noexcept
         -> bool final {
-        auto const range = blobs.Blobs();
         return std::all_of(
-            range.begin(),
-            range.end(),
+            blobs.begin(),
+            blobs.end(),
             [&cas = local_context_.storage->CAS()](ArtifactBlob const& blob) {
                 auto const cas_digest =
                     blob.digest.IsTree()

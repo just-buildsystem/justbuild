@@ -49,7 +49,6 @@
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 
 namespace {
 
@@ -144,8 +143,8 @@ namespace {
     -> std::optional<std::unordered_set<BazelBlob>> {
     std::unordered_set<BazelBlob> blobs;
     try {
-        blobs.reserve(container.Size());
-        for (const auto& blob : container.Blobs()) {
+        blobs.reserve(container.size());
+        for (const auto& blob : container) {
             blobs.emplace(ArtifactDigestFactory::ToBazel(blob.digest),
                           blob.data,
                           blob.is_exec);

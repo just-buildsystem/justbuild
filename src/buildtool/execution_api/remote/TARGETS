@@ -63,7 +63,6 @@
     , ["src/utils/cpp", "back_map"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "path"]
-    , ["src/utils/cpp", "transformed_range"]
     ]
   }
 , "bazel":
@@ -99,7 +98,6 @@
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "back_map"]
     , ["src/utils/cpp", "expected"]
-    , ["src/utils/cpp", "transformed_range"]
     ]
   }
 , "config":

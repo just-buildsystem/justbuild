@@ -67,7 +67,6 @@
     , ["@", "src", "src/buildtool/logging", "logging"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["@", "src", "src/utils/cpp", "expected"]
-    , ["@", "src", "src/utils/cpp", "transformed_range"]
     , ["", "catch-main"]
     , ["utils", "test_api_bundle"]
     , ["utils", "test_hash_function_type"]

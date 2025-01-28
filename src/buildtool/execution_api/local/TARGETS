@@ -44,7 +44,6 @@
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "tmp_dir"]
-    , ["src/utils/cpp", "transformed_range"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "local"]
   , "private-deps":

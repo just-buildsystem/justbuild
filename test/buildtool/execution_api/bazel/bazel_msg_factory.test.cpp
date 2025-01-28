@@ -139,7 +139,7 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
             }
         },
         [&blobs](ArtifactBlob&& blob) {
-            blobs.Emplace(std::move(blob));
+            blobs.emplace(std::move(blob));
             return true;
         }));
 
