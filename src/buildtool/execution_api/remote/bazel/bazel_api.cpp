@@ -141,19 +141,19 @@ namespace {
 
 [[nodiscard]] auto ConvertToBazelBlobContainer(
     ArtifactBlobContainer&& container) noexcept
-    -> std::optional<BazelBlobContainer> {
-    std::vector<BazelBlob> blobs;
+    -> std::optional<std::unordered_set<BazelBlob>> {
+    std::unordered_set<BazelBlob> blobs;
     try {
         blobs.reserve(container.Size());
         for (const auto& blob : container.Blobs()) {
-            blobs.emplace_back(ArtifactDigestFactory::ToBazel(blob.digest),
-                               blob.data,
-                               blob.is_exec);
+            blobs.emplace(ArtifactDigestFactory::ToBazel(blob.digest),
+                          blob.data,
+                          blob.is_exec);
         }
     } catch (...) {
         return std::nullopt;
     }
-    return BazelBlobContainer{std::move(blobs)};
+    return blobs;
 }
 
 }  // namespace
@@ -531,7 +531,7 @@ auto BazelApi::CreateAction(
                                     bool skip_find_missing) const noexcept
     -> bool {
     auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));
-    return bazel_blobs ? network_->UploadBlobs(std::move(*bazel_blobs),
+    return bazel_blobs ? network_->UploadBlobs(*std::move(bazel_blobs),
                                                skip_find_missing)
                        : false;
 }

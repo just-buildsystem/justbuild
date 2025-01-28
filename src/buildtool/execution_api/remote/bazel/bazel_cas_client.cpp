@@ -37,7 +37,6 @@
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
 
 namespace {
 
@@ -190,14 +189,6 @@ auto BazelCasClient::FindMissingBlobs(
     std::unordered_set<bazel_re::Digest> const& digests) const noexcept
     -> std::unordered_set<bazel_re::Digest> {
     return FindMissingBlobs(instance_name, digests.begin(), digests.end());
-}
-
-auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
-                                      BazelBlobContainer const& blob_container)
-    const noexcept -> std::unordered_set<bazel_re::Digest> {
-    auto digests_range = blob_container.Digests();
-    return FindMissingBlobs(
-        instance_name, digests_range.begin(), digests_range.end());
 }
 
 auto BazelCasClient::BatchReadBlobs(

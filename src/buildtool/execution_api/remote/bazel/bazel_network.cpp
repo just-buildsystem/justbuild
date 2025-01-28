@@ -19,10 +19,11 @@
 #include <iterator>
 #include <utility>
 
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/transformed_range.hpp"
+#include "src/utils/cpp/back_map.hpp"
 
 BazelNetwork::BazelNetwork(
     std::string instance_name,
@@ -108,21 +109,25 @@ auto BazelNetwork::DoUploadBlobs(TIter const& first,
     }
 }
 
-auto BazelNetwork::UploadBlobs(BazelBlobContainer&& blobs,
+auto BazelNetwork::UploadBlobs(std::unordered_set<BazelBlob>&& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (skip_find_missing) {
-        auto blob_range = blobs.Blobs();
-        return DoUploadBlobs(blob_range.begin(), blob_range.end());
+        return DoUploadBlobs(blobs.begin(), blobs.end());
+    }
+
+    auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
+        &blobs, [](BazelBlob const& blob) { return blob.digest; });
+    if (not back_map.has_value()) {
+        return false;
     }
 
     // find digests of blobs missing in CAS
-    auto missing_digests_set = cas_->FindMissingBlobs(instance_name_, blobs);
-    std::vector missing_digests(missing_digests_set.begin(),
-                                missing_digests_set.end());
+    auto missing_digests =
+        cas_->FindMissingBlobs(instance_name_, back_map->GetKeys());
 
     if (not missing_digests.empty()) {
         // update missing blobs
-        auto missing_blobs = blobs.RelatedBlobs(missing_digests);
+        auto missing_blobs = back_map->GetValues(missing_digests);
         return DoUploadBlobs(missing_blobs.begin(), missing_blobs.end());
     }
     return true;

@@ -72,7 +72,7 @@ class BazelNetwork {
     /// \param blobs              The blobs to upload
     /// \param skip_find_missing  Skip finding missing blobs, just upload all
     /// \returns True if upload was successful, false otherwise
-    [[nodiscard]] auto UploadBlobs(BazelBlobContainer&& blobs,
+    [[nodiscard]] auto UploadBlobs(std::unordered_set<BazelBlob>&& blobs,
                                    bool skip_find_missing = false) noexcept
         -> bool;
 

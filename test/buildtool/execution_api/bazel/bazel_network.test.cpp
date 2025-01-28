@@ -15,9 +15,11 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <grpc/grpc.h>
@@ -82,7 +84,7 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
                   /*is_exec=*/false};
 
     // Search blobs via digest
-    REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar, baz}}));
+    REQUIRE(network.UploadBlobs({foo, bar, baz}));
 
     // Read blobs in order
     auto reader = network.CreateReader();
@@ -141,7 +143,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
                   /*is_exec=*/false};
 
     // Upload blobs
-    REQUIRE(network.UploadBlobs(BazelBlobContainer{{foo, bar}}));
+    REQUIRE(network.UploadBlobs({foo, bar}));
 
     // Set size to unknown
     foo.digest.set_size_bytes(0);

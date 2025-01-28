@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <compare>
+#include <functional>
 #include <utility>  // std::move
 
 #include "gsl/gsl"
@@ -52,7 +53,7 @@ BazelAction::BazelAction(
 
 auto BazelAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
-    BazelBlobContainer blobs{};
+    std::unordered_set<BazelBlob> blobs{};
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateBundlesForAction(&blobs, root_digest_, not do_cache);
     if (not action) {
@@ -138,7 +139,7 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     return nullptr;
 }
 
-auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
+auto BazelAction::CreateBundlesForAction(std::unordered_set<BazelBlob>* blobs,
                                          ArtifactDigest const& exec_dir,
                                          bool do_not_cache) const noexcept
     -> std::optional<bazel_re::Digest> {
@@ -146,7 +147,7 @@ auto BazelAction::CreateBundlesForAction(BazelBlobContainer* blobs,
     std::optional<StoreFunc> store_blob = std::nullopt;
     if (blobs != nullptr) {
         store_blob = [&blobs](BazelBlob&& blob) {
-            blobs->Emplace(std::move(blob));
+            blobs->emplace(std::move(blob));
         };
     }
     BazelMsgFactory::ActionDigestRequest request{

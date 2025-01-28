@@ -60,6 +60,7 @@
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "object_type"]
+    , ["src/utils/cpp", "back_map"]
     , ["src/utils/cpp", "gsl"]
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "transformed_range"]
