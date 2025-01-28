@@ -187,14 +187,14 @@ BazelCasClient::BazelCasClient(
 
 auto BazelCasClient::FindMissingBlobs(
     std::string const& instance_name,
-    std::vector<bazel_re::Digest> const& digests) const noexcept
-    -> std::vector<bazel_re::Digest> {
+    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
+    -> std::unordered_set<bazel_re::Digest> {
     return FindMissingBlobs(instance_name, digests.begin(), digests.end());
 }
 
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                                       BazelBlobContainer const& blob_container)
-    const noexcept -> std::vector<bazel_re::Digest> {
+    const noexcept -> std::unordered_set<bazel_re::Digest> {
     auto digests_range = blob_container.Digests();
     return FindMissingBlobs(
         instance_name, digests_range.begin(), digests_range.end());
@@ -430,8 +430,8 @@ template <class TForwardIter>
 auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                                       TForwardIter const& start,
                                       TForwardIter const& end) const noexcept
-    -> std::vector<bazel_re::Digest> {
-    std::vector<bazel_re::Digest> result;
+    -> std::unordered_set<bazel_re::Digest> {
+    std::unordered_set<bazel_re::Digest> result;
     if (start == end) {
         return result;
     }
@@ -461,7 +461,7 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                 auto batch =
                     ProcessResponseContents<bazel_re::Digest>(response);
                 for (auto&& x : batch) {
-                    result.emplace_back(std::move(x));
+                    result.emplace(std::move(x));
                 }
             }
             else {

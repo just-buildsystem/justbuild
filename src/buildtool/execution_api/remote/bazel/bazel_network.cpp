@@ -15,8 +15,8 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
-#include <unordered_map>
 #include <utility>
 
 #include "src/buildtool/execution_api/common/message_limits.hpp"
@@ -44,14 +44,12 @@ BazelNetwork::BazelNetwork(
 
 auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
     -> bool {
-    return cas_
-        ->FindMissingBlobs(instance_name_,
-                           std::vector<bazel_re::Digest>{digest})
-        .empty();
+    return cas_->FindMissingBlobs(instance_name_, {digest}).empty();
 }
 
-auto BazelNetwork::IsAvailable(std::vector<bazel_re::Digest> const& digests)
-    const noexcept -> std::vector<bazel_re::Digest> {
+auto BazelNetwork::IsAvailable(
+    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
+    -> std::unordered_set<bazel_re::Digest> {
     return cas_->FindMissingBlobs(instance_name_, digests);
 }
 
@@ -118,7 +116,9 @@ auto BazelNetwork::UploadBlobs(BazelBlobContainer&& blobs,
     }
 
     // find digests of blobs missing in CAS
-    auto missing_digests = cas_->FindMissingBlobs(instance_name_, blobs);
+    auto missing_digests_set = cas_->FindMissingBlobs(instance_name_, blobs);
+    std::vector missing_digests(missing_digests_set.begin(),
+                                missing_digests_set.end());
 
     if (not missing_digests.empty()) {
         // update missing blobs

@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include <grpcpp/support/status.h>
@@ -53,8 +54,8 @@ class BazelCasClient {
     /// \returns The digests of blobs not found in CAS
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
-        std::vector<bazel_re::Digest> const& digests) const noexcept
-        -> std::vector<bazel_re::Digest>;
+        std::unordered_set<bazel_re::Digest> const& digests) const noexcept
+        -> std::unordered_set<bazel_re::Digest>;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance
@@ -63,7 +64,7 @@ class BazelCasClient {
     [[nodiscard]] auto FindMissingBlobs(
         std::string const& instance_name,
         BazelBlobContainer const& blob_container) const noexcept
-        -> std::vector<bazel_re::Digest>;
+        -> std::unordered_set<bazel_re::Digest>;
 
     /// \brief Upload multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
@@ -162,7 +163,7 @@ class BazelCasClient {
     [[nodiscard]] auto FindMissingBlobs(std::string const& instance_name,
                                         TOutputIter const& start,
                                         TOutputIter const& end) const noexcept
-        -> std::vector<bazel_re::Digest>;
+        -> std::unordered_set<bazel_re::Digest>;
 
     template <typename TRequest, typename TForwardIter>
     [[nodiscard]] auto CreateBatchRequestsMaxSize(

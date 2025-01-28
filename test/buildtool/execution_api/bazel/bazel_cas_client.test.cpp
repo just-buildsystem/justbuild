@@ -14,9 +14,11 @@
 
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"

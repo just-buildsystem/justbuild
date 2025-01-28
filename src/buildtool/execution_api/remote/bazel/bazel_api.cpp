@@ -49,6 +49,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/transformed_range.hpp"
 
@@ -602,23 +603,17 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::IsAvailable(
     std::vector<ArtifactDigest> const& digests) const noexcept
     -> std::vector<ArtifactDigest> {
-    std::vector<bazel_re::Digest> bazel_digests;
-    bazel_digests.reserve(digests.size());
-    std::unordered_map<bazel_re::Digest, ArtifactDigest const*> digest_map;
-    for (auto const& digest : digests) {
-        auto const& bazel_digest =
-            bazel_digests.emplace_back(ArtifactDigestFactory::ToBazel(digest));
-        digest_map.insert_or_assign(bazel_digest, &digest);
+    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
+        &digests, ArtifactDigestFactory::ToBazel);
+    if (not back_map.has_value()) {
+        return digests;
     }
-    auto const bazel_result = network_->IsAvailable(bazel_digests);
+
+    auto const bazel_result = network_->IsAvailable(back_map->GetKeys());
+    auto missing = back_map->GetValues(bazel_result);
     std::vector<ArtifactDigest> result;
-    result.reserve(bazel_result.size());
-    for (auto const& bazel_digest : bazel_result) {
-        auto it = digest_map.find(bazel_digest);
-        if (it != digest_map.end()) {
-            result.push_back(*it->second);
-        }
-    }
+    result.reserve(missing.size());
+    std::move(missing.begin(), missing.end(), std::back_inserter(result));
     return result;
 }
 

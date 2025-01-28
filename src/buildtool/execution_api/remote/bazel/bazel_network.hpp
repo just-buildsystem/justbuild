@@ -18,6 +18,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -51,8 +52,9 @@ class BazelNetwork {
     [[nodiscard]] auto IsAvailable(
         bazel_re::Digest const& digest) const noexcept -> bool;
 
-    [[nodiscard]] auto IsAvailable(std::vector<bazel_re::Digest> const& digests)
-        const noexcept -> std::vector<bazel_re::Digest>;
+    [[nodiscard]] auto IsAvailable(
+        std::unordered_set<bazel_re::Digest> const& digests) const noexcept
+        -> std::unordered_set<bazel_re::Digest>;
 
     [[nodiscard]] auto SplitBlob(bazel_re::Digest const& blob_digest)
         const noexcept -> std::optional<std::vector<bazel_re::Digest>>;
