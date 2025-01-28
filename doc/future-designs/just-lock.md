@@ -120,11 +120,12 @@ OPTIONS:
   --launcher JSON     Local launcher to use for commands. Given as a JSON list of strings.
                       If missing, ["env", "--"] is used. User must pass it also to `just-mr`.
   --clone JSON        Mapping from filesystem path to pair of repository name and a list of bindings.
-                      For each map entry, the repository found by following the bindings from the given repository,
-                      after all repositories have been imported, will be cloned in the specified filesystem directory and
-                      its description in the output configuration made to point to this clone.
-                      The specified repository names must be known, i.e., an initial repository or declared import,
-                      and both the initial and target repositories will be kept during deduplication.
+                      For each map entry, the target repository, found by following the bindings from a given start
+                      repository, after all repositories have been imported, will have its workspace root cloned in
+                      the specified filesystem directory and its description in the output configuration made to
+                      point to this clone.
+                      The start repository names must be known, i.e., an initial repository or declared import,
+                      and both the start and target repositories will be kept during deduplication.
 ```
 
 - Notes:
