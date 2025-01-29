@@ -185,13 +185,6 @@ BazelCasClient::BazelCasClient(
         CreateChannelWithCredentials(server, port, auth));
 }
 
-auto BazelCasClient::FindMissingBlobs(
-    std::string const& instance_name,
-    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
-    -> std::unordered_set<bazel_re::Digest> {
-    return FindMissingBlobs(instance_name, digests.begin(), digests.end());
-}
-
 auto BazelCasClient::BatchReadBlobs(
     std::string const& instance_name,
     std::vector<bazel_re::Digest>::const_iterator const& begin,
@@ -420,22 +413,21 @@ auto BazelCasClient::BlobSpliceSupport(
         hash_function, instance_name, stub_, &logger_);
 }
 
-template <class TForwardIter>
-auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
-                                      TForwardIter const& start,
-                                      TForwardIter const& end) const noexcept
+auto BazelCasClient::FindMissingBlobs(
+    std::string const& instance_name,
+    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
     -> std::unordered_set<bazel_re::Digest> {
     std::unordered_set<bazel_re::Digest> result;
-    if (start == end) {
+    if (digests.empty()) {
         return result;
     }
     try {
-        result.reserve(std::distance(start, end));
+        result.reserve(digests.size());
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::FindMissingBlobsRequest>(
                 instance_name,
-                start,
-                end,
+                digests.begin(),
+                digests.end(),
                 "FindMissingBlobs",
                 [](bazel_re::FindMissingBlobsRequest* request,
                    bazel_re::Digest const& x) {
@@ -463,17 +455,16 @@ auto BazelCasClient::FindMissingBlobs(std::string const& instance_name,
                     &logger_, LogLevel::Error, status, "FindMissingBlobs");
             }
         }
-        logger_.Emit(LogLevel::Trace, [&start, &end, &result]() {
+        logger_.Emit(LogLevel::Trace, [&digests, &result]() {
             std::ostringstream oss{};
             oss << "find missing blobs" << std::endl;
-            std::for_each(start, end, [&oss](auto const& digest) {
+            for (auto const& digest : digests) {
                 oss << fmt::format(" - {}", digest.hash()) << std::endl;
-            });
+            }
             oss << "missing blobs" << std::endl;
-            std::for_each(
-                result.cbegin(), result.cend(), [&oss](auto const& digest) {
-                    oss << fmt::format(" - {}", digest.hash()) << std::endl;
-                });
+            for (auto const& digest : result) {
+                oss << fmt::format(" - {}", digest.hash()) << std::endl;
+            }
             return oss.str();
         });
     } catch (...) {

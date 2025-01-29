@@ -149,12 +149,6 @@ class BazelCasClient {
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 
-    template <class TOutputIter>
-    [[nodiscard]] auto FindMissingBlobs(std::string const& instance_name,
-                                        TOutputIter const& start,
-                                        TOutputIter const& end) const noexcept
-        -> std::unordered_set<bazel_re::Digest>;
-
     template <typename TRequest, typename TForwardIter>
     [[nodiscard]] auto CreateBatchRequestsMaxSize(
         std::string const& instance_name,
