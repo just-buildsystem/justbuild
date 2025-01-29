@@ -17,7 +17,6 @@
 #include <functional>
 #include <utility>
 
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -44,23 +43,13 @@ BazelNetwork::BazelNetwork(
 
 auto BazelNetwork::IsAvailable(ArtifactDigest const& digest) const noexcept
     -> bool {
-    return cas_
-        ->FindMissingBlobs(instance_name_,
-                           {ArtifactDigestFactory::ToBazel(digest)})
-        .empty();
+    return cas_->FindMissingBlobs(instance_name_, {digest}).empty();
 }
 
 auto BazelNetwork::FindMissingBlobs(
     std::unordered_set<ArtifactDigest> const& digests) const noexcept
     -> std::unordered_set<ArtifactDigest> {
-    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
-        &digests, ArtifactDigestFactory::ToBazel);
-    if (not back_map.has_value()) {
-        return digests;
-    }
-    auto missing_digests =
-        cas_->FindMissingBlobs(instance_name_, back_map->GetKeys());
-    return back_map->GetValues(missing_digests);
+    return cas_->FindMissingBlobs(instance_name_, digests);
 }
 
 auto BazelNetwork::SplitBlob(bazel_re::Digest const& blob_digest) const noexcept

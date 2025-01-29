@@ -427,19 +427,26 @@ auto BazelCasClient::BlobSpliceSupport(
 
 auto BazelCasClient::FindMissingBlobs(
     std::string const& instance_name,
-    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
-    -> std::unordered_set<bazel_re::Digest> {
-    std::unordered_set<bazel_re::Digest> result;
+    std::unordered_set<ArtifactDigest> const& digests) const noexcept
+    -> std::unordered_set<ArtifactDigest> {
+    std::unordered_set<ArtifactDigest> result;
     if (digests.empty()) {
         return result;
     }
+
+    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
+        &digests, ArtifactDigestFactory::ToBazel);
+    if (not back_map.has_value()) {
+        return digests;
+    }
+
     try {
         result.reserve(digests.size());
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::FindMissingBlobsRequest>(
                 instance_name,
-                digests.begin(),
-                digests.end(),
+                back_map->GetKeys().begin(),
+                back_map->GetKeys().end(),
                 "FindMissingBlobs",
                 [](bazel_re::FindMissingBlobsRequest* request,
                    bazel_re::Digest const& x) {
@@ -456,10 +463,11 @@ auto BazelCasClient::FindMissingBlobs(
                 retry_config_,
                 logger_);
             if (ok) {
-                auto batch =
-                    ProcessResponseContents<bazel_re::Digest>(response);
-                for (auto&& x : batch) {
-                    result.emplace(std::move(x));
+                for (auto& batch :
+                     ProcessResponseContents<bazel_re::Digest>(response)) {
+                    if (auto value = back_map->GetReference(batch)) {
+                        result.emplace(*value.value());
+                    }
                 }
             }
             else {

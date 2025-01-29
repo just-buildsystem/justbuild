@@ -24,8 +24,6 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -59,15 +57,12 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
         auto const digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
-        auto bazel_digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
-            hash_function, content);
 
         // Valid blob
         ArtifactBlob blob{digest, content, /*is_exec=*/false};
 
         // Search blob via digest
-        auto digests =
-            cas_client.FindMissingBlobs(instance_name, {bazel_digest});
+        auto digests = cas_client.FindMissingBlobs(instance_name, {digest});
         CHECK(digests.size() <= 1);
 
         if (not digests.empty()) {
@@ -80,17 +75,5 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         REQUIRE(blobs.size() == 1);
         CHECK(blobs.begin()->digest == digest);
         CHECK(*blobs.begin()->data == content);
-    }
-
-    SECTION("Invalid digest and blob") {
-        // Faulty digest
-        bazel_re::Digest faulty_digest{};
-        faulty_digest.set_hash(
-            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-        faulty_digest.set_size_bytes(4);
-
-        // Search faulty digest
-        CHECK(cas_client.FindMissingBlobs(instance_name, {faulty_digest})
-                  .size() == 1);
     }
 }
