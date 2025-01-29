@@ -17,7 +17,6 @@
 #include <functional>
 #include <utility>
 
-#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"

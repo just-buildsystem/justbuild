@@ -27,7 +27,6 @@
     [ ["@", "fmt", "", "fmt"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/execution_api/common", "content_blob_container"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/utils/cpp", "hex_string"]

@@ -15,9 +15,50 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
 
-#include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/common/content_blob_container.hpp"
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <string>
+#include <utility>  //std::move
 
-using ArtifactBlob = ContentBlob<ArtifactDigest>;
+#include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/utils/cpp/hash_combine.hpp"
+
+struct ArtifactBlob final {
+    ArtifactBlob(ArtifactDigest digest,
+                 std::string mydata,
+                 bool is_exec) noexcept
+        : digest{std::move(digest)},
+          data{std::make_shared<std::string>(std::move(mydata))},
+          is_exec{is_exec} {}
+
+    ArtifactBlob(ArtifactDigest digest,
+                 gsl::not_null<std::shared_ptr<std::string>> const& mydata,
+                 bool is_exec) noexcept
+        : digest{std::move(digest)}, data(mydata), is_exec{is_exec} {}
+
+    [[nodiscard]] auto operator==(ArtifactBlob const& other) const noexcept
+        -> bool {
+        return digest == other.digest and is_exec == other.is_exec;
+    }
+
+    ArtifactDigest digest;
+    std::shared_ptr<std::string> data;
+    bool is_exec = false;
+};
+
+namespace std {
+template <>
+struct hash<ArtifactBlob> {
+    [[nodiscard]] auto operator()(ArtifactBlob const& blob) const noexcept
+        -> std::size_t {
+        std::size_t seed{};
+        hash_combine(&seed, blob.digest);
+        hash_combine(&seed, blob.is_exec);
+        return seed;
+    }
+};
+}  // namespace std
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP

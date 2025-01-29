@@ -34,7 +34,6 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
-#include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
