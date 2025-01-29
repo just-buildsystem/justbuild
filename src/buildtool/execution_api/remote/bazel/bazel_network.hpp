@@ -27,8 +27,8 @@
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
@@ -72,7 +72,7 @@ class BazelNetwork {
     /// \param blobs              The blobs to upload
     /// \param skip_find_missing  Skip finding missing blobs, just upload all
     /// \returns True if upload was successful, false otherwise
-    [[nodiscard]] auto UploadBlobs(std::unordered_set<BazelBlob>&& blobs,
+    [[nodiscard]] auto UploadBlobs(std::unordered_set<ArtifactBlob>&& blobs,
                                    bool skip_find_missing = false) noexcept
         -> bool;
 
@@ -99,7 +99,7 @@ class BazelNetwork {
     HashFunction const& hash_function_;
 
     [[nodiscard]] auto DoUploadBlobs(
-        std::unordered_set<BazelBlob> blobs) noexcept -> bool;
+        std::unordered_set<ArtifactBlob> blobs) noexcept -> bool;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_NETWORK_HPP

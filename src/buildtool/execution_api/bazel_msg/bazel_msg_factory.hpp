@@ -30,7 +30,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -203,7 +202,7 @@ class BazelMsgFactory {
 };
 
 struct BazelMsgFactory::ActionDigestRequest final {
-    using BlobStoreFunc = std::function<void(BazelBlob&&)>;
+    using BlobStoreFunc = std::function<void(ArtifactBlob&&)>;
 
     template <typename T>
     using VectorPtr = gsl::not_null<std::vector<T> const*>;

@@ -913,15 +913,10 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
         return std::nullopt;
     }
 
+    auto result = action->digest;
     if (request.store_blob) {
-        std::invoke(*request.store_blob,
-                    BazelBlob{ArtifactDigestFactory::ToBazel(cmd->digest),
-                              cmd->data,
-                              cmd->is_exec});
-        std::invoke(*request.store_blob,
-                    BazelBlob{ArtifactDigestFactory::ToBazel(action->digest),
-                              action->data,
-                              action->is_exec});
+        std::invoke(*request.store_blob, *std::move(cmd));
+        std::invoke(*request.store_blob, *std::move(action));
     }
-    return action->digest;
+    return result;
 }

@@ -28,13 +28,11 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
@@ -84,18 +82,9 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
                          hash_function, content_baz),
                      content_baz,
                      /*is_exec=*/false};
-    BazelBlob bazel_foo{ArtifactDigestFactory::ToBazel(foo.digest),
-                        foo.data,
-                        /*is_exec=*/false};
-    BazelBlob bazel_bar{ArtifactDigestFactory::ToBazel(bar.digest),
-                        content_bar,
-                        /*is_exec=*/false};
-    BazelBlob bazel_baz{ArtifactDigestFactory::ToBazel(baz.digest),
-                        content_baz,
-                        /*is_exec=*/false};
 
     // Search blobs via digest
-    REQUIRE(network.UploadBlobs({bazel_foo, bazel_bar, bazel_baz}));
+    REQUIRE(network.UploadBlobs({foo, bar, baz}));
 
     // Read blobs in order
     auto reader = network.CreateReader();
@@ -155,15 +144,9 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     ArtifactBlob bar{ArtifactDigest(info_bar, /*size_unknown=*/0),
                      content_bar,
                      /*is_exec=*/false};
-    BazelBlob bazel_foo{ArtifactDigestFactory::ToBazel(foo.digest),
-                        foo.data,
-                        /*is_exec=*/false};
-    BazelBlob bazel_bar{ArtifactDigestFactory::ToBazel(bar.digest),
-                        content_bar,
-                        /*is_exec=*/false};
 
     // Upload blobs
-    REQUIRE(network.UploadBlobs({bazel_foo, bazel_bar}));
+    REQUIRE(network.UploadBlobs({foo, bar}));
 
     // Read blobs
     auto reader = network.CreateReader();

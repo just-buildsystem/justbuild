@@ -31,7 +31,6 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
@@ -136,23 +135,6 @@ namespace {
             {artifact_info.digest}, other_api, network, info_map);
     }
     return true;
-}
-
-[[nodiscard]] auto ConvertToBazelBlobContainer(
-    std::unordered_set<ArtifactBlob>&& container) noexcept
-    -> std::optional<std::unordered_set<BazelBlob>> {
-    std::unordered_set<BazelBlob> blobs;
-    try {
-        blobs.reserve(container.size());
-        for (const auto& blob : container) {
-            blobs.emplace(ArtifactDigestFactory::ToBazel(blob.digest),
-                          blob.data,
-                          blob.is_exec);
-        }
-    } catch (...) {
-        return std::nullopt;
-    }
-    return blobs;
 }
 
 }  // namespace
@@ -529,10 +511,7 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
                                     bool skip_find_missing) const noexcept
     -> bool {
-    auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));
-    return bazel_blobs ? network_->UploadBlobs(*std::move(bazel_blobs),
-                                               skip_find_missing)
-                       : false;
+    return network_->UploadBlobs(std::move(blobs), skip_find_missing);
 }
 
 [[nodiscard]] auto BazelApi::UploadTree(

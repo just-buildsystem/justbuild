@@ -17,6 +17,8 @@
 #include <functional>
 #include <utility>
 
+#include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -73,8 +75,8 @@ auto BazelNetwork::BlobSpliceSupport() const noexcept -> bool {
     return cas_->BlobSpliceSupport(hash_function_, instance_name_);
 }
 
-auto BazelNetwork::DoUploadBlobs(std::unordered_set<BazelBlob> blobs) noexcept
-    -> bool {
+auto BazelNetwork::DoUploadBlobs(
+    std::unordered_set<ArtifactBlob> blobs) noexcept -> bool {
     if (blobs.empty()) {
         return true;
     }
@@ -93,16 +95,28 @@ auto BazelNetwork::DoUploadBlobs(std::unordered_set<BazelBlob> blobs) noexcept
         }
 
         for (auto const& it : to_stream) {
-            if (not cas_->UpdateSingleBlob(instance_name_, *it)) {
+            BazelBlob bazel_blob{ArtifactDigestFactory::ToBazel(it->digest),
+                                 it->data,
+                                 it->is_exec};
+            if (not cas_->UpdateSingleBlob(instance_name_, bazel_blob)) {
                 return false;
             }
             blobs.erase(it);
         }
         to_stream.clear();
 
+        std::unordered_set<BazelBlob> bazel_blobs;
+        bazel_blobs.reserve(blobs.size());
+        for (auto const& blob : blobs) {
+            bazel_blobs.emplace(ArtifactDigestFactory::ToBazel(blob.digest),
+                                blob.data,
+                                blob.is_exec);
+        }
+
         // After uploading via stream api, only small blobs that may be uploaded
         // using batch are in the container:
-        return cas_->BatchUpdateBlobs(instance_name_, blobs) == blobs.size();
+        return cas_->BatchUpdateBlobs(instance_name_, bazel_blobs) ==
+               bazel_blobs.size();
 
     } catch (...) {
         Logger::Log(LogLevel::Warning, "Unknown exception");
@@ -110,11 +124,13 @@ auto BazelNetwork::DoUploadBlobs(std::unordered_set<BazelBlob> blobs) noexcept
     }
 }
 
-auto BazelNetwork::UploadBlobs(std::unordered_set<BazelBlob>&& blobs,
+auto BazelNetwork::UploadBlobs(std::unordered_set<ArtifactBlob>&& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (not skip_find_missing) {
-        auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
-            &blobs, [](BazelBlob const& blob) { return blob.digest; });
+        auto const back_map = BackMap<bazel_re::Digest, ArtifactBlob>::Make(
+            &blobs, [](ArtifactBlob const& blob) {
+                return ArtifactDigestFactory::ToBazel(blob.digest);
+            });
         if (not back_map.has_value()) {
             return false;
         }

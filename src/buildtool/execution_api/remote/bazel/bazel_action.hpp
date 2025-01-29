@@ -25,7 +25,7 @@
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
@@ -67,7 +67,7 @@ class BazelAction final : public IExecutionAction {
         std::map<std::string, std::string> const& properties) noexcept;
 
     [[nodiscard]] auto CreateBundlesForAction(
-        std::unordered_set<BazelBlob>* blobs,
+        std::unordered_set<ArtifactBlob>* blobs,
         ArtifactDigest const& exec_dir,
         bool do_not_cache) const noexcept -> std::optional<bazel_re::Digest>;
 };

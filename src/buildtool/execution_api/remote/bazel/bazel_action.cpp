@@ -21,7 +21,6 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_response.hpp"
@@ -53,7 +52,7 @@ BazelAction::BazelAction(
 
 auto BazelAction::Execute(Logger const* logger) noexcept
     -> IExecutionResponse::Ptr {
-    std::unordered_set<BazelBlob> blobs{};
+    std::unordered_set<ArtifactBlob> blobs{};
     auto do_cache = CacheEnabled(cache_flag_);
     auto action = CreateBundlesForAction(&blobs, root_digest_, not do_cache);
     if (not action) {
@@ -139,14 +138,14 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     return nullptr;
 }
 
-auto BazelAction::CreateBundlesForAction(std::unordered_set<BazelBlob>* blobs,
-                                         ArtifactDigest const& exec_dir,
-                                         bool do_not_cache) const noexcept
-    -> std::optional<bazel_re::Digest> {
+auto BazelAction::CreateBundlesForAction(
+    std::unordered_set<ArtifactBlob>* blobs,
+    ArtifactDigest const& exec_dir,
+    bool do_not_cache) const noexcept -> std::optional<bazel_re::Digest> {
     using StoreFunc = BazelMsgFactory::ActionDigestRequest::BlobStoreFunc;
     std::optional<StoreFunc> store_blob = std::nullopt;
     if (blobs != nullptr) {
-        store_blob = [&blobs](BazelBlob&& blob) {
+        store_blob = [&blobs](ArtifactBlob&& blob) {
             blobs->emplace(std::move(blob));
         };
     }
