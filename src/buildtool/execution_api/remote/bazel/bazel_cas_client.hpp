@@ -65,7 +65,7 @@ class BazelCasClient {
     /// \returns The count of successfully updated blobs
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
-        std::unordered_set<BazelBlob> const& blobs) const noexcept
+        std::unordered_set<ArtifactBlob> const& blobs) const noexcept
         -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer
@@ -158,7 +158,7 @@ class BazelCasClient {
             request_builder) const noexcept -> std::vector<TRequest>;
 
     [[nodiscard]] static auto CreateUpdateBlobsSingleRequest(
-        BazelBlob const& b) noexcept
+        ArtifactBlob const& b) noexcept
         -> bazel_re::BatchUpdateBlobsRequest_Request;
 
     [[nodiscard]] static auto CreateGetTreeRequest(

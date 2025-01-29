@@ -12,7 +12,11 @@
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , ["@", "src", "src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/common"
+      , "artifact_blob_container"
+      ]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/common"

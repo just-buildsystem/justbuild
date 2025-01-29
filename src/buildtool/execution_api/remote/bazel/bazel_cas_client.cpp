@@ -485,9 +485,9 @@ auto BazelCasClient::FindMissingBlobs(
     return result;
 }
 
-auto BazelCasClient::BatchUpdateBlobs(
-    std::string const& instance_name,
-    std::unordered_set<BazelBlob> const& blobs) const noexcept -> std::size_t {
+auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
+                                      std::unordered_set<ArtifactBlob> const&
+                                          blobs) const noexcept -> std::size_t {
     if (blobs.empty()) {
         return 0;
     }
@@ -501,7 +501,7 @@ auto BazelCasClient::BatchUpdateBlobs(
                 blobs.end(),
                 "BatchUpdateBlobs",
                 [](bazel_re::BatchUpdateBlobsRequest* request,
-                   BazelBlob const& x) {
+                   ArtifactBlob const& x) {
                     *(request->add_requests()) =
                         BazelCasClient::CreateUpdateBlobsSingleRequest(x);
                 });
@@ -572,10 +572,11 @@ auto BazelCasClient::BatchUpdateBlobs(
         // we are going extra defensive here and also consider missing responses
         // to be a failed blob update. Issue a retry for the missing blobs.
         logger_.Emit(LogLevel::Trace, "Retrying with missing blobs");
-        std::unordered_set<BazelBlob> missing_blobs;
+        std::unordered_set<ArtifactBlob> missing_blobs;
         missing_blobs.reserve(missing);
         for (auto const& blob : blobs) {
-            if (not updated.contains(blob.digest)) {
+            auto bazel_digest = ArtifactDigestFactory::ToBazel(blob.digest);
+            if (not updated.contains(bazel_digest)) {
                 missing_blobs.emplace(blob);
             }
         }
@@ -586,11 +587,16 @@ auto BazelCasClient::BatchUpdateBlobs(
         // trying that again; instead, we fall back to uploading each blob
         // sequentially.
         logger_.Emit(LogLevel::Debug, "Falling back to sequential blob upload");
-        return std::count_if(blobs.begin(),
-                             blobs.end(),
-                             [this, &instance_name](BazelBlob const& blob) {
-                                 return UpdateSingleBlob(instance_name, blob);
-                             });
+        return std::count_if(
+            blobs.begin(),
+            blobs.end(),
+            [this, &instance_name](ArtifactBlob const& blob) {
+                BazelBlob bazel_blob{
+                    ArtifactDigestFactory::ToBazel(blob.digest),
+                    blob.data,
+                    blob.is_exec};
+                return UpdateSingleBlob(instance_name, bazel_blob);
+            });
     }
     return updated.size();
 }
@@ -675,10 +681,11 @@ auto BazelCasClient::CreateBatchRequestsMaxSize(
     return result;
 }
 
-auto BazelCasClient::CreateUpdateBlobsSingleRequest(BazelBlob const& b) noexcept
+auto BazelCasClient::CreateUpdateBlobsSingleRequest(
+    ArtifactBlob const& b) noexcept
     -> bazel_re::BatchUpdateBlobsRequest_Request {
     bazel_re::BatchUpdateBlobsRequest_Request r{};
-    (*r.mutable_digest()) = b.digest;
+    (*r.mutable_digest()) = ArtifactDigestFactory::ToBazel(b.digest);
     r.set_data(*b.data);
     return r;
 }

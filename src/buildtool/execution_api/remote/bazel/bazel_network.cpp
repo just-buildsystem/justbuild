@@ -115,18 +115,9 @@ auto BazelNetwork::DoUploadBlobs(
         }
         to_stream.clear();
 
-        std::unordered_set<BazelBlob> bazel_blobs;
-        bazel_blobs.reserve(blobs.size());
-        for (auto const& blob : blobs) {
-            bazel_blobs.emplace(ArtifactDigestFactory::ToBazel(blob.digest),
-                                blob.data,
-                                blob.is_exec);
-        }
-
         // After uploading via stream api, only small blobs that may be uploaded
         // using batch are in the container:
-        return cas_->BatchUpdateBlobs(instance_name_, bazel_blobs) ==
-               bazel_blobs.size();
+        return cas_->BatchUpdateBlobs(instance_name_, blobs) == blobs.size();
 
     } catch (...) {
         Logger::Log(LogLevel::Warning, "Unknown exception");
