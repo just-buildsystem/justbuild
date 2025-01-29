@@ -108,8 +108,7 @@
                               &*auth_config,
                               &retry_config);
 
-    if (cas_client.BatchUpdateBlobs(
-            instance_name, blobs.begin(), blobs.end()) == blobs.size()) {
+    if (cas_client.BatchUpdateBlobs(instance_name, blobs) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(action_id);
     }
     return nullptr;

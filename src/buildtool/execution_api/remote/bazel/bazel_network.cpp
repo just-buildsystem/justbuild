@@ -102,8 +102,7 @@ auto BazelNetwork::DoUploadBlobs(std::unordered_set<BazelBlob> blobs) noexcept
 
         // After uploading via stream api, only small blobs that may be uploaded
         // using batch are in the container:
-        return cas_->BatchUpdateBlobs(
-                   instance_name_, blobs.begin(), blobs.end()) == blobs.size();
+        return cas_->BatchUpdateBlobs(instance_name_, blobs) == blobs.size();
 
     } catch (...) {
         Logger::Log(LogLevel::Warning, "Unknown exception");

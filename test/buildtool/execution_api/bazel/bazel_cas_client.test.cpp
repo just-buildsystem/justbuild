@@ -68,9 +68,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
         if (not digests.empty()) {
             // Upload blob, if not found
-            std::unordered_set<BazelBlob> to_upload{blob};
-            CHECK(cas_client.BatchUpdateBlobs(
-                      instance_name, to_upload.begin(), to_upload.end()) == 1U);
+            CHECK(cas_client.BatchUpdateBlobs(instance_name, {blob}) == 1U);
         }
 
         // Read blob
@@ -97,9 +95,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
                   .size() == 1);
 
         // Try upload faulty blob
-        std::unordered_set<BazelBlob> to_upload{faulty_blob};
-        CHECK(cas_client.BatchUpdateBlobs(
-                  instance_name, to_upload.begin(), to_upload.end()) == 0U);
+        CHECK(cas_client.BatchUpdateBlobs(instance_name, {faulty_blob}) == 0U);
 
         // Read blob via faulty digest
         std::vector<bazel_re::Digest> to_read{faulty_digest};

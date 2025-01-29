@@ -59,13 +59,11 @@ class BazelCasClient {
 
     /// \brief Upload multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
-    /// \param[in] begin         Start of the blobs to upload
-    /// \param[in] end           End of the blobs to upload
-    /// \returns The digests of blobs successfully updated
+    /// \param[in] blobs         Blobs to upload
+    /// \returns The count of successfully updated blobs
     [[nodiscard]] auto BatchUpdateBlobs(
         std::string const& instance_name,
-        std::unordered_set<BazelBlob>::const_iterator const& begin,
-        std::unordered_set<BazelBlob>::const_iterator const& end) const noexcept
+        std::unordered_set<BazelBlob> const& blobs) const noexcept
         -> std::size_t;
 
     /// \brief Read multiple blobs in batch transfer

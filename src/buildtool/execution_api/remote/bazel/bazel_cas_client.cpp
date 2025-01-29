@@ -475,28 +475,26 @@ auto BazelCasClient::FindMissingBlobs(
 
 auto BazelCasClient::BatchUpdateBlobs(
     std::string const& instance_name,
-    std::unordered_set<BazelBlob>::const_iterator const& begin,
-    std::unordered_set<BazelBlob>::const_iterator const& end) const noexcept
-    -> std::size_t {
-    if (begin == end) {
+    std::unordered_set<BazelBlob> const& blobs) const noexcept -> std::size_t {
+    if (blobs.empty()) {
         return 0;
     }
-    std::vector<bazel_re::Digest> result;
+    std::unordered_set<bazel_re::Digest> updated;
     try {
+        updated.reserve(blobs.size());
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::BatchUpdateBlobsRequest>(
                 instance_name,
-                begin,
-                end,
+                blobs.begin(),
+                blobs.end(),
                 "BatchUpdateBlobs",
                 [](bazel_re::BatchUpdateBlobsRequest* request,
                    BazelBlob const& x) {
                     *(request->add_requests()) =
                         BazelCasClient::CreateUpdateBlobsSingleRequest(x);
                 });
-        result.reserve(std::distance(begin, end));
         auto batch_update_blobs =
-            [this, &result](auto const& request) -> RetryResponse {
+            [this, &updated](auto const& request) -> RetryResponse {
             bazel_re::BatchUpdateBlobsResponse response;
             grpc::ClientContext context;
             auto status = stub_->BatchUpdateBlobs(&context, request, &response);
@@ -510,9 +508,9 @@ auto BazelCasClient::BatchUpdateBlobs(
                         v->push_back(r.digest());
                     });
                 if (batch_response.ok) {
-                    std::move(std::begin(batch_response.result),
-                              std::end(batch_response.result),
-                              std::back_inserter(result));
+                    std::move(batch_response.result.begin(),
+                              batch_response.result.end(),
+                              std::inserter(updated, updated.end()));
                     return {.ok = true};
                 }
                 return {.ok = false,
@@ -541,58 +539,48 @@ auto BazelCasClient::BatchUpdateBlobs(
         logger_.Emit(LogLevel::Warning,
                      "Caught exception in DoBatchUpdateBlobs");
     }
-    logger_.Emit(LogLevel::Trace, [begin, end, &result]() {
+    logger_.Emit(LogLevel::Trace, [&blobs, &updated]() {
         std::ostringstream oss{};
         oss << "upload blobs" << std::endl;
-        std::for_each(begin, end, [&oss](BazelBlob const& blob) {
+        for (auto const& blob : blobs) {
             oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
-        });
+        }
         oss << "received blobs" << std::endl;
-        std::for_each(
-            result.cbegin(), result.cend(), [&oss](auto const& digest) {
-                oss << fmt::format(" - {}", digest.hash()) << std::endl;
-            });
+        for (auto const& digest : updated) {
+            oss << fmt::format(" - {}", digest.hash()) << std::endl;
+        }
         return oss.str();
     });
 
-    auto missing = std::distance(begin, end) - result.size();
-    if (not result.empty() and missing > 0) {
+    auto const missing = blobs.size() - updated.size();
+    if (not updated.empty() and missing != 0) {
         // The remote execution protocol is a bit unclear about how to deal with
         // blob updates for which we got no response. While some clients
         // consider a blob update failed only if a failed response is received,
         // we are going extra defensive here and also consider missing responses
         // to be a failed blob update. Issue a retry for the missing blobs.
         logger_.Emit(LogLevel::Trace, "Retrying with missing blobs");
-        auto received_digests =
-            std::unordered_set<bazel_re::Digest>{result.begin(), result.end()};
-        auto missing_blobs = std::unordered_set<BazelBlob>{};
+        std::unordered_set<BazelBlob> missing_blobs;
         missing_blobs.reserve(missing);
-        std::for_each(
-            begin, end, [&received_digests, &missing_blobs](auto const& blob) {
-                if (not received_digests.contains(blob.digest)) {
-                    missing_blobs.emplace(blob);
-                }
-            });
-        return result.size() + BatchUpdateBlobs(instance_name,
-                                                missing_blobs.begin(),
-                                                missing_blobs.end());
+        for (auto const& blob : blobs) {
+            if (not updated.contains(blob.digest)) {
+                missing_blobs.emplace(blob);
+            }
+        }
+        return updated.size() + BatchUpdateBlobs(instance_name, missing_blobs);
     }
-    if (result.empty() and missing > 0) {
+    if (updated.empty() and missing != 0) {
         // The batch upload did not make _any_ progress. So there is no value in
         // trying that again; instead, we fall back to uploading each blob
         // sequentially.
         logger_.Emit(LogLevel::Debug, "Falling back to sequential blob upload");
-        std::size_t count = 0;
-        std::for_each(
-            begin, end, [this, &count, &instance_name](auto const& blob) {
-                if (UpdateSingleBlob(instance_name, blob)) {
-                    count += 1;
-                }
-            });
-        return count;
+        return std::count_if(blobs.begin(),
+                             blobs.end(),
+                             [this, &instance_name](BazelBlob const& blob) {
+                                 return UpdateSingleBlob(instance_name, blob);
+                             });
     }
-
-    return result.size();
+    return updated.size();
 }
 
 namespace detail {
