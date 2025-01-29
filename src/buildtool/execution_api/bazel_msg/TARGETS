@@ -1,11 +1,8 @@
 { "bazel_msg":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bazel_msg"]
-  , "hdrs": ["bazel_blob_container.hpp", "bazel_common.hpp"]
-  , "deps":
-    [ ["src/buildtool/common", "bazel_types"]
-    , ["src/buildtool/execution_api/common", "content_blob_container"]
-    ]
+  , "hdrs": ["bazel_common.hpp"]
+  , "deps": [["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }
 , "bazel_msg_factory":
