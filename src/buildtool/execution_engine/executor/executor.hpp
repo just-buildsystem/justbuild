@@ -28,6 +28,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -335,7 +336,7 @@ class ExecutorImpl {
         }
 
         // upload missing entries (blobs or trees)
-        ArtifactBlobContainer container;
+        std::unordered_set<ArtifactBlob> container;
         for (auto const& [digest, value] : missing_entries) {
             auto const entry = value->second;
             auto content = entry->RawData();
@@ -350,7 +351,7 @@ class ExecutorImpl {
                                  std::move(*content),
                                  IsExecutableObject(entry->Type())},
                     /*exception_is_fatal=*/true,
-                    [&api](ArtifactBlobContainer&& blobs) {
+                    [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                         return api.Upload(std::move(blobs),
                                           /*skip_find_missing=*/true);
                     })) {
@@ -400,10 +401,9 @@ class ExecutorImpl {
             return false;
         }
 
-        return api.Upload(ArtifactBlobContainer{{ArtifactBlob{
-                              info.digest,
-                              std::move(*content),
-                              IsExecutableObject(info.type)}}},
+        return api.Upload({ArtifactBlob{info.digest,
+                                        std::move(*content),
+                                        IsExecutableObject(info.type)}},
                           /*skip_find_missing=*/true);
     }
 
@@ -492,10 +492,9 @@ class ExecutorImpl {
         }
         auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, *content);
-        if (not api.Upload(ArtifactBlobContainer{
-                {ArtifactBlob{digest,
-                              std::move(*content),
-                              IsExecutableObject(*object_type)}}})) {
+        if (not api.Upload({ArtifactBlob{digest,
+                                         std::move(*content),
+                                         IsExecutableObject(*object_type)}})) {
             return std::nullopt;
         }
         return Artifact::ObjectInfo{.digest = std::move(digest),

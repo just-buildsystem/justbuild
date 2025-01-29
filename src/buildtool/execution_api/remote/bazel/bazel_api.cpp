@@ -63,7 +63,7 @@ namespace {
     auto size = digests.size();
     auto reader = network->CreateReader();
     std::size_t count{};
-    ArtifactBlobContainer container{};
+    std::unordered_set<ArtifactBlob> container{};
     for (auto blobs : reader.ReadIncrementally(digests)) {
         if (count + blobs.size() > size) {
             Logger::Log(LogLevel::Warning,
@@ -80,7 +80,7 @@ namespace {
                     &container,
                     std::move(blob),
                     /*exception_is_fatal=*/true,
-                    [&api](ArtifactBlobContainer&& blobs) {
+                    [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                         return api.Upload(std::move(blobs),
                                           /*skip_find_missing=*/true);
                     })) {
@@ -139,7 +139,7 @@ namespace {
 }
 
 [[nodiscard]] auto ConvertToBazelBlobContainer(
-    ArtifactBlobContainer&& container) noexcept
+    std::unordered_set<ArtifactBlob>&& container) noexcept
     -> std::optional<std::unordered_set<BazelBlob>> {
     std::unordered_set<BazelBlob> blobs;
     try {
@@ -526,7 +526,7 @@ auto BazelApi::CreateAction(
     return std::nullopt;
 }
 
-[[nodiscard]] auto BazelApi::Upload(ArtifactBlobContainer&& blobs,
+[[nodiscard]] auto BazelApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
                                     bool skip_find_missing) const noexcept
     -> bool {
     auto bazel_blobs = ConvertToBazelBlobContainer(std::move(blobs));

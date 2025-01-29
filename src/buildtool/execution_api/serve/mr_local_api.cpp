@@ -95,7 +95,7 @@ auto MRLocalApi::RetrieveToCas(
 }
 
 // NOLINTNEXTLINE(google-default-arguments)
-auto MRLocalApi::Upload(ArtifactBlobContainer&& blobs,
+auto MRLocalApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
                         bool skip_find_missing) const noexcept -> bool {
     // in native mode, dispatch to native local api
     if (compat_local_api_ == nullptr) {

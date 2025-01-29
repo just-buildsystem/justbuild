@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -253,9 +254,8 @@ using ExecProps = std::map<std::string, std::string>;
     std::string output_path{"output_file"};
 
     auto api = api_factory();
-    CHECK(api->Upload(ArtifactBlobContainer{{ArtifactBlob{
-                          test_digest, test_content, /*is_exec=*/false}}},
-                      false));
+    CHECK(api->Upload(
+        {ArtifactBlob{test_digest, test_content, /*is_exec=*/false}}, false));
 
     auto action =
         api->CreateAction(*api->UploadTree({{input_path, &input_artifact}}),

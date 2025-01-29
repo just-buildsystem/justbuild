@@ -220,7 +220,7 @@ class TestApi : public IExecutionApi {
         -> std::optional<std::string> override {
         return std::nullopt;  // not needed by Executor
     }
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& blobs,
                               bool /*unused*/) const noexcept -> bool final {
         return std::all_of(
             blobs.begin(), blobs.end(), [this](auto const& blob) {

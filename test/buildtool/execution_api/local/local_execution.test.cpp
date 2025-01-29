@@ -20,6 +20,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -274,9 +275,8 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     std::string test_content("test");
     auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
         storage_config.Get().hash_function, test_content);
-    REQUIRE(api.Upload(ArtifactBlobContainer{{ArtifactBlob{
-                           test_digest, test_content, /*is_exec=*/false}}},
-                       false));
+    REQUIRE(api.Upload(
+        {ArtifactBlob{test_digest, test_content, /*is_exec=*/false}}, false));
 
     std::string input_path{"dir/subdir/input"};
     std::string output_path{"output_file"};

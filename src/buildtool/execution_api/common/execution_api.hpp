@@ -119,7 +119,7 @@ class IExecutionApi {
     /// \param skip_find_missing    Skip finding missing blobs, just upload all.
     /// NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] virtual auto Upload(
-        ArtifactBlobContainer&& blobs,
+        std::unordered_set<ArtifactBlob>&& blobs,
         bool skip_find_missing = false) const noexcept -> bool = 0;
 
     [[nodiscard]] virtual auto UploadTree(

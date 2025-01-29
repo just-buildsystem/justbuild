@@ -15,12 +15,9 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP
 
-#include <unordered_set>
-
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 
 using BazelBlob = ContentBlob<bazel_re::Digest>;
-using BazelBlobContainer = std::unordered_set<BazelBlob>;
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_BLOB_CONTAINER_HPP

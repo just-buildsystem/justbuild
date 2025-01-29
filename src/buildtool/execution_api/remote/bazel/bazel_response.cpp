@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <functional>
 #include <iterator>
+#include <unordered_set>
 #include <vector>
 
 #include "fmt/core.h"
@@ -275,11 +276,11 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
 auto BazelResponse::UploadTreeMessageDirectories(
     bazel_re::Tree const& tree) const -> expected<ArtifactDigest, std::string> {
     auto const upload_callback =
-        [&network = *network_](BazelBlobContainer&& blobs) -> bool {
+        [&network = *network_](std::unordered_set<BazelBlob>&& blobs) -> bool {
         return network.UploadBlobs(std::move(blobs));
     };
     auto const hash_function = network_->GetHashFunction();
-    BazelBlobContainer dir_blobs{};
+    std::unordered_set<BazelBlob> dir_blobs{};
 
     auto rootdir_blob = ProcessDirectoryMessage(hash_function, tree.root());
     if (not rootdir_blob) {

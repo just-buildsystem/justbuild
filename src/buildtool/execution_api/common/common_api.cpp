@@ -110,7 +110,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
     }
 
     // Process missing blobs.
-    ArtifactBlobContainer container;
+    std::unordered_set<ArtifactBlob> container;
     for (auto const& digest : missing_blobs_info->digests) {
         if (auto it = missing_blobs_info->back_map.find(digest);
             it != missing_blobs_info->back_map.end()) {
@@ -127,7 +127,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
                     &container,
                     node->Blob(),
                     /*exception_is_fatal=*/false,
-                    [&api](ArtifactBlobContainer&& blobs) -> bool {
+                    [&api](std::unordered_set<ArtifactBlob>&& blobs) -> bool {
                         return api.Upload(std::move(blobs),
                                           /*skip_find_missing=*/true);
                     })) {
@@ -144,7 +144,7 @@ auto CommonUploadTreeCompatible(
     DirectoryTreePtr const& build_root,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links) noexcept
     -> std::optional<ArtifactDigest> {
-    ArtifactBlobContainer blobs{};
+    std::unordered_set<ArtifactBlob> blobs{};
     // Store and upload blobs, taking into account the maximum transfer size.
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
         build_root, resolve_links, [&blobs, &api](ArtifactBlob&& blob) {
@@ -152,7 +152,7 @@ auto CommonUploadTreeCompatible(
                 &blobs,
                 std::move(blob),
                 /*exception_is_fatal=*/false,
-                [&api](ArtifactBlobContainer&& container) -> bool {
+                [&api](std::unordered_set<ArtifactBlob>&& container) -> bool {
                     return api.Upload(std::move(container),
                                       /*skip_find_missing=*/false);
                 });
@@ -193,7 +193,7 @@ auto CommonUploadTreeNative(IExecutionApi const& api,
                         "failed to upload blob tree for build root.");
             return std::nullopt;
         }
-        if (not api.Upload(ArtifactBlobContainer{{tree_blob}},
+        if (not api.Upload({tree_blob},
                            /*skip_find_missing=*/true)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload tree blob for build root.");

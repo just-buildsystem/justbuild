@@ -311,7 +311,7 @@ class GraphTraverser {
     /// \param[in]  blobs   blobs to be uploaded
     [[nodiscard]] auto UploadBlobs(
         std::vector<std::string> const& blobs) const noexcept -> bool {
-        ArtifactBlobContainer container;
+        std::unordered_set<ArtifactBlob> container;
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                 context_.apis->hash_function, blob);
@@ -328,8 +328,8 @@ class GraphTraverser {
                     &container,
                     ArtifactBlob{std::move(digest), blob, /*is_exec=*/false},
                     /*exception_is_fatal=*/true,
-                    [&api =
-                         context_.apis->remote](ArtifactBlobContainer&& blobs) {
+                    [&api = context_.apis->remote](
+                        std::unordered_set<ArtifactBlob>&& blobs) {
                         return api->Upload(std::move(blobs));
                     },
                     logger_)) {

@@ -164,7 +164,7 @@ class LocalApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        ArtifactBlobContainer container{};
+        std::unordered_set<ArtifactBlob> container;
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             // Recursively process trees.
@@ -212,7 +212,7 @@ class LocalApi final : public IExecutionApi {
                                  *content,
                                  IsExecutableObject(info.type)},
                     /*exception_is_fatal=*/true,
-                    [&api](ArtifactBlobContainer&& blobs) {
+                    [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                         return api.Upload(std::move(blobs),
                                           /*skip_find_missing=*/true);
                     })) {
@@ -246,7 +246,7 @@ class LocalApi final : public IExecutionApi {
         return content;
     }
 
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& blobs,
                               bool /*skip_find_missing*/) const noexcept
         -> bool final {
         return std::all_of(

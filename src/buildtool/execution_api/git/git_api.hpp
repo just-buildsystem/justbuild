@@ -214,7 +214,7 @@ class GitApi final : public IExecutionApi {
 
         // Collect blobs of missing artifacts from local CAS. Trees are
         // processed recursively before any blob is uploaded.
-        ArtifactBlobContainer container{};
+        std::unordered_set<ArtifactBlob> container;
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
             std::optional<std::string> content;
@@ -225,7 +225,7 @@ class GitApi final : public IExecutionApi {
                 if (not tree) {
                     return false;
                 }
-                ArtifactBlobContainer tree_deps_only_blobs{};
+                std::unordered_set<ArtifactBlob> tree_deps_only_blobs;
                 for (auto const& [path, entry] : *tree) {
                     if (entry->IsTree()) {
                         auto digest = ToArtifactDigest(*entry);
@@ -254,7 +254,8 @@ class GitApi final : public IExecutionApi {
                                              *entry_content,
                                              IsExecutableObject(entry->Type())},
                                 /*exception_is_fatal=*/true,
-                                [&api](ArtifactBlobContainer&& blobs) -> bool {
+                                [&api](std::unordered_set<ArtifactBlob>&& blobs)
+                                    -> bool {
                                     return api.Upload(std::move(blobs));
                                 })) {
                             return false;
@@ -288,7 +289,7 @@ class GitApi final : public IExecutionApi {
                                  std::move(*content),
                                  IsExecutableObject(info.type)},
                     /*exception_is_fatal=*/true,
-                    [&api](ArtifactBlobContainer&& blobs) {
+                    [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                         return api.Upload(std::move(blobs),
                                           /*skip_find_missing=*/true);
                     })) {
@@ -307,7 +308,7 @@ class GitApi final : public IExecutionApi {
     }
 
     /// NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& /*blobs*/,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& /*blobs*/,
                               bool /*skip_find_missing*/ = false) const noexcept
         -> bool override {
         // Upload to git cas not supported

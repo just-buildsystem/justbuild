@@ -71,11 +71,11 @@ static inline void RunBlobUpload(RepositoryConfig* repo_config,
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     std::string const blob = "test";
-    CHECK(api->Upload(ArtifactBlobContainer{
+    CHECK(api->Upload(
         {ArtifactBlob{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                           hash_function, blob),
                       blob,
-                      /*is_exec=*/false}}}));
+                      /*is_exec=*/false}}));
 }
 
 [[nodiscard]] static inline auto GetTestDir() -> std::filesystem::path {
@@ -437,9 +437,8 @@ static inline void TestUploadAndDownloadTrees(
 
     // upload blobs
     auto api = factory();
-    REQUIRE(api->Upload(ArtifactBlobContainer{
-        {ArtifactBlob{foo_digest, foo, /*is_exec=*/false},
-         ArtifactBlob{bar_digest, bar, /*is_exec=*/false}}}));
+    REQUIRE(api->Upload({ArtifactBlob{foo_digest, foo, /*is_exec=*/false},
+                         ArtifactBlob{bar_digest, bar, /*is_exec=*/false}}));
 
     // define known artifacts
     auto foo_desc =

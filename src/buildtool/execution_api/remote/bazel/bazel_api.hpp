@@ -91,7 +91,7 @@ class BazelApi final : public IExecutionApi {
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         IExecutionApi const& api) const noexcept -> bool final;
 
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& blobs,
                               bool skip_find_missing) const noexcept
         -> bool final;
 

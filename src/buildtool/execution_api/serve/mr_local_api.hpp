@@ -103,7 +103,7 @@ class MRLocalApi final : public IExecutionApi {
     /// \note Caller is responsible for passing vectors with artifacts of the
     /// same digest type.
     // NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& blobs,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& blobs,
                               bool skip_find_missing = false) const noexcept
         -> bool final;
 

@@ -100,7 +100,7 @@ class MRGitApi final : public IExecutionApi {
 
     /// \brief Not supported.
     // NOLINTNEXTLINE(google-default-arguments)
-    [[nodiscard]] auto Upload(ArtifactBlobContainer&& /*blobs*/,
+    [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& /*blobs*/,
                               bool /*skip_find_missing*/ = false) const noexcept
         -> bool final {
         // Upload not suppoorted.
