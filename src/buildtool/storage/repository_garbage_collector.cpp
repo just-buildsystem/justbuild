@@ -58,7 +58,8 @@ auto RepositoryGarbageCollector::TriggerGarbageCollection(
             return false;
         }
         if (FileSystemManager::IsDirectory(remove_me)) {
-            if (not FileSystemManager::RemoveDirectory(remove_me)) {
+            if (not FileSystemManager::RemoveDirectory(remove_me,
+                                                       /*recursively=*/true)) {
                 Logger::Log(LogLevel::Error,
                             "Failed to remove directory {}",
                             remove_me.string());
@@ -110,7 +111,8 @@ auto RepositoryGarbageCollector::TriggerGarbageCollection(
             return false;
         }
         if (FileSystemManager::IsDirectory(remove_me)) {
-            if (not FileSystemManager::RemoveDirectory(remove_me)) {
+            if (not FileSystemManager::RemoveDirectory(remove_me,
+                                                       /*recursively=*/true)) {
                 Logger::Log(LogLevel::Error,
                             "Failed to remove directory {}",
                             remove_me.string());
