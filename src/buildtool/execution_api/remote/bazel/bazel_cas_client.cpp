@@ -229,7 +229,9 @@ auto BazelCasClient::BatchReadBlobs(
                             r.digest(), r.data(), /*is_exec=*/false);
                     });
                 if (batch_response.ok) {
-                    result = std::move(batch_response.result);
+                    std::move(batch_response.result.begin(),
+                              batch_response.result.end(),
+                              std::back_inserter(result));
                     return {.ok = true};
                 }
                 return {.ok = false,
