@@ -203,20 +203,13 @@ auto BazelNetworkReader::ReadIncrementally(
 auto BazelNetworkReader::BatchReadBlobs(
     std::vector<ArtifactDigest> const& digests) const noexcept
     -> std::vector<ArtifactBlob> {
-    // Convert artifacts to bazel digests:
-    std::unordered_set<bazel_re::Digest> bazel_digests;
-    bazel_digests.reserve(digests.size());
-    for (ArtifactDigest const& digest : digests) {
-        bazel_digests.emplace(ArtifactDigestFactory::ToBazel(digest));
-    }
-
     // Batch blobs:
-    std::unordered_set<BazelBlob> bazel_blobs =
-        cas_.BatchReadBlobs(instance_name_, bazel_digests);
+    auto const batched_blobs = cas_.BatchReadBlobs(
+        instance_name_, std::unordered_set(digests.begin(), digests.end()));
 
     // Map digests to blobs for further lookup:
-    auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
-        &bazel_blobs, [](BazelBlob const& blob) { return blob.digest; });
+    auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
+        &batched_blobs, [](ArtifactBlob const& blob) { return blob.digest; });
 
     if (not back_map.has_value()) {
         return {};
@@ -241,8 +234,7 @@ auto BazelNetworkReader::BatchReadBlobs(
         }
 
         // Blob hasn't been processed yet, perform validation:
-        auto value =
-            back_map->GetReference(ArtifactDigestFactory::ToBazel(digest));
+        auto value = back_map->GetReference(digest);
         if (not value.has_value()) {
             continue;
         }

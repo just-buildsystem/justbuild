@@ -27,6 +27,7 @@
 
 #include "google/protobuf/message.h"
 #include "google/protobuf/repeated_ptr_field.h"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
@@ -38,6 +39,7 @@
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/utils/cpp/back_map.hpp"
 
 namespace {
 
@@ -187,39 +189,49 @@ BazelCasClient::BazelCasClient(
 
 auto BazelCasClient::BatchReadBlobs(
     std::string const& instance_name,
-    std::unordered_set<bazel_re::Digest> const& blobs) const noexcept
-    -> std::unordered_set<BazelBlob> {
-    std::unordered_set<BazelBlob> result;
+    std::unordered_set<ArtifactDigest> const& blobs) const noexcept
+    -> std::unordered_set<ArtifactBlob> {
+    std::unordered_set<ArtifactBlob> result;
     if (blobs.empty()) {
         return result;
     }
+
+    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
+        &blobs, ArtifactDigestFactory::ToBazel);
+    if (not back_map.has_value()) {
+        return result;
+    }
+
     try {
         result.reserve(blobs.size());
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::BatchReadBlobsRequest>(
                 instance_name,
-                blobs.begin(),
-                blobs.end(),
+                back_map->GetKeys().begin(),
+                back_map->GetKeys().end(),
                 "BatchReadBlobs",
                 [](bazel_re::BatchReadBlobsRequest* request,
                    bazel_re::Digest const& x) {
                     *(request->add_digests()) = x;
                 });
         bazel_re::BatchReadBlobsResponse response;
-        auto batch_read_blobs =
-            [this, &response, &result](auto const& request) -> RetryResponse {
+        auto batch_read_blobs = [this, &response, &result, &back_map](
+                                    auto const& request) -> RetryResponse {
             grpc::ClientContext context;
             auto status = stub_->BatchReadBlobs(&context, request, &response);
             if (status.ok()) {
                 auto batch_response = ProcessBatchResponse<
-                    BazelBlob,
+                    ArtifactBlob,
                     bazel_re::BatchReadBlobsResponse_Response,
                     bazel_re::BatchReadBlobsResponse>(
                     response,
-                    [](std::vector<BazelBlob>* v,
-                       bazel_re::BatchReadBlobsResponse_Response const& r) {
-                        v->emplace_back(
-                            r.digest(), r.data(), /*is_exec=*/false);
+                    [&back_map](
+                        std::vector<ArtifactBlob>* v,
+                        bazel_re::BatchReadBlobsResponse_Response const& r) {
+                        if (auto value = back_map->GetReference(r.digest())) {
+                            v->emplace_back(
+                                *value.value(), r.data(), /*is_exec=*/false);
+                        }
                     });
                 if (batch_response.ok) {
                     std::move(batch_response.result.begin(),

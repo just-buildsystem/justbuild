@@ -30,11 +30,13 @@
 #include "fmt/core.h"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -72,8 +74,8 @@ class BazelCasClient {
     /// \returns The blobs successfully read
     [[nodiscard]] auto BatchReadBlobs(
         std::string const& instance_name,
-        std::unordered_set<bazel_re::Digest> const& blobs) const noexcept
-        -> std::unordered_set<BazelBlob>;
+        std::unordered_set<ArtifactDigest> const& blobs) const noexcept
+        -> std::unordered_set<ArtifactBlob>;
 
     [[nodiscard]] auto GetTree(std::string const& instance_name,
                                bazel_re::Digest const& root_digest,

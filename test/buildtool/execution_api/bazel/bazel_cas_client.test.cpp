@@ -22,6 +22,8 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
@@ -55,14 +57,17 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     SECTION("Valid digest and blob") {
         // digest of "test"
         HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
-        auto digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
+        auto const digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+            hash_function, content);
+        auto bazel_digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
         // Valid blob
-        BazelBlob blob{digest, content, /*is_exec=*/false};
+        BazelBlob blob{bazel_digest, content, /*is_exec=*/false};
 
         // Search blob via digest
-        auto digests = cas_client.FindMissingBlobs(instance_name, {digest});
+        auto digests =
+            cas_client.FindMissingBlobs(instance_name, {bazel_digest});
         CHECK(digests.size() <= 1);
 
         if (not digests.empty()) {
@@ -73,7 +78,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         // Read blob
         auto blobs = cas_client.BatchReadBlobs(instance_name, {digest});
         REQUIRE(blobs.size() == 1);
-        CHECK(std::equal_to<bazel_re::Digest>{}(blobs.begin()->digest, digest));
+        CHECK(blobs.begin()->digest == digest);
         CHECK(*blobs.begin()->data == content);
     }
 
@@ -93,9 +98,5 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
 
         // Try upload faulty blob
         CHECK(cas_client.BatchUpdateBlobs(instance_name, {faulty_blob}) == 0U);
-
-        // Read blob via faulty digest
-        CHECK(
-            cas_client.BatchReadBlobs(instance_name, {faulty_digest}).empty());
     }
 }
