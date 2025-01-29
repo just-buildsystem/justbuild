@@ -333,18 +333,18 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
 }
 
 auto BazelCasClient::IncrementalReadSingleBlob(std::string const& instance_name,
-                                               bazel_re::Digest const& digest)
+                                               ArtifactDigest const& digest)
     const noexcept -> ByteStreamClient::IncrementalReader {
     return stream_->IncrementalRead(
         ByteStreamUtils::ReadRequest{instance_name, digest});
 }
 
-auto BazelCasClient::ReadSingleBlob(
-    std::string const& instance_name,
-    bazel_re::Digest const& digest) const noexcept -> std::optional<BazelBlob> {
+auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
+                                    ArtifactDigest const& digest) const noexcept
+    -> std::optional<ArtifactBlob> {
     if (auto data = stream_->Read(
             ByteStreamUtils::ReadRequest{instance_name, digest})) {
-        return BazelBlob{digest, std::move(*data), /*is_exec=*/false};
+        return ArtifactBlob{digest, std::move(*data), /*is_exec=*/false};
     }
     return std::nullopt;
 }

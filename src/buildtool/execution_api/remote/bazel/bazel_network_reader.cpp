@@ -21,7 +21,6 @@
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
@@ -30,7 +29,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/back_map.hpp"
-#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -134,8 +132,7 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
 auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
                                   DumpCallback const& dumper) const noexcept
     -> bool {
-    auto reader = cas_.IncrementalReadSingleBlob(
-        instance_name_, ArtifactDigestFactory::ToBazel(info.digest));
+    auto reader = cas_.IncrementalReadSingleBlob(instance_name_, info.digest);
     auto data = reader.Next();
     while (data and not data->empty()) {
         try {
@@ -173,25 +170,13 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
     return result;
 }
 
-auto BazelNetworkReader::ReadSingleBlob(bazel_re::Digest const& digest)
-    const noexcept -> std::optional<ArtifactBlob> {
-    auto blob = cas_.ReadSingleBlob(instance_name_, digest);
-    if (not blob) {
-        return std::nullopt;
-    }
-    auto hash_info = Validate(*blob);
-    if (not hash_info) {
-        return std::nullopt;
-    }
-    return ArtifactBlob{
-        ArtifactDigest{*std::move(hash_info), blob->data->size()},
-        blob->data,
-        blob->is_exec};
-}
-
 auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
     const noexcept -> std::optional<ArtifactBlob> {
-    return ReadSingleBlob(ArtifactDigestFactory::ToBazel(digest));
+    auto blob = cas_.ReadSingleBlob(instance_name_, digest);
+    if (not blob or not Validate(*blob)) {
+        return std::nullopt;
+    }
+    return blob;
 }
 
 auto BazelNetworkReader::ReadIncrementally(
@@ -260,33 +245,6 @@ auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
                         : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                               hash_function_, *blob.data);
     return rehashed == blob.digest;
-}
-
-auto BazelNetworkReader::Validate(BazelBlob const& blob) const noexcept
-    -> std::optional<HashInfo> {
-    // validate digest
-    auto requested_hash_info =
-        BazelDigestFactory::ToHashInfo(hash_function_.GetType(), blob.digest);
-    if (not requested_hash_info) {
-        Logger::Log(LogLevel::Warning,
-                    "BazelNetworkReader: {}",
-                    std::move(requested_hash_info).error());
-        return std::nullopt;
-    }
-
-    // rehash data
-    auto rehashed_info = HashInfo::HashData(
-        hash_function_, *blob.data, requested_hash_info->IsTree());
-
-    // ensure rehashed data produce the same hash
-    if (*requested_hash_info != rehashed_info) {
-        Logger::Log(LogLevel::Warning,
-                    "Requested {}, but received {}",
-                    requested_hash_info->Hash(),
-                    rehashed_info.Hash());
-        return std::nullopt;
-    }
-    return rehashed_info;
 }
 
 namespace {

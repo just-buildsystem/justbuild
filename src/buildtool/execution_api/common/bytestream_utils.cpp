@@ -60,13 +60,6 @@ namespace {
 }
 }  // namespace
 
-ByteStreamUtils::ReadRequest::ReadRequest(
-    std::string instance_name,
-    bazel_re::Digest const& digest) noexcept
-    : instance_name_{std::move(instance_name)},
-      hash_{digest.hash()},
-      size_{static_cast<std::size_t>(digest.size_bytes())} {}
-
 ByteStreamUtils::ReadRequest::ReadRequest(std::string instance_name,
                                           ArtifactDigest const& digest) noexcept
     : instance_name_{std::move(instance_name)},

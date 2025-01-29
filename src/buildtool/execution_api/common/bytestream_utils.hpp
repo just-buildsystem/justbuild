@@ -23,11 +23,6 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/utils/cpp/expected.hpp"
 
-namespace build::bazel::remote::execution::v2 {
-class Digest;
-}
-namespace bazel_re = build::bazel::remote::execution::v2;
-
 class ByteStreamUtils final {
     static constexpr auto* kBlobs = "blobs";
     static constexpr auto* kUploads = "uploads";
@@ -43,9 +38,6 @@ class ByteStreamUtils final {
     /// "instance_name_example/blobs/62183d7a696acf7e69e218efc82c93135f8c85f895/4424712"
     class ReadRequest final {
       public:
-        explicit ReadRequest(std::string instance_name,
-                             bazel_re::Digest const& digest) noexcept;
-
         explicit ReadRequest(std::string instance_name,
                              ArtifactDigest const& digest) noexcept;
 

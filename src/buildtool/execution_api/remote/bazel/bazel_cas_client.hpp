@@ -35,7 +35,6 @@
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -97,7 +96,7 @@ class BazelCasClient {
     /// \returns Incremental bytestream reader.
     [[nodiscard]] auto IncrementalReadSingleBlob(
         std::string const& instance_name,
-        bazel_re::Digest const& digest) const noexcept
+        ArtifactDigest const& digest) const noexcept
         -> ByteStreamClient::IncrementalReader;
 
     /// \brief Read single blob via bytestream
@@ -105,8 +104,8 @@ class BazelCasClient {
     /// \param[in] digest        Blob digest to read
     /// \returns The blob successfully read
     [[nodiscard]] auto ReadSingleBlob(std::string const& instance_name,
-                                      bazel_re::Digest const& digest)
-        const noexcept -> std::optional<BazelBlob>;
+                                      ArtifactDigest const& digest)
+        const noexcept -> std::optional<ArtifactBlob>;
 
     /// @brief Split single blob into chunks
     /// @param[in] hash_function    Hash function to be used for creation of

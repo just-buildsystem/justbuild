@@ -29,7 +29,6 @@
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/crypto", "hash_info"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/common", "artifact_blob_container"]
     , ["src/buildtool/execution_api/common", "bytestream_utils"]
