@@ -12,7 +12,7 @@
     ]
   , "srcs": ["tree_reader_utils.cpp"]
   , "deps":
-    [ "artifact_blob_container"
+    [ "artifact_blob"
     , ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "protoc", "", "libprotobuf"]
@@ -90,7 +90,7 @@
   , "hdrs": ["common_api.hpp"]
   , "srcs": ["common_api.cpp"]
   , "deps":
-    [ "artifact_blob_container"
+    [ "artifact_blob"
     , "blob_tree"
     , "common"
     , ["@", "gsl", "", "gsl"]
@@ -104,8 +104,8 @@
     [ "content_blob_container"
     , "message_limits"
     , ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/file_system", "object_type"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 , "blob_tree":
@@ -114,7 +114,7 @@
   , "hdrs": ["blob_tree.hpp"]
   , "srcs": ["blob_tree.cpp"]
   , "deps":
-    [ "artifact_blob_container"
+    [ "artifact_blob"
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     ]
@@ -136,10 +136,10 @@
   , "deps": [["@", "gsl", "", "gsl"], ["src/utils/cpp", "hash_combine"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
-, "artifact_blob_container":
+, "artifact_blob":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["artifact_blob_container"]
-  , "hdrs": ["artifact_blob_container.hpp"]
+  , "name": ["artifact_blob"]
+  , "hdrs": ["artifact_blob.hpp"]
   , "deps": ["content_blob_container", ["src/buildtool/common", "common"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }

@@ -29,7 +29,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"

@@ -33,7 +33,7 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/stream_dumper.hpp"

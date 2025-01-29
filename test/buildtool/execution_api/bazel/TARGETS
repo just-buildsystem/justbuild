@@ -10,11 +10,7 @@
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , [ "@"
-      , "src"
-      , "src/buildtool/execution_api/common"
-      , "artifact_blob_container"
-      ]
+    , ["@", "src", "src/buildtool/execution_api/common", "artifact_blob"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/common"
@@ -93,11 +89,7 @@
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/crypto", "hash_info"]
-    , [ "@"
-      , "src"
-      , "src/buildtool/execution_api/common"
-      , "artifact_blob_container"
-      ]
+    , ["@", "src", "src/buildtool/execution_api/common", "artifact_blob"]
     , [ "@"
       , "src"
       , "src/buildtool/execution_api/common"
@@ -131,11 +123,7 @@
       , "bazel_msg_factory"
       ]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "directory_tree"]
-    , [ "@"
-      , "src"
-      , "src/buildtool/execution_api/common"
-      , "artifact_blob_container"
-      ]
+    , ["@", "src", "src/buildtool/execution_api/common", "artifact_blob"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , [ "@"
       , "src"

@@ -35,7 +35,7 @@
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
 

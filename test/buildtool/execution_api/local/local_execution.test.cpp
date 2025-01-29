@@ -32,7 +32,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"

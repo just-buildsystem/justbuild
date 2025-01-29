@@ -7,7 +7,7 @@
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
-    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/storage", "config"]
@@ -29,7 +29,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
-    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_engine/dag", "dag"]

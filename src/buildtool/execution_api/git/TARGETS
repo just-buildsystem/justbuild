@@ -9,7 +9,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_engine/dag", "dag"]

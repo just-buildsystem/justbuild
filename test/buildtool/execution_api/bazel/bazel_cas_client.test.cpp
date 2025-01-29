@@ -27,7 +27,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

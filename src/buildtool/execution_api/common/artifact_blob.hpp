@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 
 using ArtifactBlob = ContentBlob<ArtifactDigest>;
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_CONTAINER_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP

@@ -26,7 +26,7 @@
 
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 

@@ -18,7 +18,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
-    , ["src/buildtool/execution_api/common", "artifact_blob_container"]
+    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/remote", "bazel"]

@@ -10,11 +10,7 @@
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
-    , [ "@"
-      , "src"
-      , "src/buildtool/execution_api/common"
-      , "artifact_blob_container"
-      ]
+    , ["@", "src", "src/buildtool/execution_api/common", "artifact_blob"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_engine/dag", "dag"]
