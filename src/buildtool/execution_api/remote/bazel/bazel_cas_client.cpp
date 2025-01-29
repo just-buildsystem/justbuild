@@ -187,19 +187,19 @@ BazelCasClient::BazelCasClient(
 
 auto BazelCasClient::BatchReadBlobs(
     std::string const& instance_name,
-    std::vector<bazel_re::Digest>::const_iterator const& begin,
-    std::vector<bazel_re::Digest>::const_iterator const& end) const noexcept
-    -> std::vector<BazelBlob> {
-    if (begin == end) {
-        return {};
+    std::unordered_set<bazel_re::Digest> const& blobs) const noexcept
+    -> std::unordered_set<BazelBlob> {
+    std::unordered_set<BazelBlob> result;
+    if (blobs.empty()) {
+        return result;
     }
-    std::vector<BazelBlob> result{};
     try {
+        result.reserve(blobs.size());
         auto requests =
             CreateBatchRequestsMaxSize<bazel_re::BatchReadBlobsRequest>(
                 instance_name,
-                begin,
-                end,
+                blobs.begin(),
+                blobs.end(),
                 "BatchReadBlobs",
                 [](bazel_re::BatchReadBlobsRequest* request,
                    bazel_re::Digest const& x) {
@@ -224,7 +224,7 @@ auto BazelCasClient::BatchReadBlobs(
                 if (batch_response.ok) {
                     std::move(batch_response.result.begin(),
                               batch_response.result.end(),
-                              std::back_inserter(result));
+                              std::inserter(result, result.end()));
                     return {.ok = true};
                 }
                 return {.ok = false,

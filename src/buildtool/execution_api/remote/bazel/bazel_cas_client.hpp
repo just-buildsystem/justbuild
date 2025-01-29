@@ -68,14 +68,12 @@ class BazelCasClient {
 
     /// \brief Read multiple blobs in batch transfer
     /// \param[in] instance_name Name of the CAS instance
-    /// \param[in] begin         Start of the blob digests to read
-    /// \param[in] end           End of the blob digests to read
-    /// \returns The blobs sucessfully read
+    /// \param[in] blobs         Blob digests to read
+    /// \returns The blobs successfully read
     [[nodiscard]] auto BatchReadBlobs(
         std::string const& instance_name,
-        std::vector<bazel_re::Digest>::const_iterator const& begin,
-        std::vector<bazel_re::Digest>::const_iterator const& end) const noexcept
-        -> std::vector<BazelBlob>;
+        std::unordered_set<bazel_re::Digest> const& blobs) const noexcept
+        -> std::unordered_set<BazelBlob>;
 
     [[nodiscard]] auto GetTree(std::string const& instance_name,
                                bazel_re::Digest const& root_digest,

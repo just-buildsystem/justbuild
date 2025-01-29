@@ -19,7 +19,6 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
-#include <vector>
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
@@ -72,12 +71,10 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         }
 
         // Read blob
-        std::vector<bazel_re::Digest> to_read{digest};
-        auto blobs = cas_client.BatchReadBlobs(
-            instance_name, to_read.begin(), to_read.end());
+        auto blobs = cas_client.BatchReadBlobs(instance_name, {digest});
         REQUIRE(blobs.size() == 1);
-        CHECK(std::equal_to<bazel_re::Digest>{}(blobs[0].digest, digest));
-        CHECK(*blobs[0].data == content);
+        CHECK(std::equal_to<bazel_re::Digest>{}(blobs.begin()->digest, digest));
+        CHECK(*blobs.begin()->data == content);
     }
 
     SECTION("Invalid digest and blob") {
@@ -98,9 +95,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         CHECK(cas_client.BatchUpdateBlobs(instance_name, {faulty_blob}) == 0U);
 
         // Read blob via faulty digest
-        std::vector<bazel_re::Digest> to_read{faulty_digest};
-        CHECK(cas_client
-                  .BatchReadBlobs(instance_name, to_read.begin(), to_read.end())
-                  .empty());
+        CHECK(
+            cas_client.BatchReadBlobs(instance_name, {faulty_digest}).empty());
     }
 }

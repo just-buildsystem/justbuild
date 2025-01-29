@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <memory>
+#include <unordered_set>
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -203,15 +204,15 @@ auto BazelNetworkReader::BatchReadBlobs(
     std::vector<ArtifactDigest> const& digests) const noexcept
     -> std::vector<ArtifactBlob> {
     // Convert artifacts to bazel digests:
-    std::vector<bazel_re::Digest> bazel_digests;
+    std::unordered_set<bazel_re::Digest> bazel_digests;
     bazel_digests.reserve(digests.size());
     for (ArtifactDigest const& digest : digests) {
-        bazel_digests.push_back(ArtifactDigestFactory::ToBazel(digest));
+        bazel_digests.emplace(ArtifactDigestFactory::ToBazel(digest));
     }
 
     // Batch blobs:
-    std::vector<BazelBlob> bazel_blobs = cas_.BatchReadBlobs(
-        instance_name_, bazel_digests.begin(), bazel_digests.end());
+    std::unordered_set<BazelBlob> bazel_blobs =
+        cas_.BatchReadBlobs(instance_name_, bazel_digests);
 
     // Map digests to blobs for further lookup:
     auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
