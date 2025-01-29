@@ -28,6 +28,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -201,26 +202,58 @@ auto BazelNetworkReader::ReadIncrementally(
 auto BazelNetworkReader::BatchReadBlobs(
     std::vector<ArtifactDigest> const& digests) const noexcept
     -> std::vector<ArtifactBlob> {
+    // Convert artifacts to bazel digests:
     std::vector<bazel_re::Digest> bazel_digests;
     bazel_digests.reserve(digests.size());
-    std::transform(digests.begin(),
-                   digests.end(),
-                   std::back_inserter(bazel_digests),
-                   [](ArtifactDigest const& digest) {
-                       return ArtifactDigestFactory::ToBazel(digest);
-                   });
+    for (ArtifactDigest const& digest : digests) {
+        bazel_digests.push_back(ArtifactDigestFactory::ToBazel(digest));
+    }
 
-    std::vector<BazelBlob> const result = cas_.BatchReadBlobs(
+    // Batch blobs:
+    std::vector<BazelBlob> bazel_blobs = cas_.BatchReadBlobs(
         instance_name_, bazel_digests.begin(), bazel_digests.end());
 
+    // Map digests to blobs for further lookup:
+    auto const back_map = BackMap<bazel_re::Digest, BazelBlob>::Make(
+        &bazel_blobs, [](BazelBlob const& blob) { return blob.digest; });
+
+    if (not back_map.has_value()) {
+        return {};
+    }
+
     std::vector<ArtifactBlob> artifacts;
-    artifacts.reserve(result.size());
-    for (auto const& blob : result) {
-        if (auto hash_info = Validate(blob)) {
-            artifacts.emplace_back(
-                ArtifactDigest{*std::move(hash_info), blob.data->size()},
-                blob.data,
-                blob.is_exec);
+    artifacts.reserve(digests.size());
+
+    // To not validate blobs several times, hash the result of validation:
+    std::unordered_map<std::size_t, ArtifactBlob const*> validated;
+    validated.reserve(digests.size());
+
+    auto const hasher = std::hash<ArtifactDigest>{};
+    for (ArtifactDigest const& digest : digests) {
+        std::size_t const hash = std::invoke(hasher, digest);
+        // If the blob has been validated already, just return the result:
+        if (auto it = validated.find(hash); it != validated.end()) {
+            if (it->second != nullptr) {
+                artifacts.push_back(*it->second);
+            }
+            continue;
+        }
+
+        // Blob hasn't been processed yet, perform validation:
+        auto value =
+            back_map->GetReference(ArtifactDigestFactory::ToBazel(digest));
+        if (not value.has_value()) {
+            continue;
+        }
+
+        ArtifactBlob artifact_blob{
+            digest, value.value()->data, value.value()->is_exec};
+
+        if (Validate(artifact_blob)) {
+            validated[hash] = &artifacts.emplace_back(std::move(artifact_blob));
+        }
+        else {
+            validated[hash] = nullptr;
         }
     }
     return artifacts;
