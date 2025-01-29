@@ -345,7 +345,7 @@ class ExecutorImpl {
             }
             // store and/or upload blob, taking into account the maximum
             // transfer size
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     ArtifactBlob{*digest,
                                  std::move(*content),

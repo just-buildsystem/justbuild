@@ -324,7 +324,7 @@ class GraphTraverser {
             });
             // Store and/or upload blob, taking into account the maximum
             // transfer size.
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     ArtifactBlob{std::move(digest), blob, /*is_exec=*/false},
                     /*exception_is_fatal=*/true,

@@ -248,7 +248,7 @@ class GitApi final : public IExecutionApi {
                                 hash_function, *entry_content);
                         // Collect blob and upload to remote CAS if transfer
                         // size reached.
-                        if (not UpdateContainerAndUpload<ArtifactDigest>(
+                        if (not UpdateContainerAndUpload(
                                 &tree_deps_only_blobs,
                                 ArtifactBlob{std::move(digest),
                                              *entry_content,
@@ -283,7 +283,7 @@ class GitApi final : public IExecutionApi {
                           hash_function, *content);
 
             // Collect blob and upload to remote CAS if transfer size reached.
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     ArtifactBlob{std::move(digest),
                                  std::move(*content),

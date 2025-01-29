@@ -74,7 +74,7 @@ namespace {
                     ? IsExecutableObject(info_map.at(blob.digest).type)
                     : false;
             // Collect blob and upload to other CAS if transfer size reached.
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     std::move(blob),
                     /*exception_is_fatal=*/true,

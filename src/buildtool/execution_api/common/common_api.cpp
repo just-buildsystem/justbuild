@@ -28,8 +28,10 @@
 #include <utility>
 
 #include "fmt/core.h"
-#include "src/buildtool/execution_api/common/artifact_blob_container.hpp"
+#include "src/buildtool/execution_api/common/content_blob_container.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 auto CommonRetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
@@ -123,7 +125,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
             }
             // Optimize store & upload by taking into account the maximum
             // transfer size.
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     node->Blob(),
                     /*exception_is_fatal=*/false,
@@ -148,7 +150,7 @@ auto CommonUploadTreeCompatible(
     // Store and upload blobs, taking into account the maximum transfer size.
     auto digest = BazelMsgFactory::CreateDirectoryDigestFromTree(
         build_root, resolve_links, [&blobs, &api](ArtifactBlob&& blob) {
-            return UpdateContainerAndUpload<ArtifactDigest>(
+            return UpdateContainerAndUpload(
                 &blobs,
                 std::move(blob),
                 /*exception_is_fatal=*/false,
@@ -201,4 +203,55 @@ auto CommonUploadTreeNative(IExecutionApi const& api,
         }
     }
     return tree_blob.digest;
+}
+
+auto UpdateContainerAndUpload(
+    gsl::not_null<std::unordered_set<ArtifactBlob>*> const& container,
+    ArtifactBlob&& blob,
+    bool exception_is_fatal,
+    std::function<bool(std::unordered_set<ArtifactBlob>&&)> const& uploader,
+    Logger const* logger) noexcept -> bool {
+    // Optimize upload of blobs with respect to the maximum transfer limit, such
+    // that we never store unnecessarily more data in the container than we need
+    // per remote transfer.
+    try {
+        if (blob.data->size() > kMaxBatchTransferSize) {
+            // large blobs use individual stream upload
+            if (not uploader(
+                    std::unordered_set<ArtifactBlob>{{std::move(blob)}})) {
+                return false;
+            }
+        }
+        else {
+            if (not container->contains(blob)) {
+                std::size_t content_size = 0;
+                for (auto const& blob : *container) {
+                    content_size += blob.data->size();
+                }
+
+                if (content_size + blob.data->size() > kMaxBatchTransferSize) {
+                    // swap away from original container to allow move during
+                    // upload
+                    std::unordered_set<ArtifactBlob> tmp_container{};
+                    std::swap(*container, tmp_container);
+                    // if we would surpass the transfer limit, upload the
+                    // current container and clear it before adding more blobs
+                    if (not uploader(std::move(tmp_container))) {
+                        return false;
+                    }
+                }
+                // add current blob to container
+                container->emplace(std::move(blob));
+            }
+        }
+    } catch (std::exception const& ex) {
+        if (exception_is_fatal) {
+            Logger::Log(logger,
+                        LogLevel::Error,
+                        "failed to emplace blob with\n:{}",
+                        ex.what());
+        }
+        return false;
+    }
+    return true;  // success!
 }

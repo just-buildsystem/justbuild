@@ -206,7 +206,7 @@ class LocalApi final : public IExecutionApi {
                           *content);
 
             // Collect blob and upload to remote CAS if transfer size reached.
-            if (not UpdateContainerAndUpload<ArtifactDigest>(
+            if (not UpdateContainerAndUpload(
                     &container,
                     ArtifactBlob{std::move(digest),
                                  *content,

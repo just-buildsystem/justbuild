@@ -294,11 +294,10 @@ auto BazelResponse::UploadTreeMessageDirectories(
     }
     auto const root_digest = rootdir_blob->digest;
     // store or upload rootdir blob, taking maximum transfer size into account
-    if (not UpdateContainerAndUpload<ArtifactDigest>(
-            &dir_blobs,
-            *std::move(rootdir_blob),
-            /*exception_is_fatal=*/false,
-            upload_callback)) {
+    if (not UpdateContainerAndUpload(&dir_blobs,
+                                     *std::move(rootdir_blob),
+                                     /*exception_is_fatal=*/false,
+                                     upload_callback)) {
         return unexpected{fmt::format(
             "failed to upload Tree with root digest {}", root_digest.hash())};
     }
@@ -310,11 +309,10 @@ auto BazelResponse::UploadTreeMessageDirectories(
             return unexpected{std::move(blob).error()};
         }
         auto const blob_digest = blob->digest;
-        if (not UpdateContainerAndUpload<ArtifactDigest>(
-                &dir_blobs,
-                *std::move(blob),
-                /*exception_is_fatal=*/false,
-                upload_callback)) {
+        if (not UpdateContainerAndUpload(&dir_blobs,
+                                         *std::move(blob),
+                                         /*exception_is_fatal=*/false,
+                                         upload_callback)) {
             return unexpected{
                 fmt::format("failed to upload Tree subdir with digest {}",
                             blob_digest.hash())};
