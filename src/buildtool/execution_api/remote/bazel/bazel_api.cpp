@@ -46,7 +46,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
@@ -545,20 +544,13 @@ auto BazelApi::CreateAction(
 
 [[nodiscard]] auto BazelApi::IsAvailable(
     ArtifactDigest const& digest) const noexcept -> bool {
-    return network_->IsAvailable(ArtifactDigestFactory::ToBazel(digest));
+    return network_->IsAvailable(digest);
 }
 
 [[nodiscard]] auto BazelApi::GetMissingDigests(
     std::unordered_set<ArtifactDigest> const& digests) const noexcept
     -> std::unordered_set<ArtifactDigest> {
-    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
-        &digests, ArtifactDigestFactory::ToBazel);
-    if (not back_map.has_value()) {
-        return digests;
-    }
-
-    auto const bazel_result = network_->FindMissingBlobs(back_map->GetKeys());
-    return back_map->GetValues(bazel_result);
+    return network_->FindMissingBlobs(digests);
 }
 
 [[nodiscard]] auto BazelApi::SplitBlob(ArtifactDigest const& blob_digest)

@@ -43,15 +43,25 @@ BazelNetwork::BazelNetwork(
       exec_config_{exec_config},
       hash_function_{*hash_function} {}
 
-auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
+auto BazelNetwork::IsAvailable(ArtifactDigest const& digest) const noexcept
     -> bool {
-    return cas_->FindMissingBlobs(instance_name_, {digest}).empty();
+    return cas_
+        ->FindMissingBlobs(instance_name_,
+                           {ArtifactDigestFactory::ToBazel(digest)})
+        .empty();
 }
 
 auto BazelNetwork::FindMissingBlobs(
-    std::unordered_set<bazel_re::Digest> const& digests) const noexcept
-    -> std::unordered_set<bazel_re::Digest> {
-    return cas_->FindMissingBlobs(instance_name_, digests);
+    std::unordered_set<ArtifactDigest> const& digests) const noexcept
+    -> std::unordered_set<ArtifactDigest> {
+    auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
+        &digests, ArtifactDigestFactory::ToBazel);
+    if (not back_map.has_value()) {
+        return digests;
+    }
+    auto missing_digests =
+        cas_->FindMissingBlobs(instance_name_, back_map->GetKeys());
+    return back_map->GetValues(missing_digests);
 }
 
 auto BazelNetwork::SplitBlob(bazel_re::Digest const& blob_digest) const noexcept
@@ -127,10 +137,8 @@ auto BazelNetwork::DoUploadBlobs(
 auto BazelNetwork::UploadBlobs(std::unordered_set<ArtifactBlob>&& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (not skip_find_missing) {
-        auto const back_map = BackMap<bazel_re::Digest, ArtifactBlob>::Make(
-            &blobs, [](ArtifactBlob const& blob) {
-                return ArtifactDigestFactory::ToBazel(blob.digest);
-            });
+        auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
+            &blobs, [](ArtifactBlob const& blob) { return blob.digest; });
         if (not back_map.has_value()) {
             return false;
         }

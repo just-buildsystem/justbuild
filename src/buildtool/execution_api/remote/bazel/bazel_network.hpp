@@ -23,6 +23,7 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
@@ -49,12 +50,12 @@ class BazelNetwork {
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up
     /// \returns True if digest exists in CAS, false otherwise
-    [[nodiscard]] auto IsAvailable(
-        bazel_re::Digest const& digest) const noexcept -> bool;
+    [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
+        -> bool;
 
     [[nodiscard]] auto FindMissingBlobs(
-        std::unordered_set<bazel_re::Digest> const& digests) const noexcept
-        -> std::unordered_set<bazel_re::Digest>;
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest>;
 
     [[nodiscard]] auto SplitBlob(bazel_re::Digest const& blob_digest)
         const noexcept -> std::optional<std::vector<bazel_re::Digest>>;
