@@ -302,7 +302,7 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 }
 
 auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
-                                      BazelBlob const& blob) const noexcept
+                                      ArtifactBlob const& blob) const noexcept
     -> bool {
     logger_.Emit(LogLevel::Trace, [&blob]() {
         std::ostringstream oss{};
@@ -327,7 +327,7 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
         logger_.Emit(LogLevel::Error,
                      "Failed to write {}:{}",
                      blob.digest.hash(),
-                     blob.digest.size_bytes());
+                     blob.digest.size());
     }
     return ok;
 }
@@ -587,16 +587,11 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         // trying that again; instead, we fall back to uploading each blob
         // sequentially.
         logger_.Emit(LogLevel::Debug, "Falling back to sequential blob upload");
-        return std::count_if(
-            blobs.begin(),
-            blobs.end(),
-            [this, &instance_name](ArtifactBlob const& blob) {
-                BazelBlob bazel_blob{
-                    ArtifactDigestFactory::ToBazel(blob.digest),
-                    blob.data,
-                    blob.is_exec};
-                return UpdateSingleBlob(instance_name, bazel_blob);
-            });
+        return std::count_if(blobs.begin(),
+                             blobs.end(),
+                             [this, &instance_name](ArtifactBlob const& blob) {
+                                 return UpdateSingleBlob(instance_name, blob);
+                             });
     }
     return updated.size();
 }

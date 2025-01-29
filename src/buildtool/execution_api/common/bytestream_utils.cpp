@@ -115,15 +115,6 @@ auto ByteStreamUtils::ReadRequest::GetDigest(HashFunction::Type hash_type)
 ByteStreamUtils::WriteRequest::WriteRequest(
     std::string instance_name,
     std::string uuid,
-    bazel_re::Digest const& digest) noexcept
-    : instance_name_{std::move(instance_name)},
-      uuid_{std::move(uuid)},
-      hash_{digest.hash()},
-      size_{static_cast<std::size_t>(digest.size_bytes())} {}
-
-ByteStreamUtils::WriteRequest::WriteRequest(
-    std::string instance_name,
-    std::string uuid,
     ArtifactDigest const& digest) noexcept
     : instance_name_{std::move(instance_name)},
       uuid_{std::move(uuid)},

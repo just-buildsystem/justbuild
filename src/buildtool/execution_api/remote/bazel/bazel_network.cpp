@@ -18,7 +18,6 @@
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_blob_container.hpp"
 #include "src/buildtool/execution_api/common/content_blob_container.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -105,10 +104,7 @@ auto BazelNetwork::DoUploadBlobs(
         }
 
         for (auto const& it : to_stream) {
-            BazelBlob bazel_blob{ArtifactDigestFactory::ToBazel(it->digest),
-                                 it->data,
-                                 it->is_exec};
-            if (not cas_->UpdateSingleBlob(instance_name_, bazel_blob)) {
+            if (not cas_->UpdateSingleBlob(instance_name_, *it)) {
                 return false;
             }
             blobs.erase(it);

@@ -79,10 +79,6 @@ class ByteStreamUtils final {
       public:
         explicit WriteRequest(std::string instance_name,
                               std::string uuid,
-                              bazel_re::Digest const& digest) noexcept;
-
-        explicit WriteRequest(std::string instance_name,
-                              std::string uuid,
                               ArtifactDigest const& digest) noexcept;
 
         [[nodiscard]] auto ToString() && noexcept -> std::string;

@@ -88,7 +88,7 @@ class BazelCasClient {
     /// \param[in] blob          The blob to upload
     /// \returns Boolean indicating successful upload
     [[nodiscard]] auto UpdateSingleBlob(std::string const& instance_name,
-                                        BazelBlob const& blob) const noexcept
+                                        ArtifactBlob const& blob) const noexcept
         -> bool;
 
     /// \brief Read single blob via incremental bytestream reader
