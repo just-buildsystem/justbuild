@@ -123,7 +123,7 @@ class MRGitApi final : public IExecutionApi {
     }
 
     /// \brief Not implemented.
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& /*digests*/) const noexcept
         -> std::unordered_set<ArtifactDigest> final {
         // Not supported.

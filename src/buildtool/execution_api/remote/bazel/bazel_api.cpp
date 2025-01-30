@@ -117,7 +117,7 @@ namespace {
     }
 
     // Fetch unknown chunks.
-    auto missing_artifact_digests = other_api.IsAvailable(
+    auto missing_artifact_digests = other_api.GetMissingDigests(
         std::unordered_set(chunk_digests->begin(), chunk_digests->end()));
 
     std::vector<ArtifactDigest> missing_digests;
@@ -570,7 +570,7 @@ auto BazelApi::CreateAction(
     return network_->IsAvailable(ArtifactDigestFactory::ToBazel(digest));
 }
 
-[[nodiscard]] auto BazelApi::IsAvailable(
+[[nodiscard]] auto BazelApi::GetMissingDigests(
     std::unordered_set<ArtifactDigest> const& digests) const noexcept
     -> std::unordered_set<ArtifactDigest> {
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
@@ -579,7 +579,7 @@ auto BazelApi::CreateAction(
         return digests;
     }
 
-    auto const bazel_result = network_->IsAvailable(back_map->GetKeys());
+    auto const bazel_result = network_->FindMissingBlobs(back_map->GetKeys());
     return back_map->GetValues(bazel_result);
 }
 

@@ -84,7 +84,7 @@ template <typename TValue, typename TIterator>
             return std::nullopt;
         }
     }
-    res.digests = api.IsAvailable(digests);
+    res.digests = api.GetMissingDigests(digests);
     return res;
 }
 

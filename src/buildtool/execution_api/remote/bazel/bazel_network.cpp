@@ -47,7 +47,7 @@ auto BazelNetwork::IsAvailable(bazel_re::Digest const& digest) const noexcept
     return cas_->FindMissingBlobs(instance_name_, {digest}).empty();
 }
 
-auto BazelNetwork::IsAvailable(
+auto BazelNetwork::FindMissingBlobs(
     std::unordered_set<bazel_re::Digest> const& digests) const noexcept
     -> std::unordered_set<bazel_re::Digest> {
     return cas_->FindMissingBlobs(instance_name_, digests);

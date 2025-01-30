@@ -416,7 +416,7 @@ auto CreateDistdirGitMap(
                     }
                     // try to supply the serve endpoint with the tree via the
                     // remote CAS
-                    if (digest and remote_api->IsAvailable({*digest})) {
+                    if (digest and remote_api->IsAvailable(*digest)) {
                         // tell serve to set up the root from the remote CAS
                         // tree
                         if (serve->GetTreeFromRemote(*digest)) {
@@ -436,7 +436,7 @@ auto CreateDistdirGitMap(
                     }
                     // check if we have the tree in local CAS; if yes, upload it
                     // to remote for the serve endpoint to find it
-                    if (digest and local_api->IsAvailable({*digest})) {
+                    if (digest and local_api->IsAvailable(*digest)) {
                         if (not local_api->RetrieveToCas(
                                 {Artifact::ObjectInfo{
                                     .digest = *digest,
@@ -481,7 +481,7 @@ auto CreateDistdirGitMap(
 
             // if the root is not-absent, the order of checks is different;
             // first, look in the local CAS
-            if (digest and local_api->IsAvailable({*digest})) {
+            if (digest and local_api->IsAvailable(*digest)) {
                 ImportFromCASAndSetRoot(key,
                                         *native_storage_config,
                                         *native_storage,

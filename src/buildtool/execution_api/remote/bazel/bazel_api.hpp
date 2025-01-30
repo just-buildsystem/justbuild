@@ -102,7 +102,7 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool final;
 
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> final;
 

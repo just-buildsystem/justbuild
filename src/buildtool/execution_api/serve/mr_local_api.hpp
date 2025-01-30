@@ -126,7 +126,7 @@ class MRLocalApi final : public IExecutionApi {
     /// \note The caller is responsible for passing vectors with digests of the
     /// same type. For simplicity, this method takes the first digest of the
     /// vector as representative for figuring out hash function type.
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> final;
 

@@ -129,7 +129,7 @@ class IExecutionApi {
     [[nodiscard]] virtual auto IsAvailable(
         ArtifactDigest const& digest) const noexcept -> bool = 0;
 
-    [[nodiscard]] virtual auto IsAvailable(
+    [[nodiscard]] virtual auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> = 0;
 

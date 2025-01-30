@@ -52,7 +52,7 @@ class BazelNetwork {
     [[nodiscard]] auto IsAvailable(
         bazel_re::Digest const& digest) const noexcept -> bool;
 
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto FindMissingBlobs(
         std::unordered_set<bazel_re::Digest> const& digests) const noexcept
         -> std::unordered_set<bazel_re::Digest>;
 

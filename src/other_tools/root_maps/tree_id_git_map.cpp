@@ -229,7 +229,7 @@ auto CreateTreeIdGitMap(
                 }
                 // check if tree in already in remote CAS
                 auto const digest = ArtifactDigest{key.tree_info.tree_hash, 0};
-                if (remote_api->IsAvailable({digest})) {
+                if (remote_api->IsAvailable(digest)) {
                     // tell serve to set up the root from the remote CAS tree;
                     if (serve->GetTreeFromRemote(digest)) {
                         // set workspace root as absent

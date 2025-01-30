@@ -319,7 +319,7 @@ class ExecutorImpl {
         });
 
         // find missing digests
-        auto const missing_digests = api.IsAvailable(back_map->GetKeys());
+        auto const missing_digests = api.GetMissingDigests(back_map->GetKeys());
         auto const missing_entries =
             back_map->IterateReferences(&missing_digests);
 

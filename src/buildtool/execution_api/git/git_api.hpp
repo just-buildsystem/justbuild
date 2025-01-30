@@ -328,7 +328,7 @@ class GitApi final : public IExecutionApi {
             .has_value();
     }
 
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> override {
         std::unordered_set<ArtifactDigest> result;

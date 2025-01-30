@@ -312,7 +312,7 @@ class LocalApi final : public IExecutionApi {
         return found;
     }
 
-    [[nodiscard]] auto IsAvailable(
+    [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> final {
         std::unordered_set<ArtifactDigest> result;
