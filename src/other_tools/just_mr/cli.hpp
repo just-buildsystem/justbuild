@@ -85,6 +85,10 @@ struct MultiRepoUpdateArguments {
     std::vector<std::string> repos_to_update;
 };
 
+struct MultiRepoGcArguments {
+    bool drop_only{false};
+};
+
 struct MultiRepoJustSubCmdsArguments {
     std::optional<std::string> subcmd_name{std::nullopt};
     std::vector<std::string> additional_just_args;
@@ -124,6 +128,7 @@ struct CommandLineArguments {
     MultiRepoSetupArguments setup;
     MultiRepoFetchArguments fetch;
     MultiRepoUpdateArguments update;
+    MultiRepoGcArguments gc;
     MultiRepoJustSubCmdsArguments just_cmd;
     MultiRepoRemoteAuthArguments auth;
     ForwardOnlyArguments launch_fwd;
@@ -336,6 +341,14 @@ static inline void SetupMultiRepoUpdateArguments(
     // take all remaining args as positional
     app->add_option("repo", clargs->repos_to_update, "Repository to update.")
         ->type_name("");
+}
+
+static inline void SetupMultiRepoGcArguments(
+    gsl::not_null<CLI::App*> const& app,
+    gsl::not_null<MultiRepoGcArguments*> const& clargs) {
+    app->add_flag("--drop-only",
+                  clargs->drop_only,
+                  "Only drop old repository generations");
 }
 
 static inline auto SetupMultiRepoRemoteAuthArguments(
