@@ -28,7 +28,8 @@ class RepositoryGarbageCollector {
     /// \brief Trigger garbage collection, i.e., rotate the generations and
     /// delete the oldest. \returns true on success.
     [[nodiscard]] auto static TriggerGarbageCollection(
-        StorageConfig const& storage_config) noexcept -> bool;
+        StorageConfig const& storage_config,
+        bool drop_only = false) noexcept -> bool;
 
     /// \brief Acquire shared lock to prevent garbage collection from running.
     /// \param storage_config   Storage to be locked.

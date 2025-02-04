@@ -17,6 +17,7 @@
 #include <cstddef>
 #include <string>
 
+#include "fmt/core.h"
 #include "src/buildtool/execution_api/common/execution_common.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -38,7 +39,8 @@ auto RepositoryGarbageCollector::LockFilePath(
 }
 
 auto RepositoryGarbageCollector::TriggerGarbageCollection(
-    StorageConfig const& storage_config) noexcept -> bool {
+    StorageConfig const& storage_config,
+    bool drop_only) noexcept -> bool {
     auto const remove_me_prefix = std::string{"remove-me"};
 
     auto pid = CreateProcessUniqueId();
@@ -84,19 +86,42 @@ auto RepositoryGarbageCollector::TriggerGarbageCollection(
                         "Failed to exclusively lock the local repository root");
             return false;
         }
-
-        for (std::size_t i = storage_config.num_generations; i > 0; i--) {
-            auto from = storage_config.RepositoryGenerationRoot(i - 1);
-            auto to = i < storage_config.num_generations
-                          ? storage_config.RepositoryGenerationRoot(i)
-                          : remove_me;
-            if (FileSystemManager::IsDirectory(from)) {
-                if (not FileSystemManager::Rename(from, to)) {
-                    Logger::Log(LogLevel::Error,
-                                "Failed to rename {} to {}",
-                                from.string(),
-                                to.string());
-                    return false;
+        if (drop_only) {
+            if (not FileSystemManager::CreateDirectory(remove_me)) {
+                Logger::Log(LogLevel::Error,
+                            "Failed to create directory {}",
+                            remove_me.string());
+                return false;
+            }
+            for (std::size_t i = storage_config.num_generations - 1; i > 0;
+                 i--) {
+                auto from = storage_config.RepositoryGenerationRoot(i);
+                auto to = remove_me / (fmt::format("generation-{}", i));
+                if (FileSystemManager::IsDirectory(from)) {
+                    if (not FileSystemManager::Rename(from, to)) {
+                        Logger::Log(LogLevel::Error,
+                                    "Failed to rename {} to {}",
+                                    from.string(),
+                                    to.string());
+                        return false;
+                    }
+                }
+            }
+        }
+        else {
+            for (std::size_t i = storage_config.num_generations; i > 0; i--) {
+                auto from = storage_config.RepositoryGenerationRoot(i - 1);
+                auto to = i < storage_config.num_generations
+                              ? storage_config.RepositoryGenerationRoot(i)
+                              : remove_me;
+                if (FileSystemManager::IsDirectory(from)) {
+                    if (not FileSystemManager::Rename(from, to)) {
+                        Logger::Log(LogLevel::Error,
+                                    "Failed to rename {} to {}",
+                                    from.string(),
+                                    to.string());
+                        return false;
+                    }
                 }
             }
         }
