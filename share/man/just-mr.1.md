@@ -12,7 +12,7 @@ SYNOPSIS
 **`just-mr`** \[*`OPTION`*\]... {**`setup`**|**`setup-env`**} \[**`--all`**\] \[*`main-repo`*\]  
 **`just-mr`** \[*`OPTION`*\]... **`fetch`** \[**`--all`**\] \[**`--backup-to-remote`**] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
 **`just-mr`** \[*`OPTION`*\]... **`update`** \[*`repo`*\]...  
-**`just-mr`** \[*`OPTION`*\]... **`gc-repo`**  
+**`just-mr`** \[*`OPTION`*\]... **`gc-repo`** \[**`--drop-only`**\]  
 **`just-mr`** \[*`OPTION`*\]... **`do`** \[*`JUST_ARG`*\]...  
 **`just-mr`** \[*`OPTION`*\]... {**`version`**|**`describe`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`add-to-cas`**|**`rebuild`**|**`gc`**} \[*`JUST_ARG`*\]...  
 
@@ -297,6 +297,10 @@ This subcommand rotates the generations of the repository cache.
 Every root used is added to the youngest generation. Therefore upon
 a call to **`gc-repo`** all roots are cleaned up that were not used
 since the last **`gc-repo`**.
+
+If **`--drop-only`** is given, only the old generations are cleaned up,
+without rotation. In this way, storage can be reclaimed; this might be
+necessary as no perfect sharing happens between the repository generations.
 
 do
 --
