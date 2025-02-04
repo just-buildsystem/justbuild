@@ -12,6 +12,7 @@ SYNOPSIS
 **`just-mr`** \[*`OPTION`*\]... {**`setup`**|**`setup-env`**} \[**`--all`**\] \[*`main-repo`*\]  
 **`just-mr`** \[*`OPTION`*\]... **`fetch`** \[**`--all`**\] \[**`--backup-to-remote`**] \[**`-o`** *`fetch-dir`*\] \[*`main-repo`*\]  
 **`just-mr`** \[*`OPTION`*\]... **`update`** \[*`repo`*\]...  
+**`just-mr`** \[*`OPTION`*\]... **`gc-repo`**  
 **`just-mr`** \[*`OPTION`*\]... **`do`** \[*`JUST_ARG`*\]...  
 **`just-mr`** \[*`OPTION`*\]... {**`version`**|**`describe`**|**`analyse`**|**`build`**|**`install`**|**`install-cas`**|**`add-to-cas`**|**`rebuild`**|**`gc`**} \[*`JUST_ARG`*\]...  
 
@@ -288,6 +289,14 @@ For Git repositories, the subcommand will replace the value for the
 remote repository in the specified branch. The output configuration file
 will otherwise remain the same at the JSON level with the input
 configuration file.
+
+gc-repo
+-------
+
+This subcommand rotates the generations of the repository cache.
+Every root used is added to the youngest generation. Therefore upon
+a call to **`gc-repo`** all roots are cleaned up that were not used
+since the last **`gc-repo`**.
 
 do
 --
