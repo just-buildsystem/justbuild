@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <functional>
@@ -27,7 +26,6 @@
 #include <unordered_set>
 #include <utility>  // std::move
 
-#include "fmt/core.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -137,35 +135,6 @@ namespace {
         return ::RetrieveToCas(
             {artifact_info.digest}, other_api, network, info_map);
     }
-
-    Logger::Log(
-        LogLevel::Debug,
-        [&artifact_info,
-         &unique_digests,
-         &missing_artifact_digests,
-         total_size = digest->size()]() {
-            auto missing_digest_set = std::unordered_set<ArtifactDigest>{
-                missing_artifact_digests.begin(),
-                missing_artifact_digests.end()};
-            std::uint64_t transmitted_bytes{0};
-            for (auto const& chunk_digest : unique_digests) {
-                if (missing_digest_set.contains(chunk_digest)) {
-                    transmitted_bytes += chunk_digest.size();
-                }
-            }
-            double transmission_factor = 0.;
-            if (total_size > 0) {
-                transmission_factor = static_cast<double>(transmitted_bytes) /
-                                      static_cast<double>(total_size);
-            }
-            return fmt::format(
-                "Blob splitting saved {} bytes ({:.2f}%) of network traffic "
-                "when fetching {}.\n",
-                total_size - transmitted_bytes,
-                transmission_factor,
-                artifact_info.ToString());
-        });
-
     return true;
 }
 
