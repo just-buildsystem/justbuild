@@ -84,7 +84,6 @@
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
     [ "bazel_network"
-    , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "protocol_traits"]

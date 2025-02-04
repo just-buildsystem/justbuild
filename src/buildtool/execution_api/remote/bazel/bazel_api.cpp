@@ -117,14 +117,15 @@ namespace {
     }
 
     // Fetch unknown chunks.
-    auto digest_set = std::unordered_set<ArtifactDigest>{chunk_digests->begin(),
-                                                         chunk_digests->end()};
-    auto unique_digests =
-        std::vector<ArtifactDigest>{digest_set.begin(), digest_set.end()};
+    auto missing_artifact_digests = other_api.IsAvailable(
+        std::unordered_set(chunk_digests->begin(), chunk_digests->end()));
 
-    auto missing_artifact_digests = other_api.IsAvailable(unique_digests);
-    if (not ::RetrieveToCas(
-            missing_artifact_digests, other_api, network, info_map)) {
+    std::vector<ArtifactDigest> missing_digests;
+    missing_digests.reserve(missing_artifact_digests.size());
+    std::move(missing_artifact_digests.begin(),
+              missing_artifact_digests.end(),
+              std::back_inserter(missing_digests));
+    if (not ::RetrieveToCas(missing_digests, other_api, network, info_map)) {
         return false;
     }
 
@@ -570,8 +571,8 @@ auto BazelApi::CreateAction(
 }
 
 [[nodiscard]] auto BazelApi::IsAvailable(
-    std::vector<ArtifactDigest> const& digests) const noexcept
-    -> std::vector<ArtifactDigest> {
+    std::unordered_set<ArtifactDigest> const& digests) const noexcept
+    -> std::unordered_set<ArtifactDigest> {
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
         &digests, ArtifactDigestFactory::ToBazel);
     if (not back_map.has_value()) {
@@ -579,11 +580,7 @@ auto BazelApi::CreateAction(
     }
 
     auto const bazel_result = network_->IsAvailable(back_map->GetKeys());
-    auto missing = back_map->GetValues(bazel_result);
-    std::vector<ArtifactDigest> result;
-    result.reserve(missing.size());
-    std::move(missing.begin(), missing.end(), std::back_inserter(result));
-    return result;
+    return back_map->GetValues(bazel_result);
 }
 
 [[nodiscard]] auto BazelApi::SplitBlob(ArtifactDigest const& blob_digest)

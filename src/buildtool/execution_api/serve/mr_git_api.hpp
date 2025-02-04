@@ -16,9 +16,11 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_SERVE_MR_GIT_API_HPP
 
 #include <filesystem>
+#include <functional>
 #include <map>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -122,8 +124,8 @@ class MRGitApi final : public IExecutionApi {
 
     /// \brief Not implemented.
     [[nodiscard]] auto IsAvailable(
-        std::vector<ArtifactDigest> const& /*digests*/) const noexcept
-        -> std::vector<ArtifactDigest> final {
+        std::unordered_set<ArtifactDigest> const& /*digests*/) const noexcept
+        -> std::unordered_set<ArtifactDigest> final {
         // Not supported.
         return {};
     }

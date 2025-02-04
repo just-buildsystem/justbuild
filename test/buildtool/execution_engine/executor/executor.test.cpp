@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -248,13 +249,14 @@ class TestApi : public IExecutionApi {
             return false;
         }
     }
-    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
-        const noexcept -> std::vector<ArtifactDigest> final {
-        std::vector<ArtifactDigest> result;
+    [[nodiscard]] auto IsAvailable(
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest> final {
+        std::unordered_set<ArtifactDigest> result;
         try {
             for (auto const& digest : digests) {
                 if (not config_.artifacts.at(digest.hash()).available) {
-                    result.push_back(digest);
+                    result.emplace(digest);
                 }
             }
         } catch (std::exception const& /* unused */) {

@@ -65,6 +65,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/task_tracker.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path_rebase.hpp"
@@ -293,26 +294,17 @@ class ExecutorImpl {
                                                  GitTree const& tree) noexcept
         -> bool {
         // create list of digests for batch check of CAS availability
-        std::vector<ArtifactDigest> digests;
-        std::unordered_map<ArtifactDigest, gsl::not_null<GitTreeEntryPtr>>
-            entry_map;
-        for (auto const& [path, entry] : tree) {
-            // Since GitTrees are processed here, HashFunction::Type::GitSHA1 is
-            // used
-            auto digest =
-                ArtifactDigestFactory::Create(HashFunction::Type::GitSHA1,
-                                              entry->Hash(),
-                                              *entry->Size(),
-                                              entry->IsTree());
-            if (not digest) {
-                return false;
-            }
-            digests.emplace_back(*digest);
-            try {
-                entry_map.emplace(*std::move(digest), entry);
-            } catch (...) {
-                return false;
-            }
+        using ElementType = typename GitTree::entries_t::value_type;
+        auto const back_map = BackMap<ArtifactDigest, ElementType>::Make(
+            &tree, [](ElementType const& entry) {
+                return ArtifactDigestFactory::Create(
+                    HashFunction::Type::GitSHA1,
+                    entry.second->Hash(),
+                    *entry.second->Size(),
+                    entry.second->IsTree());
+            });
+        if (not back_map.has_value()) {
+            return false;
         }
 
         Logger::Log(LogLevel::Trace, [&tree]() {
@@ -327,44 +319,42 @@ class ExecutorImpl {
         });
 
         // find missing digests
-        auto missing_digests = api.IsAvailable(digests);
+        auto const missing_digests = api.IsAvailable(back_map->GetKeys());
+        auto const missing_entries =
+            back_map->IterateReferences(&missing_digests);
 
         // process missing trees
-        for (auto const& digest : missing_digests) {
-            if (auto it = entry_map.find(digest); it != entry_map.end()) {
-                auto const& entry = it->second;
-                if (entry->IsTree()) {
-                    auto const& tree = entry->Tree();
-                    if (not tree or not VerifyOrUploadTree(api, *tree)) {
-                        return false;
-                    }
+        for (auto const& [_, value] : missing_entries) {
+            auto const entry = value->second;
+            if (entry->IsTree()) {
+                auto const& tree = entry->Tree();
+                if (not tree or not VerifyOrUploadTree(api, *tree)) {
+                    return false;
                 }
             }
         }
 
         // upload missing entries (blobs or trees)
         ArtifactBlobContainer container;
-        for (auto const& digest : missing_digests) {
-            if (auto it = entry_map.find(digest); it != entry_map.end()) {
-                auto const& entry = it->second;
-                auto content = entry->RawData();
-                if (not content) {
-                    return false;
-                }
-                // store and/or upload blob, taking into account the maximum
-                // transfer size
-                if (not UpdateContainerAndUpload<ArtifactDigest>(
-                        &container,
-                        ArtifactBlob{digest,
-                                     std::move(*content),
-                                     IsExecutableObject(entry->Type())},
-                        /*exception_is_fatal=*/true,
-                        [&api](ArtifactBlobContainer&& blobs) {
-                            return api.Upload(std::move(blobs),
-                                              /*skip_find_missing=*/true);
-                        })) {
-                    return false;
-                }
+        for (auto const& [digest, value] : missing_entries) {
+            auto const entry = value->second;
+            auto content = entry->RawData();
+            if (not content.has_value()) {
+                return false;
+            }
+            // store and/or upload blob, taking into account the maximum
+            // transfer size
+            if (not UpdateContainerAndUpload<ArtifactDigest>(
+                    &container,
+                    ArtifactBlob{*digest,
+                                 std::move(*content),
+                                 IsExecutableObject(entry->Type())},
+                    /*exception_is_fatal=*/true,
+                    [&api](ArtifactBlobContainer&& blobs) {
+                        return api.Upload(std::move(blobs),
+                                          /*skip_find_missing=*/true);
+                    })) {
+                return false;
             }
         }
         // upload remaining blobs

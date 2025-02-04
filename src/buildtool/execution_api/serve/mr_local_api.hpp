@@ -19,6 +19,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -125,8 +126,9 @@ class MRLocalApi final : public IExecutionApi {
     /// \note The caller is responsible for passing vectors with digests of the
     /// same type. For simplicity, this method takes the first digest of the
     /// vector as representative for figuring out hash function type.
-    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
-        const noexcept -> std::vector<ArtifactDigest> final;
+    [[nodiscard]] auto IsAvailable(
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest> final;
 
   private:
     // retain local context references to have direct access to storages

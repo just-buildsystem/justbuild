@@ -14,6 +14,7 @@
 
 #include "src/buildtool/execution_api/serve/mr_local_api.hpp"
 
+#include <functional>
 #include <utility>
 
 #include "src/buildtool/common/protocol_traits.hpp"
@@ -123,8 +124,8 @@ auto MRLocalApi::IsAvailable(ArtifactDigest const& digest) const noexcept
     return compat_local_api_->IsAvailable(digest);
 }
 
-auto MRLocalApi::IsAvailable(std::vector<ArtifactDigest> const& digests)
-    const noexcept -> std::vector<ArtifactDigest> {
+auto MRLocalApi::IsAvailable(std::unordered_set<ArtifactDigest> const& digests)
+    const noexcept -> std::unordered_set<ArtifactDigest> {
     // This method can legitimately be called with both native and
     // compatible digests when in compatible mode, therefore we need to
     // interrogate the hash type of the input.
@@ -134,7 +135,7 @@ auto MRLocalApi::IsAvailable(std::vector<ArtifactDigest> const& digests)
         return {};  // nothing to do
     }
     // native digests get dispatched to native local api
-    if (ProtocolTraits::IsNative(digests[0].GetHashType())) {
+    if (ProtocolTraits::IsNative(digests.begin()->GetHashType())) {
         return native_local_api_->IsAvailable(digests);
     }
     // compatible digests get dispatched to compatible local api

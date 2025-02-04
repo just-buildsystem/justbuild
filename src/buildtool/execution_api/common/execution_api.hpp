@@ -21,6 +21,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
@@ -129,8 +130,8 @@ class IExecutionApi {
         ArtifactDigest const& digest) const noexcept -> bool = 0;
 
     [[nodiscard]] virtual auto IsAvailable(
-        std::vector<ArtifactDigest> const& digests) const noexcept
-        -> std::vector<ArtifactDigest> = 0;
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest> = 0;
 
     [[nodiscard]] virtual auto SplitBlob(ArtifactDigest const& /*blob_digest*/)
         const noexcept -> std::optional<std::vector<ArtifactDigest>> {

@@ -21,6 +21,7 @@
 #include <iterator>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -39,7 +40,7 @@
 /// to some given original type.
 template <typename T>
 struct MissingArtifactsInfo {
-    std::vector<ArtifactDigest> digests;
+    std::unordered_set<ArtifactDigest> digests;
     std::unordered_map<ArtifactDigest, T> back_map;
 };
 
@@ -69,7 +70,7 @@ template <typename TValue, typename TIterator>
     TIterator const& end,
     typename std::function<ArtifactDigest(TValue const&)> const&
         converter) noexcept -> std::optional<MissingArtifactsInfo<TValue>> {
-    std::vector<ArtifactDigest> digests;
+    std::unordered_set<ArtifactDigest> digests;
     digests.reserve(std::distance(begin, end));
     MissingArtifactsInfo<TValue> res{};
     for (auto it = begin; it != end; ++it) {
@@ -77,7 +78,7 @@ template <typename TValue, typename TIterator>
             auto const inserted =
                 res.back_map.insert({std::invoke(converter, *it), *it});
             if (inserted.second) {
-                digests.emplace_back(inserted.first->first);
+                digests.emplace(inserted.first->first);
             }
         } catch (...) {
             return std::nullopt;

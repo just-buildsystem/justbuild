@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -327,12 +328,14 @@ class GitApi final : public IExecutionApi {
             .has_value();
     }
 
-    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
-        const noexcept -> std::vector<ArtifactDigest> override {
-        std::vector<ArtifactDigest> result;
+    [[nodiscard]] auto IsAvailable(
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest> override {
+        std::unordered_set<ArtifactDigest> result;
+        result.reserve(digests.size());
         for (auto const& digest : digests) {
             if (not IsAvailable(digest)) {
-                result.push_back(digest);
+                result.emplace(digest);
             }
         }
         return result;

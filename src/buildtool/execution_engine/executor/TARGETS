@@ -32,6 +32,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/progress_reporting", "task_tracker"]
+    , ["src/utils/cpp", "back_map"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path_rebase"]

@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>  // std::move
 #include <vector>
 
@@ -311,12 +312,14 @@ class LocalApi final : public IExecutionApi {
         return found;
     }
 
-    [[nodiscard]] auto IsAvailable(std::vector<ArtifactDigest> const& digests)
-        const noexcept -> std::vector<ArtifactDigest> final {
-        std::vector<ArtifactDigest> result;
+    [[nodiscard]] auto IsAvailable(
+        std::unordered_set<ArtifactDigest> const& digests) const noexcept
+        -> std::unordered_set<ArtifactDigest> final {
+        std::unordered_set<ArtifactDigest> result;
+        result.reserve(digests.size());
         for (auto const& digest : digests) {
             if (not IsAvailable(digest)) {
-                result.push_back(digest);
+                result.emplace(digest);
             }
         }
         return result;
