@@ -4,7 +4,12 @@ Bug fixes on top of `1.4.2`.
 
 ### Fixes
 
+- `just-mr` repository garbage collection now properly removes
+  no longer needed directories.
 - The "generic" rule now properly detects staging conflicts.
+- The local api correctly handles not-found blobs, even in the absence
+  of a local git api.
+- Documentation fixes.
 
 ## Release `1.4.2` (2025-01-13)
 
