@@ -4,6 +4,7 @@
   , "hdrs":
     [ "bazel/bytestream_client.hpp"
     , "bazel/bazel_action.hpp"
+    , "bazel/bazel_capabilities_client.hpp"
     , "bazel/bazel_response.hpp"
     , "bazel/bazel_network.hpp"
     , "bazel/bazel_ac_client.hpp"
@@ -13,6 +14,7 @@
     ]
   , "srcs":
     [ "bazel/bazel_action.cpp"
+    , "bazel/bazel_capabilities_client.cpp"
     , "bazel/bazel_response.cpp"
     , "bazel/bazel_network.cpp"
     , "bazel/bazel_ac_client.cpp"
@@ -33,6 +35,7 @@
     , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "bytestream_utils"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -55,7 +58,6 @@
     , ["src/buildtool/common/remote", "retry"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/common", "common_api"]
-    , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "back_map"]
