@@ -86,7 +86,7 @@ auto BazelNetwork::DoUploadBlobs(
         std::vector<IteratorType> to_stream;
         to_stream.reserve(blobs.size());
         for (auto it = blobs.begin(); it != blobs.end(); ++it) {
-            if (it->data->size() > kMaxBatchTransferSize) {
+            if (it->data->size() > MessageLimits::kMaxGrpcLength) {
                 to_stream.push_back(it);
             }
         }

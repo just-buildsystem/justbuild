@@ -17,7 +17,9 @@
 
 #include <cstddef>
 
-// Max size for batch transfers
-inline constexpr std::size_t kMaxBatchTransferSize = 3UL * 1024 * 1024;
+struct MessageLimits final {
+    // Maximum length of a gprc message.
+    static constexpr std::size_t kMaxGrpcLength = 3UL * 1024 * 1024;
+};
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_MESSAGE_LIMITS_HPP

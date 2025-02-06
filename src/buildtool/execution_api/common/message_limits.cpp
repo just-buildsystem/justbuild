@@ -16,5 +16,6 @@
 
 #include <grpc/grpc.h>
 
-static_assert(kMaxBatchTransferSize < GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
+static_assert(MessageLimits::kMaxGrpcLength <
+                  GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
               "Max batch transfer size too large.");

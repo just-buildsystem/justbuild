@@ -167,7 +167,7 @@ auto GarbageCollector::TriggerGarbageCollection(
         // Otherwise, an interruption of the process during compactification
         // would lead to an invalid old generation.
         if (not GarbageCollector::Compactify(storage_config,
-                                             kMaxBatchTransferSize)) {
+                                             MessageLimits::kMaxGrpcLength)) {
             Logger::Log(LogLevel::Error,
                         "Failed to compactify the youngest generation.");
             return false;

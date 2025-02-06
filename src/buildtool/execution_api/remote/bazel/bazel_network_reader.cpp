@@ -51,7 +51,7 @@ BazelNetworkReader::BazelNetworkReader(
         auto full_tree =
             cas_.GetTree(instance_name_,
                          ArtifactDigestFactory::ToBazel(*request_remote_tree),
-                         kMaxBatchTransferSize);
+                         MessageLimits::kMaxGrpcLength);
         auxiliary_map_ = MakeAuxiliaryMap(std::move(full_tree));
     }
 }
@@ -254,7 +254,7 @@ namespace {
     for (auto it = begin; it != end; ++it) {
         std::size_t const blob_size = it->size();
         size += blob_size;
-        if (blob_size == 0 or size > kMaxBatchTransferSize) {
+        if (blob_size == 0 or size > MessageLimits::kMaxGrpcLength) {
             return it;
         }
     }

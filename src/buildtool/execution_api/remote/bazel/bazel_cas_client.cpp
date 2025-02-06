@@ -659,7 +659,7 @@ auto BazelCasClient::CreateBatchRequestsMaxSize(
             request.set_instance_name(instance_name);
             request_builder(&request, blob);
             if (accumulating_request.ByteSizeLong() + request.ByteSizeLong() >
-                kMaxBatchTransferSize) {
+                MessageLimits::kMaxGrpcLength) {
                 result.emplace_back(std::move(accumulating_request));
                 accumulating_request = std::move(request);
             }

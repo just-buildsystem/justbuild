@@ -214,7 +214,7 @@ auto UpdateContainerAndUpload(
     // that we never store unnecessarily more data in the container than we need
     // per remote transfer.
     try {
-        if (blob.data->size() > kMaxBatchTransferSize) {
+        if (blob.data->size() > MessageLimits::kMaxGrpcLength) {
             // large blobs use individual stream upload
             if (not uploader(
                     std::unordered_set<ArtifactBlob>{{std::move(blob)}})) {
@@ -228,7 +228,8 @@ auto UpdateContainerAndUpload(
                     content_size += blob.data->size();
                 }
 
-                if (content_size + blob.data->size() > kMaxBatchTransferSize) {
+                if (content_size + blob.data->size() >
+                    MessageLimits::kMaxGrpcLength) {
                     // swap away from original container to allow move during
                     // upload
                     std::unordered_set<ArtifactBlob> tmp_container{};
