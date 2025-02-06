@@ -102,10 +102,10 @@ class LogSinkFile final : public ILogSink {
         timespec ts{};
         clock_gettime(CLOCK_REALTIME, &ts);
         auto timestamp = fmt::format(
-            "{:%Y-%m-%d %H:%M:%S}.{}", fmt::localtime(ts.tv_sec), ts.tv_nsec);
+            "{:%Y-%m-%d %H:%M:%S}.{} UTC", fmt::gmtime(ts.tv_sec), ts.tv_nsec);
 #else
         auto timestamp = fmt::format(
-            "{:%Y-%m-%d %H:%M:%S}", fmt::localtime(std::time(nullptr));
+            "{:%Y-%m-%d %H:%M:%S} UTC", fmt::gmtime(std::time(nullptr));
 #endif
 
         std::ostringstream id{};
