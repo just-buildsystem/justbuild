@@ -229,7 +229,7 @@
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
     , ["src/buildtool/file_system", "file_system_manager"]
-    , ["src/buildtool/file_system/symlinks_map", "resolve_symlinks_map"]
+    , ["src/buildtool/file_system/symlinks", "resolve_symlinks_map"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "retry"]

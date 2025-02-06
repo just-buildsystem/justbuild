@@ -25,7 +25,7 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hash_info.hpp"
-#include "src/buildtool/file_system/symlinks_map/pragma_special.hpp"
+#include "src/buildtool/file_system/symlinks/pragma_special.hpp"
 #include "src/utils/cpp/path.hpp"
 
 auto ParseArchiveContent(ExpressionPtr const& repo_desc,

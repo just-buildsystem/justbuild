@@ -153,10 +153,10 @@
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "git_cas"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
-    , ["@", "src", "src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["@", "src", "src/buildtool/file_system/symlinks", "pragma_special"]
     , [ "@"
       , "src"
-      , "src/buildtool/file_system/symlinks_map"
+      , "src/buildtool/file_system/symlinks"
       , "resolve_symlinks_map"
       ]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]

@@ -133,7 +133,7 @@
     , "storage"
     , ["src/buildtool/common", "user_structs"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/file_system/symlinks_map", "pragma_special"]
+    , ["src/buildtool/file_system/symlinks", "pragma_special"]
     ]
   , "stage": ["src", "buildtool", "storage"]
   , "private-deps":

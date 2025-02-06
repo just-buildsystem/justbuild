@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
-#define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_PRAGMA_SPECIAL_HPP
+#define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_PRAGMA_SPECIAL_HPP
 
 #include <cstdint>
 #include <functional>
@@ -43,4 +43,4 @@ inline std::unordered_map<PragmaSpecial, std::string> const
         {PragmaSpecial::ResolvePartially, "resolve-partially"},
         {PragmaSpecial::ResolveCompletely, "resolve-completely"}};
 
-#endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_PRAGMA_SPECIAL_HPP

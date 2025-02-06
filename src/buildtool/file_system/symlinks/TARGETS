@@ -13,7 +13,7 @@
     , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "path_hash"]
     ]
-  , "stage": ["src", "buildtool", "file_system", "symlinks_map"]
+  , "stage": ["src", "buildtool", "file_system", "symlinks"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "gsl"]
@@ -24,6 +24,6 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["pragma_special"]
   , "hdrs": ["pragma_special.hpp"]
-  , "stage": ["src", "buildtool", "file_system", "symlinks_map"]
+  , "stage": ["src", "buildtool", "file_system", "symlinks"]
   }
 }
