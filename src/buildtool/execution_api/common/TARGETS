@@ -81,7 +81,8 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["message_limits"]
   , "hdrs": ["message_limits.hpp"]
-  , "deps": [["@", "grpc", "", "grpc"]]
+  , "srcs": ["message_limits.cpp"]
+  , "private-deps": [["@", "grpc", "", "grpc"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "common_api":
