@@ -31,15 +31,16 @@ enum class PragmaSpecial : std::uint8_t {
 };
 
 /// \brief Pragma "special" value map, from string to enum
-std::unordered_map<std::string, PragmaSpecial> const kPragmaSpecialMap = {
-    {"ignore", PragmaSpecial::Ignore},
-    {"resolve-partially", PragmaSpecial::ResolvePartially},
-    {"resolve-completely", PragmaSpecial::ResolveCompletely}};
+inline std::unordered_map<std::string, PragmaSpecial> const kPragmaSpecialMap =
+    {{"ignore", PragmaSpecial::Ignore},
+     {"resolve-partially", PragmaSpecial::ResolvePartially},
+     {"resolve-completely", PragmaSpecial::ResolveCompletely}};
 
 /// \brief Pragma "special" value inverse map, from enum to string
-std::unordered_map<PragmaSpecial, std::string> const kPragmaSpecialInverseMap =
-    {{PragmaSpecial::Ignore, "ignore"},
-     {PragmaSpecial::ResolvePartially, "resolve-partially"},
-     {PragmaSpecial::ResolveCompletely, "resolve-completely"}};
+inline std::unordered_map<PragmaSpecial, std::string> const
+    kPragmaSpecialInverseMap = {
+        {PragmaSpecial::Ignore, "ignore"},
+        {PragmaSpecial::ResolvePartially, "resolve-partially"},
+        {PragmaSpecial::ResolveCompletely, "resolve-completely"}};
 
 #endif  // INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_SYMLINKS_MAP_PRAGMA_SPECIAL_HPP
