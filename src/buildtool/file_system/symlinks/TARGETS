@@ -26,4 +26,10 @@
   , "hdrs": ["pragma_special.hpp"]
   , "stage": ["src", "buildtool", "file_system", "symlinks"]
   }
+, "resolve_special":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["resolve_special"]
+  , "hdrs": ["resolve_special.hpp"]
+  , "stage": ["src", "buildtool", "file_system", "symlinks"]
+  }
 }
