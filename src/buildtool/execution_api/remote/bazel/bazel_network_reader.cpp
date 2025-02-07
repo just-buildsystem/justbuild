@@ -247,24 +247,13 @@ auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
 }
 
 namespace {
-[[nodiscard]] auto FindBorderIterator(
-    std::vector<ArtifactDigest>::const_iterator const& begin,
-    std::vector<ArtifactDigest>::const_iterator const& end) noexcept {
-    std::size_t size = 0;
-    for (auto it = begin; it != end; ++it) {
-        std::size_t const blob_size = it->size();
-        size += blob_size;
-        if (blob_size == 0 or size > MessageLimits::kMaxGrpcLength) {
-            return it;
-        }
-    }
-    return end;
-}
-
 [[nodiscard]] auto FindCurrentIterator(
     std::vector<ArtifactDigest>::const_iterator const& begin,
     std::vector<ArtifactDigest>::const_iterator const& end) noexcept {
-    auto it = FindBorderIterator(begin, end);
+    auto it = std::find_if(begin, end, [](ArtifactDigest const& digest) {
+        auto const size = digest.size();
+        return size == 0 or size > MessageLimits::kMaxGrpcLength;
+    });
     if (it == begin and begin != end) {
         ++it;
     }
