@@ -478,6 +478,12 @@ auto BazelCasClient::FindMissingBlobs(
             else {
                 LogStatus(
                     &logger_, LogLevel::Error, status, "FindMissingBlobs");
+                // Failed to get a response. Mark all requested digests missing:
+                for (auto const& digest : request.blob_digests()) {
+                    if (auto value = back_map->GetReference(digest)) {
+                        result.emplace(*value.value());
+                    }
+                }
             }
         }
         logger_.Emit(LogLevel::Trace, [&digests, &result]() {
