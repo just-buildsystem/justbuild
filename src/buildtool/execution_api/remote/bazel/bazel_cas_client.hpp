@@ -202,10 +202,6 @@ class BazelCasClient {
         }
         return {.ok = true, .result = std::move(output)};
     }
-
-    template <class TContent, class TResponse>
-    auto ProcessResponseContents(TResponse const& response) const noexcept
-        -> std::vector<TContent>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CAS_CLIENT_HPP

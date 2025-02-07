@@ -25,7 +25,6 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "google/protobuf/message.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_digest_factory.hpp"
@@ -280,7 +279,9 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 
     std::vector<bazel_re::Directory> result;
     while (stream->Read(&response)) {
-        result = ProcessResponseContents<bazel_re::Directory>(response);
+        std::move(response.mutable_directories()->begin(),
+                  response.mutable_directories()->end(),
+                  std::back_inserter(result));
         auto const& next_page_token = response.next_page_token();
         if (not next_page_token.empty()) {
             // recursively call this function with token for next page
@@ -373,7 +374,12 @@ auto BazelCasClient::SplitBlob(HashFunction hash_function,
         LogStatus(&logger_, LogLevel::Error, status, "SplitBlob");
         return std::nullopt;
     }
-    return ProcessResponseContents<bazel_re::Digest>(response);
+    std::vector<bazel_re::Digest> result;
+    result.reserve(response.chunk_digests().size());
+    std::move(response.mutable_chunk_digests()->begin(),
+              response.mutable_chunk_digests()->end(),
+              std::back_inserter(result));
+    return result;
 }
 
 auto BazelCasClient::SpliceBlob(
@@ -462,8 +468,8 @@ auto BazelCasClient::FindMissingBlobs(
                 retry_config_,
                 logger_);
             if (ok) {
-                for (auto& batch :
-                     ProcessResponseContents<bazel_re::Digest>(response)) {
+                for (auto const& batch :
+                     *response.mutable_missing_blob_digests()) {
                     if (auto value = back_map->GetReference(batch)) {
                         result.emplace(*value.value());
                     }
@@ -603,39 +609,6 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
     return updated.size();
 }
 
-namespace detail {
-
-// Getter for response contents (needs specialization, never implemented)
-template <class TContent, class TResponse>
-static auto GetResponseContents(TResponse const&) noexcept
-    -> pb::RepeatedPtrField<TContent> const&;
-
-// Specialization of GetResponseContents for 'FindMissingBlobsResponse'
-template <>
-auto GetResponseContents<bazel_re::Digest, bazel_re::FindMissingBlobsResponse>(
-    bazel_re::FindMissingBlobsResponse const& response) noexcept
-    -> pb::RepeatedPtrField<bazel_re::Digest> const& {
-    return response.missing_blob_digests();
-}
-
-// Specialization of GetResponseContents for 'GetTreeResponse'
-template <>
-auto GetResponseContents<bazel_re::Directory, bazel_re::GetTreeResponse>(
-    bazel_re::GetTreeResponse const& response) noexcept
-    -> pb::RepeatedPtrField<bazel_re::Directory> const& {
-    return response.directories();
-}
-
-// Specialization of GetResponseContents for 'SplitBlobResponse'
-template <>
-auto GetResponseContents<bazel_re::Digest, bazel_re::SplitBlobResponse>(
-    bazel_re::SplitBlobResponse const& response) noexcept
-    -> pb::RepeatedPtrField<bazel_re::Digest> const& {
-    return response.chunk_digests();
-}
-
-}  // namespace detail
-
 template <typename TRequest, typename TForwardIter>
 auto BazelCasClient::CreateBatchRequestsMaxSize(
     std::string const& instance_name,
@@ -703,13 +676,4 @@ auto BazelCasClient::CreateGetTreeRequest(
     request.set_page_size(page_size);
     request.set_page_token(page_token);
     return request;
-}
-
-template <class TContent, class TResponse>
-auto BazelCasClient::ProcessResponseContents(
-    TResponse const& response) const noexcept -> std::vector<TContent> {
-    std::vector<TContent> output;
-    auto const& contents = detail::GetResponseContents<TContent>(response);
-    std::copy(contents.begin(), contents.end(), std::back_inserter(output));
-    return output;
 }
