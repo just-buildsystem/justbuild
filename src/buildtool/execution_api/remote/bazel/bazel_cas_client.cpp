@@ -41,6 +41,25 @@
 
 namespace {
 
+template <typename TRequest,
+          typename TIterator,
+          typename TCreator,
+          typename TValue = typename TIterator::value_type>
+[[nodiscard]] auto InitRequest(TRequest* request,
+                               TCreator const& request_creator,
+                               TIterator begin,
+                               TIterator end,
+                               std::size_t message_limit) -> TIterator {
+    for (auto it = begin; it != end; ++it) {
+        auto to_merge = std::invoke(request_creator, *it);
+        if (request->ByteSizeLong() + to_merge.ByteSizeLong() > message_limit) {
+            return it;
+        }
+        request->MergeFrom(to_merge);
+    }
+    return end;
+}
+
 // In order to determine whether blob splitting is supported at the remote, a
 // trial request to the remote CAS service is issued. This is just a workaround
 // until the blob split API extension is accepted as part of the official remote
@@ -445,19 +464,27 @@ auto BazelCasClient::FindMissingBlobs(
         return digests;
     }
 
+    auto request_creator = [&instance_name](bazel_re::Digest const& digest) {
+        bazel_re::FindMissingBlobsRequest request;
+        request.set_instance_name(instance_name);
+        *request.add_blob_digests() = digest;
+        return request;
+    };
+
     try {
         result.reserve(digests.size());
-        auto requests =
-            CreateBatchRequestsMaxSize<bazel_re::FindMissingBlobsRequest>(
-                instance_name,
-                back_map->GetKeys().begin(),
-                back_map->GetKeys().end(),
-                "FindMissingBlobs",
-                [](bazel_re::FindMissingBlobsRequest* request,
-                   bazel_re::Digest const& x) {
-                    *(request->add_blob_digests()) = x;
-                });
-        for (auto const& request : requests) {
+        for (auto it = back_map->GetKeys().begin();
+             it != back_map->GetKeys().end();) {
+            bazel_re::FindMissingBlobsRequest request;
+            it = InitRequest(&request,
+                             request_creator,
+                             it,
+                             back_map->GetKeys().end(),
+                             MessageLimits::kMaxGrpcLength);
+            logger_.Emit(LogLevel::Trace,
+                         "FindMissingBlobs - Request size: {} bytes\n",
+                         request.ByteSizeLong());
+
             bazel_re::FindMissingBlobsResponse response;
             auto [ok, status] = WithRetry(
                 [this, &response, &request]() {
