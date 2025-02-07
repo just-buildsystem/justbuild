@@ -173,8 +173,7 @@
     ]
   , "private-deps":
     [ ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/logging", "log_level"]
-    , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/execution_api/common", "message_limits"]
     ]
   }
 , "operation_cache":

@@ -14,39 +14,33 @@
 
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
 
-#include <cstddef>
-
 #include "build/bazel/semver/semver.pb.h"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/logging/log_level.hpp"
-#include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 
 auto CapabilitiesServiceImpl::GetCapabilities(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::GetCapabilitiesRequest*
     /*request*/,
     ::bazel_re::ServerCapabilities* response) -> ::grpc::Status {
-    if (ProtocolTraits::IsNative(hash_type_)) {
-        auto const* str = "GetCapabilities not implemented";
-        Logger::Log(LogLevel::Error, str);
-        return ::grpc::Status{grpc::StatusCode::UNIMPLEMENTED, str};
-    }
     ::bazel_re::CacheCapabilities cache;
     ::bazel_re::ExecutionCapabilities exec;
 
     cache.add_digest_functions(
-        ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
+        ProtocolTraits::IsNative(hash_type_)
+            ? ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA1
+            : ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
-    static constexpr std::size_t kMaxBatchTransferSize = 1024UL * 1024;
-    cache.set_max_batch_total_size_bytes(kMaxBatchTransferSize);
-    static_assert(kMaxBatchTransferSize < GRPC_DEFAULT_MAX_RECV_MESSAGE_LENGTH,
-                  "Max batch transfer size too large.");
+    cache.set_max_batch_total_size_bytes(MessageLimits::kMaxGrpcLength);
+
     cache.add_supported_chunking_algorithms(
         ::bazel_re::ChunkingAlgorithm_Value::ChunkingAlgorithm_Value_FASTCDC);
     *(response->mutable_cache_capabilities()) = cache;
 
     exec.set_digest_function(
-        ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
+        ProtocolTraits::IsNative(hash_type_)
+            ? ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA1
+            : ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     exec.set_exec_enabled(true);
 
     *(response->mutable_execution_capabilities()) = exec;
