@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_ac_client.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
@@ -93,6 +94,7 @@ class BazelNetwork {
 
   private:
     std::string const instance_name_;
+    std::unique_ptr<BazelCapabilitiesClient> capabilities_;
     std::unique_ptr<BazelCasClient> cas_;
     std::unique_ptr<BazelAcClient> ac_;
     std::unique_ptr<BazelExecutionClient> exec_;

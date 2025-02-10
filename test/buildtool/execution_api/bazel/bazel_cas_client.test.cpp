@@ -28,6 +28,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
@@ -46,10 +47,15 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     REQUIRE(remote_config);
     REQUIRE(remote_config->remote_address);
     RetryConfig retry_config{};  // default retry config
+    BazelCapabilitiesClient capabilities(remote_config->remote_address->host,
+                                         remote_config->remote_address->port,
+                                         &*auth_config,
+                                         &retry_config);
     BazelCasClient cas_client(remote_config->remote_address->host,
                               remote_config->remote_address->port,
                               &*auth_config,
-                              &retry_config);
+                              &retry_config,
+                              &capabilities);
 
     SECTION("Valid digest and blob") {
         // digest of "test"

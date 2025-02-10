@@ -36,6 +36,7 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
@@ -47,7 +48,9 @@ class BazelCasClient {
         std::string const& server,
         Port port,
         gsl::not_null<Auth const*> const& auth,
-        gsl::not_null<RetryConfig const*> const& retry_config) noexcept;
+        gsl::not_null<RetryConfig const*> const& retry_config,
+        gsl::not_null<BazelCapabilitiesClient const*> const&
+            capabilities) noexcept;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance
@@ -143,6 +146,7 @@ class BazelCasClient {
   private:
     std::unique_ptr<ByteStreamClient> stream_;
     RetryConfig const& retry_config_;
+    [[maybe_unused]] BazelCapabilitiesClient const& capabilities_;
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 
