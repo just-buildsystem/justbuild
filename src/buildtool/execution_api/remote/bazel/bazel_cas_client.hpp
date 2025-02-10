@@ -143,10 +143,13 @@ class BazelCasClient {
         HashFunction hash_function,
         std::string const& instance_name) const noexcept -> bool;
 
+    [[nodiscard]] auto GetMaxBatchTransferSize(
+        std::string const& instance_name) const noexcept -> std::size_t;
+
   private:
     std::unique_ptr<ByteStreamClient> stream_;
     RetryConfig const& retry_config_;
-    [[maybe_unused]] BazelCapabilitiesClient const& capabilities_;
+    BazelCapabilitiesClient const& capabilities_;
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 

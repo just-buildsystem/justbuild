@@ -233,6 +233,8 @@ auto BazelCasClient::BatchReadBlobs(
         return result;
     }
 
+    auto const max_content_size = GetMaxBatchTransferSize(instance_name);
+
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
         &blobs, ArtifactDigestFactory::ToBazel);
     if (not back_map.has_value()) {
@@ -257,7 +259,7 @@ auto BazelCasClient::BatchReadBlobs(
                              it,
                              back_map->GetKeys().end(),
                              MessageLimits::kMaxGrpcLength,
-                             MessageLimits::kMaxGrpcLength);
+                             max_content_size);
             logger_.Emit(LogLevel::Trace,
                          "BatchReadBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
@@ -570,6 +572,8 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         return 0;
     }
 
+    auto const max_content_size = GetMaxBatchTransferSize(instance_name);
+
     auto request_creator = [&instance_name](ArtifactBlob const& blob) {
         bazel_re::BatchUpdateBlobsRequest request;
         request.set_instance_name(instance_name);
@@ -591,7 +595,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                              it,
                              blobs.end(),
                              MessageLimits::kMaxGrpcLength,
-                             MessageLimits::kMaxGrpcLength);
+                             max_content_size);
             logger_.Emit(LogLevel::Trace,
                          "BatchUpdateBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
@@ -684,6 +688,11 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                              });
     }
     return updated.size();
+}
+
+auto BazelCasClient::GetMaxBatchTransferSize(
+    std::string const& instance_name) const noexcept -> std::size_t {
+    return capabilities_.GetCapabilities(instance_name)->MaxBatchTransferSize;
 }
 
 auto BazelCasClient::CreateGetTreeRequest(

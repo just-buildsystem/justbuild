@@ -246,14 +246,21 @@ auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
     return rehashed == blob.digest;
 }
 
+auto BazelNetworkReader::GetMaxBatchTransferSize() const noexcept
+    -> std::size_t {
+    return cas_.GetMaxBatchTransferSize(instance_name_);
+}
+
 namespace {
 [[nodiscard]] auto FindCurrentIterator(
+    std::size_t content_limit,
     std::vector<ArtifactDigest>::const_iterator const& begin,
     std::vector<ArtifactDigest>::const_iterator const& end) noexcept {
-    auto it = std::find_if(begin, end, [](ArtifactDigest const& digest) {
-        auto const size = digest.size();
-        return size == 0 or size > MessageLimits::kMaxGrpcLength;
-    });
+    auto it =
+        std::find_if(begin, end, [content_limit](ArtifactDigest const& digest) {
+            auto const size = digest.size();
+            return size == 0 or size > content_limit;
+        });
     if (it == begin and begin != end) {
         ++it;
     }
@@ -266,7 +273,8 @@ BazelNetworkReader::IncrementalReader::Iterator::Iterator(
     std::vector<ArtifactDigest>::const_iterator begin,
     std::vector<ArtifactDigest>::const_iterator end) noexcept
     : owner_{owner}, begin_{begin}, end_{end} {
-    current_ = FindCurrentIterator(begin_, end_);
+    current_ =
+        FindCurrentIterator(owner_.GetMaxBatchTransferSize(), begin_, end_);
 }
 
 auto BazelNetworkReader::IncrementalReader::Iterator::operator*() const noexcept
@@ -286,6 +294,7 @@ auto BazelNetworkReader::IncrementalReader::Iterator::operator*() const noexcept
 auto BazelNetworkReader::IncrementalReader::Iterator::operator++() noexcept
     -> Iterator& {
     begin_ = current_;
-    current_ = FindCurrentIterator(begin_, end_);
+    current_ =
+        FindCurrentIterator(owner_.GetMaxBatchTransferSize(), begin_, end_);
     return *this;
 }
