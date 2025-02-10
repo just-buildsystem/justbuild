@@ -146,16 +146,6 @@ class BazelCasClient {
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 
-    template <typename TRequest, typename TForwardIter>
-    [[nodiscard]] auto CreateBatchRequestsMaxSize(
-        std::string const& instance_name,
-        TForwardIter const& first,
-        TForwardIter const& last,
-        std::string const& heading,
-        std::function<void(TRequest*,
-                           typename TForwardIter::value_type const&)> const&
-            request_builder) const noexcept -> std::vector<TRequest>;
-
     [[nodiscard]] static auto CreateGetTreeRequest(
         std::string const& instance_name,
         bazel_re::Digest const& root_digest,
