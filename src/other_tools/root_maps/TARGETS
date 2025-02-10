@@ -124,7 +124,6 @@
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
-    , ["src/other_tools/just_mr", "mirrors"]
     , ["src/other_tools/just_mr/progress_reporting", "progress"]
     , ["src/other_tools/ops_maps", "content_cas_map"]
     , ["src/other_tools/ops_maps", "critical_git_op_map"]
