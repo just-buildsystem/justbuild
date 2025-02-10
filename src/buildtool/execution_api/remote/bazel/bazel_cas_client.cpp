@@ -41,6 +41,16 @@
 
 namespace {
 
+[[nodiscard]] auto GetContentSize(bazel_re::Digest const& digest) noexcept
+    -> std::size_t {
+    return static_cast<std::size_t>(digest.size_bytes());
+}
+
+[[nodiscard]] auto GetContentSize(ArtifactBlob const& blob) noexcept
+    -> std::size_t {
+    return blob.data->size();
+}
+
 template <typename TRequest,
           typename TIterator,
           typename TCreator,
@@ -49,13 +59,21 @@ template <typename TRequest,
                                TCreator const& request_creator,
                                TIterator begin,
                                TIterator end,
-                               std::size_t message_limit) -> TIterator {
+                               std::size_t message_limit,
+                               std::optional<std::size_t> const& content_limit =
+                                   std::nullopt) -> TIterator {
+    std::size_t content_size = 0;
     for (auto it = begin; it != end; ++it) {
         auto to_merge = std::invoke(request_creator, *it);
         if (request->ByteSizeLong() + to_merge.ByteSizeLong() > message_limit) {
             return it;
         }
+        if (content_limit.has_value() and
+            content_size + GetContentSize(*it) > *content_limit) {
+            return it;
+        }
         request->MergeFrom(to_merge);
+        content_size += GetContentSize(*it);
     }
     return end;
 }
@@ -236,6 +254,7 @@ auto BazelCasClient::BatchReadBlobs(
                              request_creator,
                              it,
                              back_map->GetKeys().end(),
+                             MessageLimits::kMaxGrpcLength,
                              MessageLimits::kMaxGrpcLength);
             logger_.Emit(LogLevel::Trace,
                          "BatchReadBlobs - Request size: {} bytes\n",
@@ -569,6 +588,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                              request_creator,
                              it,
                              blobs.end(),
+                             MessageLimits::kMaxGrpcLength,
                              MessageLimits::kMaxGrpcLength);
             logger_.Emit(LogLevel::Trace,
                          "BatchUpdateBlobs - Request size: {} bytes\n",
