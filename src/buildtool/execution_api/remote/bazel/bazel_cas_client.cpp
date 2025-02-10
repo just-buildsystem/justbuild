@@ -537,60 +537,71 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
     if (blobs.empty()) {
         return 0;
     }
+
+    auto request_creator = [&instance_name](ArtifactBlob const& blob) {
+        bazel_re::BatchUpdateBlobsRequest request;
+        request.set_instance_name(instance_name);
+
+        auto& r = *request.add_requests();
+        (*r.mutable_digest()) = ArtifactDigestFactory::ToBazel(blob.digest);
+        r.set_data(*blob.data);
+        return request;
+    };
+
     std::unordered_set<bazel_re::Digest> updated;
     try {
         updated.reserve(blobs.size());
-        auto requests =
-            CreateBatchRequestsMaxSize<bazel_re::BatchUpdateBlobsRequest>(
-                instance_name,
-                blobs.begin(),
-                blobs.end(),
-                "BatchUpdateBlobs",
-                [](bazel_re::BatchUpdateBlobsRequest* request,
-                   ArtifactBlob const& x) {
-                    *(request->add_requests()) =
-                        BazelCasClient::CreateUpdateBlobsSingleRequest(x);
-                });
-        auto batch_update_blobs =
-            [this, &updated](auto const& request) -> RetryResponse {
-            bazel_re::BatchUpdateBlobsResponse response;
-            grpc::ClientContext context;
-            auto status = stub_->BatchUpdateBlobs(&context, request, &response);
-            if (status.ok()) {
-                auto batch_response = ProcessBatchResponse<
-                    bazel_re::Digest,
-                    bazel_re::BatchUpdateBlobsResponse_Response>(
-                    response,
-                    [](std::vector<bazel_re::Digest>* v,
-                       bazel_re::BatchUpdateBlobsResponse_Response const& r) {
-                        v->push_back(r.digest());
-                    });
-                if (batch_response.ok) {
-                    std::move(batch_response.result.begin(),
-                              batch_response.result.end(),
-                              std::inserter(updated, updated.end()));
-                    return {.ok = true};
-                }
-                return {.ok = false,
-                        .exit_retry_loop = batch_response.exit_retry_loop,
-                        .error_msg = batch_response.error_msg};
-            }
-            return {.ok = false,
-                    .exit_retry_loop =
-                        status.error_code() != grpc::StatusCode::UNAVAILABLE,
-                    .error_msg = StatusString(status, "BatchUpdateBlobs")};
-        };
-        if (not std::all_of(std::begin(requests),
-                            std::end(requests),
-                            [this, &batch_update_blobs](auto const& request) {
-                                return WithRetry(
-                                    [&request, &batch_update_blobs]() {
-                                        return batch_update_blobs(request);
-                                    },
-                                    retry_config_,
-                                    logger_,
-                                    LogLevel::Performance);
-                            })) {
+        bool has_failure = false;
+        for (auto it = blobs.begin(); it != blobs.end();) {
+            bazel_re::BatchUpdateBlobsRequest request;
+            it = InitRequest(&request,
+                             request_creator,
+                             it,
+                             blobs.end(),
+                             MessageLimits::kMaxGrpcLength);
+            logger_.Emit(LogLevel::Trace,
+                         "BatchUpdateBlobs - Request size: {} bytes\n",
+                         request.ByteSizeLong());
+
+            bool const retry_result = WithRetry(
+                [this, &request, &updated]() -> RetryResponse {
+                    bazel_re::BatchUpdateBlobsResponse response;
+                    grpc::ClientContext context;
+                    auto status =
+                        stub_->BatchUpdateBlobs(&context, request, &response);
+                    if (status.ok()) {
+                        auto batch_response = ProcessBatchResponse<
+                            bazel_re::Digest,
+                            bazel_re::BatchUpdateBlobsResponse_Response>(
+                            response,
+                            [](std::vector<bazel_re::Digest>* v,
+                               bazel_re::
+                                   BatchUpdateBlobsResponse_Response const& r) {
+                                v->push_back(r.digest());
+                            });
+                        if (batch_response.ok) {
+                            std::move(batch_response.result.begin(),
+                                      batch_response.result.end(),
+                                      std::inserter(updated, updated.end()));
+                            return {.ok = true};
+                        }
+                        return {
+                            .ok = false,
+                            .exit_retry_loop = batch_response.exit_retry_loop,
+                            .error_msg = batch_response.error_msg};
+                    }
+                    return {
+                        .ok = false,
+                        .exit_retry_loop = status.error_code() !=
+                                           grpc::StatusCode::UNAVAILABLE,
+                        .error_msg = StatusString(status, "BatchUpdateBlobs")};
+                },
+                retry_config_,
+                logger_,
+                LogLevel::Performance);
+            has_failure = has_failure or not retry_result;
+        }
+        if (has_failure) {
             logger_.Emit(LogLevel::Performance, "Failed to BatchUpdateBlobs.");
         }
     } catch (...) {
@@ -687,15 +698,6 @@ auto BazelCasClient::CreateBatchRequestsMaxSize(
         return oss.str();
     });
     return result;
-}
-
-auto BazelCasClient::CreateUpdateBlobsSingleRequest(
-    ArtifactBlob const& b) noexcept
-    -> bazel_re::BatchUpdateBlobsRequest_Request {
-    bazel_re::BatchUpdateBlobsRequest_Request r{};
-    (*r.mutable_digest()) = ArtifactDigestFactory::ToBazel(b.digest);
-    r.set_data(*b.data);
-    return r;
 }
 
 auto BazelCasClient::CreateGetTreeRequest(

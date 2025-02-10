@@ -156,10 +156,6 @@ class BazelCasClient {
                            typename TForwardIter::value_type const&)> const&
             request_builder) const noexcept -> std::vector<TRequest>;
 
-    [[nodiscard]] static auto CreateUpdateBlobsSingleRequest(
-        ArtifactBlob const& b) noexcept
-        -> bazel_re::BatchUpdateBlobsRequest_Request;
-
     [[nodiscard]] static auto CreateGetTreeRequest(
         std::string const& instance_name,
         bazel_re::Digest const& root_digest,
