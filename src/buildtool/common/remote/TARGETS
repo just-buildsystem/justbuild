@@ -61,6 +61,6 @@
     , ["src/buildtool/logging", "logging"]
     ]
   , "stage": ["src", "buildtool", "common", "remote"]
-  , "private-deps": [["@", "fmt", "", "fmt"]]
+  , "private-deps": [["@", "fmt", "", "fmt"], ["@", "gsl", "", "gsl"]]
   }
 }

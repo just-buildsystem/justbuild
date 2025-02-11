@@ -20,6 +20,7 @@
 #include <thread>
 
 #include "fmt/core.h"
+#include "gsl/gsl"
 
 auto WithRetry(CallableReturningRetryResponse const& f,
                RetryConfig const& retry_config,
@@ -113,6 +114,98 @@ auto WithRetry(CallableReturningGrpcStatus const& f,
         logger.Emit(LogLevel::Error, "WithRetry: caught unknown exception");
     }
     return {false, std::move(status)};
+}
+
+[[nodiscard]] auto IsReasonableToRetry(grpc::Status const& status) noexcept
+    -> bool {
+    // NOLINTBEGIN(bugprone-branch-clone,-warnings-as-errors)
+    switch (status.error_code()) {
+        case grpc::StatusCode::OK: {
+            // Success, don't retry
+            return false;
+        }
+        case grpc::StatusCode::CANCELLED: {
+            // Operation canceled by the user, don't retry
+            return false;
+        }
+        case grpc::StatusCode::UNKNOWN: {
+            // Errors raised by APIs that do not return enough error information
+            // may be converted to this error, don't retry
+            return false;
+        }
+        case grpc::StatusCode::INVALID_ARGUMENT: {
+            // Client specified an invalid argument, don't retry
+            return false;
+        }
+        case grpc::StatusCode::DEADLINE_EXCEEDED: {
+            // Deadline expired before operation could complete, retry
+            return true;
+        }
+        case grpc::StatusCode::NOT_FOUND: {
+            // Requested entity was not found, don't retry
+            return false;
+        }
+        case grpc::StatusCode::ALREADY_EXISTS: {
+            // Entity that we attempted to create (e.g., file or directory)
+            // already exists, don't retry
+            return false;
+        }
+        case grpc::StatusCode::PERMISSION_DENIED: {
+            // The caller does not have permission to execute the specified
+            // operation, don't retry
+            return false;
+        }
+        case grpc::StatusCode::UNAUTHENTICATED: {
+            // The request does not have valid authentication credentials, don't
+            // retry
+            return false;
+        }
+        case grpc::StatusCode::RESOURCE_EXHAUSTED: {
+            // Some resource has been exhausted, perhaps a per-user quota, or
+            // perhaps the entire file system is out of space, retry:
+            return true;
+        }
+        case grpc::StatusCode::FAILED_PRECONDITION: {
+            // Client performs conditional REST operation on a resource and the
+            // resource on the server does not match the condition, don't retry
+            return false;
+        }
+        case grpc::StatusCode::ABORTED: {
+            // Client should retry at a higher-level, don't retry
+            return false;
+        }
+        case grpc::StatusCode::OUT_OF_RANGE: {
+            // Operation was attempted past the valid range. E.g., seeking or
+            // reading past end of file. Unlike INVALID_ARGUMENT, this error
+            // indicates a problem that may be fixed if the system state
+            // changes.
+            return true;
+        }
+        case grpc::StatusCode::UNIMPLEMENTED: {
+            // Operation is not implemented or not supported/enabled in this
+            // service, don't retry
+            return false;
+        }
+        case grpc::StatusCode::INTERNAL: {
+            // Something is very broken, don't retry
+            return false;
+        }
+        case grpc::StatusCode::UNAVAILABLE: {
+            // The service is currently unavailable, retry:
+            return true;
+        }
+        case grpc::StatusCode::DATA_LOSS: {
+            // Unrecoverable data loss or corruption, retry:
+            return true;
+        }
+        case grpc::StatusCode::DO_NOT_USE: {
+            // "Force users to include a default branch", but we want a compile
+            // error if a new case appears, so check DO_NOT_USE explicitly
+            return false;
+        }
+    }
+    // NOLINTEND(bugprone-branch-clone,-warnings-as-errors)
+    Expects(false);  // unreachable
 }
 
 #endif  // BOOTSTRAP_BUILD_TOOL

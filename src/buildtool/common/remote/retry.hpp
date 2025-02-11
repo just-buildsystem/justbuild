@@ -69,5 +69,9 @@ using CallableReturningGrpcStatus = std::function<grpc::Status(void)>;
                              Logger const& logger) noexcept
     -> std::pair<bool, grpc::Status>;
 
+/// \brief Check if it is reasonable to retry.
+[[nodiscard]] auto IsReasonableToRetry(grpc::Status const& status) noexcept
+    -> bool;
+
 #endif  // BOOTSTRAP_BUILD_TOOL
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_RETRY_HPP
