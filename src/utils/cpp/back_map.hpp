@@ -15,7 +15,6 @@
 #ifndef INCLUDED_SRC_UTILS_CPP_BACK_MAP_HPP
 #define INCLUDED_SRC_UTILS_CPP_BACK_MAP_HPP
 
-#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <memory>
@@ -72,7 +71,6 @@ class BackMap final {
         if (container == nullptr or converter == nullptr) {
             return nullptr;
         }
-        auto const hasher = std::hash<TKey>{};
         auto const size = std::distance(container->begin(), container->end());
 
         try {
@@ -85,10 +83,16 @@ class BackMap final {
                 if (not key.has_value()) {
                     return nullptr;
                 }
-                std::size_t const hash = std::invoke(hasher, *key);
-                if (not back_map->mapping_.contains(hash)) {
-                    back_map->keys_.emplace(*std::move(key));
-                    back_map->mapping_.insert_or_assign(hash, &value);
+
+                if (auto inserted = back_map->keys_.insert(*std::move(key));
+                    inserted.second) {
+                    // References and pointers to data stored in the container
+                    // are only invalidated by erasing that element, even when
+                    // the corresponding iterator is invalidated:
+                    // https://en.cppreference.com/w/cpp/container/unordered_set#:~:text=invalidated%20by%20erasing%20that%20element
+                    // According to ^, this approach is safe:
+                    back_map->mapping_.insert_or_assign(&*inserted.first,
+                                                        &value);
                 }
             }
             return back_map;
@@ -118,9 +122,8 @@ class BackMap final {
     /// otherwise std::nullopt.
     [[nodiscard]] auto GetReference(TKey const& key) const noexcept
         -> std::optional<gsl::not_null<TValue const*>> {
-        auto const hash = std::invoke(std::hash<TKey>{}, key);
-        if (auto it = mapping_.find(hash); it != mapping_.end()) {
-            return it->second;
+        if (auto it = keys_.find(key); it != keys_.end()) {
+            return mapping_.at(&*it);
         }
         return std::nullopt;
     }
@@ -161,7 +164,7 @@ class BackMap final {
 
   private:
     std::unordered_set<TKey> keys_;
-    std::unordered_map<std::size_t, gsl::not_null<TValue const*>> mapping_;
+    std::unordered_map<TKey const*, gsl::not_null<TValue const*>> mapping_;
 
     template <typename TResult>
     [[nodiscard]] static auto Convert(Converter<TResult> const& converter,
