@@ -24,7 +24,7 @@ OUT="${TEST_TMPDIR}/out"
 mkdir -p bin
 cat > bin/mock-vcs <<'EOF'
 #!/bin/sh
-if [ "$(cat ${CREDENTIAL_PATH:-/dev/null})" = "sEcReT" ]
+if [ "$(cat ${CREDENTIAL_PATH:-/dev/null})" = "sEcReT" ] && [ "$(cat ${LOCAL_CREDENTIAL_PATH:-/dev/null})" = "local-SeCrEt" ]
 then
   echo 'checked-out sources' > sources.txt
   echo '{}' > TARGETS
@@ -38,6 +38,8 @@ export PATH="$(pwd)/bin:${PATH}"
 mkdir -p etc
 echo -n sEcReT > etc/pass
 export CREDENTIAL_PATH="$(pwd)/etc/pass"
+echo -n local-SeCrEt > etc/local-pass
+export LOCAL_CREDENTIAL_PATH="$(pwd)/etc/local-pass"
 
 # Compute tree of our mock checkout
 mkdir work
@@ -72,14 +74,24 @@ cat > repos.json <<EOF
 EOF
 cat repos.json
 
+cat > local.json <<'EOF'
+{"extra inherit env": ["LOCAL_CREDENTIAL_PATH"]}
+EOF
+
 # Succesfull build
 
 "${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
+             --checkout-locations local.json \
              install -o "${OUT}" '' sources.txt 2>&1
 grep checked-out "${OUT}/sources.txt"
 
+# Verify the local.json is needed
+"${JUST_MR}" --norc --local-build-root "${LBR2}" setup 2>&1 && exit 1 || :
+
 # Verify the environment is needed
 export CREDENTIAL_PATH=/dev/null
-"${JUST_MR}" --norc --local-build-root "${LBR2}" setup 2>&1 && exit 1 || :
+"${JUST_MR}" --norc --local-build-root "${LBR2}" \
+             --checkout-locations local.json \
+             setup 2>&1 && exit 1 || :
 
 echo DONE
