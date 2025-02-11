@@ -70,7 +70,7 @@
     , ["src/buildtool/execution_api/remote", "context"]
     ]
   , "private-deps":
-    [ ["src/buildtool/execution_api/bazel_msg", "bazel_msg"]
+    [ ["src/buildtool/execution_api/bazel_msg", "execution_config"]
     , ["src/buildtool/execution_api/local", "local"]
     , ["src/buildtool/execution_api/remote", "bazel"]
     , ["src/buildtool/execution_api/remote", "config"]

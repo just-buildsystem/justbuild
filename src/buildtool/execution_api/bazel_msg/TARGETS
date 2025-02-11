@@ -1,7 +1,7 @@
-{ "bazel_msg":
+{ "execution_config":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["bazel_msg"]
-  , "hdrs": ["bazel_common.hpp"]
+  , "name": ["execution_config"]
+  , "hdrs": ["execution_config.hpp"]
   , "stage": ["src", "buildtool", "execution_api", "bazel_msg"]
   }
 , "bazel_msg_factory":

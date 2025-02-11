@@ -33,7 +33,7 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/execution_api/bazel_msg/bazel_common.hpp"
+#include "src/buildtool/execution_api/bazel_msg/execution_config.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"

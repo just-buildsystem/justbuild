@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_COMMON_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_COMMON_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_EXECUTION_CONFIG_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_EXECUTION_CONFIG_HPP
 
 /// \file bazel_common.hpp
 /// \brief Common types and functions required by Bazel API.
@@ -24,4 +24,4 @@ struct ExecutionConfiguration {
     bool skip_cache_lookup{};
 };
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_BAZEL_COMMON_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_BAZEL_MSG_EXECUTION_CONFIG_HPP
