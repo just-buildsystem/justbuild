@@ -90,6 +90,13 @@ This file contains a JSON object with several known keys:
    specifying known hostnames. When fetching from a non-local mirror, URLs
    with hostnames in the given list are preferred (in the order given)
    over URLs with other hostnames.
+ - the key *`"extra inherit env"`*, if given, is a list of strings
+   specifying additional variable names to be inherited from the
+   environment (besides the ones specified in *`"inherit env"`*
+   of the respective repository definition). This can be useful,
+   if the local git mirrors use a different protocol (like `ssh`
+   instead of `https`) and hence require different variables to
+   pass the credentials.
 
 This options overwrites any values set in the **`just-mrrc`**(5) file.  
 Default: file path *`".just-local.json"`* in user's home directory.

@@ -315,6 +315,9 @@ auto main(int argc, char* argv[]) -> int {
                 arguments.common.alternative_mirrors->preferred_hostnames =
                     checkout_locations_json.value("preferred hostnames",
                                                   nlohmann::json::array());
+                arguments.common.alternative_mirrors->extra_inherit_env =
+                    checkout_locations_json.value("extra inherit env",
+                                                  nlohmann::json::array());
             } catch (std::exception const& e) {
                 Logger::Log(
                     LogLevel::Error,

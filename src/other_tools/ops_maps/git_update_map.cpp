@@ -25,53 +25,54 @@ auto CreateGitUpdateMap(
     GitCASPtr const& git_cas,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    MirrorsPtr const& mirrors,
     gsl::not_null<StorageConfig const*> const& storage_config,
     gsl::not_null<JustMRStatistics*> const& stats,
     gsl::not_null<JustMRProgress*> const& progress,
     std::size_t jobs) -> GitUpdateMap {
-    auto update_commits = [git_cas,
-                           git_bin,
-                           launcher,
-                           storage_config,
-                           stats,
-                           progress](auto /* unused */,
-                                     auto setter,
-                                     auto logger,
-                                     auto /* unused */,
-                                     auto const& key) {
-        // perform git update commit
-        auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
-        if (not git_repo) {
-            (*logger)(
-                fmt::format("Failed to open tmp Git repository for remote {}",
-                            key.repo),
-                /*fatal=*/true);
-            return;
-        }
-        // setup wrapped logger
-        auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
-            [logger](auto const& msg, bool fatal) {
-                (*logger)(
-                    fmt::format("While updating commit from remote:\n{}", msg),
-                    fatal);
-            });
-        // update commit
-        auto id = fmt::format("{}:{}", key.repo, key.branch);
-        progress->TaskTracker().Start(id);
-        auto new_commit = git_repo->UpdateCommitViaTmpRepo(*storage_config,
-                                                           key.repo,
-                                                           key.branch,
-                                                           key.inherit_env,
-                                                           git_bin,
-                                                           launcher,
-                                                           wrapped_logger);
-        progress->TaskTracker().Stop(id);
-        if (not new_commit) {
-            return;
-        }
-        stats->IncrementExecutedCounter();
-        (*setter)(new_commit->c_str());
-    };
+    auto update_commits =
+        [git_cas, git_bin, launcher, mirrors, storage_config, stats, progress](
+            auto /* unused */,
+            auto setter,
+            auto logger,
+            auto /* unused */,
+            auto const& key) {
+            // perform git update commit
+            auto git_repo = GitRepoRemote::Open(git_cas);  // wrap the tmp odb
+            if (not git_repo) {
+                (*logger)(fmt::format(
+                              "Failed to open tmp Git repository for remote {}",
+                              key.repo),
+                          /*fatal=*/true);
+                return;
+            }
+            // setup wrapped logger
+            auto wrapped_logger = std::make_shared<AsyncMapConsumerLogger>(
+                [logger](auto const& msg, bool fatal) {
+                    (*logger)(
+                        fmt::format("While updating commit from remote:\n{}",
+                                    msg),
+                        fatal);
+                });
+            auto inherit_env =
+                MirrorsUtils::GetInheritEnv(mirrors, key.inherit_env);
+            // update commit
+            auto id = fmt::format("{}:{}", key.repo, key.branch);
+            progress->TaskTracker().Start(id);
+            auto new_commit = git_repo->UpdateCommitViaTmpRepo(*storage_config,
+                                                               key.repo,
+                                                               key.branch,
+                                                               inherit_env,
+                                                               git_bin,
+                                                               launcher,
+                                                               wrapped_logger);
+            progress->TaskTracker().Stop(id);
+            if (not new_commit) {
+                return;
+            }
+            stats->IncrementExecutedCounter();
+            (*setter)(new_commit->c_str());
+        };
     return AsyncMapConsumer<RepoDescriptionForUpdating, std::string>(
         update_commits, jobs);
 }

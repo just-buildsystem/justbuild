@@ -292,6 +292,7 @@ auto CreateGitTreeFetchMap(
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    MirrorsPtr const& mirrors,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,
@@ -304,6 +305,7 @@ auto CreateGitTreeFetchMap(
                           import_to_git_map,
                           git_bin,
                           launcher,
+                          mirrors,
                           serve,
                           native_storage_config,
                           compat_storage_config,
@@ -334,6 +336,7 @@ auto CreateGitTreeFetchMap(
              import_to_git_map,
              git_bin,
              launcher,
+             mirrors,
              serve,
              native_storage_config,
              compat_storage_config,
@@ -524,8 +527,10 @@ auto CreateGitTreeFetchMap(
                 std::copy(key.command.begin(),
                           key.command.end(),
                           std::back_inserter(cmdline));
+                auto inherit_env =
+                    MirrorsUtils::GetInheritEnv(mirrors, key.inherit_env);
                 std::map<std::string, std::string> env{key.env_vars};
-                for (auto const& k : key.inherit_env) {
+                for (auto const& k : inherit_env) {
                     const char* v = std::getenv(k.c_str());
                     if (v != nullptr) {
                         env[k] = std::string(v);
@@ -571,6 +576,7 @@ auto CreateGitTreeFetchMap(
                      key,
                      git_bin,
                      launcher,
+                     mirrors,
                      native_storage_config,
                      compat_storage_config,
                      local_api,

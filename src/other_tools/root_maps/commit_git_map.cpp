@@ -413,6 +413,9 @@ void NetworkFetchAndSetPresentRoot(
     all_mirrors.insert(
         all_mirrors.begin(), local_mirrors.begin(), local_mirrors.end());
 
+    auto inherit_env =
+        MirrorsUtils::GetInheritEnv(additional_mirrors, repo_info.inherit_env);
+
     for (auto mirror : all_mirrors) {
         auto mirror_path = GitURLIsPath(mirror);
         if (mirror_path) {
@@ -426,7 +429,7 @@ void NetworkFetchAndSetPresentRoot(
         if (git_repo->FetchViaTmpRepo(native_storage_config,
                                       mirror,
                                       repo_info.branch,
-                                      repo_info.inherit_env,
+                                      inherit_env,
                                       git_bin,
                                       launcher,
                                       wrapped_logger)) {

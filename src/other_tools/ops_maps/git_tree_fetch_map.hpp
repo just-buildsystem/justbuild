@@ -27,6 +27,7 @@
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/ops_maps/critical_git_op_map.hpp"
 #include "src/other_tools/ops_maps/import_to_git_map.hpp"
@@ -64,6 +65,7 @@ using GitTreeFetchMap = AsyncMapConsumer<GitTreeInfo, bool>;
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    MirrorsPtr const& mirrors,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
     StorageConfig const* compat_storage_config,

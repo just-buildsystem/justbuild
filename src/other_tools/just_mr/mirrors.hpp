@@ -34,6 +34,7 @@
 struct Mirrors {
     nlohmann::json local_mirrors;        // maps URLs to list of local mirrors
     nlohmann::json preferred_hostnames;  // list of mirror hostnames
+    nlohmann::json extra_inherit_env;
 };
 
 using MirrorsPtr = std::shared_ptr<Mirrors>;
@@ -100,6 +101,36 @@ namespace MirrorsUtils {
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Warning,
                     "Retrieving preferred mirrors failed with:\n{}",
+                    ex.what());
+        return {};
+    };
+}
+
+/// \brief Get the list of extra variables to inherit.
+[[nodiscard]] static inline auto GetInheritEnv(
+    MirrorsPtr const& additional_mirrors,
+    std::vector<std::string> const& base) noexcept -> std::vector<std::string> {
+    try {
+        std::vector<std::string> res(base);
+        res.reserve(additional_mirrors->extra_inherit_env.size() + base.size());
+        for (auto const& [_, val] :
+             additional_mirrors->extra_inherit_env.items()) {
+            if (val.is_string()) {
+                res.emplace_back(val.get<std::string>());
+            }
+            else {
+                Logger::Log(
+                    LogLevel::Warning,
+                    "Retrieving extra variables to inherit: found non-string "
+                    "list entry {}",
+                    val.dump());
+            }
+        }
+        return res;
+    } catch (std::exception const& ex) {
+        Logger::Log(LogLevel::Warning,
+                    "Retrieving extra environment variables to inherit failed "
+                    "with:\n{}",
                     ex.what());
         return {};
     };

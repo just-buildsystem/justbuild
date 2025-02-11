@@ -24,6 +24,7 @@
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 #include "src/buildtool/storage/config.hpp"
+#include "src/other_tools/just_mr/mirrors.hpp"
 #include "src/other_tools/just_mr/progress_reporting/progress.hpp"
 #include "src/other_tools/just_mr/progress_reporting/statistics.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
@@ -59,6 +60,7 @@ struct hash<RepoDescriptionForUpdating> {
     GitCASPtr const& git_cas,
     std::string const& git_bin,
     std::vector<std::string> const& launcher,
+    MirrorsPtr const& mirrors,
     gsl::not_null<StorageConfig const*> const&
         storage_config,  // native storage config
     gsl::not_null<JustMRStatistics*> const& stats,
