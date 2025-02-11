@@ -76,8 +76,11 @@ auto BazelCapabilitiesClient::GetCapabilities(
     }
 
     std::optional<bazel_re::ServerCapabilities> response;
-    auto get_capabilities =
-        [&instance_name, &stub = *stub_, &response]() -> RetryResponse {
+    bool is_reasonable_to_retry = true;
+    auto get_capabilities = [&instance_name,
+                             &stub = *stub_,
+                             &response,
+                             &is_reasonable_to_retry]() -> RetryResponse {
         grpc::ClientContext context;
 
         bazel_re::GetCapabilitiesRequest request;
@@ -90,9 +93,11 @@ auto BazelCapabilitiesClient::GetCapabilities(
             response.emplace(std::move(capabilities));
             return RetryResponse{.ok = true};
         }
+
+        is_reasonable_to_retry = IsReasonableToRetry(status);
         return RetryResponse{
             .ok = false,
-            .exit_retry_loop = false,
+            .exit_retry_loop = not is_reasonable_to_retry,
             .error_msg = fmt::format("While obtaining capabilities: {}",
                                      status.error_message())};
     };
@@ -107,8 +112,9 @@ auto BazelCapabilitiesClient::GetCapabilities(
     bool const cache_result = response.has_value();
     auto result = std::make_shared<Capabilities>(Parse(std::move(response)));
 
-    // Cache results only if they contain meaningful non-default capabilities:
-    if (cache_result) {
+    // Cache results only if they contain meaningful non-default capabilities or
+    // there's no point in retrying:
+    if (cache_result or not is_reasonable_to_retry) {
         std::unique_lock lock{lock_};
         capabilities_.insert_or_assign(instance_name, result);
     }
