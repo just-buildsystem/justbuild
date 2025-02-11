@@ -237,7 +237,7 @@ auto BazelCasClient::BatchReadBlobs(
 
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
         &blobs, ArtifactDigestFactory::ToBazel);
-    if (not back_map.has_value()) {
+    if (back_map == nullptr) {
         return result;
     }
 
@@ -494,7 +494,7 @@ auto BazelCasClient::FindMissingBlobs(
 
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
         &digests, ArtifactDigestFactory::ToBazel);
-    if (not back_map.has_value()) {
+    if (back_map == nullptr) {
         return digests;
     }
 

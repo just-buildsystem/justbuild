@@ -304,7 +304,7 @@ class ExecutorImpl {
                     *entry.second->Size(),
                     entry.second->IsTree());
             });
-        if (not back_map.has_value()) {
+        if (back_map == nullptr) {
             return false;
         }
 

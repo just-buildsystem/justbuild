@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <type_traits>
 #include <unordered_map>
@@ -49,6 +50,13 @@ class BackMap final {
                  IsKeyWithError<TResult>::value)
     using Converter = std::function<TResult(TValue const&)>;
 
+    explicit BackMap() = default;
+    BackMap(BackMap const&) = delete;
+    BackMap(BackMap&&) = delete;
+    auto operator=(BackMap const&) -> BackMap& = delete;
+    auto operator=(BackMap&&) -> BackMap& = delete;
+    ~BackMap() = default;
+
     /// \brief Create a BackMap by iterating over container and applying
     /// Converter.
     /// \param container Container to iterate over. begin() and end() methods
@@ -60,41 +68,40 @@ class BackMap final {
     template <typename TContainer, typename TResult>
     [[nodiscard]] static auto Make(TContainer const* const container,
                                    Converter<TResult> const& converter) noexcept
-        -> std::optional<BackMap> {
+        -> std::unique_ptr<BackMap> {
         if (container == nullptr or converter == nullptr) {
-            return std::nullopt;
+            return nullptr;
         }
         auto const hasher = std::hash<TKey>{};
         auto const size = std::distance(container->begin(), container->end());
 
-        std::unordered_set<TKey> keys;
-        std::unordered_map<std::size_t, gsl::not_null<TValue const*>> mapping;
         try {
-            keys.reserve(size);
-            mapping.reserve(size);
+            auto back_map = std::make_unique<BackMap>();
+            back_map->keys_.reserve(size);
+            back_map->mapping_.reserve(size);
 
             for (auto const& value : *container) {
                 std::optional<TKey> key = BackMap::Convert(converter, value);
                 if (not key.has_value()) {
-                    return std::nullopt;
+                    return nullptr;
                 }
                 std::size_t const hash = std::invoke(hasher, *key);
-                if (not mapping.contains(hash)) {
-                    keys.emplace(*std::move(key));
-                    mapping.insert_or_assign(hash, &value);
+                if (not back_map->mapping_.contains(hash)) {
+                    back_map->keys_.emplace(*std::move(key));
+                    back_map->mapping_.insert_or_assign(hash, &value);
                 }
             }
+            return back_map;
         } catch (...) {
-            return std::nullopt;
+            return nullptr;
         }
-        return BackMap(std::move(keys), std::move(mapping));
     }
 
     template <typename TContainer, typename TConverter>
         requires(std::is_invocable_v<TConverter, TValue const&>)
     [[nodiscard]] static auto Make(TContainer const* const container,
                                    TConverter const& converter) noexcept
-        -> std::optional<BackMap> {
+        -> std::unique_ptr<BackMap> {
         using TResult = std::invoke_result_t<TConverter, TValue const&>;
         return Make<TContainer, TResult>(container, converter);
     }
@@ -155,12 +162,6 @@ class BackMap final {
   private:
     std::unordered_set<TKey> keys_;
     std::unordered_map<std::size_t, gsl::not_null<TValue const*>> mapping_;
-
-    explicit BackMap(
-        std::unordered_set<TKey> keys,
-        std::unordered_map<std::size_t, gsl::not_null<TValue const*>>
-            mapping) noexcept
-        : keys_{std::move(keys)}, mapping_{std::move(mapping)} {}
 
     template <typename TResult>
     [[nodiscard]] static auto Convert(Converter<TResult> const& converter,

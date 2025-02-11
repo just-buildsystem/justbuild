@@ -195,7 +195,7 @@ auto BazelNetworkReader::BatchReadBlobs(
     auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
         &batched_blobs, [](ArtifactBlob const& blob) { return blob.digest; });
 
-    if (not back_map.has_value()) {
+    if (back_map == nullptr) {
         return {};
     }
 

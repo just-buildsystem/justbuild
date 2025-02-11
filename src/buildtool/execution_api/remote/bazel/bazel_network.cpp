@@ -122,7 +122,7 @@ auto BazelNetwork::UploadBlobs(std::unordered_set<ArtifactBlob>&& blobs,
     if (not skip_find_missing) {
         auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
             &blobs, [](ArtifactBlob const& blob) { return blob.digest; });
-        if (not back_map.has_value()) {
+        if (back_map == nullptr) {
             return false;
         }
 
