@@ -17,6 +17,8 @@ A feature release on top of `1.4.0`, backwards compatible.
   defining base repositories and a sequence of imports.
 - An option `-p` was added to the building subcommands to show the
   unique artifact (if there is precisely one) on stdout.
+- The checkout-locations file now additionally allows to specify
+  extra environment variables to inherit.
 
 ### Fixes
 
@@ -38,6 +40,8 @@ A feature release on top of `1.4.0`, backwards compatible.
   non-upwards relative paths.
 - The local api correctly handles not-found blobs, even in the absence
   of a local git api.
+- For remote execution, the server capability `max_batch_total_size_bytes`
+  is now correctly honored, if announced by the server.
 - Missing entries in the documentation have been added.
 
 ## Release `1.4.0` (2024-11-04)
