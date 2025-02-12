@@ -307,7 +307,7 @@ auto BazelCasClient::BatchReadBlobs(
                 },
                 retry_config_,
                 logger_);
-            has_failure = has_failure or retry_result;
+            has_failure = has_failure or not retry_result;
         }
         if (has_failure) {
             logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs.");
