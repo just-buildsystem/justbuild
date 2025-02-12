@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>  //std::move
 
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
@@ -32,11 +31,6 @@ struct ArtifactBlob final {
         : digest{std::move(digest)},
           data{std::make_shared<std::string>(std::move(mydata))},
           is_exec{is_exec} {}
-
-    ArtifactBlob(ArtifactDigest digest,
-                 gsl::not_null<std::shared_ptr<std::string>> const& mydata,
-                 bool is_exec) noexcept
-        : digest{std::move(digest)}, data(mydata), is_exec{is_exec} {}
 
     [[nodiscard]] auto operator==(ArtifactBlob const& other) const noexcept
         -> bool {

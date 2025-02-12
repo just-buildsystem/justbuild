@@ -134,10 +134,7 @@
   , "name": ["artifact_blob"]
   , "hdrs": ["artifact_blob.hpp"]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
-    , ["src/utils/cpp", "hash_combine"]
-    ]
+    [["src/buildtool/common", "common"], ["src/utils/cpp", "hash_combine"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 }
