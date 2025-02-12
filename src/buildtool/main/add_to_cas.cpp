@@ -386,8 +386,12 @@ auto AddArtifactsToCas(ToAddArguments const& clargs,
                 -> std::optional<ArtifactDigest> {
                 return cas.StoreBlob(content);
             };
-            CASTreeImporter tree_importer{
-                object_location, store_file, store_tree, store_symlink};
+
+            CASTreeImporter tree_importer{object_location,
+                                          store_file,
+                                          store_tree,
+                                          store_symlink,
+                                          clargs.resolve_special};
             digest = tree_importer.GetDigest();
         } break;
     }

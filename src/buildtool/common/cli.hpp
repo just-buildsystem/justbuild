@@ -35,6 +35,7 @@
 #include "src/buildtool/build_engine/expression/evaluator.hpp"
 #include "src/buildtool/common/clidefaults.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/file_system/symlinks/resolve_special.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/main/build_utils.hpp"
@@ -194,6 +195,7 @@ struct GcArguments {
 struct ToAddArguments {
     std::filesystem::path location;
     bool follow_symlinks{};
+    std::optional<ResolveSpecial> resolve_special{std::nullopt};
 };
 
 struct ProtocolArguments final {
@@ -679,6 +681,22 @@ static inline auto SetupToAddArguments(
                   clargs->follow_symlinks,
                   "Resolve the positional argument to not be a symbolic link "
                   "before adding it to CAS.");
+    app->add_option_function<std::string>(
+        "--resolve-special",
+        [clargs](auto const& raw_value) {
+            if (kResolveSpecialMap.contains(raw_value)) {
+                clargs->resolve_special = kResolveSpecialMap.at(raw_value);
+            }
+            else {
+                Logger::Log(LogLevel::Warning,
+                            "Ignoring unknown --resolve-special strategy {}.",
+                            nlohmann::json(raw_value).dump());
+            }
+        },
+        "Optional strategy for handling special entries (e.g., symlinks) when "
+        "the content to add is a directory. Default behaviour if missing is to "
+        "only allow non-upward symlinks. Currently supported values: ignore, "
+        "tree-upwards, tree-all, all.");
 }
 
 static inline auto SetupGraphArguments(
