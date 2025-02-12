@@ -756,6 +756,20 @@ Resolve the positional argument to not be a symbolic link by following
 symbolic links. The default is to add the link itself, i.e., the string
 obtained by **`readlink`**(2), as blob.
 
+**`--resolve-special`** *`TEXT`*  
+When adding a directory to CAS, resolve any special filesystem entries based on
+the strategy denoted by the string value specified. Special entries are all
+those which are neither file, executables, or directories. If option is missing
+or a non-supported value is provided, the default behavior is used, in which
+only non-upwards symlinks are accepted and stored unresolved.  
+Currently accepted values:
+ - *`"ignore"`*: all special entries are ignored
+ - *`"tree-upwards"`*: accept only symlinks with a target path pointing inside
+   the location directory and resolve the ones that are upwards
+ - *`"tree-all"`*: accept only symlinks with a target path pointing inside the
+   location directory and resolve all of them
+ - *`"all"`*: unconditionally accept and resolve all symlinks
+
 **`traverse`** specific options
 -------------------------------
 
