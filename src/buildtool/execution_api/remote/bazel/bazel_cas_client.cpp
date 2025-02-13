@@ -62,15 +62,20 @@ template <typename TRequest,
                                    std::nullopt) -> TIterator {
     std::size_t content_size = 0;
     for (auto it = begin; it != end; ++it) {
-        auto to_merge = std::invoke(request_creator, *it);
-        if (request->ByteSizeLong() + to_merge.ByteSizeLong() > message_limit) {
+        std::optional<TRequest> to_merge = std::invoke(request_creator, *it);
+        if (not to_merge.has_value()) {
+            return it;
+        }
+
+        if (request->ByteSizeLong() + to_merge->ByteSizeLong() >
+            message_limit) {
             return it;
         }
         if (content_limit.has_value() and
             content_size + GetContentSize(*it) > *content_limit) {
             return it;
         }
-        request->MergeFrom(to_merge);
+        request->MergeFrom(*std::move(to_merge));
         content_size += GetContentSize(*it);
     }
     return end;
