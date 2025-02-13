@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <compare>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <functional>
@@ -123,15 +124,26 @@ template <class T>
     std::vector<std::string> const& symlink_names,
     std::vector<ArtifactDigest> const& symlink_digests,
     BazelMsgFactory::LinkDigestResolveFunc const& resolve_links)
-    -> std::vector<bazel_re::SymlinkNode> {
+    -> std::optional<std::vector<bazel_re::SymlinkNode>> {
+    if (symlink_names.size() != symlink_digests.size()) {
+        return std::nullopt;
+    }
+
     std::vector<std::string> symlink_targets;
+    symlink_targets.reserve(symlink_digests.size());
     resolve_links(symlink_digests, &symlink_targets);
-    auto it_name = symlink_names.begin();
-    auto it_target = symlink_targets.begin();
+
+    // Fail if the number of resolved symlinks does not match the requested
+    // number.
+    if (symlink_targets.size() != symlink_names.size()) {
+        return std::nullopt;
+    }
+
     std::vector<bazel_re::SymlinkNode> symlink_nodes;
-    // both loops have same length
-    for (; it_name != symlink_names.end(); ++it_name, ++it_target) {
-        symlink_nodes.emplace_back(CreateSymlinkNode(*it_name, *it_target));
+    symlink_nodes.reserve(symlink_targets.size());
+    for (std::size_t i = 0; i < symlink_targets.size(); ++i) {
+        symlink_nodes.emplace_back(
+            CreateSymlinkNode(symlink_names[i], symlink_targets[i]));
     }
     return symlink_nodes;
 }
@@ -283,13 +295,15 @@ struct DirectoryNodeBundle final {
                 }
             }
         }
+
+        auto symlink_nodes = CreateSymlinkNodesFromDigests(
+            symlink_names, symlink_digests, resolve_links);
+        if (not symlink_nodes.has_value()) {
+            return std::nullopt;
+        }
         return CreateDirectoryNodeBundle(
             root_name,
-            CreateDirectory(
-                file_nodes,
-                dir_nodes,
-                CreateSymlinkNodesFromDigests(
-                    symlink_names, symlink_digests, resolve_links)));
+            CreateDirectory(file_nodes, dir_nodes, *std::move(symlink_nodes)));
     } catch (...) {
         return std::nullopt;
     }
