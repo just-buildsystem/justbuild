@@ -5,8 +5,16 @@ builds. A peculiarity of the tool is the separation between global
 names and physical location on the one hand, and logical paths
 used for actions and installation on the other hand (sometimes referred to as
 "staging"). The language-specific information to translate high-level
-concepts (libraries, binaries) into individual compile action is
+concepts (libraries, binaries) into individual compile actions is
 taken from user-defined rules described by functional expressions.
+
+Designated targets are taken entirely from cache, if the repositories
+transitively involved have not changed. So, by making good use of
+the multi-repository structure, the action graph can be kept small.
+Remote build execution is supported and the remote-building of
+cachable targets can be fully delegated to a service (provided by
+the tool itself); when doing so, it is not necessary to have the
+dependencies locally (neither as source nor as binary).
 
 ## Getting Started
 
