@@ -92,11 +92,13 @@ without executing any actions as all actions are being served from
 cache. The produced artifact is identical, which is indicated by the
 same hash/size/type.
 
-If one is only interested in a single final artifact, one can also
-request via the `-P` option that this artifact be written to standard
-output after the build. As all messages are reported to standard error,
-this can be used for both, interactively reading a text file, as well as
-for piping the artifact to another program.
+If one is only interested in one of the final artifacts, one can also
+request via the `-P` option that this particular artifact be written
+to standard output after the build; if the target produces only a
+single artifact, the flag `-p` can be used instead as well (without
+the need of specifying the artifact). As all messages are reported
+to standard error, this can be used for both, interactively reading
+a text file, as well as for piping the artifact to another program.
 
 ``` sh
 $ just build greeter -P out.txt
@@ -108,8 +110,20 @@ INFO: Processed 1 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
         out.txt [557db03de997c86a4a028e1ebd3a1ceb225be238:12:f]
 Hello World
+$ just build -p
+INFO: Requested target is [["@","","","greeter"],{}]
+INFO: Analysed target [["@","","","greeter"],{}]
+INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Building [["@","","","greeter"],{}].
+INFO: Processed 1 actions, 1 cache hits.
+INFO: Artifacts built, logical paths are:
+        out.txt [557db03de997c86a4a028e1ebd3a1ceb225be238:12:f]
+Hello World
 $
 ```
+
+In the last example we used that, if no target is specified, the
+lexicographically first one is taken.
 
 Alternatively, we could also directly request the artifact `out.txt`
 from *justbuild*'s CAS (content-addressable storage) and print it on
@@ -161,7 +175,7 @@ generating a file `out.txt`.
 As we only request targets, no conflicts arise.
 
 ``` sh
-$ just build upper -P out.txt
+$ just build upper -p
 INFO: Requested target is [["@","","","upper"],{}]
 INFO: Analysed target [["@","","","upper"],{}]
 INFO: Discovered 1 actions, 0 trees, 0 blobs
@@ -170,7 +184,7 @@ INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         out.txt [83cf24cdfb4891a36bee93421930dd220766299a:6:f]
 WORLD
-$ just build greeter -P out.txt
+$ just build greeter -p
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
 INFO: Discovered 1 actions, 0 trees, 0 blobs
@@ -188,7 +202,9 @@ to the receiving target to decide what to do with those artifacts. A
 built-in rule allowing to rearrange artifacts is `"install"`; a detailed
 description of this rule can be found in the documentation. In the
 simple case of a target producing precisely one file, the argument
-`"files"` can be used to map that file to a new location.
+`"files"` can be used to remap that file. Note that the mapping is
+from the desired location to the target name (representing the single
+artifact of that target) as such a mapping is necessarily conflict free.
 
 ``` {.jsonc srcname="TARGETS"}
 ...
