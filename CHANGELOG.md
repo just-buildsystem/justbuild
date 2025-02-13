@@ -19,6 +19,9 @@ A feature release on top of `1.4.0`, backwards compatible.
   unique artifact (if there is precisely one) on stdout.
 - The checkout-locations file now additionally allows to specify
   extra environment variables to inherit.
+- `just add-to-cas` now supports the `--resolve-special` option, which
+  defines how special entries (e.g., symlinks) are to be handled when
+  adding directories to CAS.
 
 ### Fixes
 
