@@ -251,8 +251,9 @@ auto BazelCasClient::BatchReadBlobs(
     try {
         result.reserve(blobs.size());
         bool has_failure = false;
-        for (auto it = back_map->GetKeys().begin();
-             it != back_map->GetKeys().end();) {
+        for (auto it_processed = back_map->GetKeys().begin(), it = it_processed;
+             it_processed != back_map->GetKeys().end();
+             it_processed = it) {
             bazel_re::BatchReadBlobsRequest request;
             it = InitRequest(&request,
                              request_creator,
@@ -260,6 +261,24 @@ auto BazelCasClient::BatchReadBlobs(
                              back_map->GetKeys().end(),
                              MessageLimits::kMaxGrpcLength,
                              max_content_size);
+            // If no progress happens, fallback to streaming API:
+            if (it == it_processed) {
+                logger_.Emit(LogLevel::Warning,
+                             "BatchReadBlobs: Failed to prepare request for "
+                             "{}\nFalling back to streaming API.",
+                             it->hash());
+                std::optional<ArtifactBlob> blob;
+                if (auto value = back_map->GetReference(*it)) {
+                    blob = ReadSingleBlob(instance_name, *value.value());
+                }
+
+                if (blob.has_value()) {
+                    result.emplace(*std::move(blob));
+                }
+                ++it;
+                continue;
+            }
+
             logger_.Emit(LogLevel::Trace,
                          "BatchReadBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
@@ -507,14 +526,28 @@ auto BazelCasClient::FindMissingBlobs(
 
     try {
         result.reserve(digests.size());
-        for (auto it = back_map->GetKeys().begin();
-             it != back_map->GetKeys().end();) {
+        for (auto it_processed = back_map->GetKeys().begin(), it = it_processed;
+             it_processed != back_map->GetKeys().end();
+             it_processed = it) {
             bazel_re::FindMissingBlobsRequest request;
             it = InitRequest(&request,
                              request_creator,
                              it,
                              back_map->GetKeys().end(),
                              MessageLimits::kMaxGrpcLength);
+            // If no progress happens, consider current digest missing
+            if (it == it_processed) {
+                logger_.Emit(
+                    LogLevel::Warning,
+                    "FindMissingBlobs: Failed to prepare request for {}",
+                    it->hash());
+
+                if (auto value = back_map->GetReference(*it)) {
+                    result.emplace(*value.value());
+                }
+                ++it;
+                continue;
+            }
             logger_.Emit(LogLevel::Trace,
                          "FindMissingBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
@@ -588,7 +621,9 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
     try {
         updated.reserve(blobs.size());
         bool has_failure = false;
-        for (auto it = blobs.begin(); it != blobs.end();) {
+        for (auto it_processed = blobs.begin(), it = it_processed;
+             it_processed != blobs.end();
+             it_processed = it) {
             bazel_re::BatchUpdateBlobsRequest request;
             it = InitRequest(&request,
                              request_creator,
@@ -596,6 +631,16 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                              blobs.end(),
                              MessageLimits::kMaxGrpcLength,
                              max_content_size);
+            // If no progress happens, skip current blob
+            if (it == it_processed) {
+                logger_.Emit(
+                    LogLevel::Warning,
+                    "BatchUpdateBlobs: Failed to prepare request for {}",
+                    it->digest.hash());
+                ++it;
+                continue;
+            }
+
             logger_.Emit(LogLevel::Trace,
                          "BatchUpdateBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
