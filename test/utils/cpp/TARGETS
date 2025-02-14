@@ -45,6 +45,18 @@
     ]
   , "stage": ["test", "utils", "cpp"]
   }
+, "tmp_dir":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["tmp_dir"]
+  , "srcs": ["tmp_dir.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
+    , ["", "catch-main"]
+    ]
+  , "stage": ["test", "utils", "cpp"]
+  }
 , "incremental_reader":
   { "type": ["@", "rules", "CC/test", "test"]
   , "name": ["incremental_reader"]
@@ -65,6 +77,12 @@
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["cpp"]
   , "deps":
-    ["file_locking", "incremental_reader", "path", "path_rebase", "prefix"]
+    [ "file_locking"
+    , "incremental_reader"
+    , "path"
+    , "path_rebase"
+    , "prefix"
+    , "tmp_dir"
+    ]
   }
 }
