@@ -422,3 +422,52 @@ INFO: Artifacts built, logical paths are:
       (1 runfiles omitted.)
 $
 ```
+
+The ommitted (i.e., not shown but still built) runfile is the header file. As
+mentioned in the introduction to `just analyse` this is a typical use of that
+second artifact arrangement. We can also have a look at the other information
+that library provides.
+
+``` sh
+$ just-mr analyse greet greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories to set up
+INFO: Setup finished, exec ["just","analyse","-C","...","greet","greet"]
+INFO: Requested target is [["@","tutorial","greet","greet"],{}]
+INFO: Analysed target [["@","tutorial","greet","greet"],{}]
+INFO: Result of target [["@","tutorial","greet","greet"],{}]: {
+        "artifacts": {
+          "greet/libgreet.a": {"data":{"id":"c4ba32e2fc1ce267b4245d8885ae7b53405d41a709f853061549ca93aa73a6ac","path":"work/greet/libgreet.a"},"type":"ACTION"}
+        },
+        "provides": {
+          "compile-args": [
+          ],
+          "compile-deps": {
+          },
+          "debug-hdrs": {
+          },
+          "debug-srcs": {
+          },
+          "link-args": [
+            "greet/libgreet.a"
+          ],
+          "link-deps": {
+          },
+          "lint": [
+          ],
+          "package": {
+            "cflags-files": {},
+            "ldflags-files": {},
+            "name": "greet"
+          },
+          "run-libs": {
+          },
+          "run-libs-args": [
+          ]
+        },
+        "runfiles": {
+          "greet/greet.hpp": {"data":{"path":"greet/greet.hpp","repository":"tutorial"},"type":"LOCAL"}
+        }
+      }
+$
+```
