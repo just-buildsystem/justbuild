@@ -96,7 +96,7 @@ The following fields are supported:
  - *`"inherit env"`* has as value a JSON list which will be recorded as the
    value for the `"inherit env"` key in the output configuration for all
    imported `"git"`-type repositories
-   (see **`just-mr-configuration-format`**(5)). This entry is optional.
+   (see **`just-mr-repository-config`**(5)). This entry is optional.
 
  - *`"as plain"`* has a boolean value. If the field evaluates to `true`, it
    informs **`just-lock`**(1) to consider the foreign repository configuration
@@ -247,14 +247,14 @@ The just-lock configuration format
 ----------------------------------
 
 The configuration format is structured as a JSON object. It is a superset of
-the **`just-mr-configuration-format`**(5), which is extended by two additional
+the **`just-mr-repository-config`**(5), which is extended by two additional
 fields. Specifically, the following fields are supported:
 
  - *`"main"`* has the syntax and semantics as described in
-   **`just-mr-configuration-format`**(5).
+   **`just-mr-repository-config`**(5).
 
  - *`"repositories"`* has the syntax and semantics as described in
-   **`just-mr-configuration-format`**(5).
+   **`just-mr-repository-config`**(5).
  
  - *`"imports"`* is a JSON list with each entry a *source* object.
 
@@ -275,4 +275,4 @@ See also
 
 **`just-lock`**(1),
 **`just-mr`**(1),
-**`just-mr-configuration-format`**(5)
+**`just-mr-repository-config`**(5)
