@@ -96,4 +96,29 @@ TEST_CASE("tmp_dir", "[tmp_dir]") {
         REQUIRE(not FileSystemManager::Exists(child_1));
         REQUIRE(not FileSystemManager::Exists(child_2));
     }
+
+    SECTION("temp files") {
+        auto parent_dir = TmpDir::Create(test_tempdir / "test_dir");
+        REQUIRE(parent_dir != nullptr);
+        std::filesystem::path const parent = parent_dir->GetPath();
+
+        auto file = TmpDir::CreateFile(parent_dir);
+        REQUIRE(file != nullptr);
+        std::filesystem::path const file_path = file->GetPath();
+
+        REQUIRE(FileSystemManager::Exists(parent));
+        REQUIRE(FileSystemManager::Exists(file_path));
+
+        // Kill the parent directory. File still retains a reference to the
+        // parent object, so parent should remain alive:
+        parent_dir = nullptr;
+        REQUIRE(FileSystemManager::Exists(parent));
+        REQUIRE(FileSystemManager::Exists(file_path));
+
+        // Kill the file. Both the parent directory and the file should be
+        // deleted:
+        file = nullptr;
+        REQUIRE(not FileSystemManager::Exists(parent));
+        REQUIRE(not FileSystemManager::Exists(file_path));
+    }
 }
