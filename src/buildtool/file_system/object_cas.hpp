@@ -54,13 +54,13 @@ class ObjectCAS {
     /// \param store_path   The path to use for storing blobs.
     /// \param exists       (optional) Function for checking blob existence.
     explicit ObjectCAS(
-        gsl::not_null<HashFunction const*> const& hash_function,
+        HashFunction hash_function,
         std::filesystem::path const& store_path,
         std::optional<gsl::not_null<ExistsFunc>> exists = std::nullopt)
         : file_store_{store_path},
           exists_{exists.has_value() ? std::move(exists)->get()
                                      : kDefaultExists},
-          hash_function_{*hash_function} {}
+          hash_function_{hash_function} {}
 
     ObjectCAS(ObjectCAS const&) = delete;
     ObjectCAS(ObjectCAS&&) = delete;
@@ -116,7 +116,7 @@ class ObjectCAS {
     FileStorage<kStorageType, StoreMode::FirstWins, /*kSetEpochTime=*/true>
         file_store_;
     gsl::not_null<ExistsFunc> exists_;
-    HashFunction const& hash_function_;
+    HashFunction hash_function_;
 
     /// Default callback for checking blob existence.
     static inline ExistsFunc const kDefaultExists = [](auto const& /*digest*/,

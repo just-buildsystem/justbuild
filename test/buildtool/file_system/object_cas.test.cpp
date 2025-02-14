@@ -19,7 +19,6 @@
 #include <string>
 
 #include "catch2/catch_test_macros.hpp"
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -37,7 +36,7 @@ TEST_CASE("ObjectCAS", "[file_system]") {
         storage_config.Get().hash_function, test_content);
 
     SECTION("CAS for files") {
-        ObjectCAS<ObjectType::File> cas{&storage_config.Get().hash_function,
+        ObjectCAS<ObjectType::File> cas{storage_config.Get().hash_function,
                                         gen_config.cas_f};
         CHECK(not cas.BlobPath(test_digest));
 
@@ -77,7 +76,7 @@ TEST_CASE("ObjectCAS", "[file_system]") {
 
     SECTION("CAS for executables") {
         ObjectCAS<ObjectType::Executable> cas{
-            &storage_config.Get().hash_function, gen_config.cas_x};
+            storage_config.Get().hash_function, gen_config.cas_x};
         CHECK(not cas.BlobPath(test_digest));
 
         SECTION("Add blob from bytes and verify") {

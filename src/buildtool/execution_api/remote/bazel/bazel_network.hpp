@@ -39,14 +39,13 @@
 /// \brief Contains all network clients and is responsible for all network IO.
 class BazelNetwork {
   public:
-    explicit BazelNetwork(
-        std::string instance_name,
-        std::string const& host,
-        Port port,
-        gsl::not_null<Auth const*> const& auth,
-        gsl::not_null<RetryConfig const*> const& retry_config,
-        ExecutionConfiguration const& exec_config,
-        gsl::not_null<HashFunction const*> const& hash_function) noexcept;
+    explicit BazelNetwork(std::string instance_name,
+                          std::string const& host,
+                          Port port,
+                          gsl::not_null<Auth const*> const& auth,
+                          gsl::not_null<RetryConfig const*> const& retry_config,
+                          ExecutionConfiguration const& exec_config,
+                          HashFunction hash_function) noexcept;
 
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up
@@ -99,7 +98,7 @@ class BazelNetwork {
     std::unique_ptr<BazelAcClient> ac_;
     std::unique_ptr<BazelExecutionClient> exec_;
     ExecutionConfiguration exec_config_{};
-    HashFunction const& hash_function_;
+    HashFunction hash_function_;
 
     [[nodiscard]] auto DoUploadBlobs(
         std::unordered_set<ArtifactBlob> blobs) noexcept -> bool;

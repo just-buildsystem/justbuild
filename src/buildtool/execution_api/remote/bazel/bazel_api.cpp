@@ -137,14 +137,13 @@ namespace {
 
 }  // namespace
 
-BazelApi::BazelApi(
-    std::string const& instance_name,
-    std::string const& host,
-    Port port,
-    gsl::not_null<Auth const*> const& auth,
-    gsl::not_null<RetryConfig const*> const& retry_config,
-    ExecutionConfiguration const& exec_config,
-    gsl::not_null<HashFunction const*> const& hash_function) noexcept {
+BazelApi::BazelApi(std::string const& instance_name,
+                   std::string const& host,
+                   Port port,
+                   gsl::not_null<Auth const*> const& auth,
+                   gsl::not_null<RetryConfig const*> const& retry_config,
+                   ExecutionConfiguration const& exec_config,
+                   HashFunction hash_function) noexcept {
     network_ = std::make_shared<BazelNetwork>(instance_name,
                                               host,
                                               port,

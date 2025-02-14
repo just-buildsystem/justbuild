@@ -20,7 +20,6 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/execution_api/utils/rehash_utils.hpp"

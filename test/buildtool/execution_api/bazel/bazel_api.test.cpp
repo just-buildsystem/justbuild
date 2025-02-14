@@ -49,7 +49,7 @@ class FactoryApi final {
                                                &auth_,
                                                &retry_config,
                                                {},
-                                               &hash_function_}};
+                                               hash_function_}};
     }
 
   private:

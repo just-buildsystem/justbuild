@@ -37,7 +37,7 @@ class SourceTreeClient {
   public:
     explicit SourceTreeClient(
         ServerAddress const& address,
-        gsl::not_null<HashFunction const*> const& hash_function,
+        HashFunction hash_function,
         gsl::not_null<RemoteContext const*> const& remote_context) noexcept;
 
     struct TreeResult {
@@ -141,7 +141,7 @@ class SourceTreeClient {
         const noexcept -> expected<ArtifactDigest, GitLookupError>;
 
   private:
-    HashFunction const& hash_function_;  // hash function of the remote
+    HashFunction hash_function_;  // hash function of the remote
     std::unique_ptr<justbuild::just_serve::SourceTree::Stub> stub_;
     Logger logger_{"RemoteSourceTreeClient"};
 };

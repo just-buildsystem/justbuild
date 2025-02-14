@@ -29,7 +29,7 @@ auto ApiBundle::Create(
     gsl::not_null<LocalContext const*> const& local_context,
     gsl::not_null<RemoteContext const*> const& remote_context,
     RepositoryConfig const* repo_config) -> ApiBundle {
-    auto const& hash_fct = local_context->storage_config->hash_function;
+    HashFunction const hash_fct = local_context->storage_config->hash_function;
     IExecutionApi::Ptr local_api =
         std::make_shared<LocalApi>(local_context, repo_config);
     IExecutionApi::Ptr remote_api = local_api;
@@ -42,7 +42,7 @@ auto ApiBundle::Create(
                                                 remote_context->auth,
                                                 remote_context->retry_config,
                                                 config,
-                                                &hash_fct);
+                                                hash_fct);
     }
     return ApiBundle{.hash_function = hash_fct,
                      .local = std::move(local_api),
@@ -63,7 +63,7 @@ auto ApiBundle::MakeRemote(
                                           authentication,
                                           retry_config,
                                           config,
-                                          &hash_function);
+                                          hash_function);
     }
     return local;
 }

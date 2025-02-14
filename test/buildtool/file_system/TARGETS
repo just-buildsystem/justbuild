@@ -21,7 +21,6 @@
   , "srcs": ["object_cas.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]

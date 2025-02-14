@@ -95,7 +95,6 @@
   , "private-deps":
     [ "executor_api_tests"
     , ["@", "catch2", "", "catch2"]
-    , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/auth", "auth"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "config"]

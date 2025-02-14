@@ -68,9 +68,9 @@ auto PragmaSpecialToSymlinksResolve(
 
 SourceTreeClient::SourceTreeClient(
     ServerAddress const& address,
-    gsl::not_null<HashFunction const*> const& hash_function,
+    HashFunction hash_function,
     gsl::not_null<RemoteContext const*> const& remote_context) noexcept
-    : hash_function_{*hash_function} {
+    : hash_function_{hash_function} {
     stub_ =
         justbuild::just_serve::SourceTree::NewStub(CreateChannelWithCredentials(
             address.host, address.port, remote_context->auth));

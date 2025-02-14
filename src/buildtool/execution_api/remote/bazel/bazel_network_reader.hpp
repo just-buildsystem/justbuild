@@ -39,10 +39,9 @@ class BazelNetworkReader final {
   public:
     using DumpCallback = std::function<bool(std::string const&)>;
 
-    explicit BazelNetworkReader(
-        std::string instance_name,
-        gsl::not_null<BazelCasClient const*> const& cas,
-        gsl::not_null<HashFunction const*> const& hash_function) noexcept;
+    explicit BazelNetworkReader(std::string instance_name,
+                                gsl::not_null<BazelCasClient const*> const& cas,
+                                HashFunction hash_function) noexcept;
 
     BazelNetworkReader(
         BazelNetworkReader&& other,
@@ -84,7 +83,7 @@ class BazelNetworkReader final {
 
     std::string const instance_name_;
     BazelCasClient const& cas_;
-    HashFunction const& hash_function_;
+    HashFunction hash_function_;
     std::optional<DirectoryMap> auxiliary_map_;
 
     [[nodiscard]] auto MakeAuxiliaryMap(

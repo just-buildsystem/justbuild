@@ -31,6 +31,7 @@ class ServeApi final {};
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
@@ -51,7 +52,7 @@ class ServeApi final {
                       gsl::not_null<RemoteContext const*> const& remote_context,
                       gsl::not_null<ApiBundle const*> const& apis) noexcept
         : stc_{address,
-               &local_context->storage_config->hash_function,
+               local_context->storage_config->hash_function,
                remote_context},
           tc_{address, local_context->storage, remote_context, apis},
           cc_{address, remote_context},

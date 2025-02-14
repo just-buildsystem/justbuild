@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <memory>
 #include <optional>
 
 #include "catch2/catch_test_macros.hpp"
-#include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
@@ -47,13 +47,13 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
     TestBlobUpload(&repo_config, [&] {
-        return BazelApi::Ptr{new BazelApi{"remote-execution",
+        return std::make_shared<BazelApi>("remote-execution",
                                           remote_config->remote_address->host,
                                           remote_config->remote_address->port,
                                           &*auth_config,
                                           &retry_config,
                                           config,
-                                          &hash_function}};
+                                          hash_function);
     });
 }
 
@@ -80,14 +80,14 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{
-                new BazelApi{"remote-execution",
-                             remote_config->remote_address->host,
-                             remote_config->remote_address->port,
-                             &*auth_config,
-                             &retry_config,
-                             config,
-                             &hash_function}};
+            return std::make_shared<BazelApi>(
+                "remote-execution",
+                remote_config->remote_address->host,
+                remote_config->remote_address->port,
+                &*auth_config,
+                &retry_config,
+                config,
+                hash_function);
         },
         &*auth_config,
         false /* not hermetic */);
@@ -116,14 +116,14 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{
-                new BazelApi{"remote-execution",
-                             remote_config->remote_address->host,
-                             remote_config->remote_address->port,
-                             &*auth_config,
-                             &retry_config,
-                             config,
-                             &hash_function}};
+            return std::make_shared<BazelApi>(
+                "remote-execution",
+                remote_config->remote_address->host,
+                remote_config->remote_address->port,
+                &*auth_config,
+                &retry_config,
+                config,
+                hash_function);
         },
         &*auth_config,
         false /* not hermetic */);
@@ -152,14 +152,14 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{
-                new BazelApi{"remote-execution",
-                             remote_config->remote_address->host,
-                             remote_config->remote_address->port,
-                             &*auth_config,
-                             &retry_config,
-                             config,
-                             &hash_function}};
+            return std::make_shared<BazelApi>(
+                "remote-execution",
+                remote_config->remote_address->host,
+                remote_config->remote_address->port,
+                &*auth_config,
+                &retry_config,
+                config,
+                hash_function);
         },
         &*auth_config,
         false /* not hermetic */);
@@ -188,14 +188,14 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
         &stats,
         &progress,
         [&] {
-            return BazelApi::Ptr{
-                new BazelApi{"remote-execution",
-                             remote_config->remote_address->host,
-                             remote_config->remote_address->port,
-                             &*auth_config,
-                             &retry_config,
-                             config,
-                             &hash_function}};
+            return std::make_shared<BazelApi>(
+                "remote-execution",
+                remote_config->remote_address->host,
+                remote_config->remote_address->port,
+                &*auth_config,
+                &retry_config,
+                config,
+                hash_function);
         },
         &*auth_config,
         false /* not hermetic */);

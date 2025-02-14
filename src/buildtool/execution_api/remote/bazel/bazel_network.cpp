@@ -29,7 +29,7 @@ BazelNetwork::BazelNetwork(
     gsl::not_null<Auth const*> const& auth,
     gsl::not_null<RetryConfig const*> const& retry_config,
     ExecutionConfiguration const& exec_config,
-    gsl::not_null<HashFunction const*> const& hash_function) noexcept
+    HashFunction hash_function) noexcept
     : instance_name_{std::move(instance_name)},
       capabilities_{std::make_unique<BazelCapabilitiesClient>(host,
                                                               port,
@@ -46,7 +46,7 @@ BazelNetwork::BazelNetwork(
                                                    auth,
                                                    retry_config)},
       exec_config_{exec_config},
-      hash_function_{*hash_function} {}
+      hash_function_{hash_function} {}
 
 auto BazelNetwork::IsAvailable(ArtifactDigest const& digest) const noexcept
     -> bool {
@@ -157,7 +157,7 @@ auto BazelNetwork::ExecuteBazelActionSync(
 }
 
 auto BazelNetwork::CreateReader() const noexcept -> BazelNetworkReader {
-    return BazelNetworkReader{instance_name_, cas_.get(), &hash_function_};
+    return BazelNetworkReader{instance_name_, cas_.get(), hash_function_};
 }
 
 auto BazelNetwork::GetCachedActionResult(

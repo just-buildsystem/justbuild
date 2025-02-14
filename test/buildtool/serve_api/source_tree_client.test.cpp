@@ -60,7 +60,7 @@ TEST_CASE("Serve service client: tree-of-commit request", "[serve_api]") {
                                        .exec_config = &exec_config};
 
     SourceTreeClient st_client(
-        *config->remote_address, &hash_function, &remote_context);
+        *config->remote_address, hash_function, &remote_context);
 
     SECTION("Commit in bare checkout") {
         auto root_id = st_client.ServeCommitTree(kRootCommit, ".", false);
