@@ -57,4 +57,43 @@ TEST_CASE("tmp_dir", "[tmp_dir]") {
         }
         REQUIRE(not FileSystemManager::Exists(temp_dir_path_2));
     }
+
+    SECTION("nested directories") {
+        auto parent_dir = TmpDir::Create(test_tempdir / "test_dir");
+        REQUIRE(parent_dir != nullptr);
+        std::filesystem::path const parent = parent_dir->GetPath();
+
+        auto child_dir_1 = TmpDir::CreateNestedDirectory(parent_dir);
+        REQUIRE(child_dir_1);
+        std::filesystem::path const child_1 = child_dir_1->GetPath();
+
+        auto child_dir_2 = TmpDir::CreateNestedDirectory(parent_dir);
+        REQUIRE(child_dir_2);
+        std::filesystem::path const child_2 = child_dir_2->GetPath();
+
+        REQUIRE(FileSystemManager::Exists(parent));
+        REQUIRE(FileSystemManager::Exists(child_1));
+        REQUIRE(FileSystemManager::Exists(child_2));
+
+        // Kill the parent directory. child_1 and child_2 still retain
+        // references to the parent object, so all folders should remain alive:
+        parent_dir = nullptr;
+        REQUIRE(FileSystemManager::Exists(parent));
+        REQUIRE(FileSystemManager::Exists(child_1));
+        REQUIRE(FileSystemManager::Exists(child_2));
+
+        // Kill child_1. child_1 dies, but child_2 retains a reference to the
+        // parent directory, so parent and child_2 must be alive:
+        child_dir_1 = nullptr;
+        REQUIRE(FileSystemManager::Exists(parent));
+        REQUIRE(not FileSystemManager::Exists(child_1));
+        REQUIRE(FileSystemManager::Exists(child_2));
+
+        // Kill child_2. All directories should be destroyed:
+        child_dir_2 = nullptr;
+
+        REQUIRE(not FileSystemManager::Exists(parent));
+        REQUIRE(not FileSystemManager::Exists(child_1));
+        REQUIRE(not FileSystemManager::Exists(child_2));
+    }
 }
