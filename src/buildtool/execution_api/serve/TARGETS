@@ -27,6 +27,7 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]

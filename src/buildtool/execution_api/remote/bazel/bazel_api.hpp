@@ -122,6 +122,8 @@ class BazelApi final : public IExecutionApi {
 
     [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final;
 
+    [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
+
   private:
     std::shared_ptr<BazelNetwork> network_;
 

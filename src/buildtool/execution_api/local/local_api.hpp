@@ -26,6 +26,7 @@
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/repository_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -101,6 +102,8 @@ class LocalApi final : public IExecutionApi {
     [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final {
         return true;
     }
+
+    [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
 
   private:
     LocalContext const& local_context_;

@@ -603,3 +603,8 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::BlobSpliceSupport() const noexcept -> bool {
     return network_->BlobSpliceSupport();
 }
+
+[[nodiscard]] auto BazelApi::GetHashType() const noexcept
+    -> HashFunction::Type {
+    return network_->GetHashFunction().GetType();
+}

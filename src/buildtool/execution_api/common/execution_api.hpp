@@ -26,6 +26,7 @@
 
 #include "src/buildtool/common/artifact.hpp"  // Artifact::ObjectInfo
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
@@ -152,6 +153,9 @@ class IExecutionApi {
     [[nodiscard]] virtual auto BlobSpliceSupport() const noexcept -> bool {
         return false;
     }
+
+    [[nodiscard]] virtual auto GetHashType() const noexcept
+        -> HashFunction::Type = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP

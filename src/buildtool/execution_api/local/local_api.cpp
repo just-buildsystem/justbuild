@@ -28,7 +28,6 @@
 
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
 #include "src/buildtool/execution_api/common/stream_dumper.hpp"
@@ -341,4 +340,8 @@ auto LocalApi::SpliceBlob(ArtifactDigest const& blob_digest,
         return std::nullopt;
     }
     return *std::move(splice_result);
+}
+
+auto LocalApi::GetHashType() const noexcept -> HashFunction::Type {
+    return local_context_.storage_config->hash_function.GetType();
 }

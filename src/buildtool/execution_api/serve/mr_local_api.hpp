@@ -25,6 +25,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -129,6 +130,8 @@ class MRLocalApi final : public IExecutionApi {
     [[nodiscard]] auto GetMissingDigests(
         std::unordered_set<ArtifactDigest> const& digests) const noexcept
         -> std::unordered_set<ArtifactDigest> final;
+
+    [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
 
   private:
     // retain local context references to have direct access to storages

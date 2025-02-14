@@ -147,3 +147,8 @@ auto MRLocalApi::GetMissingDigests(
     }
     return compat_local_api_->GetMissingDigests(digests);
 }
+
+auto MRLocalApi::GetHashType() const noexcept -> HashFunction::Type {
+    return compat_local_api_ == nullptr ? native_local_api_->GetHashType()
+                                        : compat_local_api_->GetHashType();
+}

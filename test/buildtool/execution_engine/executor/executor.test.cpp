@@ -178,8 +178,9 @@ class TestAction : public IExecutionAction {
 /// \brief Mockup Api, use config to create action and handle artifact upload
 class TestApi : public IExecutionApi {
   public:
-    explicit TestApi(TestApiConfig config) noexcept
-        : config_{std::move(config)} {}
+    explicit TestApi(TestApiConfig config,
+                     HashFunction::Type hash_type) noexcept
+        : config_{std::move(config)}, hash_type_{hash_type} {}
 
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& /*unused*/,
@@ -263,8 +264,14 @@ class TestApi : public IExecutionApi {
         return result;
     }
 
+    [[nodiscard]] auto GetHashType() const noexcept
+        -> HashFunction::Type final {
+        return hash_type_;
+    }
+
   private:
     TestApiConfig config_{};
+    HashFunction::Type hash_type_;
 };
 
 [[nodiscard]] auto SetupConfig(std::filesystem::path const& ws)
@@ -334,7 +341,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -352,7 +359,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if uploading local artifact failed") {
         config.artifacts[NamedDigest("local.cpp").hash()].uploads = false;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -370,7 +377,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if known artifact is not available") {
         config.artifacts[NamedDigest("known.cpp").hash()].available = false;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -417,7 +424,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -438,7 +445,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if result was is not cached") {
         config.response.cached = false;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -459,7 +466,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if output is not available in CAS") {
         config.artifacts[NamedDigest("output2.exe").hash()].available = false;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -483,7 +490,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if execution failed") {
         config.execution.failed = true;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -504,7 +511,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if exit code is non-zero") {
         config.response.exit_code = 1;
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
@@ -528,7 +535,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if any output is missing") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
-        auto api = std::make_shared<TestApi>(config);
+        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(hash_function, api);
