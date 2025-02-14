@@ -418,7 +418,7 @@ auto SourceTreeService::SetDigestInResponse(
         return TResponse::INTERNAL_ERROR;
     }
     // in native mode, set the native digest in response
-    if (ProtocolTraits::IsNative(apis_.hash_function.GetType())) {
+    if (ProtocolTraits::IsNative(apis_.remote->GetHashType())) {
         *(response->mutable_digest()) =
             ArtifactDigestFactory::ToBazel(*std::move(native_digest));
     }
@@ -1016,7 +1016,7 @@ auto SourceTreeService::ServeDistdirTree(
     content_list.reserve(request->distfiles().size());
 
     bool const is_native =
-        ProtocolTraits::IsNative(apis_.hash_function.GetType());
+        ProtocolTraits::IsNative(apis_.remote->GetHashType());
     for (auto const& kv : request->distfiles()) {
         bool blob_found{};
         std::string blob_digest;  // The digest of the requested distfile, taken
@@ -1619,7 +1619,7 @@ auto SourceTreeService::GetRemoteTree(
 
     // get tree from remote CAS into tmp dir
     auto const remote_digest = ArtifactDigestFactory::FromBazel(
-        apis_.hash_function.GetType(), request->digest());
+        apis_.remote->GetHashType(), request->digest());
     if (not remote_digest or not apis_.remote->IsAvailable(*remote_digest)) {
         logger_->Emit(LogLevel::Error,
                       "Remote CAS does not contain expected tree {}",

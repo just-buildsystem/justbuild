@@ -30,7 +30,6 @@
   , "deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/main", "analyse_context"]
     ]

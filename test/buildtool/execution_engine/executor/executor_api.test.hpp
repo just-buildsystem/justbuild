@@ -154,10 +154,8 @@ static inline void RunHelloWorldCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
-
     auto api = factory();
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -287,10 +285,8 @@ static inline void RunGreeterCompilation(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
-
     auto api = factory();
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -458,7 +454,7 @@ static inline void TestUploadAndDownloadTrees(
                                        .retry_config = &retry_config,
                                        .exec_config = &*remote_config};
 
-    auto const apis = CreateTestApiBundle(hash_function, api);
+    auto const apis = CreateTestApiBundle(api);
 
     ExecutionContext const exec_context{.repo_config = repo_config,
                                         .apis = &apis,
@@ -579,8 +575,6 @@ static inline void TestRetrieveOutputDirectories(
     int /*expected_cached*/ = 0) {
     SetupConfig(repo_config);
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
-
     auto const make_tree_id = std::string{"make_tree"};
     auto const* make_tree_cmd =
         "mkdir -p baz/baz/\n"
@@ -632,7 +626,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -686,7 +680,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -757,7 +751,7 @@ static inline void TestRetrieveOutputDirectories(
 
         // run action
         auto api = factory();
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
 
         ExecutionContext const exec_context{.repo_config = repo_config,
                                             .apis = &apis,
@@ -830,7 +824,7 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
-            auto const apis = CreateTestApiBundle(hash_function, api);
+            auto const apis = CreateTestApiBundle(api);
 
             ExecutionContext const exec_context{
                 .repo_config = repo_config,
@@ -857,7 +851,7 @@ static inline void TestRetrieveOutputDirectories(
 
             // run action
             auto api = factory();
-            auto const apis = CreateTestApiBundle(hash_function, api);
+            auto const apis = CreateTestApiBundle(api);
 
             ExecutionContext const exec_context{
                 .repo_config = repo_config,

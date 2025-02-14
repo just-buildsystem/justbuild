@@ -22,7 +22,6 @@
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/multithreading/async_map_utils.hpp"
@@ -106,7 +105,7 @@ auto CreateTargetCacheWriterMap(
             }
             auto const& target = cache_targets.at(tc_key);
             auto entry = TargetCacheEntry::FromTarget(
-                apis->hash_function.GetType(), target, extra_infos);
+                apis->remote->GetHashType(), target, extra_infos);
             if (not entry) {
                 (*logger)(
                     fmt::format("Failed creating target cache entry for key {}",

@@ -344,7 +344,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -362,7 +362,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -380,7 +380,7 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -427,7 +427,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -448,7 +448,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -469,7 +469,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -493,7 +493,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -514,7 +514,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,
@@ -538,7 +538,7 @@ TEST_CASE("Executor: Process action", "[executor]") {
         auto api = std::make_shared<TestApi>(config, hash_function.GetType());
         Statistics stats{};
         Progress progress{};
-        auto const apis = CreateTestApiBundle(hash_function, api);
+        auto const apis = CreateTestApiBundle(api);
         ExecutionContext const exec_context{.repo_config = &repo_config,
                                             .apis = &apis,
                                             .remote_context = &remote_context,

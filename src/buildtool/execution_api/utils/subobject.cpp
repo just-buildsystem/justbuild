@@ -52,7 +52,7 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
                         sofar.string());
             return std::nullopt;
         }
-        if (not ProtocolTraits::IsNative(apis.hash_function.GetType())) {
+        if (not ProtocolTraits::IsNative(apis.remote->GetHashType())) {
             auto directory =
                 BazelMsgFactory::MessageFromString<bazel_re::Directory>(*data);
             if (not directory) {

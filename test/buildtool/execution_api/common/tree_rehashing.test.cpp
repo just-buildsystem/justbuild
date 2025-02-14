@@ -168,7 +168,6 @@ TEST_CASE("Rehash tree", "[common]") {
                                           .storage_config = &*remote_config,
                                           .storage = &remote_storage};
         ApiBundle const apis{
-            .hash_function = local_context.storage_config->hash_function,
             .local = std::make_shared<LocalApi>(&local_context),
             .remote = std::make_shared<LocalApi>(&remote_context)};
 

@@ -42,7 +42,6 @@
 [[nodiscard]] auto InquireServe(
     gsl::not_null<AnalyseContext*> const& analyse_context,
     BuildMaps::Target::ConfiguredTarget const& id,
-    gsl::not_null<ApiBundle const*> const& /* apis */,
     gsl::not_null<Logger const*> const& logger) -> std::optional<std::string> {
 
     auto const& repo_name = id.target.ToModule().repository;

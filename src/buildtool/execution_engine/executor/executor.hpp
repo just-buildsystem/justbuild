@@ -84,7 +84,6 @@ class ExecutorImpl {
         IExecutionApi const& api,
         ExecutionProperties const& merged_properties,
         gsl::not_null<RemoteContext const*> const& remote_context,
-        HashFunction hash_function,
         std::chrono::milliseconds const& timeout,
         IExecutionAction::CacheFlag cache_flag,
         gsl::not_null<Statistics*> const& stats,
@@ -134,7 +133,7 @@ class ExecutorImpl {
 
         // get the alternative endpoint
         auto alternative_api = GetAlternativeEndpoint(
-            merged_properties, remote_context, hash_function);
+            merged_properties, remote_context, api.GetHashType());
         if (alternative_api) {
             if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -238,7 +237,6 @@ class ExecutorImpl {
                 }
 
                 if (not VerifyOrUploadKnownArtifact(
-                        apis.hash_function.GetType(),
                         *apis.remote,
                         artifact->Content().Repository(),
                         repo_config,
@@ -266,11 +264,8 @@ class ExecutorImpl {
             return oss.str();
         });
         auto repo = artifact->Content().Repository();
-        auto new_info = UploadFile(*apis.remote,
-                                   apis.hash_function,
-                                   repo,
-                                   repo_config,
-                                   *file_path_opt);
+        auto new_info =
+            UploadFile(*apis.remote, repo, repo_config, *file_path_opt);
         if (not new_info) {
             Logger::Log(LogLevel::Error,
                         "artifact in {} could not be uploaded to CAS.",
@@ -446,12 +441,11 @@ class ExecutorImpl {
     /// \param info         The info of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
-        HashFunction::Type hash_type,
         IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         Artifact::ObjectInfo const& info) noexcept -> bool {
-        if (not ProtocolTraits::IsNative(hash_type)) {
+        if (not ProtocolTraits::IsNative(api.GetHashType())) {
             auto opt =
                 GitHashesConverter::Instance().GetGitEntry(info.digest.hash());
             if (opt) {
@@ -473,7 +467,6 @@ class ExecutorImpl {
     /// \returns The computed object info on success
     [[nodiscard]] static auto UploadFile(
         IExecutionApi const& api,
-        HashFunction hash_function,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
         std::filesystem::path const& file_path) noexcept
@@ -490,6 +483,7 @@ class ExecutorImpl {
         if (not content.has_value()) {
             return std::nullopt;
         }
+        HashFunction const hash_function{api.GetHashType()};
         auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, *content);
         if (not api.Upload({ArtifactBlob{digest,
@@ -752,7 +746,7 @@ class ExecutorImpl {
     [[nodiscard]] static auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
         const gsl::not_null<RemoteContext const*>& remote_context,
-        HashFunction hash_function) -> std::unique_ptr<BazelApi> {
+        HashFunction::Type hash_type) -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] :
              remote_context->exec_config->dispatch) {
             bool match = true;
@@ -775,7 +769,7 @@ class ExecutorImpl {
                     remote_context->auth,
                     remote_context->retry_config,
                     config,
-                    hash_function);
+                    HashFunction{hash_type});
             }
         }
         return nullptr;
@@ -818,7 +812,6 @@ class Executor {
                     context_.remote_context->exec_config->platform_properties,
                     action->ExecutionProperties()),
                 context_.remote_context,
-                context_.apis->hash_function,
                 Impl::ScaleTime(timeout_, action->TimeoutScale()),
                 action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
                 context_.statistics,
@@ -841,7 +834,6 @@ class Executor {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             action->NoCache() ? CF::DoNotCacheOutput : CF::CacheOutput,
             context_.statistics,
@@ -915,7 +907,6 @@ class Rebuilder {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::PretendCached,
             context_.statistics,
@@ -934,7 +925,6 @@ class Rebuilder {
                 context_.remote_context->exec_config->platform_properties,
                 action->ExecutionProperties()),
             context_.remote_context,
-            context_.apis->hash_function,
             Impl::ScaleTime(timeout_, action->TimeoutScale()),
             CF::FromCacheOnly,
             context_.statistics,

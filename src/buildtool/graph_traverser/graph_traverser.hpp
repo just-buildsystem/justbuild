@@ -214,7 +214,7 @@ class GraphTraverser {
         auto const [blobs, tree_descs, actions] = *desc;
 
         HashFunction::Type const hash_type =
-            context_.apis->hash_function.GetType();
+            context_.apis->local->GetHashType();
         std::vector<ActionDescription::Ptr> action_descriptions{};
         action_descriptions.reserve(actions.size());
         for (auto const& [id, description] : actions.items()) {
@@ -312,9 +312,10 @@ class GraphTraverser {
     [[nodiscard]] auto UploadBlobs(
         std::vector<std::string> const& blobs) const noexcept -> bool {
         std::unordered_set<ArtifactBlob> container;
+        HashFunction const hash_function{context_.apis->remote->GetHashType()};
         for (auto const& blob : blobs) {
             auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                context_.apis->hash_function, blob);
+                hash_function, blob);
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Will upload blob {}, its digest has id {} and size {}.",

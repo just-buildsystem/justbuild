@@ -105,7 +105,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
                               FetchArguments const& clargs,
                               RemoteContext const& remote_context) -> bool {
     auto object_info = ObjectInfoFromLiberalString(
-        apis.hash_function.GetType(),
+        apis.remote->GetHashType(),
         clargs.object_id,
         remote_context.exec_config->remote_address.has_value());
     if (not object_info) {
@@ -156,8 +156,7 @@ auto FetchAndInstallArtifacts(ApiBundle const& apis,
                         object_info->ToString());
             return false;
         }
-        return GenerateArchive(
-            apis.hash_function.GetType(), *apis.remote, *object_info, out);
+        return GenerateArchive(*apis.remote, *object_info, out);
     }
 
     if (out) {

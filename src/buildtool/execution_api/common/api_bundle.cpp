@@ -17,6 +17,7 @@
 #include <memory>
 #include <utility>
 
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/execution_config.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
@@ -29,23 +30,22 @@ auto ApiBundle::Create(
     gsl::not_null<LocalContext const*> const& local_context,
     gsl::not_null<RemoteContext const*> const& remote_context,
     RepositoryConfig const* repo_config) -> ApiBundle {
-    HashFunction const hash_fct = local_context->storage_config->hash_function;
     IExecutionApi::Ptr local_api =
         std::make_shared<LocalApi>(local_context, repo_config);
     IExecutionApi::Ptr remote_api = local_api;
     if (auto const address = remote_context->exec_config->remote_address) {
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
-        remote_api = std::make_shared<BazelApi>("remote-execution",
-                                                address->host,
-                                                address->port,
-                                                remote_context->auth,
-                                                remote_context->retry_config,
-                                                config,
-                                                hash_fct);
+        remote_api = std::make_shared<BazelApi>(
+            "remote-execution",
+            address->host,
+            address->port,
+            remote_context->auth,
+            remote_context->retry_config,
+            config,
+            local_context->storage_config->hash_function);
     }
-    return ApiBundle{.hash_function = hash_fct,
-                     .local = std::move(local_api),
+    return ApiBundle{.local = std::move(local_api),
                      .remote = std::move(remote_api)};
 }
 
@@ -63,7 +63,7 @@ auto ApiBundle::MakeRemote(
                                           authentication,
                                           retry_config,
                                           config,
-                                          hash_function);
+                                          HashFunction{local->GetHashType()});
     }
     return local;
 }

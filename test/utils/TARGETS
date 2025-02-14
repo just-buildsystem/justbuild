@@ -179,7 +179,6 @@
   , "stage": ["test", "utils"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     ]

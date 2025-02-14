@@ -59,8 +59,7 @@ void archive_entry_cleanup(archive_entry* entry) {
     }
 }
 
-auto add_to_archive(HashFunction::Type hash_type,
-                    archive* archive,
+auto add_to_archive(archive* archive,
                     IExecutionApi const& api,
                     const Artifact::ObjectInfo& artifact,
                     const std::filesystem::path& location) -> bool {
@@ -134,8 +133,11 @@ auto add_to_archive(HashFunction::Type hash_type,
             for (auto const& [hash, entries] : *git_tree) {
                 auto hex_hash = ToHexString(hash);
                 for (auto const& entry : entries) {
-                    auto digest = ArtifactDigestFactory::Create(
-                        hash_type, hex_hash, 0, IsTreeObject(entry.type));
+                    auto digest =
+                        ArtifactDigestFactory::Create(api.GetHashType(),
+                                                      hex_hash,
+                                                      0,
+                                                      IsTreeObject(entry.type));
                     if (not digest) {
                         return false;
                     }
@@ -146,8 +148,7 @@ auto add_to_archive(HashFunction::Type hash_type,
                 }
             }
             for (auto const& [name, obj] : tree) {
-                if (not add_to_archive(
-                        hash_type, archive, api, obj, location / name)) {
+                if (not add_to_archive(archive, api, obj, location / name)) {
                     return false;
                 }
             }
@@ -160,7 +161,6 @@ auto add_to_archive(HashFunction::Type hash_type,
 }  // namespace
 
 [[nodiscard]] auto GenerateArchive(
-    HashFunction::Type hash_type,
     IExecutionApi const& api,
     const Artifact::ObjectInfo& artifact,
     const std::optional<std::filesystem::path>& output_path) -> bool {
@@ -204,11 +204,8 @@ auto add_to_archive(HashFunction::Type hash_type,
         }
     }
 
-    if (not add_to_archive(hash_type,
-                           archive.get(),
-                           api,
-                           artifact,
-                           std::filesystem::path{""})) {
+    if (not add_to_archive(
+            archive.get(), api, artifact, std::filesystem::path{""})) {
         return false;
     }
     if (output_path) {

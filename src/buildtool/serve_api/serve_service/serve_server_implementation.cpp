@@ -176,9 +176,8 @@ auto ServeServerImpl::Run(
         is_compat ? &*local_context : nullptr,
         is_compat ? &*apis.local : nullptr);
     // setup the apis to pass to SourceTreeService
-    auto const mr_apis = ApiBundle{.hash_function = apis.hash_function,
-                                   .local = mr_local_api,
-                                   .remote = apis.remote};
+    auto const mr_apis =
+        ApiBundle{.local = mr_local_api, .remote = apis.remote};
 
     SourceTreeService sts{
         &serve_config,

@@ -266,8 +266,8 @@ void ComputeAndFill(
                         key.ToString());
         }
         else {
-            auto serve_result = InquireServe(
-                &analyse_context, target, context->apis, &build_logger);
+            auto serve_result =
+                InquireServe(&analyse_context, target, &build_logger);
             if (serve_result) {
                 auto root_result = FileRoot(*serve_result);
                 Logger::Log(LogLevel::Performance,

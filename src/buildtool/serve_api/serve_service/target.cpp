@@ -379,7 +379,7 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
     auto const repo_key_dgst =
-        ArtifactDigestFactory::Create(apis_.hash_function.GetType(),
+        ArtifactDigestFactory::Create(apis_.local->GetHashType(),
                                       repo_key->String(),
                                       0,
                                       /*is_tree=*/false);
