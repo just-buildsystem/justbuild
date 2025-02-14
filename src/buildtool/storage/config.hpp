@@ -117,7 +117,7 @@ struct StorageConfig final {
     /// \brief Create a tmp directory with controlled lifetime for specific
     /// operations (archive, zip, file, distdir checkouts; fetch; update).
     [[nodiscard]] auto CreateTypedTmpDir(std::string const& type) const noexcept
-        -> TmpDirPtr {
+        -> TmpDir::Ptr {
         // try to create parent dir
         auto parent_path = EphemeralRoot() / "tmp-workspaces" / type;
         return TmpDir::Create(parent_path);

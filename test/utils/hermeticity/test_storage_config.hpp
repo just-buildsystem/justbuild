@@ -76,10 +76,10 @@ class TestStorageConfig final {
     }
 
   private:
-    gsl::not_null<TmpDirPtr> const tmp_dir_;
+    gsl::not_null<TmpDir::Ptr> const tmp_dir_;
     StorageConfig const storage_config_;
 
-    explicit TestStorageConfig(gsl::not_null<TmpDirPtr> const& tmp_dir,
+    explicit TestStorageConfig(gsl::not_null<TmpDir::Ptr> const& tmp_dir,
                                StorageConfig config) noexcept
         : tmp_dir_{tmp_dir}, storage_config_{std::move(config)} {}
 };

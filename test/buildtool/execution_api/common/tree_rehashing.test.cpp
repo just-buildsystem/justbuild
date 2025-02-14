@@ -43,7 +43,7 @@
 #include "test/utils/large_objects/large_object_utils.hpp"
 
 namespace {
-[[nodiscard]] auto GenerateTestDirectory() -> std::optional<TmpDirPtr>;
+[[nodiscard]] auto GenerateTestDirectory() -> std::optional<TmpDir::Ptr>;
 
 /// \brief Deeply hash a local tree and add it to the storage.
 [[nodiscard]] auto StoreHashedTree(Storage const& storage,
@@ -185,7 +185,7 @@ TEST_CASE("Rehash tree", "[common]") {
 }
 
 namespace {
-[[nodiscard]] auto GenerateTestDirectory() -> std::optional<TmpDirPtr> {
+[[nodiscard]] auto GenerateTestDirectory() -> std::optional<TmpDir::Ptr> {
     auto const test_dir = FileSystemManager::GetCurrentDirectory() / "tmp";
     auto head_temp_directory = TmpDir::Create(test_dir / "head_dir");
     auto const head_temp_dir_path = head_temp_directory->GetPath();

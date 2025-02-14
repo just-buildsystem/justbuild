@@ -89,7 +89,7 @@ class LargeObject final {
     }
 
   private:
-    TmpDirPtr directory_;
+    TmpDir::Ptr directory_;
     std::filesystem::path path_;
 };
 

@@ -295,7 +295,7 @@ auto LocalAction::StageInput(
                      res.error().message());
         return false;
     }
-    TmpDirPtr new_copy_dir =
+    TmpDir::Ptr new_copy_dir =
         local_context_.storage_config->CreateTypedTmpDir("blob-copy");
     if (new_copy_dir == nullptr) {
         logger_.Emit(LogLevel::Warning,

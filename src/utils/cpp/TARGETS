@@ -62,7 +62,8 @@
   , "srcs": ["tmp_dir.cpp"]
   , "stage": ["src", "utils", "cpp"]
   , "private-deps":
-    [ ["src/buildtool/file_system", "file_system_manager"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     ]

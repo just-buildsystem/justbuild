@@ -14,55 +14,53 @@
 
 #include "src/utils/cpp/tmp_dir.hpp"
 
+#ifdef __unix__
+#include <unistd.h>
+#else
+#error "Non-unix is not supported yet"
+#endif
+
 #include <cstdlib>
-#include <vector>
+#include <string>
+#include <string_view>
+#include <tuple>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-auto TmpDir::Create(std::filesystem::path const& prefix,
-                    std::string const& dir_template) noexcept -> TmpDirPtr {
-    try {
-        // make sure prefix folder exists
-        if (not FileSystemManager::CreateDirectory(prefix)) {
-            Logger::Log(LogLevel::Error,
-                        "TmpDir: could not create prefix directory {}",
-                        prefix.string());
-            return nullptr;
-        }
-
-        auto full_template_str =
-            std::filesystem::weakly_canonical(
-                std::filesystem::absolute(prefix / dir_template))
-                .string();
-
-        std::vector<char> c_tmpl(full_template_str.begin(),
-                                 full_template_str.end());
-        c_tmpl.emplace_back('\0');  // get as c-string
-
-        // attempt to make the tmp dir
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg,hicpp-vararg)
-        char* tmp_dir = mkdtemp(c_tmpl.data());
-        if (tmp_dir == nullptr) {
-            return nullptr;
-        }
-        auto tmp_dir_obj = std::make_shared<TmpDir>();
-        // need to explicitly transform to std::string first
-        tmp_dir_obj->tmp_dir_ = std::filesystem::path(std::string(tmp_dir));
-
-        return std::static_pointer_cast<TmpDir const>(tmp_dir_obj);
-    } catch (...) {
-        return nullptr;
-    }
+auto TmpDir::Create(std::filesystem::path const& prefix) noexcept -> Ptr {
+    return CreateImpl(prefix);
 }
 
-auto TmpDir::GetPath() const& noexcept -> std::filesystem::path const& {
-    return tmp_dir_;
+auto TmpDir::CreateImpl(std::filesystem::path const& path) noexcept -> Ptr {
+    static constexpr std::string_view kDirTemplate = "tmp.XXXXXX";
+    // make sure prefix folder exists
+    if (not FileSystemManager::CreateDirectory(path)) {
+        Logger::Log(LogLevel::Error,
+                    "TmpDir: could not create prefix directory {}",
+                    path.string());
+        return nullptr;
+    }
+
+    std::string file_path;
+    try {
+        file_path = std::filesystem::weakly_canonical(
+            std::filesystem::absolute(path / kDirTemplate));
+        // Create a temporary directory:
+        if (mkdtemp(file_path.data()) == nullptr) {
+            return nullptr;
+        }
+        return std::shared_ptr<TmpDir const>(new TmpDir(file_path));
+    } catch (...) {
+        if (not file_path.empty()) {
+            rmdir(file_path.c_str());
+        }
+    }
+    return nullptr;
 }
 
 TmpDir::~TmpDir() noexcept {
     // try to remove the tmp dir and all its content
-    [[maybe_unused]] auto res =
-        FileSystemManager::RemoveDirectory(tmp_dir_, true);
+    std::ignore = FileSystemManager::RemoveDirectory(tmp_dir_, true);
 }

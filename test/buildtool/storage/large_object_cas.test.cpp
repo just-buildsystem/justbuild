@@ -643,7 +643,7 @@ class TestFilesDirectory final {
     }
 
   private:
-    TmpDirPtr temp_directory_;
+    TmpDir::Ptr temp_directory_;
     explicit TestFilesDirectory() noexcept {
         auto test_dir = FileSystemManager::GetCurrentDirectory() / "tmp";
         temp_directory_ = TmpDir::Create(test_dir / "tmp_space");

@@ -57,7 +57,7 @@ class LocalAction final : public IExecutionAction {
     using OutputDirOrSymlink =
         std::variant<bazel_re::OutputDirectory, bazel_re::OutputSymlink>;
 
-    using FileCopies = std::unordered_map<Artifact::ObjectInfo, TmpDirPtr>;
+    using FileCopies = std::unordered_map<Artifact::ObjectInfo, TmpDir::Ptr>;
 
     auto Execute(Logger const* logger) noexcept
         -> IExecutionResponse::Ptr final;
