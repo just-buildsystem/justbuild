@@ -669,6 +669,14 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
         subdir: str = os.path.normpath(repo.get("path", "."))
         if subdir != ".":
             changes["subdir"] = subdir
+        # keep ignore special and absent pragmas
+        pragma = {}
+        if repo.get("pragma", {}).get("special", None) == "ignore":
+            pragma["special"] = "ignore"
+        if repo.get("pragma", {}).get("absent", False):
+            pragma["absent"] = True
+        if pragma:
+            changes["pragma"] = pragma
         return dict(remote_stub, **changes)
     elif remote_type == "file":
         # for imports from local checkouts, file repos remain type 'file'; only
@@ -690,6 +698,15 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
             if existing != ".":
                 subdir = os.path.join(existing, subdir)
             changes["subdir"] = subdir
+        # keep special and absent pragmas
+        pragma = {}
+        special: Json = repo.get("pragma", {}).get("special", None)
+        if special:
+            pragma["special"] = special
+        if repo.get("pragma", {}).get("absent", False):
+            pragma["absent"] = True
+        if pragma:
+            changes["pragma"] = pragma
         return dict(remote_stub, **changes)
     elif remote_type == "git tree":
         # for imports from git-trees, file repos become 'git tree' types; the
@@ -716,6 +733,14 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
                                             subdir=subdir,
                                             upstream=None,
                                             fail_context=fail_context)
+        # keep ignore special and absent pragmas
+        pragma = {}
+        if repo.get("pragma", {}).get("special", None) == "ignore":
+            pragma["special"] = "ignore"
+        if repo.get("pragma", {}).get("absent", False):
+            pragma["absent"] = True
+        if pragma:
+            remote_desc["pragma"] = pragma
         return remote_desc
     fail("Unsupported remote type!")
 

@@ -28,11 +28,22 @@ readonly WRKDIR="${PWD}/work"
 mkdir -p "${REPO_DIRS}/foo/src"
 cd "${REPO_DIRS}/foo"
 cat > repos.json <<'EOF'
-{"repositories": {"": {"repository": {"type": "file", "path": "src"}}}}
+{ "repositories":
+  { "":
+    { "repository":
+      { "type": "file"
+      , "path": "src"
+      , "pragma": {"special": "ignore"}
+      }
+    }
+  }
+}
 EOF
 cat > src/TARGETS <<'EOF'
 { "": {"type": "file_gen", "name": "foo.txt", "data": "FOO"}}
 EOF
+# add symlink to check that special pragma is needed and is inherited in import
+ln -s ../../../nonexistent src/causes_fail
 git init
 git checkout --orphan foomaster
 git config user.name 'N.O.Body'

@@ -24,12 +24,23 @@ readonly OUT="${TEST_TMPDIR}/build-output"
 readonly REPO_DIRS="${TEST_TMPDIR}/repos"
 readonly WRKDIR="${PWD}/work"
 
-mkdir -p "${REPO_DIRS}/foo/src"
+mkdir -p "${REPO_DIRS}/foo/src/inner"
 cd "${REPO_DIRS}/foo"
 cat > repos.json <<'EOF'
-{"repositories": {"": {"repository": {"type": "file", "path": "src"}}}}
+{ "repositories":
+  { "":
+    { "repository":
+      { "type": "file"
+      , "path": "src"
+      , "pragma": {"special": "resolve-completely"}
+      }
+    }
+  }
+}
 EOF
-cat > src/TARGETS <<'EOF'
+# add symlink to check that special pragma is needed and is inherited in import
+ln -s inner/actual_TARGETS src/TARGETS
+cat > src/inner/actual_TARGETS <<'EOF'
 { "": {"type": "file_gen", "name": "foo.txt", "data": "FOO"}}
 EOF
 

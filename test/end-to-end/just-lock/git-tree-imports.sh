@@ -35,7 +35,9 @@ if [ "$(cat ${CREDENTIAL_PATH:-/dev/null})" = "sEcReT" ]
 then
   mkdir -p data
   echo "$1" > data/sources.txt
+  ln -s ../../../nonexistent data/causes_fail
   echo '{"":{"type":"install","dirs":[[["TREE",null,"."],"."]]}}' > data/TARGETS
+  echo '{"repositories":{"":{"repository":{"type":"file","path":".","pragma":{"special":"ignore"}}}}}' > data/repos.json
 else
   echo 'not enough credentials available'
 fi
@@ -94,7 +96,6 @@ cat > repos.in.json <<EOF
     , "cmd": ["mock-vcs", "checkout"]
     , "inherit env": ["PATH", "CREDENTIAL_PATH"]
     , "subdir": "data"
-    , "as plain": true
     }
   ]
 }
@@ -124,7 +125,6 @@ cat > repos.in.json <<EOF
     , "cmd gen": ["mock-vcs-gen"]
     , "inherit env": ["PATH", "CREDENTIAL_PATH"]
     , "subdir": "data"
-    , "as plain": true
     }
   ]
 }

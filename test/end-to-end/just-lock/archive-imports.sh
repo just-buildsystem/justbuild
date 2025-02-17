@@ -29,12 +29,23 @@ readonly WRKDIR="${PWD}/work"
 mkdir -p "${DISTDIR}"
 
 # Repo foo
-mkdir -p "${REPO_DIRS}/foo/root/src"
+mkdir -p "${REPO_DIRS}/foo/root/src/inner"
 cd "${REPO_DIRS}/foo"
 cat > root/repos.json <<'EOF'
-{"repositories": {"": {"repository": {"type": "file", "path": "src"}}}}
+{ "repositories":
+  { "":
+    { "repository":
+      { "type": "file"
+      , "path": "src"
+      , "pragma": {"special": "resolve-completely"}
+      }
+    }
+  }
+}
 EOF
-cat > root/src/TARGETS <<'EOF'
+# add symlink to check that special pragma is needed and is inherited in import
+ln -s inner/actual_TARGETS root/src/TARGETS
+cat > root/src/inner/actual_TARGETS <<'EOF'
 { "": {"type": "file_gen", "name": "foo.txt", "data": "FOO"}}
 EOF
 tar cf "${DISTDIR}/foo-1.2.3.tar" . 2>&1
