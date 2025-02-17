@@ -230,7 +230,7 @@ Therefore, our final repository description looks as follows.
     { "repository":
       { "type": "git"
       , "branch": "master"
-      , "commit": "b8ae7e38c0c51467ead55361362a0fd0da3666d5"
+      , "commit": "3a5f0f0f50c59495ffc3b198df59e6edb8416450"
       , "repository": "https://github.com/just-buildsystem/rules-cc.git"
       , "subdir": "rules"
       }
