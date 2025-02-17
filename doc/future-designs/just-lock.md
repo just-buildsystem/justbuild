@@ -103,7 +103,7 @@ Usage: generate/update a `just-mr` configuration file
 
 ```
 just-lock [-C <repos.in.json>] [-o <repos.json>]
-          [--local-build-root <PATH>]
+          [--local-build-root <PATH>] [--just <PATH>]
           [--git <PATH>] [-L|--launcher <JSON>]
           [--clone <JSON>]
 
@@ -114,6 +114,7 @@ OPTIONS:
                       the workspace root. If none found, placed as 'repos.json' in parent path of input file.
   --local-build-root PATH
                       Local build root. Usual `just-mr` rules apply.
+  --just PATH         Path to a `just` binary. If missing, use the `just` name from PATH.
   --git PATH          Git binary to use if needed. If missing, system `git` is used.
                       User must pass it also to `just-mr`.
   --launcher JSON     Local launcher to use for commands. Given as a JSON list of strings.

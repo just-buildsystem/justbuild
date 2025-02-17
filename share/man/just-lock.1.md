@@ -57,6 +57,10 @@ Root for local CAS, cache, and build directories. The path will be created if
 it does not exist already.  
 Default: path *`".cache/just"`* in user's home directory.
 
+**`--just`** *`PATH`*  
+Path to the **`just`** binary in *`PATH`* or path to the **`just`** binary.
+Default: *`"just"`*.
+
 **`-L`**, **`--local-launcher`** *`JSON_ARRAY`*  
 JSON array with the list of strings representing the launcher to prepend
 any commands being executed locally.  

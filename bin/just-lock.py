@@ -51,6 +51,7 @@ DEFAULT_INPUT_CONFIG_NAME: str = "repos.in.json"
 DEFAULT_JUSTMR_CONFIG_NAME: str = "repos.json"
 DEFAULT_CONFIG_DIRS: List[str] = [".", "./etc"]
 """Directories where to look for configuration file inside a root"""
+DEFAULT_JUST: str = "just"
 
 GIT_NOBODY_ENV: Dict[str, str] = {
     "GIT_AUTHOR_DATE": "1970-01-01T00:00Z",
@@ -77,6 +78,8 @@ class ObjectType(Enum):
 
 g_ROOT: str = DEFAULT_BUILD_ROOT
 """The configured local build root"""
+g_JUST: str = DEFAULT_JUST
+"""The path to the 'just' binary"""
 g_GIT: str = DEFAULT_GIT_BIN
 """Git binary to use"""
 g_LAUNCHER: List[str] = DEFAULT_LAUNCHER
@@ -2097,6 +2100,10 @@ def main():
                         dest="local_build_root",
                         help="Root for CAS, repository space, etc",
                         metavar="PATH")
+    parser.add_argument("--just",
+                        dest="just_bin",
+                        help="Path to the 'just' binary",
+                        metavar="PATH")
     parser.add_argument("--git",
                         dest="git_bin",
                         help="Git binary to use",
@@ -2137,9 +2144,11 @@ def main():
                 os.path.join(parent_path, DEFAULT_JUSTMR_CONFIG_NAME))
 
     # Process the rest of the command line; use globals for simplicity
-    global g_ROOT, g_GIT, g_LAUNCHER
+    global g_ROOT, g_JUST, g_GIT, g_LAUNCHER
     if args.local_build_root:
         g_ROOT = os.path.abspath(args.local_build_root)
+    if args.just_bin:
+        g_JUST = args.just_bin
     if args.git_bin:
         g_GIT = args.git_bin
     if args.launcher:
