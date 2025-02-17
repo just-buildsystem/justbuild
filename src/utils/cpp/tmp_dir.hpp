@@ -17,7 +17,10 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
 #include <utility>
+
+class TmpFile;
 
 class TmpDir final {
   public:
@@ -43,6 +46,14 @@ class TmpDir final {
     [[nodiscard]] static auto CreateNestedDirectory(
         TmpDir::Ptr const& parent) noexcept -> Ptr;
 
+    /// \brief Create a new unique temporary file. To guarantee uniqueness,
+    /// every file gets created in a new temporary directory. This file remains
+    /// valid even if the parent directory goes out of scope.
+    [[nodiscard]] static auto CreateFile(
+        TmpDir::Ptr const& parent,
+        std::string const& file_name = "file") noexcept
+        -> std::shared_ptr<TmpFile const>;
+
   private:
     explicit TmpDir(TmpDir::Ptr parent, std::filesystem::path path) noexcept
         : parent_{std::move(parent)}, tmp_dir_{std::move(path)} {}
@@ -53,6 +64,32 @@ class TmpDir final {
 
     TmpDir::Ptr parent_;
     std::filesystem::path tmp_dir_;
+};
+
+class TmpFile final {
+    friend class TmpDir;
+
+  public:
+    using Ptr = std::shared_ptr<TmpFile const>;
+
+    TmpFile(TmpFile const&) = delete;
+    auto operator=(TmpFile const&) -> TmpFile& = delete;
+    TmpFile(TmpFile&& other) = delete;
+    auto operator=(TmpFile&&) -> TmpFile& = delete;
+    ~TmpFile() noexcept = default;
+
+    [[nodiscard]] auto GetPath() const& noexcept
+        -> std::filesystem::path const& {
+        return file_path_;
+    }
+
+  private:
+    explicit TmpFile(TmpDir::Ptr parent,
+                     std::filesystem::path file_path) noexcept
+        : parent_{std::move(parent)}, file_path_{std::move(file_path)} {}
+
+    TmpDir::Ptr parent_;
+    std::filesystem::path file_path_;
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_TMP_DIR_HPP

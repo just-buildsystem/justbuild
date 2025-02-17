@@ -21,7 +21,6 @@
 #endif
 
 #include <cstdlib>
-#include <string>
 #include <string_view>
 #include <tuple>
 
@@ -39,6 +38,28 @@ auto TmpDir::CreateNestedDirectory(TmpDir::Ptr const& parent) noexcept
         return nullptr;
     }
     return CreateImpl(parent, parent->GetPath());
+}
+
+auto TmpDir::CreateFile(TmpDir::Ptr const& parent,
+                        std::string const& file_name) noexcept -> TmpFile::Ptr {
+    // Create a new tmp directory to guarantee uniqueness:
+    auto temp_dir = CreateNestedDirectory(parent);
+    if (temp_dir == nullptr) {
+        return nullptr;
+    }
+
+    try {
+        auto file_path = std::filesystem::weakly_canonical(
+            std::filesystem::absolute(temp_dir->GetPath() / file_name));
+        if (not FileSystemManager::CreateFile(file_path)) {
+            return nullptr;
+        }
+
+        return std::shared_ptr<TmpFile const>{
+            new TmpFile(std::move(temp_dir), std::move(file_path))};
+    } catch (...) {
+        return nullptr;
+    }
 }
 
 auto TmpDir::CreateImpl(TmpDir::Ptr parent,
