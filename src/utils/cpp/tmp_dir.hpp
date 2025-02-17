@@ -38,13 +38,20 @@ class TmpDir final {
     [[nodiscard]] static auto Create(
         std::filesystem::path const& prefix) noexcept -> Ptr;
 
+    /// \brief Create a new nested temporary directory. This nested directory
+    /// remains valid even if the parent directory goes out of scope.
+    [[nodiscard]] static auto CreateNestedDirectory(
+        TmpDir::Ptr const& parent) noexcept -> Ptr;
+
   private:
-    explicit TmpDir(std::filesystem::path path) noexcept
-        : tmp_dir_{std::move(path)} {}
+    explicit TmpDir(TmpDir::Ptr parent, std::filesystem::path path) noexcept
+        : parent_{std::move(parent)}, tmp_dir_{std::move(path)} {}
 
     [[nodiscard]] static auto CreateImpl(
+        TmpDir::Ptr parent,
         std::filesystem::path const& path) noexcept -> Ptr;
 
+    TmpDir::Ptr parent_;
     std::filesystem::path tmp_dir_;
 };
 

@@ -30,10 +30,19 @@
 #include "src/buildtool/logging/logger.hpp"
 
 auto TmpDir::Create(std::filesystem::path const& prefix) noexcept -> Ptr {
-    return CreateImpl(prefix);
+    return CreateImpl(/*parent=*/nullptr, prefix);
 }
 
-auto TmpDir::CreateImpl(std::filesystem::path const& path) noexcept -> Ptr {
+auto TmpDir::CreateNestedDirectory(TmpDir::Ptr const& parent) noexcept
+    -> TmpDir::Ptr {
+    if (parent == nullptr) {
+        return nullptr;
+    }
+    return CreateImpl(parent, parent->GetPath());
+}
+
+auto TmpDir::CreateImpl(TmpDir::Ptr parent,
+                        std::filesystem::path const& path) noexcept -> Ptr {
     static constexpr std::string_view kDirTemplate = "tmp.XXXXXX";
     // make sure prefix folder exists
     if (not FileSystemManager::CreateDirectory(path)) {
@@ -51,7 +60,8 @@ auto TmpDir::CreateImpl(std::filesystem::path const& path) noexcept -> Ptr {
         if (mkdtemp(file_path.data()) == nullptr) {
             return nullptr;
         }
-        return std::shared_ptr<TmpDir const>(new TmpDir(file_path));
+        return std::shared_ptr<TmpDir const>(
+            new TmpDir(std::move(parent), file_path));
     } catch (...) {
         if (not file_path.empty()) {
             rmdir(file_path.c_str());
