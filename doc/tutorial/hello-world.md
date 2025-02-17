@@ -202,21 +202,27 @@ In that module, we need to create the file
 `tutorial-defaults/CC/TARGETS` that contains the target `"defaults"` and
 specifies which toolchain and compile flags to use; it has to specify
 the complete toolchain, but can specify a `"base"` toolchain to inherit
-from. In our case, we don't use any base, but specify all the required
-fields directly.
+from. In our case, we don't use any base.
 
 ``` {.jsonc srcname="tutorial-defaults/CC/TARGETS"}
 { "defaults":
   { "type": ["CC", "defaults"]
   , "CC": ["cc"]
   , "CXX": ["c++"]
-  , "CFLAGS": ["-O2", "-Wall"]
-  , "CXXFLAGS": ["-O2", "-Wall"]
+  , "ADD_COMPILE_FLAGS": ["-O2", "-Wall"]
   , "AR": ["ar"]
   , "PATH": ["/bin", "/usr/bin"]
   }
 }
 ```
+
+Here we used `"ADD_COMPILE_FLAGS"` to add flags for both, `C` and
+`C++` compilation. Those flags are added to the ones inherited
+from `"base"`, in our case (as we did not specify a `"base"`) the
+empty list. There are also `"ADD_CFLAGS"` and `"ADD_CXXFLAGS"` if
+we want to add flags for just `C` or just `C++`. Finally, there
+is also the possibility to explicitly specify `"CFLAGS"` and
+`"CXXFLAGS"` (completely ignoring anything inherited).
 
 To use the project defaults, modify the existing `repos.json` to reflect
 the following content:
@@ -277,7 +283,7 @@ INFO: Artifacts built, logical paths are:
 $
 ```
 
-Note that the output binary may have changed due to different defaults.
+Note that the output binary has changed due to different defaults.
 
 In this tutorial we simply set the correct parameters of the defaults target.
 It is, however, not necessary to remember all the fields of a rule; we can
@@ -306,7 +312,7 @@ Modeling target dependencies
 
 For demonstration purposes, we will separate the print statements into a
 static library `greet`, which will become a dependency to our binary.
-Therefore, we create a new subdirectory `greet` 
+Therefore, we create a new subdirectory `greet`
 
 ``` sh
 $ mkdir -p ./greet
