@@ -45,7 +45,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     // Determine blob path of given generation.
     auto blob_path = skip_sync ? BlobPathNoSync(digest, is_executable)
                                : BlobPath(digest, is_executable);
-    std::optional<LargeObject> spliced;
+    TmpFile::Ptr spliced;
     if (not blob_path) {
         spliced = TrySplice<ObjectType::File>(digest);
         blob_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
@@ -54,7 +54,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
         return false;
     }
 
-    if (spliced) {
+    if (spliced != nullptr) {
         // The result of uplinking of a large object must not affect the
         // result of uplinking in general. In other case, two sequential calls
         // to BlobPath might return different results: The first call splices
@@ -67,7 +67,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBlob(
     }
 
     // Uplink blob from older generation to the latest generation.
-    if (spliced and is_executable) {
+    if (spliced != nullptr and is_executable) {
         // During multithreaded splicing, the main process can be forked
         // (inheriting open file descriptors). In this case, an executable file
         // saved using hardlinking becomes inaccessible. To prevent this,
@@ -108,10 +108,11 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
 
     // Determine tree path of given generation.
     auto tree_path = cas_tree_.BlobPath(digest);
-    std::optional<LargeObject> spliced;
+    TmpFile::Ptr spliced;
     if (not tree_path) {
         spliced = TrySplice<ObjectType::Tree>(digest);
-        tree_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+        tree_path = spliced != nullptr ? std::optional{spliced->GetPath()}
+                                       : std::nullopt;
     }
     if (not tree_path) {
         return false;
@@ -123,11 +124,12 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         [this](std::vector<ArtifactDigest> const& ids) -> bool {
         for (auto const& id : ids) {
             auto link_path = cas_file_.BlobPath(id);
-            std::optional<LargeObject> spliced;
+            TmpFile::Ptr spliced;
             if (not link_path) {
                 spliced = TrySplice<ObjectType::File>(id);
-                link_path =
-                    spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+                link_path = spliced != nullptr
+                                ? std::optional{spliced->GetPath()}
+                                : std::nullopt;
             }
             if (not link_path) {
                 return false;
@@ -175,7 +177,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
         }
     }
 
-    if (spliced) {
+    if (spliced != nullptr) {
         // Uplink the large entry afterwards:
         // The result of uplinking of a large object must not affect the
         // result of uplinking in general. In other case, two sequential calls
@@ -208,10 +210,11 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
 
     // Determine bazel directory path of given generation.
     auto dir_path = cas_tree_.BlobPath(digest);
-    std::optional<LargeObject> spliced;
+    TmpFile::Ptr spliced;
     if (not dir_path) {
         spliced = TrySplice<ObjectType::Tree>(digest);
-        dir_path = spliced ? std::optional{spliced->GetPath()} : std::nullopt;
+        dir_path = spliced != nullptr ? std::optional{spliced->GetPath()}
+                                      : std::nullopt;
     }
     if (not dir_path) {
         return false;
@@ -248,7 +251,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
 
     // Determine bazel directory path in latest generation.
     auto const dir_path_latest = latest.cas_tree_.BlobPath(digest);
-    if (spliced) {
+    if (spliced != nullptr) {
         // Uplink the large entry afterwards:
         // The result of uplinking of a large object must not affect the
         // result of uplinking in general. In other case, two sequential
@@ -259,7 +262,7 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkBazelDirectory(
         std::ignore = LocalUplinkLargeObject<ObjectType::Tree>(latest, digest);
     }
 
-    bool const skip_store = spliced and not splice_result;
+    bool const skip_store = spliced != nullptr and not splice_result;
     // Uplink bazel directory from older generation to the latest
     // generation.
     if (skip_store or dir_path_latest.has_value() or
@@ -295,11 +298,10 @@ template <bool kDoGlobalUplink>
 template <ObjectType kType, bool kIsLocalGeneration>
     requires(kIsLocalGeneration)
 auto LocalCAS<kDoGlobalUplink>::TrySplice(
-    ArtifactDigest const& digest) const noexcept -> std::optional<LargeObject> {
+    ArtifactDigest const& digest) const noexcept -> TmpFile::Ptr {
     auto spliced = IsTreeObject(kType) ? cas_tree_large_.TrySplice(digest)
                                        : cas_file_large_.TrySplice(digest);
-    return spliced and spliced->IsValid() ? std::optional{std::move(*spliced)}
-                                          : std::nullopt;
+    return spliced.has_value() ? spliced.value() : nullptr;
 }
 
 template <bool kDoGlobalUplink>
@@ -399,7 +401,7 @@ auto LocalCAS<kDoGlobalUplink>::Splice(ArtifactDigest const& digest,
     // decide whether the result is valid is unreasonable, because these
     // methods can refer to a file that existed before. The direct hash
     // calculation is done instead.
-    auto const& file_path = large_object.GetPath();
+    auto const& file_path = large_object->GetPath();
     auto spliced_digest =
         ArtifactDigestFactory::HashFileAs<kType>(hash_function_, file_path);
     if (not spliced_digest) {

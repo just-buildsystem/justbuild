@@ -17,7 +17,6 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <memory>
 #include <optional>
 #include <string>
 #include <utility>
@@ -68,29 +67,6 @@ class LargeObjectError final {
   private:
     LargeObjectErrorCode const code_;
     std::string message_;
-};
-
-/// \brief Stores a temporary directory containing a result of splicing.
-class LargeObject final {
-  public:
-    explicit LargeObject(StorageConfig const& storage_config) noexcept
-        : directory_(storage_config.CreateTypedTmpDir("splice")),
-          path_(directory_ ? directory_->GetPath() / "result" : ".") {}
-
-    /// \brief Check whether the large object is valid.
-    [[nodiscard]] auto IsValid() const noexcept -> bool {
-        return directory_ != nullptr;
-    }
-
-    /// \brief Obtain the path to the spliced result.
-    [[nodiscard]] auto GetPath() const noexcept
-        -> std::filesystem::path const& {
-        return path_;
-    }
-
-  private:
-    TmpDir::Ptr directory_;
-    std::filesystem::path path_;
 };
 
 /// \brief Stores auxiliary information for reconstructing large objects.
@@ -144,7 +120,7 @@ class LargeObjectCAS final {
     /// \return             A temporary directory that contains a single file
     /// "result" on success or an error on failure.
     [[nodiscard]] auto TrySplice(ArtifactDigest const& digest) const noexcept
-        -> expected<LargeObject, LargeObjectError>;
+        -> expected<TmpFile::Ptr, LargeObjectError>;
 
     /// \brief Splice an object from parts. This method doesn't check whether
     /// the result of splicing is already in the CAS.
@@ -154,7 +130,7 @@ class LargeObjectCAS final {
     /// "result" on success or an error on failure.
     [[nodiscard]] auto Splice(ArtifactDigest const& digest,
                               std::vector<ArtifactDigest> const& parts)
-        const noexcept -> expected<LargeObject, LargeObjectError>;
+        const noexcept -> expected<TmpFile::Ptr, LargeObjectError>;
 
     /// \brief Uplink large entry from this generation to latest LocalCAS
     /// generation. For the large entry it's parts get promoted first and then

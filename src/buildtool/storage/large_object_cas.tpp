@@ -184,7 +184,7 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(ArtifactDigest const& digest)
 template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::TrySplice(
     ArtifactDigest const& digest) const noexcept
-    -> expected<LargeObject, LargeObjectError> {
+    -> expected<TmpFile::Ptr, LargeObjectError> {
     auto parts = ReadEntry(digest);
     if (not parts) {
         return unexpected{LargeObjectError{
@@ -198,10 +198,11 @@ template <bool kDoGlobalUplink, ObjectType kType>
 auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
     ArtifactDigest const& digest,
     std::vector<ArtifactDigest> const& parts) const noexcept
-    -> expected<LargeObject, LargeObjectError> {
+    -> expected<TmpFile::Ptr, LargeObjectError> {
     // Create temporary space for splicing:
-    LargeObject large_object(storage_config_);
-    if (not large_object.IsValid()) {
+    TmpFile::Ptr large_object = TmpDir::CreateFile(
+        storage_config_.CreateTypedTmpDir("splice"), /*file_name=*/"result");
+    if (large_object == nullptr) {
         return unexpected{LargeObjectError{
             LargeObjectErrorCode::Internal,
             fmt::format("could not create a temporary space for {}",
@@ -210,7 +211,7 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Splice(
 
     // Splice the object from parts
     try {
-        std::ofstream stream(large_object.GetPath());
+        std::ofstream stream(large_object->GetPath());
         for (auto const& part : parts) {
             auto part_path = local_cas_.BlobPath(part, /*is_executable=*/false);
             if (not part_path) {

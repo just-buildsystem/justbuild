@@ -32,6 +32,7 @@
 #include "src/buildtool/storage/large_object_cas.hpp"  // IWYU pragma: keep
 #include "src/buildtool/storage/uplinker.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief The local (logical) CAS for storing blobs and trees.
 /// Blobs can be stored/queried as executable or non-executable. Trees might be
@@ -344,7 +345,7 @@ class LocalCAS {
     template <ObjectType kType, bool kIsLocalGeneration = not kDoGlobalUplink>
         requires(kIsLocalGeneration)
     [[nodiscard]] auto TrySplice(ArtifactDigest const& digest) const noexcept
-        -> std::optional<LargeObject>;
+        -> TmpFile::Ptr;
 
     template <ObjectType kType>
     [[nodiscard]] auto Splice(ArtifactDigest const& digest,
