@@ -77,7 +77,7 @@ cat > repos.in.json <<EOF
   }
   , "imports":
   [ { "source": "file"
-    , "repos": [{"alias": "foo"}]
+    , "repos": [{"alias": "foo", "pragma": {"to_git": true}}]
     , "path": "${REPO_DIRS}/foo"
     }
   , { "source": "file"
@@ -94,6 +94,10 @@ echo
 "${JUST_LOCK}" -C repos.in.json -o repos.json --local-build-root "${LBR}" 2>&1
 cat repos.json
 echo
+# Check pragmas for repo "foo" are correctly set
+[ $(jq -r '.repositories.foo.repository.pragma.special' repos.json) = "resolve-completely" ]
+[ $(jq -r '.repositories.foo.repository.pragma.to_git' repos.json) = true ]
+# Check the symlink gets resolved as expected
 "${JUST_MR}" -L '["env", "PATH='"${PATH}"'"]' --norc --just "${JUST}" --local-build-root "${LBR}" install -o "${OUT}" 2>&1
 echo
 cat "${OUT}/out.txt"

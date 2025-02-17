@@ -40,16 +40,19 @@ The following fields are supported:
    and its value is used instead.
   
  - *`"map"`* has as value a JSON object with string key-value pairs defining a
-   mapping  between repository names that would be brought in by this import
+   mapping between repository names that would be brought in by this import
    (possibly transitively) and already imported repositories. This mapping can
    be used to avoid additional duplications of repositories from multiple
    imports. This entry is optional.
 
- - *`"pragma"`* has as value a JSON object. Currently, it supports the key
-   *`"absent"`* with a boolean value; if this field evaluates to `true`, it
-   informs that the imported repository and all transitive repositories imported
-   as a consequence should have the `{"absent": true}` pragma added to their
-   description in the output configuration. This entry is optional.
+ - *`"pragma"`* has as value a JSON object. This entry is optional.  
+   If the object contains the `{"absent": true}` object, it informs that the
+   imported repository and all transitive repositories imported as a
+   consequence should have the `{"absent": true}` pragma added to their
+   description.  
+   If the object contains the `{"to_git": true}` object, it informs that all
+   `"file"`-type repositories brought in as a consequence of this import should
+   have the `{"to_git": true}` pragma added to their description.
 
 Source objects
 --------------

@@ -745,8 +745,29 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
     fail("Unsupported remote type!")
 
 
+def update_pragmas(repo: Json, pragma: Json) -> Json:
+    """Update the description with any input-provided "absent" and "to_git"
+    pragmas, as needed:
+    - for all repositories, merge the "absent" pragma
+    - for "file"-type repositories, merge the "to_git" pragma"""
+    existing: Json = dict(repo.get("pragma", {}))  # operate on copy
+    # all repos support "absent pragma"
+    absent: bool = existing.get("absent", False) or pragma.get("absent", False)
+    if absent:
+        existing["absent"] = True
+    # support "to_git" pragma for "file"-type repos
+    if repo.get("type") == "file":
+        to_git = existing.get("to_git", False) or pragma.get("to_git", False)
+        if to_git:
+            existing["to_git"] = True
+    # all other pragmas as kept; if no pragma was set, do not set any
+    if existing:
+        repo = dict(repo, **{"pragma": existing})
+    return repo
+
+
 def rewrite_repo(repo_spec: Json, *, remote_type: str,
-                 remote_stub: Dict[str, Any], assign: Json, absent: bool,
+                 remote_stub: Dict[str, Any], assign: Json, pragma: Json,
                  as_layer: bool, fail_context: str) -> Json:
     """Rewrite description of imported repositories."""
     new_spec: Json = {}
@@ -766,8 +787,9 @@ def rewrite_repo(repo_spec: Json, *, remote_type: str,
     elif repo.get("type") in ["computed", "tree structure"]:
         target: str = repo.get("repo", None)
         repo = dict(repo, **{"repo": assign[target]})
-    if absent and isinstance(repo, dict):
-        repo["pragma"] = dict(repo.get("pragma", {}), **{"absent": True})
+    # update pragmas, as needed
+    if isinstance(repo, dict):
+        repo = update_pragmas(repo, pragma)
     new_spec["repository"] = repo
     # rewrite other roots and bindings, if actually needed to be imported
     if not as_layer:
@@ -823,19 +845,13 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
             % (json.dumps(import_map, indent=2), ))
 
     pragma: Json = repo_desc.get("pragma", None)
-    if pragma is not None and not isinstance(pragma, dict):
+    if pragma is None:
+        pragma = {}
+    elif not isinstance(pragma, dict):
         fail(
             fail_context +
             "Expected \"repos\" entry subfield \"pragma\" to be a map, but found:\n%r"
             % (json.dumps(pragma, indent=2), ))
-    absent: bool = False if pragma is None else pragma.get("absent", False)
-    if absent is None:
-        absent = False
-    elif not isinstance(absent, bool):
-        fail(
-            fail_context +
-            "Expected \"repos\" entry pragma \"absent\" to be a bool, but found:\n%r"
-            % (json.dumps(absent, indent=2), ))
 
     # Handle import with renaming
     foreign_repos: Json = foreign_config.get("repositories", {})
@@ -869,7 +885,7 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
-                                                absent=absent,
+                                                pragma=pragma,
                                                 as_layer=False,
                                                 fail_context=fail_context)
     for repo in extra_imports:
@@ -877,7 +893,7 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
-                                                absent=absent,
+                                                pragma=pragma,
                                                 as_layer=True,
                                                 fail_context=fail_context)
 

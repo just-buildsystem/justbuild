@@ -264,7 +264,9 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   checkout.
 
   The checkout is assumed to be maintained, so that `"file"`-type repositories
-  marked to be imported can retain their type.
+  marked to be imported can retain their type. For such transitive dependencies,
+  one can also set the `"to_git": true` pragma with a corresponding entry in the
+  usual `"pragma"` field.
 
   Proposed format:
   ``` jsonc
@@ -277,7 +279,9 @@ The type of a _source_ is defined by the string value of the mandatory subfield
       , "repo": "<foreign_name>"        // optional; corresponds to `foreign_repository_name` var
       , "map": {"from_name": "to_name"}     // optional; corresponds to `import_map` var (option --map)
       , "pragma":             // optional
-        {"absent": true}      // corresponds to `absent` var (option --absent)
+        { "absent": true      // corresponds to `absent` var (option --absent)
+        , "to_git": true      // any imported "file"-repositories will also be "to_git":true
+        }
       }
     , ...
     ]
