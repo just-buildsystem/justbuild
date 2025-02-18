@@ -65,9 +65,9 @@
     , ["src/utils/cpp", "path"]
     ]
   }
-, "bazel":
+, "bazel_api":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["bazel"]
+  , "name": ["bazel_api"]
   , "hdrs": ["bazel/bazel_api.hpp"]
   , "srcs": ["bazel/bazel_api.cpp"]
   , "deps":

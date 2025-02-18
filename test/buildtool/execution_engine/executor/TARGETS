@@ -103,7 +103,7 @@
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/bazel_msg", "execution_config"]
-    , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_api"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["@", "src", "src/buildtool/progress_reporting", "progress"]
     , ["utils", "catch-main-remote-execution"]

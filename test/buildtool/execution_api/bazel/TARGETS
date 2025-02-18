@@ -135,7 +135,7 @@
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
-    , ["@", "src", "src/buildtool/execution_api/remote", "bazel"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_api"]
     , ["@", "src", "src/buildtool/execution_api/remote", "config"]
     , ["buildtool/execution_api/common", "api_test"]
     , ["utils", "catch-main-remote-execution"]
