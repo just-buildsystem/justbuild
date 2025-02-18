@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
+#include "src/utils/cpp/back_map.hpp"
 
 auto CommonRetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
@@ -100,40 +101,39 @@ auto CommonRetrieveToFds(
 auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
                           IExecutionApi const& api) noexcept -> bool {
     // Create digest list from blobs for batch availability check.
-    auto missing_blobs_info = GetMissingArtifactsInfo<BlobTreePtr>(
-        api, blob_tree->begin(), blob_tree->end(), [](BlobTreePtr const& node) {
-            return node->Blob().digest;
-        });
-    if (not missing_blobs_info) {
-        Logger::Log(LogLevel::Error,
-                    "Failed to retrieve the missing tree blobs for upload");
-        return false;
+    std::unordered_set<BlobTreePtr> missing;
+    missing.reserve(blob_tree->size());
+    {
+        auto back_map = BackMap<ArtifactDigest, BlobTreePtr>::Make(
+            &*blob_tree,
+            [](BlobTreePtr const& node) { return node->Blob().digest; });
+        if (back_map == nullptr) {
+            Logger::Log(LogLevel::Error,
+                        "Failed to retrieve the missing tree blobs for upload");
+            return false;
+        }
+        auto missing_digests = api.GetMissingDigests(back_map->GetKeys());
+        missing = back_map->GetValues(missing_digests);
     }
 
     // Process missing blobs.
     std::unordered_set<ArtifactBlob> container;
-    for (auto const& digest : missing_blobs_info->digests) {
-        if (auto it = missing_blobs_info->back_map.find(digest);
-            it != missing_blobs_info->back_map.end()) {
-            auto const& node = it->second;
-            // Process trees.
-            if (node->IsTree()) {
-                if (not CommonUploadBlobTree(node, api)) {
-                    return false;
-                }
-            }
-            // Optimize store & upload by taking into account the maximum
-            // transfer size.
-            if (not UpdateContainerAndUpload(
-                    &container,
-                    node->Blob(),
-                    /*exception_is_fatal=*/false,
-                    [&api](std::unordered_set<ArtifactBlob>&& blobs) -> bool {
-                        return api.Upload(std::move(blobs),
-                                          /*skip_find_missing=*/true);
-                    })) {
-                return false;
-            }
+    for (auto const& node : missing) {
+        // Process trees.
+        if (node->IsTree() and not CommonUploadBlobTree(node, api)) {
+            return false;
+        }
+        // Optimize store & upload by taking into account the maximum
+        // transfer size.
+        if (not UpdateContainerAndUpload(
+                &container,
+                node->Blob(),
+                /*exception_is_fatal=*/false,
+                [&api](std::unordered_set<ArtifactBlob>&& blobs) -> bool {
+                    return api.Upload(std::move(blobs),
+                                      /*skip_find_missing=*/true);
+                })) {
+            return false;
         }
     }
     // Transfer any remaining blobs.
