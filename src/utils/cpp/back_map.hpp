@@ -143,6 +143,20 @@ class BackMap final {
         return result;
     }
 
+    /// \brief Obtain the set of values corresponding to given keys. If a key
+    /// isn't known to the container, it is ignored. Copy free.
+    [[nodiscard]] auto GetReferences(std::unordered_set<TKey> const& keys)
+        const noexcept -> std::unordered_set<gsl::not_null<TValue const*>> {
+        std::unordered_set<gsl::not_null<TValue const*>> result;
+        result.reserve(keys.size());
+        for (auto const& key : keys) {
+            if (auto value = GetReference(key)) {
+                result.emplace(*std::move(value));
+            }
+        }
+        return result;
+    }
+
     using Iterable = std::unordered_map<gsl::not_null<TKey const*>,
                                         gsl::not_null<TValue const*>>;
 
