@@ -18,7 +18,6 @@
 #include <filesystem>
 #include <optional>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -66,12 +65,8 @@ class GitApi final {
     [[nodiscard]] auto IsAvailable(ArtifactDigest const& digest) const noexcept
         -> bool;
 
-    [[nodiscard]] auto GetMissingDigests(
-        std::unordered_set<ArtifactDigest> const& digests) const noexcept
-        -> std::unordered_set<ArtifactDigest>;
-
   private:
-    gsl::not_null<RepositoryConfig const*> repo_config_;
+    RepositoryConfig const& repo_config_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_GIT_GIT_API_HPP

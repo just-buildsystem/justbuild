@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include "nlohmann/json.hpp"
@@ -48,7 +49,7 @@ namespace {
 }  // namespace
 
 GitApi::GitApi(gsl::not_null<RepositoryConfig const*> const& repo_config)
-    : repo_config_{repo_config} {}
+    : repo_config_{*repo_config} {}
 
 auto GitApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
@@ -62,7 +63,7 @@ auto GitApi::RetrieveToPaths(
     for (std::size_t i{}; i < artifacts_info.size(); ++i) {
         auto const& info = artifacts_info[i];
         if (IsTreeObject(info.type)) {
-            auto tree = repo_config_->ReadTreeFromGitCAS(info.digest.hash());
+            auto tree = repo_config_.ReadTreeFromGitCAS(info.digest.hash());
             if (not tree) {
                 return false;
             }
@@ -79,7 +80,7 @@ auto GitApi::RetrieveToPaths(
             }
         }
         else {
-            auto blob = repo_config_->ReadBlobFromGitCAS(info.digest.hash());
+            auto blob = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
             if (not blob) {
                 return false;
             }
@@ -112,7 +113,7 @@ auto GitApi::RetrieveToFds(
 
         std::string content;
         if (IsTreeObject(info.type) and not raw_tree) {
-            auto tree = repo_config_->ReadTreeFromGitCAS(info.digest.hash());
+            auto tree = repo_config_.ReadTreeFromGitCAS(info.digest.hash());
             if (not tree) {
                 Logger::Log(LogLevel::Debug,
                             "Tree {} not known to git",
@@ -139,7 +140,7 @@ auto GitApi::RetrieveToFds(
             }
         }
         else {
-            auto blob = repo_config_->ReadBlobFromGitCAS(info.digest.hash());
+            auto blob = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
             if (not blob) {
                 Logger::Log(LogLevel::Debug,
                             "Blob {} not known to git",
@@ -189,7 +190,7 @@ auto GitApi::RetrieveToCas(
         std::optional<std::string> content;
         // Recursively process trees.
         if (IsTreeObject(info.type)) {
-            auto tree = repo_config_->ReadTreeFromGitCAS(info.digest.hash());
+            auto tree = repo_config_.ReadTreeFromGitCAS(info.digest.hash());
             if (not tree) {
                 return false;
             }
@@ -237,7 +238,7 @@ auto GitApi::RetrieveToCas(
             content = tree->RawData();
         }
         else {
-            content = repo_config_->ReadBlobFromGitCAS(info.digest.hash());
+            content = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
         }
         if (not content) {
             return false;
@@ -271,23 +272,10 @@ auto GitApi::RetrieveToCas(
 
 auto GitApi::RetrieveToMemory(Artifact::ObjectInfo const& artifact_info)
     const noexcept -> std::optional<std::string> {
-    return repo_config_->ReadBlobFromGitCAS(artifact_info.digest.hash());
+    return repo_config_.ReadBlobFromGitCAS(artifact_info.digest.hash());
 }
 
 auto GitApi::IsAvailable(ArtifactDigest const& digest) const noexcept -> bool {
-    return repo_config_->ReadBlobFromGitCAS(digest.hash(), LogLevel::Trace)
+    return repo_config_.ReadBlobFromGitCAS(digest.hash(), LogLevel::Trace)
         .has_value();
-}
-
-auto GitApi::GetMissingDigests(
-    std::unordered_set<ArtifactDigest> const& digests) const noexcept
-    -> std::unordered_set<ArtifactDigest> {
-    std::unordered_set<ArtifactDigest> result;
-    result.reserve(digests.size());
-    for (auto const& digest : digests) {
-        if (not IsAvailable(digest)) {
-            result.emplace(digest);
-        }
-    }
-    return result;
 }
