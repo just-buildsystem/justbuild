@@ -18,7 +18,6 @@
 #include <cstdio>
 #include <functional>
 #include <memory>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -32,6 +31,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
@@ -167,16 +167,20 @@ auto GitApi::RetrieveToFds(
 auto GitApi::RetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     IExecutionApi const& api) const noexcept -> bool {
-    // Determine missing artifacts in other CAS.
-    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
-        api,
-        artifacts_info.begin(),
-        artifacts_info.end(),
-        [](Artifact::ObjectInfo const& info) { return info.digest; });
-    if (not missing_artifacts_info) {
-        Logger::Log(LogLevel::Error,
-                    "GitApi: Failed to retrieve the missing artifacts");
-        return false;
+    // Determine missing artifacts in api.
+    std::unordered_set<gsl::not_null<Artifact::ObjectInfo const*>> missing;
+    missing.reserve(artifacts_info.size());
+    {
+        auto back_map = BackMap<ArtifactDigest, Artifact::ObjectInfo>::Make(
+            &artifacts_info,
+            [](Artifact::ObjectInfo const& info) { return info.digest; });
+        if (back_map == nullptr) {
+            Logger::Log(LogLevel::Error, "GitApi: Failed to create BackMap");
+            return false;
+        }
+
+        auto missing_digests = api.GetMissingDigests(back_map->GetKeys());
+        missing = back_map->GetReferences(missing_digests);
     }
 
     // GitApi works in the native mode only.
@@ -185,12 +189,11 @@ auto GitApi::RetrieveToCas(
     // Collect blobs of missing artifacts from local CAS. Trees are
     // processed recursively before any blob is uploaded.
     std::unordered_set<ArtifactBlob> container;
-    for (auto const& dgst : missing_artifacts_info->digests) {
-        auto const& info = missing_artifacts_info->back_map[dgst];
+    for (auto const& info : missing) {
         std::optional<std::string> content;
         // Recursively process trees.
-        if (IsTreeObject(info.type)) {
-            auto tree = repo_config_.ReadTreeFromGitCAS(info.digest.hash());
+        if (IsTreeObject(info->type)) {
+            auto tree = repo_config_.ReadTreeFromGitCAS(info->digest.hash());
             if (not tree) {
                 return false;
             }
@@ -238,14 +241,14 @@ auto GitApi::RetrieveToCas(
             content = tree->RawData();
         }
         else {
-            content = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
+            content = repo_config_.ReadBlobFromGitCAS(info->digest.hash());
         }
         if (not content) {
             return false;
         }
 
         ArtifactDigest digest =
-            IsTreeObject(info.type)
+            IsTreeObject(info->type)
                 ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
                       hash_function, *content)
                 : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
@@ -256,7 +259,7 @@ auto GitApi::RetrieveToCas(
                 &container,
                 ArtifactBlob{std::move(digest),
                              std::move(*content),
-                             IsExecutableObject(info.type)},
+                             IsExecutableObject(info->type)},
                 /*exception_is_fatal=*/true,
                 [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                     return api.Upload(std::move(blobs),
