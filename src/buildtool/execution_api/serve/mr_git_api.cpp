@@ -14,6 +14,7 @@
 
 #include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 
+#include <string>
 #include <utility>
 
 #include "src/buildtool/execution_api/git/git_api.hpp"
@@ -35,11 +36,6 @@ MRGitApi::MRGitApi(
 auto MRGitApi::RetrieveToCas(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     IExecutionApi const& api) const noexcept -> bool {
-    // Return immediately if target CAS is this CAS
-    if (this == &api) {
-        return true;
-    }
-
     // in native mode: dispatch to regular GitApi
     if (compat_storage_config_ == nullptr) {
         GitApi const git_api{repo_config_};

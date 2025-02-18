@@ -61,7 +61,7 @@ auto ServeApi::UploadTree(ArtifactDigest const& tree,
         native_storage_config.emplace(*config);
     }
 
-    std::shared_ptr<IExecutionApi> git_api;
+    std::shared_ptr<MRGitApi> git_api;
     if (with_rehashing) {
         git_api = std::make_shared<MRGitApi>(
             &repo, &*native_storage_config, &storage_config_, &*apis_.local);

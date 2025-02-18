@@ -12,7 +12,6 @@
     , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
-    , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_tree"]
     , ["src/buildtool/file_system", "object_type"]
