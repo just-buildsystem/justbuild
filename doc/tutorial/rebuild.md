@@ -50,6 +50,7 @@ int main(int argc, const char* argv[]) {
     if (argc > 1 && std::string{argv[1]} == "-v") {
         std::cout << VERSION << std::endl;
     }
+    std::cout << "Hello world!\n";
     return 0;
 }
 ```
@@ -141,9 +142,10 @@ INFO: Discovered 6 actions, 1 trees, 0 blobs
 INFO: Building [["@","","",""],{}].
 INFO: Processed 6 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        bin/hello [68528cc2b32838573582c4dd4f0eccbae04cb5d6:18072:x]
-        share/hello/OUT.txt [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        share/hello/version.txt [8a11b38c825a23d8a0ad36ba6793ded347c0aec8:21:f]
+        bin/hello [1910a58cdd5c270ca375b3222ec1e602b00dee73:18072:x]
+        share/hello/OUT.txt [428b97b82b6c59cad7488b24e6b618ebbcd819bc:13:f]
+        share/hello/version.txt [de0d4f12aeb65c9e0a52909a07b0638e16e112fd:34:f]
+$ sleep 1
 $ just-mr build
 INFO: Performing repositories setup
 INFO: Found 2 repositories to set up
@@ -154,9 +156,9 @@ INFO: Discovered 6 actions, 1 trees, 0 blobs
 INFO: Building [["@","","",""],{}].
 INFO: Processed 6 actions, 6 cache hits.
 INFO: Artifacts built, logical paths are:
-        bin/hello [68528cc2b32838573582c4dd4f0eccbae04cb5d6:18072:x]
-        share/hello/OUT.txt [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        share/hello/version.txt [8a11b38c825a23d8a0ad36ba6793ded347c0aec8:21:f]
+        bin/hello [1910a58cdd5c270ca375b3222ec1e602b00dee73:18072:x]
+        share/hello/OUT.txt [428b97b82b6c59cad7488b24e6b618ebbcd819bc:13:f]
+        share/hello/version.txt [de0d4f12aeb65c9e0a52909a07b0638e16e112fd:34:f]
 $ just-mr rebuild
 INFO: Performing repositories setup
 INFO: Found 2 repositories to set up
@@ -166,16 +168,17 @@ INFO: Analysed target [["@","","",""],{}]
 INFO: Discovered 6 actions, 1 trees, 0 blobs
 INFO: Rebuilding [["@","","",""],{}].
 WARN: Found flaky action:
-       - id: 98a14505f43f623c8154e29d4b2ae791bfee718a
+       - id: 50e387d4d4c4dd9d8e6d08e1895c7dc729e5a4f3e7c7ad90cc93e373b5dea947
        - cmd: ["sh","-c","echo '#define VERSION \"0.0.0.'`date +%Y%m%d%H%M%S`'\"' > version.h\n"]
        - output 'version.h' differs:
-         - [725d7c207138ed941a181fd2c068a06dd60dff6e:39:f] (rebuilt)
-         - [c1a2986953451f77021e121c15947259e33dd645:39:f] (cached)
+         - [a3c9ccb6547a898c51c2d46cb651f2df668ef007:39:f] (rebuilt)
+         - [d8a442743402f7b589e2c25f7981149eeaa1a8f8:39:f] (cached)
 INFO: 2 actions compared with cache, 1 flaky actions found (0 of which tainted), no cache entry found for 4 actions.
 INFO: Artifacts built, logical paths are:
-        bin/hello [b268a81d3192af9ef737ebd746f941f441dbc3db:18072:x]
-        share/hello/OUT.txt [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        share/hello/version.txt [202ca71fec8bc5878559261a50c4547e0c851fb1:21:f]
+        bin/hello [84d0282a5b1a9ab09638d02955ad1e92aa911103:18072:x]
+        share/hello/OUT.txt [428b97b82b6c59cad7488b24e6b618ebbcd819bc:13:f]
+        share/hello/version.txt [d15119f103c0c1322e759c5e9fe5ef45926036fa:34:f]
+
 $
 ```
 
@@ -196,22 +199,22 @@ $ just-mr rebuild --dump-flaky flakes.json --dump-graph actions.json
 $ cat flakes.json
 {
   "cache misses": [
-    "e346c2c18fe1f4662f772f12e85af968ecb2467c",
-    "2655bfeee10cdefb61c608fe8e81ce3f2846ab0f",
-    "108c6dee4f87b86cbfdd3cb8c74079a27444f846",
-    "14a72ddc8f4024eafb290815bc725e1a0d02c065"
+    "059fc6b8047bbaf6353f5813be72e387406dd9a171da1f628b167785ed710f84",
+    "d2ae0c3a1b3e588e531ff9624def1dbddff9e61b185888602704854f2ab6338d",
+    "1c7636801667a48bbb0fbd5fa5404dbff32d92150a6d6fb54b8d48f9ca648271",
+    "8ae961996bd2c4c03afb29549053dc9a9cd8d0cc12a0e58aade87159e133c528"
   ],
   "flaky actions": {
-    "98a14505f43f623c8154e29d4b2ae791bfee718a": {
+    "50e387d4d4c4dd9d8e6d08e1895c7dc729e5a4f3e7c7ad90cc93e373b5dea947": {
       "version.h": {
         "cached": {
           "file_type": "f",
-          "id": "c1a2986953451f77021e121c15947259e33dd645",
+          "id": "d8a442743402f7b589e2c25f7981149eeaa1a8f8",
           "size": 39
         },
         "rebuilt": {
           "file_type": "f",
-          "id": "52996c0d65266d15173c7c2836b1835070c1a934",
+          "id": "6fe7020f82b32335ee3478e8f7628e293c995139",
           "size": 39
         }
       }
