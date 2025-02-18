@@ -45,33 +45,38 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
 
 [[nodiscard]] auto RetrieveToCas(
-    std::vector<ArtifactDigest> const& digests,
+    std::unordered_set<Artifact::ObjectInfo> const& infos,
     IExecutionApi const& api,
-    std::shared_ptr<BazelNetwork> const& network,
-    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
-        info_map) noexcept -> bool {
+    std::shared_ptr<BazelNetwork> const& network) noexcept -> bool {
+    auto const back_map = BackMap<ArtifactDigest, Artifact::ObjectInfo>::Make(
+        &infos, [](Artifact::ObjectInfo const& info) { return info.digest; });
+    if (back_map == nullptr) {
+        return false;
+    }
+
+    std::vector const digests(back_map->GetKeys().begin(),
+                              back_map->GetKeys().end());
 
     // Fetch blobs from this CAS.
-    auto size = digests.size();
     auto reader = network->CreateReader();
     std::size_t count{};
     std::unordered_set<ArtifactBlob> container{};
     for (auto blobs : reader.ReadIncrementally(&digests)) {
-        if (count + blobs.size() > size) {
+        if (count + blobs.size() > digests.size()) {
             Logger::Log(LogLevel::Warning,
                         "received more blobs than requested.");
             return false;
         }
         for (auto& blob : blobs) {
+            auto const info = back_map->GetReference(blob.digest);
             blob.is_exec =
-                info_map.contains(blob.digest)
-                    ? IsExecutableObject(info_map.at(blob.digest).type)
-                    : false;
+                info.has_value() and IsExecutableObject(info.value()->type);
             // Collect blob and upload to other CAS if transfer size reached.
             if (not UpdateContainerAndUpload(
                     &container,
@@ -87,7 +92,7 @@ namespace {
         count += blobs.size();
     }
 
-    if (count != size) {
+    if (count != digests.size()) {
         Logger::Log(LogLevel::Debug, "could not retrieve all requested blobs.");
         return false;
     }
@@ -100,28 +105,26 @@ namespace {
     Artifact::ObjectInfo const& artifact_info,
     IExecutionApi const& this_api,
     IExecutionApi const& other_api,
-    std::shared_ptr<BazelNetwork> const& network,
-    std::unordered_map<ArtifactDigest, Artifact::ObjectInfo> const&
-        info_map) noexcept -> bool {
-
+    std::shared_ptr<BazelNetwork> const& network) noexcept -> bool {
     // Split blob into chunks at the remote side and retrieve chunk digests.
     auto chunk_digests = this_api.SplitBlob(artifact_info.digest);
     if (not chunk_digests) {
         // If blob splitting failed, fall back to regular fetching.
-        return ::RetrieveToCas(
-            {artifact_info.digest}, other_api, network, info_map);
+        return ::RetrieveToCas({artifact_info}, other_api, network);
     }
 
     // Fetch unknown chunks.
-    auto missing_artifact_digests = other_api.GetMissingDigests(
-        std::unordered_set(chunk_digests->begin(), chunk_digests->end()));
+    std::unordered_set<Artifact::ObjectInfo> missing;
+    missing.reserve(chunk_digests->size());
+    for (auto const& digest : other_api.GetMissingDigests(std::unordered_set(
+             chunk_digests->begin(), chunk_digests->end()))) {
+        missing.emplace(
+            Artifact::ObjectInfo{digest,
+                                 ObjectType::File,  // Chunks are always files
+                                 /*failed=*/false});
+    }
 
-    std::vector<ArtifactDigest> missing_digests;
-    missing_digests.reserve(missing_artifact_digests.size());
-    std::move(missing_artifact_digests.begin(),
-              missing_artifact_digests.end(),
-              std::back_inserter(missing_digests));
-    if (not ::RetrieveToCas(missing_digests, other_api, network, info_map)) {
+    if (not ::RetrieveToCas(missing, other_api, network)) {
         return false;
     }
 
@@ -129,8 +132,7 @@ namespace {
     auto digest = other_api.SpliceBlob(artifact_info.digest, *chunk_digests);
     if (not digest) {
         // If blob splicing failed, fall back to regular fetching.
-        return ::RetrieveToCas(
-            {artifact_info.digest}, other_api, network, info_map);
+        return ::RetrieveToCas({artifact_info}, other_api, network);
     }
     return true;
 }
@@ -330,7 +332,7 @@ auto BazelApi::CreateAction(
     }
 
     // Recursively process trees.
-    std::vector<ArtifactDigest> blob_digests{};
+    std::unordered_set<Artifact::ObjectInfo> missing{};
     for (auto const& dgst : missing_artifacts_info->digests) {
         auto const& info = missing_artifacts_info->back_map[dgst];
         if (IsTreeObject(info.type)) {
@@ -346,11 +348,10 @@ auto BazelApi::CreateAction(
         // Object infos created by network_->ReadTreeInfos() will contain 0 as
         // size, but this is handled by the remote execution engine, so no need
         // to regenerate the digest.
-        blob_digests.push_back(info.digest);
+        missing.emplace(info);
     }
 
-    return ::RetrieveToCas(
-        blob_digests, api, network_, missing_artifacts_info->back_map);
+    return ::RetrieveToCas(missing, api, network_);
 }
 
 [[nodiscard]] auto BazelApi::ParallelRetrieveToCas(
@@ -457,18 +458,11 @@ auto BazelApi::CreateAction(
         auto ts = TaskSystem{jobs};
         for (auto const& dgst : missing_artifacts_info->digests) {
             auto const& info = missing_artifacts_info->back_map[dgst];
-            ts.QueueTask([this,
-                          &info,
-                          &api,
-                          &failure,
-                          &info_map = missing_artifacts_info->back_map,
-                          use_blob_splitting]() {
+            ts.QueueTask([this, &info, &api, &failure, use_blob_splitting]() {
                 if (use_blob_splitting and network_->BlobSplitSupport() and
                             api.BlobSpliceSupport()
-                        ? ::RetrieveToCasSplitted(
-                              info, *this, api, network_, info_map)
-                        : ::RetrieveToCas(
-                              {info.digest}, api, network_, info_map)) {
+                        ? ::RetrieveToCasSplitted(info, *this, api, network_)
+                        : ::RetrieveToCas({info}, api, network_)) {
                     return;
                 }
                 failure = true;
