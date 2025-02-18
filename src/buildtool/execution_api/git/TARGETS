@@ -1,6 +1,6 @@
-{ "git":
+{ "git_api":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["git"]
+  , "name": ["git_api"]
   , "hdrs": ["git_api.hpp"]
   , "srcs": ["git_api.cpp"]
   , "deps":

@@ -12,7 +12,7 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":
-    [ ["src/buildtool/execution_api/git", "git"]
+    [ ["src/buildtool/execution_api/git", "git_api"]
     , ["src/buildtool/execution_api/utils", "rehash_utils"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

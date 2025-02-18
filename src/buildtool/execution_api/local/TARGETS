@@ -33,7 +33,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/execution_api/execution_service", "cas_utils"]
-    , ["src/buildtool/execution_api/git", "git"]
+    , ["src/buildtool/execution_api/git", "git_api"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
