@@ -230,6 +230,12 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   that will be used in the resulting repository description corresponding to any
   imported `"file"`-type repositories (see `just-import-git`).
 
+  If `"as plain": true`, any provided `"special"` key for the `"pragma"` field
+  in the source description is unconditionally set in the imported repositories,
+  superseding any other config- or import-level treatment of pragmas during the
+  import. Note that `"as plain": true` results in only one repository
+  (containing the whole source repository tree) being imported.
+
   Proposed format:
   ``` jsonc
   { "source": "git"
@@ -254,6 +260,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "inherit env": [...]                  // optional; corresponds to `inherit_env` var (option --inherit-env)
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
   , "as plain": false     // optional; corresponds to `plain` var (option --plain)
+  , "pragma": {"special": "<value>"}      // optional; only considered if `"as plain": true`
   }
   ```
 
@@ -267,6 +274,12 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   marked to be imported can retain their type. For such transitive dependencies,
   one can also set the `"to_git": true` pragma with a corresponding entry in the
   usual `"pragma"` field.
+
+  If `"as plain": true`, any provided `"special"` key for the `"pragma"` field
+  in the source description is unconditionally set in the imported repositories,
+  superseding any other config- or import-level treatment of pragmas during the
+  import. Note that `"as plain": true` results in only one repository
+  (containing the whole source repository tree) being imported.
 
   Proposed format:
   ``` jsonc
@@ -289,6 +302,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "path": "<source/repo/path>"          // mandatory
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
   , "as plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "pragma": {"special": "<value>"}      // optional; only considered if `"as plain": true`
   }
   ```
 
@@ -300,6 +314,12 @@ The type of a _source_ is defined by the string value of the mandatory subfield
 
   A field `"subdir"` is provided to account for the fact that source repository
   root often is not the root directory of the unpacked archive.
+
+  If `"as plain": true`, any provided `"special"` key for the `"pragma"` field
+  in the source description is unconditionally set in the imported repositories,
+  superseding any other config- or import-level treatment of pragmas during the
+  import. Note that `"as plain": true` results in only one repository
+  (containing the whole source repository tree) being imported.
 
   Proposed format:
   ``` jsonc
@@ -327,6 +347,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "sha512": "<HASH>"        // optional checksum; if given, will be checked
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
   , "as plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "pragma": {"special": "<value>"}      // optional; only considered if `"as plain": true`
   }
   ```
 
@@ -358,6 +379,12 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   such repositories will be translated to appropriate `"git tree"`-type
   repositories in the output configuration.
 
+  If `"as plain": true`, any provided `"special"` key for the `"pragma"` field
+  in the source description is unconditionally set in the imported repositories,
+  superseding any other config- or import-level treatment of pragmas during the
+  import. Note that `"as plain": true` results in only one repository
+  (containing the whole source repository tree) being imported.
+
   Proposed format:
   ``` jsonc
   { "source": "git tree"
@@ -381,6 +408,7 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   , "config": "<foreign_repos.json>"      // optional; corresponds to `foreign_repository_config` var (option -R)
                                           // searched for in the "subdir" tree
   , "as plain": false         // optional; corresponds to `plain` var (option --plain)
+  , "pragma": {"special": "<value>"}      // optional; only considered if `"as plain": true`
   }
   ```
 

@@ -745,21 +745,27 @@ def rewrite_file_repo(repo: Json, remote_type: str, remote_stub: Dict[str, Any],
     fail("Unsupported remote type!")
 
 
-def update_pragmas(repo: Json, pragma: Json) -> Json:
-    """Update the description with any input-provided "absent" and "to_git"
-    pragmas, as needed:
-    - for all repositories, merge the "absent" pragma
-    - for "file"-type repositories, merge the "to_git" pragma"""
+def update_pragmas(repo: Json, import_pragma: Json,
+                   pragma_special: Optional[str]) -> Json:
+    """Update the description with any input-provided pragmas:
+    - for all repositories, merge with import-level "absent" pragma
+    - for "file"-type repositories, merge with import-level "to_git" pragma
+    - for all repositories, overwrite with source-level "special" pragma."""
     existing: Json = dict(repo.get("pragma", {}))  # operate on copy
     # all repos support "absent pragma"
-    absent: bool = existing.get("absent", False) or pragma.get("absent", False)
+    absent: bool = existing.get("absent", False) or import_pragma.get(
+        "absent", False)
     if absent:
         existing["absent"] = True
     # support "to_git" pragma for "file"-type repos
     if repo.get("type") == "file":
-        to_git = existing.get("to_git", False) or pragma.get("to_git", False)
+        to_git = existing.get("to_git", False) or import_pragma.get(
+            "to_git", False)
         if to_git:
             existing["to_git"] = True
+    # all repos get the "special" pragma overwritten, if provided
+    if pragma_special is not None:
+        existing["special"] = pragma_special
     # all other pragmas as kept; if no pragma was set, do not set any
     if existing:
         repo = dict(repo, **{"pragma": existing})
@@ -767,8 +773,9 @@ def update_pragmas(repo: Json, pragma: Json) -> Json:
 
 
 def rewrite_repo(repo_spec: Json, *, remote_type: str,
-                 remote_stub: Dict[str, Any], assign: Json, pragma: Json,
-                 as_layer: bool, fail_context: str) -> Json:
+                 remote_stub: Dict[str, Any], assign: Json, import_pragma: Json,
+                 pragma_special: Optional[str], as_layer: bool,
+                 fail_context: str) -> Json:
     """Rewrite description of imported repositories."""
     new_spec: Json = {}
     repo = repo_spec.get("repository", {})
@@ -789,7 +796,7 @@ def rewrite_repo(repo_spec: Json, *, remote_type: str,
         repo = dict(repo, **{"repo": assign[target]})
     # update pragmas, as needed
     if isinstance(repo, dict):
-        repo = update_pragmas(repo, pragma)
+        repo = update_pragmas(repo, import_pragma, pragma_special)
     new_spec["repository"] = repo
     # rewrite other roots and bindings, if actually needed to be imported
     if not as_layer:
@@ -811,8 +818,8 @@ def rewrite_repo(repo_spec: Json, *, remote_type: str,
 
 
 def handle_import(remote_type: str, remote_stub: Dict[str, Any],
-                  repo_desc: Json, core_repos: Json, foreign_config: Json, *,
-                  fail_context: str) -> Json:
+                  repo_desc: Json, core_repos: Json, foreign_config: Json,
+                  pragma_special: Optional[str], *, fail_context: str) -> Json:
     """General handling of repository import from a foreign config."""
     fail_context += "While handling import from remote type \"%s\"\n" % (
         remote_type, )
@@ -885,7 +892,8 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
-                                                pragma=pragma,
+                                                import_pragma=pragma,
+                                                pragma_special=pragma_special,
                                                 as_layer=False,
                                                 fail_context=fail_context)
     for repo in extra_imports:
@@ -893,7 +901,8 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
                                                 remote_type=remote_type,
                                                 remote_stub=remote_stub,
                                                 assign=total_assign,
-                                                pragma=pragma,
+                                                import_pragma=pragma,
+                                                pragma_special=pragma_special,
                                                 as_layer=True,
                                                 fail_context=fail_context)
 
@@ -1048,6 +1057,16 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"config\" to be a string, but found:\n%r" %
              (json.dumps(foreign_config_file, indent=2), ))
 
+    pragma_special: Optional[str] = imports_entry.get("pragma",
+                                                      {}).get("special", None)
+    if pragma_special is not None and not isinstance(pragma_special, str):
+        fail(fail_context +
+             "Expected pragma \"special\" to be a string, but found:\n%r" %
+             (json.dumps(pragma_special, indent=2), ))
+    if not as_plain:
+        # only enabled if as_plain is true
+        pragma_special = None
+
     # Fetch the source Git repository
     srcdir, remote_stub, to_clean_up = git_checkout(url,
                                                     branch,
@@ -1093,6 +1112,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                                    repo_entry,
                                    core_repos,
                                    foreign_config,
+                                   pragma_special,
                                    fail_context=fail_context)
 
     # Clean up local fetch
@@ -1141,6 +1161,16 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"config\" to be a string, but found:\n%r" %
              (json.dumps(foreign_config_file, indent=2), ))
 
+    pragma_special: Optional[str] = imports_entry.get("pragma",
+                                                      {}).get("special", None)
+    if pragma_special is not None and not isinstance(pragma_special, str):
+        fail(fail_context +
+             "Expected pragma \"special\" to be a string, but found:\n%r" %
+             (json.dumps(pragma_special, indent=2), ))
+    if not as_plain:
+        # only enabled if as_plain is true
+        pragma_special = None
+
     # Read in the foreign config file
     if foreign_config_file:
         foreign_config_file = os.path.join(path, foreign_config_file)
@@ -1184,6 +1214,7 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
                                    repo_entry,
                                    core_repos,
                                    foreign_config,
+                                   pragma_special,
                                    fail_context=fail_context)
 
     return core_repos
@@ -1418,6 +1449,16 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"config\" to be a string, but found:\n%r" %
              (json.dumps(foreign_config_file, indent=2), ))
 
+    pragma_special: Optional[str] = imports_entry.get("pragma",
+                                                      {}).get("special", None)
+    if pragma_special is not None and not isinstance(pragma_special, str):
+        fail(fail_context +
+             "Expected pragma \"special\" to be a string, but found:\n%r" %
+             (json.dumps(pragma_special, indent=2), ))
+    if not as_plain:
+        # only enabled if as_plain is true
+        pragma_special = None
+
     # Fetch archive to local CAS and unpack
     srcdir, remote_stub, to_clean_up = archive_checkout(
         fetch,
@@ -1466,6 +1507,7 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
                                    repo_entry,
                                    core_repos,
                                    foreign_config,
+                                   pragma_special,
                                    fail_context=fail_context)
 
     # Clean up local fetch
@@ -1615,6 +1657,16 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"config\" to be a string, but found:\n%r" %
              (json.dumps(foreign_config_file, indent=2), ))
 
+    pragma_special: Optional[str] = imports_entry.get("pragma",
+                                                      {}).get("special", None)
+    if pragma_special is not None and not isinstance(pragma_special, str):
+        fail(fail_context +
+             "Expected pragma \"special\" to be a string, but found:\n%r" %
+             (json.dumps(pragma_special, indent=2), ))
+    if not as_plain:
+        # only enabled if as_plain is true
+        pragma_special = None
+
     # Fetch the Git tree
     srcdir, remote_stub, to_clean_up = git_tree_checkout(
         command=cast(List[str], command_gen if command is None else command),
@@ -1661,6 +1713,7 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
                                    repo_entry,
                                    core_repos,
                                    foreign_config,
+                                   pragma_special,
                                    fail_context=fail_context)
 
     # Clean up local fetch

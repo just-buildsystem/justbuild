@@ -78,6 +78,16 @@
     , ["end-to-end", "lock-tool-under-test"]
     ]
   }
+, "plain-imports":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["plain-imports"]
+  , "test": ["plain-imports.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "lock-tool-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -95,6 +105,7 @@
           , "file-imports"
           , "archive-imports"
           , "git-tree-imports"
+          , "plain-imports"
           ]
         }
       ]

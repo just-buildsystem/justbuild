@@ -107,6 +107,11 @@ The following fields are supported:
    Git repository does not have a repository configuration or should be imported
    as-is, without dependencies. This entry is optional.
 
+ - *`"pragma"`* has as value a JSON object. If `"as plain"` evaluates to `true`,
+   if a pragma object with key `"special"` is provided, it will unconditionally
+   be forwarded to the `"pragma"` object of the repository being imported for
+   this source. This entry is optional.
+
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the Git repository. This
    entry is optional. If not provided and the `"as plain"` field does not
@@ -135,6 +140,11 @@ The following fields are supported:
    to be the canonical one for a single repository. This can be useful if the
    Git repository does not have a repository configuration or should be imported
    as-is, without dependencies. This entry is optional.
+
+ - *`"pragma"`* has as value a JSON object. If `"as plain"` evaluates to `true`,
+   if a pragma object with key `"special"` is provided, it will unconditionally
+   be forwarded to the `"pragma"` object of the repository being imported for
+   this source. This entry is optional.
 
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the Git repository. This
@@ -190,6 +200,11 @@ The following fields are supported:
    archived repository does not have a configuration file or should be imported
    as-is, without dependencies. This entry is optional.
 
+ - *`"pragma"`* has as value a JSON object. If `"as plain"` evaluates to `true`,
+   if a pragma object with key `"special"` is provided, it will unconditionally
+   be forwarded to the `"pragma"` object of the repository being imported for
+   this source. This entry is optional.
+
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the unpacked archive
    root. This entry is optional. If not provided and the `"as plain"` field does
@@ -238,6 +253,11 @@ The following fields are supported:
    to be the canonical one for a single repository. This can be useful if the
    Git repository does not have a repository configuration or should be imported
    as-is, without dependencies. This entry is optional.
+
+ - *`"pragma"`* has as value a JSON object. If `"as plain"` evaluates to `true`,
+   if a pragma object with key `"special"` is provided, it will unconditionally
+   be forwarded to the `"pragma"` object of the repository being imported for
+   this source. This entry is optional.
 
  - *`"config"`* has a string value defining the relative path of the foreign
    repository configuration file to be considered from the Git repository. This
