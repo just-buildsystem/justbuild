@@ -22,7 +22,6 @@
 #include <iterator>
 #include <mutex>
 #include <new>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>  // std::move
 
@@ -320,37 +319,33 @@ auto BazelApi::CreateAction(
     }
 
     // Determine missing artifacts in other CAS.
-    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
-        api,
-        artifacts_info.begin(),
-        artifacts_info.end(),
-        [](Artifact::ObjectInfo const& info) { return info.digest; });
-    if (not missing_artifacts_info) {
-        Logger::Log(LogLevel::Error,
-                    "BazelApi: Failed to retrieve the missing artifacts");
-        return false;
+    std::unordered_set<Artifact::ObjectInfo> missing;
+    missing.reserve(artifacts_info.size());
+    {
+        auto back_map = BackMap<ArtifactDigest, Artifact::ObjectInfo>::Make(
+            &artifacts_info,
+            [](Artifact::ObjectInfo const& info) { return info.digest; });
+        if (back_map == nullptr) {
+            Logger::Log(LogLevel::Error, "BazelApi: Failed to create BackMap");
+            return false;
+        }
+        auto missing_digests = api.GetMissingDigests(back_map->GetKeys());
+        missing = back_map->GetValues(missing_digests);
     }
 
     // Recursively process trees.
-    std::unordered_set<Artifact::ObjectInfo> missing{};
-    for (auto const& dgst : missing_artifacts_info->digests) {
-        auto const& info = missing_artifacts_info->back_map[dgst];
-        if (IsTreeObject(info.type)) {
-            auto reader =
-                TreeReader<BazelNetworkReader>{network_->CreateReader()};
-            auto const result = reader.ReadDirectTreeEntries(
-                info.digest, std::filesystem::path{});
-            if (not result or not RetrieveToCas(result->infos, api)) {
-                return false;
-            }
+    auto const reader =
+        TreeReader<BazelNetworkReader>{network_->CreateReader()};
+    for (auto const& info : missing) {
+        if (not IsTreeObject(info.type)) {
+            continue;
         }
-
-        // Object infos created by network_->ReadTreeInfos() will contain 0 as
-        // size, but this is handled by the remote execution engine, so no need
-        // to regenerate the digest.
-        missing.emplace(info);
+        auto const result =
+            reader.ReadDirectTreeEntries(info.digest, std::filesystem::path{});
+        if (not result or not RetrieveToCas(result->infos, api)) {
+            return false;
+        }
     }
-
     return ::RetrieveToCas(missing, api, network_);
 }
 
@@ -395,15 +390,18 @@ auto BazelApi::CreateAction(
     }
 
     // Determine missing artifacts in other CAS.
-    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
-        api,
-        artifacts_info.begin(),
-        artifacts_info.end(),
-        [](Artifact::ObjectInfo const& info) { return info.digest; });
-    if (not missing_artifacts_info) {
-        Logger::Log(LogLevel::Error,
-                    "BazelApi: Failed to retrieve the missing artifacts");
-        return false;
+    std::unordered_set<gsl::not_null<Artifact::ObjectInfo const*>> missing;
+    missing.reserve(artifacts_info.size());
+    {
+        auto back_map = BackMap<ArtifactDigest, Artifact::ObjectInfo>::Make(
+            &artifacts_info,
+            [](Artifact::ObjectInfo const& info) { return info.digest; });
+        if (back_map == nullptr) {
+            Logger::Log(LogLevel::Error, "BazelApi: Failed to create BackMap");
+            return false;
+        }
+        auto missing_digests = api.GetMissingDigests(back_map->GetKeys());
+        missing = back_map->GetReferences(missing_digests);
     }
 
     // Recursively process trees.
@@ -412,30 +410,25 @@ auto BazelApi::CreateAction(
     std::mutex prerequisites_lock{};
     try {
         auto ts = TaskSystem{jobs};
-        for (auto const& dgst : missing_artifacts_info->digests) {
-            auto const& info = missing_artifacts_info->back_map[dgst];
-            if (IsTreeObject(info.type)) {
-                ts.QueueTask([this,
-                              &info,
-                              &failure,
-                              &prerequisites,
-                              &prerequisites_lock]() {
+        for (auto const& info : missing) {
+            if (not IsTreeObject(info->type)) {
+                continue;
+            }
+            ts.QueueTask(
+                [this, info, &failure, &prerequisites, &prerequisites_lock]() {
                     auto reader = TreeReader<BazelNetworkReader>{
                         network_->CreateReader()};
                     auto const result = reader.ReadDirectTreeEntries(
-                        info.digest, std::filesystem::path{});
+                        info->digest, std::filesystem::path{});
                     if (not result) {
                         failure = true;
                         return;
                     }
-                    {
-                        std::unique_lock lock{prerequisites_lock};
-                        prerequisites.insert(prerequisites.end(),
-                                             result->infos.begin(),
-                                             result->infos.end());
-                    }
+                    std::unique_lock lock{prerequisites_lock};
+                    prerequisites.insert(prerequisites.end(),
+                                         result->infos.begin(),
+                                         result->infos.end());
                 });
-            }
         }
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Warning,
@@ -456,13 +449,12 @@ auto BazelApi::CreateAction(
     // In parallel process all the requested artifacts
     try {
         auto ts = TaskSystem{jobs};
-        for (auto const& dgst : missing_artifacts_info->digests) {
-            auto const& info = missing_artifacts_info->back_map[dgst];
-            ts.QueueTask([this, &info, &api, &failure, use_blob_splitting]() {
+        for (auto const& info : missing) {
+            ts.QueueTask([this, info, &api, &failure, use_blob_splitting]() {
                 if (use_blob_splitting and network_->BlobSplitSupport() and
                             api.BlobSpliceSupport()
-                        ? ::RetrieveToCasSplitted(info, *this, api, network_)
-                        : ::RetrieveToCas({info}, api, network_)) {
+                        ? ::RetrieveToCasSplitted(*info, *this, api, network_)
+                        : ::RetrieveToCas({*info}, api, network_)) {
                     return;
                 }
                 failure = true;
