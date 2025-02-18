@@ -17,9 +17,7 @@
 
 #include <cstdio>
 #include <functional>
-#include <iterator>
 #include <optional>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -33,14 +31,6 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/logging/logger.hpp"
 
-/// \brief Stores a list of missing artifact digests, as well as a back-mapping
-/// to some given original type.
-template <typename T>
-struct MissingArtifactsInfo {
-    std::unordered_set<ArtifactDigest> digests;
-    std::unordered_map<ArtifactDigest, T> back_map;
-};
-
 /// \brief Common logic for RetrieveToFds.
 /// \param dump_to_stream Dumps the artifact to the respective open stream.
 /// \param fallback Processes the respective file descriptor further in case the
@@ -52,38 +42,6 @@ struct MissingArtifactsInfo {
                        gsl::not_null<FILE*> const&)> const& dump_to_stream,
     std::optional<std::function<bool(Artifact::ObjectInfo const&, int)>> const&
         fallback) noexcept -> bool;
-
-/// \brief Get the missing artifacts from a given input list, needed, e.g., to
-/// be uploaded.
-/// \returns A struct storing the missing artifacts and a back-mapping to the
-/// original given type, or nullopt in case of exceptions.
-template <typename TValue, typename TIterator>
-    requires(std::is_same_v<
-                TValue,
-                typename std::iterator_traits<TIterator>::value_type>)
-[[nodiscard]] auto GetMissingArtifactsInfo(
-    IExecutionApi const& api,
-    TIterator const& begin,
-    TIterator const& end,
-    typename std::function<ArtifactDigest(TValue const&)> const&
-        converter) noexcept -> std::optional<MissingArtifactsInfo<TValue>> {
-    std::unordered_set<ArtifactDigest> digests;
-    digests.reserve(std::distance(begin, end));
-    MissingArtifactsInfo<TValue> res{};
-    for (auto it = begin; it != end; ++it) {
-        try {
-            auto const inserted =
-                res.back_map.insert({std::invoke(converter, *it), *it});
-            if (inserted.second) {
-                digests.emplace(inserted.first->first);
-            }
-        } catch (...) {
-            return std::nullopt;
-        }
-    }
-    res.digests = api.GetMissingDigests(digests);
-    return res;
-}
 
 /// \brief Upload missing blobs from a given BlobTree.
 [[nodiscard]] auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
