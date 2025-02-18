@@ -21,7 +21,6 @@
 #include <memory>
 #include <new>  // std::nothrow
 #include <sstream>
-#include <unordered_map>
 #include <utility>  // std::move
 
 #include <grpcpp/support/status.h>
@@ -41,6 +40,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
+#include "src/utils/cpp/back_map.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
@@ -137,39 +137,41 @@ auto LocalApi::RetrieveToCas(
     }
 
     // Determine missing artifacts in other CAS.
-    auto missing_artifacts_info = GetMissingArtifactsInfo<Artifact::ObjectInfo>(
-        api,
-        artifacts_info.begin(),
-        artifacts_info.end(),
-        [](Artifact::ObjectInfo const& info) { return info.digest; });
-    if (not missing_artifacts_info) {
-        Logger::Log(LogLevel::Error,
-                    "LocalApi: Failed to retrieve the missing artifacts");
-        return false;
+    std::unordered_set<gsl::not_null<Artifact::ObjectInfo const*>> missing;
+    missing.reserve(artifacts_info.size());
+    {
+        auto back_map = BackMap<ArtifactDigest, Artifact::ObjectInfo>::Make(
+            &artifacts_info,
+            [](Artifact::ObjectInfo const& info) { return info.digest; });
+        if (back_map == nullptr) {
+            Logger::Log(LogLevel::Error, "LocalApi: Failed to create BackMap");
+            return false;
+        }
+        auto missing_digests = api.GetMissingDigests(back_map->GetKeys());
+        missing = back_map->GetReferences(missing_digests);
     }
 
     // Collect blobs of missing artifacts from local CAS. Trees are
     // processed recursively before any blob is uploaded.
     std::unordered_set<ArtifactBlob> container;
-    for (auto const& dgst : missing_artifacts_info->digests) {
-        auto const& info = missing_artifacts_info->back_map[dgst];
+    for (auto const& info : missing) {
         // Recursively process trees.
-        if (IsTreeObject(info.type)) {
+        if (IsTreeObject(info->type)) {
             auto reader =
                 TreeReader<LocalCasReader>{&local_context_.storage->CAS()};
             auto const& result = reader.ReadDirectTreeEntries(
-                info.digest, std::filesystem::path{});
+                info->digest, std::filesystem::path{});
             if (not result or not RetrieveToCas(result->infos, api)) {
                 return false;
             }
         }
 
         // Determine artifact path.
-        auto const& path =
-            IsTreeObject(info.type)
-                ? local_context_.storage->CAS().TreePath(info.digest)
+        auto const path =
+            IsTreeObject(info->type)
+                ? local_context_.storage->CAS().TreePath(info->digest)
                 : local_context_.storage->CAS().BlobPath(
-                      info.digest, IsExecutableObject(info.type));
+                      info->digest, IsExecutableObject(info->type));
         if (not path) {
             return false;
         }
@@ -183,7 +185,7 @@ auto LocalApi::RetrieveToCas(
         // Regenerate digest since object infos read by
         // storage_.ReadTreeInfos() will contain 0 as size.
         ArtifactDigest digest =
-            IsTreeObject(info.type)
+            IsTreeObject(info->type)
                 ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
                       local_context_.storage_config->hash_function, *content)
                 : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
@@ -192,8 +194,9 @@ auto LocalApi::RetrieveToCas(
         // Collect blob and upload to remote CAS if transfer size reached.
         if (not UpdateContainerAndUpload(
                 &container,
-                ArtifactBlob{
-                    std::move(digest), *content, IsExecutableObject(info.type)},
+                ArtifactBlob{std::move(digest),
+                             *content,
+                             IsExecutableObject(info->type)},
                 /*exception_is_fatal=*/true,
                 [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                     return api.Upload(std::move(blobs),
