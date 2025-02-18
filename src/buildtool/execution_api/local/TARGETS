@@ -5,9 +5,9 @@
   , "deps": [["@", "fmt", "", "fmt"], ["src/utils/cpp", "expected"]]
   , "stage": ["src", "buildtool", "execution_api", "local"]
   }
-, "local":
+, "local_api":
   { "type": ["@", "rules", "CC", "library"]
-  , "name": ["local"]
+  , "name": ["local_api"]
   , "hdrs":
     [ "local_api.hpp"
     , "local_action.hpp"

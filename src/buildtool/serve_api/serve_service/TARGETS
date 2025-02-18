@@ -89,7 +89,7 @@
     , ["src/buildtool/execution_api/execution_service", "cas_server"]
     , ["src/buildtool/execution_api/execution_service", "execution_server"]
     , ["src/buildtool/execution_api/execution_service", "operations_server"]
-    , ["src/buildtool/execution_api/local", "local"]
+    , ["src/buildtool/execution_api/local", "local_api"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]

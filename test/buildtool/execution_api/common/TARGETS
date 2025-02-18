@@ -60,7 +60,7 @@
     , ["@", "src", "src/buildtool/execution_api/common", "api_bundle"]
     , ["@", "src", "src/buildtool/execution_api/local", "config"]
     , ["@", "src", "src/buildtool/execution_api/local", "context"]
-    , ["@", "src", "src/buildtool/execution_api/local", "local"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local_api"]
     , ["@", "src", "src/buildtool/execution_api/utils", "rehash_utils"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
