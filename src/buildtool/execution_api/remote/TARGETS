@@ -3,9 +3,7 @@
   , "name": ["bazel_network"]
   , "hdrs":
     [ "bazel/bytestream_client.hpp"
-    , "bazel/bazel_action.hpp"
     , "bazel/bazel_capabilities_client.hpp"
-    , "bazel/bazel_response.hpp"
     , "bazel/bazel_network.hpp"
     , "bazel/bazel_ac_client.hpp"
     , "bazel/bazel_cas_client.hpp"
@@ -13,9 +11,7 @@
     , "bazel/bazel_network_reader.hpp"
     ]
   , "srcs":
-    [ "bazel/bazel_action.cpp"
-    , "bazel/bazel_capabilities_client.cpp"
-    , "bazel/bazel_response.cpp"
+    [ "bazel/bazel_capabilities_client.cpp"
     , "bazel/bazel_network.cpp"
     , "bazel/bazel_ac_client.cpp"
     , "bazel/bazel_cas_client.cpp"
@@ -34,12 +30,10 @@
     , ["src/buildtool/execution_api/bazel_msg", "execution_config"]
     , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "bytestream_utils"]
-    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "expected"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
@@ -57,8 +51,7 @@
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "retry"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
-    , ["src/buildtool/execution_api/common", "common_api"]
-    , ["src/buildtool/execution_api/utils", "outputscheck"]
+    , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "back_map"]
     , ["src/utils/cpp", "gsl"]
@@ -68,10 +61,20 @@
 , "bazel_api":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["bazel_api"]
-  , "hdrs": ["bazel/bazel_api.hpp"]
-  , "srcs": ["bazel/bazel_api.cpp"]
+  , "hdrs":
+    [ "bazel/bazel_api.hpp"
+    , "bazel/bazel_action.hpp"
+    , "bazel/bazel_response.hpp"
+    ]
+  , "srcs":
+    [ "bazel/bazel_api.cpp"
+    , "bazel/bazel_action.cpp"
+    , "bazel/bazel_response.cpp"
+    ]
   , "deps":
-    [ ["@", "gsl", "", "gsl"]
+    [ "bazel_network"
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/auth", "auth"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common/remote", "port"]
@@ -83,19 +86,24 @@
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":
-    [ "bazel_network"
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common_api"]
+    , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "path"]
     ]
   }
 , "config":
