@@ -70,25 +70,10 @@ class LogConfig {
     }
 
     /// \brief Get sink instances for all configured sink factories.
-    /// Returns a const copy of shared_ptrs, so accessing the sinks in the
-    /// calling context is thread-safe.
-    // NOLINTNEXTLINE(readability-const-return-type)
-    [[nodiscard]] static auto Sinks() noexcept
-        -> std::vector<ILogSink::Ptr> const {
+    [[nodiscard]] static auto Sinks() noexcept -> std::vector<ILogSink::Ptr> {
         auto& data = Data();
         std::lock_guard lock{data.mutex};
         return data.sinks;
-    }
-
-    /// \brief Get all configured sink factories.
-    /// Returns a const copy of shared_ptrs, so accessing the factories in the
-    /// calling context is thread-safe.
-    // NOLINTNEXTLINE(readability-const-return-type)
-    [[nodiscard]] static auto SinkFactories() noexcept
-        -> std::vector<LogSinkFactory> const {
-        auto& data = Data();
-        std::lock_guard lock{data.mutex};
-        return data.factories;
     }
 
   private:
