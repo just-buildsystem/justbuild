@@ -28,10 +28,15 @@ Creating a C++ test binary
 --------------------------
 
 First, we will create a C++ test binary for testing the correct
-functionality of the `greet` library. Therefore, we need to provide a
-C++ source file that performs the actual testing and returns non-`0` on
-failure. For simplicity reasons, we do not use a testing framework for
-this tutorial. Let us place this code in subdirectory `tests`
+functionality of the `greet` library. Therefore, we need to provide
+a C++ source file that performs the actual testing and returns
+non-`0` on failure. For simplicity reasons, we do not use a testing
+framework for this tutorial and place the tests into the same logical
+repository as the main project; when using additional third-party
+code for tests (like a test framework) it is advisable to put tests
+in a separate logical repository so that third-party test code is
+only fetched when testing is requested. Let us place this code in
+subdirectory `tests`
 
 ``` sh
 mkdir -p ./tests
@@ -148,11 +153,12 @@ INFO: Discovered 5 actions, 3 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","greet"],{}].
 INFO: Processed 5 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
+        pwd [7cbf5be8541d3e99ae5f427d2633c9c13889d0db:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
         stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
-        time-start [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
-        time-stop [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
+        time-start [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
+        time-stop [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -176,7 +182,6 @@ is the name of the artifact that should be printed on the command line,
 in our case `stdout`:
 
 ``` sh
-$ just-mr build tests greet -P stdout
 INFO: Performing repositories setup
 INFO: Found 3 repositories to set up
 INFO: Setup finished, exec ["just","build","-C","...","tests","greet","-P","stdout"]
@@ -187,11 +192,12 @@ INFO: Discovered 5 actions, 3 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","greet"],{}].
 INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
+        pwd [7cbf5be8541d3e99ae5f427d2633c9c13889d0db:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
         stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
-        time-start [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
-        time-stop [29370bb4a24f378a63986a2a803ea2a5b790a43e:11:f]
+        time-start [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
+        time-stop [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
       (1 runfiles omitted.)
 greet output: Hello World!
 
@@ -219,10 +225,11 @@ INFO: Found 3 repositories to set up
 INFO: Setup finished, exec ["just","analyse","-C","...","--request-action-input","-1","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
+INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Result of input of action #-1 of target [["@","tutorial","tests","greet"],{}]: {
         "artifacts": {
-          "runner": {"data":{"file_type":"x","id":"0647621fba9b22f0727fbef98104f3e398496e2f","size":1876},"type":"KNOWN"},
-          "test": {"data":{"id":"79e8adb53ca447c956069ce10ba5504d6cf0fd54","path":"test_greet"},"type":"ACTION"},
+          "runner": {"data":{"file_type":"x","id":"4984b1766a38849c7039f8ae9ede9dae891eebc3","size":2004},"type":"KNOWN"},
+          "test": {"data":{"id":"9ed409fe6c4fad2276ad1e1065187ceb4b6fdd41e5aa78709286d3d1ff6f114e","path":"work/test_greet"},"type":"ACTION"},
           "test-args.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"},
           "test-launcher.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"}
         },
@@ -234,6 +241,7 @@ INFO: Result of input of action #-1 of target [["@","tutorial","tests","greet"],
           },
           "may_fail": "CC test /test_greet failed",
           "output": [
+            "pwd",
             "result",
             "stderr",
             "stdout",
@@ -269,7 +277,7 @@ INFO: Discovered 5 actions, 3 trees, 1 blobs
 INFO: Building input of action #-1 of [["@","tutorial","tests","greet"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/tutorial/work/runner [0647621fba9b22f0727fbef98104f3e398496e2f:1876:x]
+        /tmp/tutorial/work/runner [4984b1766a38849c7039f8ae9ede9dae891eebc3:2004:x]
         /tmp/tutorial/work/test [306e9440ba06bf615f51d84cde0ce76563723c3d:24448:x]
         /tmp/tutorial/work/test-args.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
         /tmp/tutorial/work/test-launcher.json [0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc:2:f]
@@ -347,15 +355,16 @@ INFO: Setup finished, exec ["just","build","-C","...","tests","helloworld"]
 INFO: Requested target is [["@","tutorial","tests","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","tests","helloworld"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 4 trees, 0 blobs
+INFO: Discovered 5 actions, 4 trees, 2 blobs
 INFO: Building [["@","tutorial","tests","helloworld"],{}].
 INFO: Processed 5 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
+        pwd [c9deab746798a2d57873d6d05e8a7ecff21acf9e:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        time-start [7baa9405e8767e91c434af26e312267c3a114d06:11:f]
-        time-stop [7baa9405e8767e91c434af26e312267c3a114d06:11:f]
+        time-start [b05cdf005874e63ea5a6d1242acbbd64cef0e339:11:f]
+        time-stop [b05cdf005874e63ea5a6d1242acbbd64cef0e339:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -401,12 +410,12 @@ INFO: Setup finished, exec ["just","build","-C","...","tests","ALL"]
 INFO: Requested target is [["@","tutorial","tests","ALL"],{}]
 INFO: Analysed target [["@","tutorial","tests","ALL"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 5 trees, 1 blobs
+INFO: Discovered 8 actions, 5 trees, 3 blobs
 INFO: Building [["@","tutorial","tests","ALL"],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts built, logical paths are:
-        test_greet [a06a9ce5ab1fbda1f5d0ee19bdd006d2664eef0a:177:t]
-        test_helloworld [01f32858b491ef5ef254ec3852ea83b8968ea9b2:177:t]
+        test_greet [954aa9658030fe84b297c1d16814d3f04c53b708:208:t]
+        test_helloworld [53f7de4084f3ecb12606f5366b65df870af4f7e0:208:t]
 INFO: Target tainted ["test"].
 $
 ```
