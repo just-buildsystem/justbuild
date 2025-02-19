@@ -87,25 +87,18 @@ auto BazelNetwork::DoUploadBlobs(
     }
 
     try {
-        // Partition the blobs according to their size.
-        // The first group collects all the blobs that must use bytestream api
-        // because of their size:
-        using IteratorType = decltype(blobs)::iterator;
-        std::vector<IteratorType> to_stream;
-        to_stream.reserve(blobs.size());
-        for (auto it = blobs.begin(); it != blobs.end(); ++it) {
-            if (it->data->size() > MessageLimits::kMaxGrpcLength) {
-                to_stream.push_back(it);
+        // First upload all blobs that must use bytestream api because of their
+        // size:
+        for (auto it = blobs.begin(); it != blobs.end();) {
+            if (it->data->size() <= MessageLimits::kMaxGrpcLength) {
+                ++it;
+                continue;
             }
-        }
-
-        for (auto const& it : to_stream) {
             if (not cas_->UpdateSingleBlob(instance_name_, *it)) {
                 return false;
             }
-            blobs.erase(it);
+            it = blobs.erase(it);
         }
-        to_stream.clear();
 
         // After uploading via stream api, only small blobs that may be uploaded
         // using batch are in the container:
