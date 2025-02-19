@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <compare>
 #include <cstddef>
-#include <cstdio>
 #include <deque>
 #include <memory>
 #include <stack>
@@ -37,6 +36,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/incremental_reader.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace {
@@ -164,29 +164,17 @@ auto LocalCasReader::StageBlobTo(
 
 auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
                              DumpCallback const& dumper) noexcept -> bool {
-    auto closer = [](gsl::owner<FILE*> file) -> void {
-        if (file != nullptr) {
-            std::fclose(file);
-        }
-    };
-    auto in = std::shared_ptr<FILE>{std::fopen(path.c_str(), "rb"), closer};
-    if (not in) {
+    constexpr std::size_t kChunkSize{512};
+    auto to_read = IncrementalReader::FromFile(kChunkSize, path);
+    if (not to_read.has_value()) {
         return false;
     }
 
-    constexpr std::size_t kChunkSize{512};
-    std::string buffer(kChunkSize, '\0');
-    while (auto size = std::fread(buffer.data(), 1, buffer.size(), in.get())) {
-        try {
-            buffer.resize(size);
-            if (not std::invoke(dumper, buffer)) {
-                return false;
-            }
-        } catch (...) {
-            return false;
-        }
-    }
-    return true;
+    return std::all_of(
+        to_read->begin(), to_read->end(), [&dumper](auto const& chunk) {
+            return chunk.has_value() and
+                   std::invoke(dumper, std::string{chunk.value()});
+        });
 }
 
 auto LocalCasReader::IsNativeProtocol() const noexcept -> bool {

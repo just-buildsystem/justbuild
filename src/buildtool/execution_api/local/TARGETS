@@ -54,6 +54,7 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/system", "system_command"]
     , ["src/utils/cpp", "back_map"]
+    , ["src/utils/cpp", "incremental_reader"]
     ]
   }
 , "context":
