@@ -48,6 +48,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/system", "system"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "incremental_reader"]
     , ["src/utils/cpp", "path"]
     ]
   , "stage": ["src", "buildtool", "file_system"]

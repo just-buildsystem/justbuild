@@ -42,6 +42,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <unordered_set>
 #include <utility>
@@ -55,6 +56,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/system/system.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/incremental_reader.hpp"
 #include "src/utils/cpp/path.hpp"
 
 namespace detail {
@@ -702,28 +704,30 @@ class FileSystemManager {
                         file.string());
             return std::nullopt;
         }
-        try {
-            std::string chunk{};
-            std::string content{};
-            chunk.resize(kChunkSize);
-            std::ifstream file_reader(file.string(), std::ios::binary);
-            if (file_reader.is_open()) {
-                auto ssize = gsl::narrow<std::streamsize>(chunk.size());
-                while (file_reader.good()) {
-                    file_reader.read(chunk.data(), ssize);
-                    auto count = file_reader.gcount();
-                    if (count == ssize) {
-                        content += chunk;
-                    }
-                    else {
-                        content +=
-                            chunk.substr(0, gsl::narrow<std::size_t>(count));
-                    }
-                }
-                file_reader.close();
-                return content;
-            }
+
+        auto const to_read = IncrementalReader::FromFile(kChunkSize, file);
+        if (not to_read.has_value()) {
+            Logger::Log(LogLevel::Debug,
+                        "FileSystemManager: failed to create reader for {}\n{}",
+                        file.string(),
+                        to_read.error());
             return std::nullopt;
+        }
+
+        try {
+            std::string content{};
+            content.reserve(to_read->GetContentSize());
+            for (auto chunk : *to_read) {
+                if (not chunk.has_value()) {
+                    Logger::Log(LogLevel::Error,
+                                "reading file failed {}:\n{}",
+                                file.string(),
+                                chunk.error());
+                    return std::nullopt;
+                }
+                content.append(*chunk);
+            }
+            return content;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "reading file {}:\n{}",
