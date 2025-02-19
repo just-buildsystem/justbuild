@@ -54,10 +54,15 @@ TEST_CASE("accumulating") {
 
 TEST_CASE("local-merge") {
     auto conf = Configuration{Expression::FromJson(R"(
-      {"just args": {"build": ["-J", "8"], "install": ["-J", "8", "--remember"]}}
+      {"just args": {"build": ["-J", "8"], "install": ["-J", "8", "--remember"]}
+      ,"invocation log": {"directory": {"root": "system"
+                                       , "path": "/var/log/just-mr"}}
+      }
     )"_json)};
     auto delta = Configuration{Expression::FromJson(R"(
-      {"just args": {"build": ["-J", "128"], "install-cas": ["--remember"]}}
+      {"just args": {"build": ["-J", "128"], "install-cas": ["--remember"]}
+      ,"invocation log": {"project id": "unicorn"}
+      }
     )"_json)};
 
     auto merged = MergeMRRC(conf, delta);
@@ -65,6 +70,11 @@ TEST_CASE("local-merge") {
       { "build": ["-J", "128"]
       , "install-cas": ["--remember"]
       , "install": ["-J", "8", "--remember"]
+      }
+    )"_json));
+    CHECK(merged["invocation log"] == Expression::FromJson(R"(
+      { "directory":{"root": "system" , "path": "/var/log/just-mr"}
+      , "project id": "unicorn"
       }
     )"_json));
 }
