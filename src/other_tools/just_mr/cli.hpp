@@ -89,6 +89,13 @@ struct MultiRepoGcArguments {
     bool drop_only{false};
 };
 
+// Arguments for invocation logging; set only via rc files
+struct InvocationLogArguments {
+    std::optional<std::filesystem::path> directory{std::nullopt};
+    std::optional<std::string> project_id{std::nullopt};
+    std::optional<std::string> metadata{std::nullopt};
+};
+
 struct MultiRepoJustSubCmdsArguments {
     std::optional<std::string> subcmd_name{std::nullopt};
     std::vector<std::string> additional_just_args;
@@ -132,6 +139,7 @@ struct CommandLineArguments {
     MultiRepoJustSubCmdsArguments just_cmd;
     MultiRepoRemoteAuthArguments auth;
     ForwardOnlyArguments launch_fwd;
+    InvocationLogArguments invocation_log;
 };
 
 static inline void SetupMultiRepoCommonArguments(

@@ -584,6 +584,34 @@ namespace {
             }
         }
     }
+    // read invocation log argumnets
+    auto invocation_log = rc_config["invocation log"];
+    if (invocation_log.IsNotNull()) {
+        if (not invocation_log->IsMap()) {
+            Logger::Log(
+                LogLevel::Error,
+                "Value of \"invocation log\" has to be a map, but found {}",
+                invocation_log->ToString());
+            std::exit(kExitConfigError);
+        }
+        auto dir =
+            ReadLocation(invocation_log->Get("directory", Expression::none_t{}),
+                         clargs->common.just_mr_paths->workspace_root);
+        if (dir) {
+            clargs->invocation_log.directory = dir->first;
+            // Parse the remaining entries, only if  directory is specified
+            auto proj_id =
+                invocation_log->Get("project id", Expression::none_t{});
+            if (proj_id->IsString()) {
+                clargs->invocation_log.project_id = proj_id->String();
+            }
+            auto metadata =
+                invocation_log->Get("metadata", Expression::none_t{});
+            if (metadata->IsString()) {
+                clargs->invocation_log.metadata = metadata->String();
+            }
+        }
+    }
     // read config lookup order
     auto config_lookup_order = rc_config["config lookup order"];
     if (config_lookup_order.IsNotNull()) {
