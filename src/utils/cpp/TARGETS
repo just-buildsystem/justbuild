@@ -113,4 +113,10 @@
   , "deps": [["@", "gsl", "", "gsl"]]
   , "stage": ["src", "utils", "cpp"]
   }
+, "in_place_visitor":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["in_place_visitor"]
+  , "hdrs": ["in_place_visitor.hpp"]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
