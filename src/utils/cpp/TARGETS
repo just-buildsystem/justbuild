@@ -119,4 +119,13 @@
   , "hdrs": ["in_place_visitor.hpp"]
   , "stage": ["src", "utils", "cpp"]
   }
+, "incremental_reader":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["incremental_reader"]
+  , "hdrs": ["incremental_reader.hpp"]
+  , "srcs": ["incremental_reader.cpp"]
+  , "deps": ["expected", ["@", "gsl", "", "gsl"]]
+  , "private-deps": ["in_place_visitor", ["@", "fmt", "", "fmt"]]
+  , "stage": ["src", "utils", "cpp"]
+  }
 }
