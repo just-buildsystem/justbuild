@@ -16,11 +16,12 @@
 
 #include <cstddef>
 #include <exception>
-#include <fstream>
-#include <limits>
+#include <string_view>
 
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/incremental_reader.hpp"
 
 namespace {
 [[nodiscard]] auto CreateGitTreeTag(std::size_t size) noexcept -> std::string {
@@ -73,35 +74,37 @@ auto HashFunction::HashTaggedFile(std::filesystem::path const& path,
     auto const size = std::filesystem::file_size(path);
 
     static constexpr std::size_t kChunkSize{4048};
-    static_assert(kChunkSize < std::numeric_limits<std::streamsize>::max(),
-                  "An overflow will occur while reading");
-
     auto hasher = MakeHasher();
     if (type_ == Type::GitSHA1) {
         hasher.Update(std::invoke(tag_creator, size));
     }
 
+    auto const to_read = IncrementalReader::FromFile(kChunkSize, path);
+    if (not to_read.has_value()) {
+        Logger::Log(LogLevel::Debug,
+                    "Failed to create a reader for {}: {}",
+                    path.string(),
+                    to_read.error());
+        return std::nullopt;
+    }
+
     try {
-        auto chunk = std::string(kChunkSize, '\0');
-        std::ifstream file_reader(path.string(), std::ios::binary);
-        if (not file_reader.is_open()) {
-            return std::nullopt;
+        for (auto chunk : *to_read) {
+            if (not chunk.has_value()) {
+                Logger::Log(LogLevel::Debug,
+                            "Error while trying to hash {}: {}",
+                            path.string(),
+                            chunk.error());
+                return std::nullopt;
+            }
+            hasher.Update(std::string{*chunk});
         }
-
-        while (file_reader.good()) {
-            file_reader.read(chunk.data(),
-                             static_cast<std::streamsize>(kChunkSize));
-
-            auto const count = static_cast<std::size_t>(file_reader.gcount());
-            hasher.Update(chunk.substr(0, count));
-        }
-        file_reader.close();
-        return std::make_pair(std::move(hasher).Finalize(), size);
     } catch (std::exception const& e) {
         Logger::Log(LogLevel::Debug,
                     "Error while trying to hash {}: {}",
                     path.string(),
                     e.what());
+        return std::nullopt;
     }
-    return std::nullopt;
+    return std::make_pair(std::move(hasher).Finalize(), size);
 }

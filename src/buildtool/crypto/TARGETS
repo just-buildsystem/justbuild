@@ -21,6 +21,8 @@
   , "private-deps":
     [ ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "incremental_reader"]
     ]
   , "stage": ["src", "buildtool", "crypto"]
   }
