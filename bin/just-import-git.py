@@ -268,9 +268,18 @@ def rewrite_repo(repo_spec: Json,
         repo = assign[repo]
     elif repo.get("type") == "file":
         changes = {}
+        # take subdir
         subdir: str = os.path.normpath(repo.get("path", "."))
         if subdir != ".":
             changes["subdir"] = subdir
+        # keep ignore special and absent pragmas
+        pragma = {}
+        if cast(Json, repo).get("pragma", {}).get("special", None) == "ignore":
+            pragma["special"] = "ignore"
+        if cast(Json, repo).get("pragma", {}).get("absent", False):
+            pragma["absent"] = True
+        if pragma:
+            changes["pragma"] = pragma
         repo = dict(remote, **changes)
     elif repo.get("type") == "distdir":
         existing_repos: List[str] = repo.get("repositories", [])
