@@ -1945,6 +1945,85 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
 
 
 ###
+# Import from generic source
+##
+
+
+def import_generic(core_config: Json, imports_entry: Json) -> Json:
+    """Handles generic imports done via a user-defined command."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"generic\":\n"
+
+    # Parse source config fields
+    command: List[str] = imports_entry.get("cmd", None)
+    if not isinstance(command, list):
+        fail(fail_context +
+             "Expected field \"cmd\" to be a list, but found:\n%r" %
+             (json.dumps(command, indent=2), ))
+
+    command_env: Json = imports_entry.get("env", {})
+    if not isinstance(command_env, dict):
+        fail(fail_context +
+             "Expected field \"env\" to be a map, but found:\n%r" %
+             (json.dumps(command_env, indent=2), ))
+
+    inherit_env: List[str] = imports_entry.get("inherit env", [])
+    if not isinstance(inherit_env, list):
+        fail(fail_context +
+             "Expected field \"inherit env\" to be a list, but found:\n%r" %
+             (json.dumps(inherit_env, indent=2), ))
+
+    command_cwd: str = imports_entry.get("cwd", os.getcwd())
+    if not isinstance(command_cwd, str):
+        fail(fail_context +
+             "Expected field \"cwd\" to be a string, but found:\n%r" %
+             (json.dumps(command_cwd, indent=2), ))
+    if not os.path.isabs(command_cwd):
+        command_cwd = os.path.join(os.getcwd(), command_cwd)
+
+    # Set the command environment
+    curr_env = os.environ.copy()
+    new_envs = {}
+    for envar in inherit_env:
+        if envar in curr_env:
+            new_envs[envar] = curr_env[envar]
+    command_env.update(new_envs)
+
+    # Run the command
+    command_output = run_cmd(
+        g_LAUNCHER + command,
+        env=command_env,
+        stdout=subprocess.PIPE,
+        input=json.dumps(core_config).encode('utf-8'),
+        cwd=command_cwd,
+        fail_context=fail_context)[0].decode('utf-8').strip()
+
+    # Parse output as JSON and do minimal validation
+    parsed_output: Json = {}
+    try:
+        parsed_output = json.loads(command_output)
+    except Exception as ex:
+        fail(fail_context +
+             "Parsing output of command as JSON failed with:\n%r" % (ex, ))
+
+    # Perform minimal validation and restrict keys to those expected
+    if "repositories" not in parsed_output.keys():
+        fail(fail_context +
+             "Output configuration is missing mandatory key \"repositories\"")
+    new_config: Json = {"repositories": parsed_output["repositories"]}
+    main: str = parsed_output.get("main", None)
+    if main is not None:
+        if not isinstance(main, str):
+            fail(
+                fail_context +
+                "Output configuration has malformed value %s for key \"main\"" %
+                (main, ))
+        new_config["main"] = main
+
+    return new_config
+
+
+###
 # Cloning logic
 ##
 
@@ -2782,8 +2861,7 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_git_tree(
                 core_config["repositories"], entry)
         elif source == "generic":
-            # TODO(psarbu): Implement source "generic"
-            warn("Import from source \"generic\" not yet implemented!")
+            core_config = import_generic(core_config, entry)
         else:
             fail("Unknown source for import entry \n%r" %
                  (json.dumps(entry, indent=2), ))
