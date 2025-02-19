@@ -1065,26 +1065,27 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
     report(None)  # adds newline
 
     total_assign = dict(assign, **import_map)
+    new_repos = dict(core_repos)  # avoid side-effects
     for repo in ordered_imports:
-        core_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
-                                                remote_type=remote_type,
-                                                remote_stub=remote_stub,
-                                                assign=total_assign,
-                                                import_pragma=pragma,
-                                                pragma_special=pragma_special,
-                                                as_layer=False,
-                                                fail_context=fail_context)
+        new_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
+                                               remote_type=remote_type,
+                                               remote_stub=remote_stub,
+                                               assign=total_assign,
+                                               import_pragma=pragma,
+                                               pragma_special=pragma_special,
+                                               as_layer=False,
+                                               fail_context=fail_context)
     for repo in extra_imports:
-        core_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
-                                                remote_type=remote_type,
-                                                remote_stub=remote_stub,
-                                                assign=total_assign,
-                                                import_pragma=pragma,
-                                                pragma_special=pragma_special,
-                                                as_layer=True,
-                                                fail_context=fail_context)
+        new_repos[assign[repo]] = rewrite_repo(foreign_repos[repo],
+                                               remote_type=remote_type,
+                                               remote_stub=remote_stub,
+                                               assign=total_assign,
+                                               import_pragma=pragma,
+                                               pragma_special=pragma_special,
+                                               as_layer=True,
+                                               fail_context=fail_context)
 
-    return core_repos
+    return new_repos
 
 
 ###
@@ -1278,6 +1279,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                  "Failed to find the repository configuration file!")
 
     # Process the imported repositories, in order
+    new_repos = dict(core_repos)  # avoid side-effects
     for repo_entry in repos:
         if not isinstance(repo_entry, dict):
             fail(fail_context +
@@ -1285,17 +1287,17 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import("git",
-                                   remote_stub,
-                                   repo_entry,
-                                   core_repos,
-                                   foreign_config,
-                                   pragma_special,
-                                   fail_context=fail_context)
+        new_repos = handle_import("git",
+                                  remote_stub,
+                                  repo_entry,
+                                  new_repos,
+                                  foreign_config,
+                                  pragma_special,
+                                  fail_context=fail_context)
 
     # Clean up local fetch
     try_rmtree(to_clean_up)
-    return core_repos
+    return new_repos
 
 
 ###
@@ -1380,6 +1382,7 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
     }
 
     # Process the imported repositories, in order
+    new_repos = dict(core_repos)  # avoid side-effects
     for repo_entry in repos:
         if not isinstance(repo_entry, dict):
             fail(fail_context +
@@ -1387,15 +1390,15 @@ def import_from_file(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import("file",
-                                   remote_stub,
-                                   repo_entry,
-                                   core_repos,
-                                   foreign_config,
-                                   pragma_special,
-                                   fail_context=fail_context)
+        new_repos = handle_import("file",
+                                  remote_stub,
+                                  repo_entry,
+                                  new_repos,
+                                  foreign_config,
+                                  pragma_special,
+                                  fail_context=fail_context)
 
-    return core_repos
+    return new_repos
 
 
 ###
@@ -1711,6 +1714,7 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
                  "Failed to find the repository configuration file!")
 
     # Process the imported repositories, in order
+    new_repos = dict(core_repos)  # avoid side-effects
     for repo_entry in repos:
         if not isinstance(repo_entry, dict):
             fail(fail_context +
@@ -1718,17 +1722,17 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import(archive_type,
-                                   remote_stub,
-                                   repo_entry,
-                                   core_repos,
-                                   foreign_config,
-                                   pragma_special,
-                                   fail_context=fail_context)
+        new_repos = handle_import(archive_type,
+                                  remote_stub,
+                                  repo_entry,
+                                  new_repos,
+                                  foreign_config,
+                                  pragma_special,
+                                  fail_context=fail_context)
 
     # Clean up local fetch
     try_rmtree(to_clean_up)
-    return core_repos
+    return new_repos
 
 
 ###
@@ -1917,6 +1921,7 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
                  "Failed to find the repository configuration file!")
 
     # Process the imported repositories, in order
+    new_repos = dict(core_repos)  # avoid side-effects
     for repo_entry in repos:
         if not isinstance(repo_entry, dict):
             fail(fail_context +
@@ -1924,17 +1929,17 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
                  (json.dumps(repo_entry, indent=2), ))
         repo_entry = cast(Json, repo_entry)
 
-        core_repos = handle_import("git tree",
-                                   remote_stub,
-                                   repo_entry,
-                                   core_repos,
-                                   foreign_config,
-                                   pragma_special,
-                                   fail_context=fail_context)
+        new_repos = handle_import("git tree",
+                                  remote_stub,
+                                  repo_entry,
+                                  new_repos,
+                                  foreign_config,
+                                  pragma_special,
+                                  fail_context=fail_context)
 
     # Clean up local fetch
     try_rmtree(to_clean_up)
-    return core_repos
+    return new_repos
 
 
 ###
@@ -2743,8 +2748,8 @@ def lock_config(input_file: str) -> Json:
     # Initialize the core config, which will be extended with imports
     core_config: Json = {}
     if main is not None:
-        core_config = dict(core_config, **{"main": main})
-    core_config = dict(core_config, **{"repositories": repositories})
+        core_config["main"] = main
+    core_config["repositories"] = repositories
 
     # Acquire garbage collector locks
     git_gc_lock = gc_repo_lock_acquire(is_shared=True)
