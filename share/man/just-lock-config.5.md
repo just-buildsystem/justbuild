@@ -66,7 +66,7 @@ operation exists as well.
 Sources are given as JSON objects for which the string value to the mandatory
 key *`"source"`* defines a supported type. Each source type informs which other
 fields are available. Currently, the supported source types are *`"git"`*,
-*`"file"`*, *`"archive"`*, and *`"git tree"`*.
+*`"file"`*, *`"archive"`*, *`"git tree"`*, and *`"generic"`*.
 
 ### *`"git"`*
 
@@ -265,6 +265,31 @@ The following fields are supported:
    evaluate to `true`, **`just-lock`**(1) will search for a configuration file
    in the same locations as **`just-mr`**(1) does when invoked with
    **`--norc`** in the root directory of the Git repository.
+
+### *`"generic"`*
+
+It defines a liberal way to modify a `just-mr` configuration via a user-provided
+command.
+
+The following fields are supported:
+
+ - *`"source"`* defines the current *source* type. This entry is mandatory.
+
+ - *`"cmd"`* provides a list of strings forming a command that accepts a string
+   as input from `stdin` containing a serialized `just-mr` configuration and
+   outputs a string to `stdout` containing a serialized `just-mr` configuration.
+   This entry is mandatory.
+
+ - *`cwd`* provides the path to the directory in which the command will be run.
+   If it is relative, it will be taken relative to the current working
+   directory. This entry is optional. If missing, `"."` is used.
+
+ - *`"env"`* provides a map of envariables to be set for executing the
+   command. This entry is optional.
+
+ - *`"inherit env"`* provides a list of variables to be inherited from the
+   environment `just-lock` is called within, if set there. This entry is
+   optional.
 
 The just-lock configuration format
 ----------------------------------
