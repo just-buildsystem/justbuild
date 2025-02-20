@@ -153,6 +153,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "garbage_collector"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "incremental_reader"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }
