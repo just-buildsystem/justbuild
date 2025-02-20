@@ -34,6 +34,8 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "incremental_reader"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
