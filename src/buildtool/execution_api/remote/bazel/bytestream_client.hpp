@@ -104,7 +104,7 @@ class ByteStreamClient {
 
     [[nodiscard]] auto Read(std::string const& instance_name,
                             ArtifactDigest const& digest) const noexcept
-        -> std::optional<std::string> {
+        -> std::optional<ArtifactBlob> {
         auto reader = IncrementalRead(instance_name, digest);
         std::string output{};
         auto data = reader.Next();
@@ -115,7 +115,7 @@ class ByteStreamClient {
         if (not data) {
             return std::nullopt;
         }
-        return output;
+        return ArtifactBlob{digest, std::move(output), /*is_exec=*/false};
     }
 
     [[nodiscard]] auto Write(std::string const& instance_name,

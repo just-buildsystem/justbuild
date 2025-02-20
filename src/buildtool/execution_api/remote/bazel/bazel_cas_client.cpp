@@ -400,10 +400,7 @@ auto BazelCasClient::IncrementalReadSingleBlob(std::string const& instance_name,
 auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
                                     ArtifactDigest const& digest) const noexcept
     -> std::optional<ArtifactBlob> {
-    if (auto data = stream_->Read(instance_name, digest)) {
-        return ArtifactBlob{digest, std::move(*data), /*is_exec=*/false};
-    }
-    return std::nullopt;
+    return stream_->Read(instance_name, digest);
 }
 
 auto BazelCasClient::SplitBlob(HashFunction hash_function,
