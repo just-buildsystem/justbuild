@@ -139,6 +139,7 @@ def run_cmd(
     env: Optional[Any] = None,
     stdout: Optional[Any] = subprocess.DEVNULL,
     stdin: Optional[Any] = None,
+    input: Optional[bytes] = None,
     cwd: str,
     attempts: int = 1,
     fail_context: Optional[str] = None,
@@ -152,7 +153,8 @@ def run_cmd(
                                 cwd=cwd,
                                 env=env,
                                 stdout=stdout,
-                                stdin=stdin)
+                                stdin=stdin,
+                                input=input)
         if result.returncode == 0:
             return result.stdout, result.returncode  # return successful result
     if fail_context is not None:
