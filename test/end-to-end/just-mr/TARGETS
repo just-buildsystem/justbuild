@@ -232,6 +232,14 @@
   , "test": ["ignore-special.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "invocation-log":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["invocation-log"]
+  , "test": ["invocation-log.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep-dirs": ["log"]
+  , "keep": ["out/just-repo-config.json"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
@@ -259,6 +267,7 @@
               , "gc-repo"
               , "repeated-gc"
               , "gc-drop"
+              , "invocation-log"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
