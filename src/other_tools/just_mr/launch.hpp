@@ -27,6 +27,7 @@
 /// \brief Runs execvp for configured command. Only returns if execvp fails.
 [[nodiscard]] auto CallJust(
     std::optional<std::filesystem::path> const& config_file,
+    InvocationLogArguments const& invocation_log,
     MultiRepoCommonArguments const& common_args,
     MultiRepoSetupArguments const& setup_args,
     MultiRepoJustSubCmdsArguments const& just_cmd_args,

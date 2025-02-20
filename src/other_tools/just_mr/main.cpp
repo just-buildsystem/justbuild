@@ -385,6 +385,7 @@ auto main(int argc, char* argv[]) -> int {
         if (arguments.cmd == SubCommand::kJustDo or
             arguments.cmd == SubCommand::kJustSubCmd) {
             return CallJust(config_file,
+                            arguments.invocation_log,
                             arguments.common,
                             arguments.setup,
                             arguments.just_cmd,

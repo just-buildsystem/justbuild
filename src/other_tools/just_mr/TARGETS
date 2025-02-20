@@ -274,16 +274,20 @@
     , "setup"
     , "setup_utils"
     , "utils"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/expression", "expression_ptr_interface"]
     , ["src/buildtool/common", "clidefaults"]
     , ["src/buildtool/common", "user_structs"]
+    , ["src/buildtool/execution_api/common", "ids"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "garbage_collector"]
     , ["src/buildtool/storage", "repository_garbage_collector"]
     , ["src/utils/cpp", "file_locking"]
+    , ["src/utils/cpp", "path"]
     ]
   }
 , "mirrors":
