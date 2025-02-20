@@ -93,6 +93,32 @@ TEST_CASE("IncrementalReader", "[incremental_reader]") {
         REQUIRE(result.size() == file_content->size());
         REQUIRE(result == *file_content);
     }
+    SECTION("Memory") {
+        auto reader =
+            IncrementalReader::FromMemory(kChunkWithRemainder, &*file_content);
+        REQUIRE(reader.has_value());
+
+        std::string result;
+        result.reserve(reader->GetContentSize());
+        for (auto chunk : *reader) {
+            REQUIRE(chunk.has_value());
+            result.append(*chunk);
+        }
+        REQUIRE(result.size() == file_content->size());
+        REQUIRE(result == *file_content);
+
+        reader = IncrementalReader::FromMemory(kChunkWithoutRemainder,
+                                               &*file_content);
+        REQUIRE(reader.has_value());
+
+        result.clear();
+        for (auto chunk : *reader) {
+            REQUIRE(chunk.has_value());
+            result.append(*chunk);
+        }
+        REQUIRE(result.size() == file_content->size());
+        REQUIRE(result == *file_content);
+    }
 }
 
 TEST_CASE("IncrementalReader - Empty", "[incremental_reader]") {
@@ -109,6 +135,22 @@ TEST_CASE("IncrementalReader - Empty", "[incremental_reader]") {
             stream << "";
         }
         auto const reader = IncrementalReader::FromFile(kChunkSize, empty_file);
+        REQUIRE(reader.has_value());
+
+        std::optional<std::string> result;
+        for (auto chunk : *reader) {
+            REQUIRE(chunk.has_value());
+            if (not result.has_value()) {
+                result = std::string{};
+            }
+            result->append(*chunk);
+        }
+        REQUIRE(result.has_value());
+        REQUIRE(result->empty());
+    }
+    SECTION("Memory") {
+        std::string const empty;
+        auto const reader = IncrementalReader::FromMemory(kChunkSize, &empty);
         REQUIRE(reader.has_value());
 
         std::optional<std::string> result;
