@@ -60,18 +60,14 @@ namespace {
 }
 }  // namespace
 
-ByteStreamUtils::ReadRequest::ReadRequest(std::string instance_name,
-                                          ArtifactDigest const& digest) noexcept
-    : instance_name_{std::move(instance_name)},
-      hash_{ArtifactDigestFactory::ToBazel(digest).hash()},
-      size_{digest.size()} {}
-
-auto ByteStreamUtils::ReadRequest::ToString() && noexcept -> std::string {
+auto ByteStreamUtils::ReadRequest::ToString(
+    std::string instance_name,
+    ArtifactDigest const& digest) noexcept -> std::string {
     return fmt::format("{}/{}/{}/{}",
-                       std::move(instance_name_),
+                       std::move(instance_name),
                        ByteStreamUtils::kBlobs,
-                       std::move(hash_),
-                       size_);
+                       ArtifactDigestFactory::ToBazel(digest).hash(),
+                       digest.size());
 }
 
 auto ByteStreamUtils::ReadRequest::FromString(
@@ -105,23 +101,17 @@ auto ByteStreamUtils::ReadRequest::GetDigest(HashFunction::Type hash_type)
     return ArtifactDigestFactory::FromBazel(hash_type, bazel_digest);
 }
 
-ByteStreamUtils::WriteRequest::WriteRequest(
+auto ByteStreamUtils::WriteRequest::ToString(
     std::string instance_name,
     std::string uuid,
-    ArtifactDigest const& digest) noexcept
-    : instance_name_{std::move(instance_name)},
-      uuid_{std::move(uuid)},
-      hash_{ArtifactDigestFactory::ToBazel(digest).hash()},
-      size_{digest.size()} {}
-
-auto ByteStreamUtils::WriteRequest::ToString() && noexcept -> std::string {
+    ArtifactDigest const& digest) noexcept -> std::string {
     return fmt::format("{}/{}/{}/{}/{}/{}",
-                       std::move(instance_name_),
+                       std::move(instance_name),
                        ByteStreamUtils::kUploads,
-                       std::move(uuid_),
+                       std::move(uuid),
                        ByteStreamUtils::kBlobs,
-                       std::move(hash_),
-                       size_);
+                       ArtifactDigestFactory::ToBazel(digest).hash(),
+                       digest.size());
 }
 
 auto ByteStreamUtils::WriteRequest::FromString(

@@ -34,7 +34,7 @@ TEST_CASE("ReadRequest", "[common]") {
         hash_function, "test_string");
 
     std::string const request =
-        ByteStreamUtils::ReadRequest{kInstanceName, digest}.ToString();
+        ByteStreamUtils::ReadRequest::ToString(kInstanceName, digest);
     auto const parsed = ByteStreamUtils::ReadRequest::FromString(request);
     auto parsed_digest = parsed->GetDigest(hash_function.GetType());
     REQUIRE(parsed);
@@ -55,7 +55,7 @@ TEST_CASE("WriteRequest", "[common]") {
         hash_function, "test_string");
 
     std::string const request =
-        ByteStreamUtils::WriteRequest{kInstanceName, uuid, digest}.ToString();
+        ByteStreamUtils::WriteRequest::ToString(kInstanceName, uuid, digest);
     auto const parsed = ByteStreamUtils::WriteRequest::FromString(request);
     auto parsed_digest = parsed->GetDigest(hash_function.GetType());
     REQUIRE(parsed);

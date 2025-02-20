@@ -38,10 +38,9 @@ class ByteStreamUtils final {
     /// "instance_name_example/blobs/62183d7a696acf7e69e218efc82c93135f8c85f895/4424712"
     class ReadRequest final {
       public:
-        explicit ReadRequest(std::string instance_name,
-                             ArtifactDigest const& digest) noexcept;
-
-        [[nodiscard]] auto ToString() && noexcept -> std::string;
+        [[nodiscard]] static auto ToString(
+            std::string instance_name,
+            ArtifactDigest const& digest) noexcept -> std::string;
 
         [[nodiscard]] static auto FromString(
             std::string const& request) noexcept -> std::optional<ReadRequest>;
@@ -59,7 +58,7 @@ class ByteStreamUtils final {
         std::string hash_;
         std::size_t size_ = 0;
 
-        ReadRequest() = default;
+        explicit ReadRequest() = default;
     };
 
     /// \brief Create a write request for the bytestream service to be
@@ -69,11 +68,10 @@ class ByteStreamUtils final {
     /// "instance_name_example/uploads/c4f03510-7d56-4490-8934-01bce1b1288e/blobs/62183d7a696acf7e69e218efc82c93135f8c85f895/4424712"
     class WriteRequest final {
       public:
-        explicit WriteRequest(std::string instance_name,
-                              std::string uuid,
-                              ArtifactDigest const& digest) noexcept;
-
-        [[nodiscard]] auto ToString() && noexcept -> std::string;
+        [[nodiscard]] static auto ToString(
+            std::string instance_name,
+            std::string uuid,
+            ArtifactDigest const& digest) noexcept -> std::string;
 
         [[nodiscard]] static auto FromString(
             std::string const& request) noexcept -> std::optional<WriteRequest>;
@@ -96,7 +94,7 @@ class ByteStreamUtils final {
         std::string hash_;
         std::size_t size_ = 0;
 
-        WriteRequest() = default;
+        explicit WriteRequest() = default;
     };
 };
 

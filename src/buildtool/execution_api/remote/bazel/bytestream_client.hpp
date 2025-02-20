@@ -83,10 +83,8 @@ class ByteStreamClient {
             Logger const* logger)
             : logger_{logger} {
             google::bytestream::ReadRequest request{};
-
-            auto resource_name =
-                ByteStreamUtils::ReadRequest{instance_name, digest}.ToString();
-            request.set_resource_name(std::move(resource_name));
+            request.set_resource_name(
+                ByteStreamUtils::ReadRequest::ToString(instance_name, digest));
             reader_ = stub->Read(&ctx_, request);
         }
     };
@@ -138,9 +136,8 @@ class ByteStreamClient {
             google::bytestream::WriteResponse response{};
             auto writer = stub_->Write(&ctx, &response);
 
-            auto const resource_name =
-                ByteStreamUtils::WriteRequest{instance_name, uuid, blob.digest}
-                    .ToString();
+            auto const resource_name = ByteStreamUtils::WriteRequest::ToString(
+                instance_name, uuid, blob.digest);
 
             google::bytestream::WriteRequest request{};
             request.set_resource_name(resource_name);
