@@ -29,6 +29,7 @@
 #include "google/bytestream/bytestream.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
@@ -77,11 +78,15 @@ class ByteStreamClient {
 
         IncrementalReader(
             gsl::not_null<google::bytestream::ByteStream::Stub*> const& stub,
-            ByteStreamUtils::ReadRequest&& read_request,
+            std::string const& instance_name,
+            ArtifactDigest const& digest,
             Logger const* logger)
             : logger_{logger} {
             google::bytestream::ReadRequest request{};
-            request.set_resource_name(std::move(read_request).ToString());
+
+            auto resource_name =
+                ByteStreamUtils::ReadRequest{instance_name, digest}.ToString();
+            request.set_resource_name(std::move(resource_name));
             reader_ = stub->Read(&ctx_, request);
         }
     };
@@ -93,14 +98,16 @@ class ByteStreamClient {
             CreateChannelWithCredentials(server, port, auth));
     }
 
-    [[nodiscard]] auto IncrementalRead(ByteStreamUtils::ReadRequest&& request)
-        const noexcept -> IncrementalReader {
-        return IncrementalReader{stub_.get(), std::move(request), &logger_};
+    [[nodiscard]] auto IncrementalRead(
+        std::string const& instance_name,
+        ArtifactDigest const& digest) const noexcept -> IncrementalReader {
+        return IncrementalReader{stub_.get(), instance_name, digest, &logger_};
     }
 
-    [[nodiscard]] auto Read(ByteStreamUtils::ReadRequest&& request)
-        const noexcept -> std::optional<std::string> {
-        auto reader = IncrementalRead(std::move(request));
+    [[nodiscard]] auto Read(std::string const& instance_name,
+                            ArtifactDigest const& digest) const noexcept
+        -> std::optional<std::string> {
+        auto reader = IncrementalRead(instance_name, digest);
         std::string output{};
         auto data = reader.Next();
         while (data and not data->empty()) {

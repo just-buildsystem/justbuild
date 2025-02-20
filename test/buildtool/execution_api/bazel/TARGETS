@@ -58,7 +58,6 @@
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "artifact_blob"]
-    , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
     , ["@", "src", "src/buildtool/execution_api/common", "ids"]
     , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]

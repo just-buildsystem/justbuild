@@ -27,7 +27,6 @@
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/artifact_blob.hpp"
-#include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
@@ -59,8 +58,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         ArtifactBlob const blob{digest, content, /*is_exec=*/false};
         CHECK(stream.Write(instance_name, blob));
 
-        auto const data =
-            stream.Read(ByteStreamUtils::ReadRequest{instance_name, digest});
+        auto const data = stream.Read(instance_name, digest);
 
         CHECK(data == content);
     }
@@ -96,15 +94,12 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         CHECK(stream.Write(instance_name, blob));
 
         SECTION("Download large blob") {
-            auto const data = stream.Read(
-                ByteStreamUtils::ReadRequest{instance_name, digest});
-
+            auto const data = stream.Read(instance_name, digest);
             CHECK(data == content);
         }
 
         SECTION("Incrementally download large blob") {
-            auto reader = stream.IncrementalRead(
-                ByteStreamUtils::ReadRequest{instance_name, digest});
+            auto reader = stream.IncrementalRead(instance_name, digest);
 
             std::string data{};
             auto chunk = reader.Next();
