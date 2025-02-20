@@ -22,11 +22,12 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
-#include "src/buildtool/execution_api/common/ids.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
@@ -44,7 +45,6 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
     auto stream = ByteStreamClient{remote_config->remote_address->host,
                                    remote_config->remote_address->port,
                                    &*auth_config};
-    auto uuid = CreateUUIDVersion4(*CreateProcessUniqueId());
 
     HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
 
@@ -56,16 +56,13 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
 
-        CHECK(stream.Write(
-            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
-            content));
+        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
+        CHECK(stream.Write(instance_name, blob));
 
-        SECTION("Download small blob") {
-            auto const data = stream.Read(
-                ByteStreamUtils::ReadRequest{instance_name, digest});
+        auto const data =
+            stream.Read(ByteStreamUtils::ReadRequest{instance_name, digest});
 
-            CHECK(data == content);
-        }
+        CHECK(data == content);
     }
 
     SECTION("Small blob with wrong digest") {
@@ -76,10 +73,9 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         // Valid digest, but for a different string
         auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, other_content);
+        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
 
-        CHECK(not stream.Write(
-            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
-            content));
+        CHECK(not stream.Write(instance_name, blob));
     }
 
     SECTION("Upload large blob") {
@@ -95,10 +91,9 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         // digest of "instance_nameinstance_nameinstance_..."
         auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
             hash_function, content);
+        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
 
-        CHECK(stream.Write(
-            ByteStreamUtils::WriteRequest{instance_name, uuid, digest},
-            content));
+        CHECK(stream.Write(instance_name, blob));
 
         SECTION("Download large blob") {
             auto const data = stream.Read(

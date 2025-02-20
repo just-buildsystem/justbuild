@@ -31,7 +31,9 @@
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
+#include "src/buildtool/execution_api/common/ids.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -111,19 +113,34 @@ class ByteStreamClient {
         return output;
     }
 
-    [[nodiscard]] auto Write(ByteStreamUtils::WriteRequest&& write_request,
-                             std::string const& data) const noexcept -> bool {
+    [[nodiscard]] auto Write(std::string const& instance_name,
+                             ArtifactBlob const& blob) const noexcept -> bool {
+        thread_local static std::string uuid{};
+        if (uuid.empty()) {
+            auto id = CreateProcessUniqueId();
+            if (not id) {
+                logger_.Emit(LogLevel::Debug,
+                             "Failed creating process unique id.");
+                return false;
+            }
+            uuid = CreateUUIDVersion4(*id);
+        }
+
         try {
             grpc::ClientContext ctx;
             google::bytestream::WriteResponse response{};
             auto writer = stub_->Write(&ctx, &response);
 
+            auto const resource_name =
+                ByteStreamUtils::WriteRequest{instance_name, uuid, blob.digest}
+                    .ToString();
+
             google::bytestream::WriteRequest request{};
-            request.set_resource_name(std::move(write_request).ToString());
+            request.set_resource_name(resource_name);
             request.mutable_data()->reserve(ByteStreamUtils::kChunkSize);
 
             auto const to_read = ::IncrementalReader::FromMemory(
-                ByteStreamUtils::kChunkSize, &data);
+                ByteStreamUtils::kChunkSize, &*blob.data);
             if (not to_read.has_value()) {
                 logger_.Emit(
                     LogLevel::Error,
@@ -147,7 +164,8 @@ class ByteStreamClient {
                 *request.mutable_data() = *chunk;
 
                 request.set_write_offset(static_cast<int>(pos));
-                request.set_finish_write(pos + chunk->size() >= data.size());
+                request.set_finish_write(pos + chunk->size() >=
+                                         blob.data->size());
                 if (writer->Write(request)) {
                     pos += chunk->size();
                     ++it;
@@ -184,12 +202,12 @@ class ByteStreamClient {
                 return false;
             }
             if (gsl::narrow<std::size_t>(response.committed_size()) !=
-                data.size()) {
+                blob.data->size()) {
                 logger_.Emit(
                     LogLevel::Warning,
                     "Commited size {} is different from the original one {}.",
                     response.committed_size(),
-                    data.size());
+                    blob.data->size());
                 return false;
             }
             return true;
