@@ -23,7 +23,7 @@
   , "deps": ["config", ["src/utils/cpp", "file_locking"]]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "ids"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
@@ -90,7 +90,7 @@
     , "storage"
     , ["@", "fmt", "", "fmt"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/common", "ids"]
     , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]

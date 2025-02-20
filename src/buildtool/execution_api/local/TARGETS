@@ -48,6 +48,7 @@
     , ["@", "json", "", "json"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     , ["src/buildtool/execution_api/common", "common_api"]
+    , ["src/buildtool/execution_api/common", "ids"]
     , ["src/buildtool/execution_api/execution_service", "cas_utils"]
     , ["src/buildtool/execution_api/utils", "outputscheck"]
     , ["src/buildtool/file_system", "object_type"]

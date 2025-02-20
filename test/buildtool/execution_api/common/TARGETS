@@ -34,6 +34,7 @@
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/common", "ids"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/utils/cpp", "expected"]
     , ["", "catch-main"]

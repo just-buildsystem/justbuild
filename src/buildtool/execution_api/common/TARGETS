@@ -2,8 +2,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["common"]
   , "hdrs":
-    [ "execution_common.hpp"
-    , "execution_api.hpp"
+    [ "execution_api.hpp"
     , "execution_action.hpp"
     , "execution_response.hpp"
     , "tree_reader.hpp"
@@ -22,16 +21,30 @@
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
-    , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
-    , ["src/utils/cpp", "gsl"]
-    , ["src/utils/cpp", "hex_string"]
     ]
   , "private-deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
+    ]
+  , "stage": ["src", "buildtool", "execution_api", "common"]
+  }
+, "ids":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["common"]
+  , "hdrs": ["ids.hpp"]
+  , "deps":
+    [ ["@", "fmt", "", "fmt"]
+    , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "gsl"]
+    , ["src/utils/cpp", "hex_string"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }

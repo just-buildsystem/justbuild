@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_COMMON_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_COMMON_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP
+#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP
 
 #ifdef __unix__
 #include <sys/types.h>
@@ -129,4 +129,4 @@ static void EncodeUUIDVariant1(std::string* uuid) {
     return ss.str();
 }
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_COMMON_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP

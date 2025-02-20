@@ -7,6 +7,7 @@
     [ ["@", "catch2", "", "catch2"]
     , ["@", "fmt", "", "fmt"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/common", "ids"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
     , ["@", "src", "src/other_tools/git_operations", "git_ops_types"]
