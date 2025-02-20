@@ -79,6 +79,16 @@ class IncrementalReader final {
         std::filesystem::path const& path) noexcept
         -> expected<IncrementalReader, std::string>;
 
+    /// \brief Create IncrementalReader that uses the given string as the source
+    /// of data.
+    /// \param chunk_size       Size of chunk, must be greater than 0.
+    /// \param data             String to read.
+    /// \return Configured reader on success or an error message on failure.
+    [[nodiscard]] static auto FromMemory(
+        std::size_t chunk_size,
+        gsl::not_null<std::string const*> const& data) noexcept
+        -> expected<IncrementalReader, std::string>;
+
     [[nodiscard]] auto GetContentSize() const noexcept -> std::size_t {
         return content_size_;
     }
@@ -100,7 +110,8 @@ class IncrementalReader final {
 
   private:
     using FileSource = std::shared_ptr<std::FILE>;
-    using ContentSource = std::variant<FileSource>;
+    using MemorySource = gsl::not_null<std::string const*>;
+    using ContentSource = std::variant<FileSource, MemorySource>;
 
     std::size_t chunk_size_;
     std::size_t content_size_;
@@ -121,6 +132,10 @@ class IncrementalReader final {
 
     [[nodiscard]] auto ReadFromFile(FileSource const& file, std::size_t offset)
         const -> expected<std::string_view, std::string>;
+
+    [[nodiscard]] auto ReadFromMemory(MemorySource const& data,
+                                      std::size_t offset) const
+        -> expected<std::string_view, std::string>;
 
     /// \brief Obtain offset corresponding to the end of content. The content
     /// size is shifted by 1 character to properly handle empty sources.

@@ -72,12 +72,38 @@ auto IncrementalReader::FromFile(std::size_t chunk_size,
     }
 }
 
+auto IncrementalReader::FromMemory(
+    std::size_t chunk_size,
+    gsl::not_null<std::string const*> const& data) noexcept
+    -> expected<IncrementalReader, std::string> {
+    if (chunk_size == 0) {
+        return unexpected<std::string>{
+            "IncrementalReader: the chunk size cannot be 0"};
+    }
+
+    try {
+        // Reading from memory doesn't require a buffer. The resulting chunks
+        // point at the content_ directly.
+        return IncrementalReader{chunk_size,
+                                 /*content_size=*/data->size(),
+                                 data,
+                                 /*buffer=*/std::string{}};
+    } catch (...) {
+        return unexpected<std::string>{
+            "IncrementalReader: Got an unknown exception during creation from "
+            "a string"};
+    }
+}
+
 auto IncrementalReader::ReadChunk(std::size_t offset) const noexcept
     -> expected<std::string_view, std::string> {
     using Result = expected<std::string_view, std::string>;
     InPlaceVisitor const visitor{
         [this, offset](FileSource const& file) -> Result {
             return ReadFromFile(file, offset);
+        },
+        [this, offset](MemorySource const& data) -> Result {
+            return ReadFromMemory(data, offset);
         },
     };
 
@@ -117,6 +143,18 @@ auto IncrementalReader::ReadFromFile(FileSource const& file, std::size_t offset)
                         std::ferror(file.get()))};
     }
     return std::string_view{buffer_.data(), read};
+}
+
+auto IncrementalReader::ReadFromMemory(MemorySource const& data,
+                                       std::size_t offset) const
+    -> expected<std::string_view, std::string> {
+    if (data->empty()) {
+        // NOLINTNEXTLINE(bugprone-string-constructor,-warnings-as-errors)
+        return std::string_view{data->data(), 0};
+    }
+
+    std::size_t const read = std::min(chunk_size_, data->size() - offset);
+    return std::string_view{&data->at(offset), read};
 }
 
 IncrementalReader::Iterator::Iterator(
