@@ -30,14 +30,17 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
 TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     std::string instance_name{"remote-execution"};
     std::string content("test");
+
+    auto const storage_config = TestStorageConfig::Create();
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
@@ -51,18 +54,18 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
                                          remote_config->remote_address->port,
                                          &*auth_config,
                                          &retry_config);
-    BazelCasClient cas_client(remote_config->remote_address->host,
-                              remote_config->remote_address->port,
-                              &*auth_config,
-                              &retry_config,
-                              &capabilities);
+    BazelCasClient cas_client(
+        remote_config->remote_address->host,
+        remote_config->remote_address->port,
+        &*auth_config,
+        &retry_config,
+        &capabilities,
+        storage_config.Get().CreateTypedTmpDir("test_space"));
 
     SECTION("Valid digest and blob") {
-        // digest of "test"
-        HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
         // Valid blob
-        auto const blob =
-            ArtifactBlob::FromMemory(hash_function, ObjectType::File, content);
+        auto const blob = ArtifactBlob::FromMemory(
+            storage_config.Get().hash_function, ObjectType::File, content);
         REQUIRE(blob.has_value());
 
         // Search blob via digest

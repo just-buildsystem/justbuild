@@ -38,6 +38,7 @@
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "incremental_reader"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]

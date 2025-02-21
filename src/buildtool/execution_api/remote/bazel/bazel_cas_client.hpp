@@ -39,6 +39,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// Implements client side for serivce defined here:
 /// https://github.com/bazelbuild/remote-apis/blob/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0/build/bazel/remote/execution/v2/remote_execution.proto#L317
@@ -49,8 +50,8 @@ class BazelCasClient {
         Port port,
         gsl::not_null<Auth const*> const& auth,
         gsl::not_null<RetryConfig const*> const& retry_config,
-        gsl::not_null<BazelCapabilitiesClient const*> const&
-            capabilities) noexcept;
+        gsl::not_null<BazelCapabilitiesClient const*> const& capabilities,
+        TmpDir::Ptr temp_space) noexcept;
 
     /// \brief Find missing blobs
     /// \param[in] instance_name Name of the CAS instance
@@ -146,10 +147,15 @@ class BazelCasClient {
     [[nodiscard]] auto GetMaxBatchTransferSize(
         std::string const& instance_name) const noexcept -> std::size_t;
 
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr {
+        return temp_space_;
+    }
+
   private:
     std::unique_ptr<ByteStreamClient> stream_;
     RetryConfig const& retry_config_;
     BazelCapabilitiesClient const& capabilities_;
+    TmpDir::Ptr temp_space_;
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 

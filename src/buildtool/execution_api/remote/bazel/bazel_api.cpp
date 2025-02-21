@@ -151,7 +151,8 @@ BazelApi::BazelApi(std::string const& instance_name,
                                               auth,
                                               retry_config,
                                               exec_config,
-                                              hash_function);
+                                              hash_function,
+                                              /*temp_space=*/nullptr);
 }
 
 // implement move constructor in cpp, where all members are complete types

@@ -35,6 +35,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief Contains all network clients and is responsible for all network IO.
 class BazelNetwork {
@@ -45,7 +46,8 @@ class BazelNetwork {
                           gsl::not_null<Auth const*> const& auth,
                           gsl::not_null<RetryConfig const*> const& retry_config,
                           ExecutionConfiguration const& exec_config,
-                          HashFunction hash_function) noexcept;
+                          HashFunction hash_function,
+                          TmpDir::Ptr temp_space) noexcept;
 
     /// \brief Check if digest exists in CAS
     /// \param[in]  digest  The digest to look up
@@ -84,6 +86,10 @@ class BazelNetwork {
     [[nodiscard]] auto CreateReader() const noexcept -> BazelNetworkReader;
     [[nodiscard]] auto GetHashFunction() const noexcept -> HashFunction {
         return hash_function_;
+    }
+
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr {
+        return cas_->GetTempSpace();
     }
 
     [[nodiscard]] auto GetCachedActionResult(

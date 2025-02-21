@@ -29,7 +29,8 @@ BazelNetwork::BazelNetwork(
     gsl::not_null<Auth const*> const& auth,
     gsl::not_null<RetryConfig const*> const& retry_config,
     ExecutionConfiguration const& exec_config,
-    HashFunction hash_function) noexcept
+    HashFunction hash_function,
+    TmpDir::Ptr temp_space) noexcept
     : instance_name_{std::move(instance_name)},
       capabilities_{std::make_unique<BazelCapabilitiesClient>(host,
                                                               port,
@@ -39,7 +40,8 @@ BazelNetwork::BazelNetwork(
                                             port,
                                             auth,
                                             retry_config,
-                                            capabilities_.get())},
+                                            capabilities_.get(),
+                                            std::move(temp_space))},
       ac_{std::make_unique<BazelAcClient>(host, port, auth, retry_config)},
       exec_{std::make_unique<BazelExecutionClient>(host,
                                                    port,

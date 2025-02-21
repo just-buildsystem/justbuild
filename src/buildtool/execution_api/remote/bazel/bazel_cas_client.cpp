@@ -220,10 +220,12 @@ BazelCasClient::BazelCasClient(
     Port port,
     gsl::not_null<Auth const*> const& auth,
     gsl::not_null<RetryConfig const*> const& retry_config,
-    gsl::not_null<BazelCapabilitiesClient const*> const& capabilities) noexcept
+    gsl::not_null<BazelCapabilitiesClient const*> const& capabilities,
+    TmpDir::Ptr temp_space) noexcept
     : stream_{std::make_unique<ByteStreamClient>(server, port, auth)},
       retry_config_{*retry_config},
-      capabilities_{*capabilities} {
+      capabilities_{*capabilities},
+      temp_space_{std::move(temp_space)} {
     stub_ = bazel_re::ContentAddressableStorage::NewStub(
         CreateChannelWithCredentials(server, port, auth));
 }

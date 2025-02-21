@@ -121,8 +121,8 @@
                               remote_config->remote_address->port,
                               &*auth_config,
                               &retry_config,
-                              &capabilities);
-
+                              &capabilities,
+                              /*temp_space=*/nullptr);
     if (cas_client.BatchUpdateBlobs(instance_name, blobs) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(
             ArtifactDigestFactory::ToBazel(action_blob->GetDigest()));
