@@ -32,6 +32,7 @@
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "serve"]
   , "private-deps":

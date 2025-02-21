@@ -23,6 +23,7 @@
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "private-deps":
     [ ["@", "json", "", "json"]

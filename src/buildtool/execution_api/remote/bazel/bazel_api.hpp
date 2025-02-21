@@ -36,6 +36,7 @@
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 // forward declaration for actual implementations
 class BazelNetwork;
@@ -49,7 +50,8 @@ class BazelApi final : public IExecutionApi {
              gsl::not_null<Auth const*> const& auth,
              gsl::not_null<RetryConfig const*> const& retry_config,
              ExecutionConfiguration const& exec_config,
-             HashFunction hash_function) noexcept;
+             HashFunction hash_function,
+             TmpDir::Ptr temp_space) noexcept;
     BazelApi(BazelApi const&) = delete;
     BazelApi(BazelApi&& other) noexcept;
     auto operator=(BazelApi const&) -> BazelApi& = delete;
@@ -123,6 +125,8 @@ class BazelApi final : public IExecutionApi {
     [[nodiscard]] auto BlobSpliceSupport() const noexcept -> bool final;
 
     [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
+
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr final;
 
   private:
     std::shared_ptr<BazelNetwork> network_;

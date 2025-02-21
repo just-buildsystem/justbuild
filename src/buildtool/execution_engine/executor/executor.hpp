@@ -72,6 +72,7 @@
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path_rebase.hpp"
 #include "src/utils/cpp/prefix.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
@@ -133,8 +134,10 @@ class ExecutorImpl {
         }
 
         // get the alternative endpoint
-        auto alternative_api = GetAlternativeEndpoint(
-            merged_properties, remote_context, api.GetHashType());
+        auto alternative_api = GetAlternativeEndpoint(merged_properties,
+                                                      remote_context,
+                                                      api.GetHashType(),
+                                                      api.GetTempSpace());
         if (alternative_api) {
             if (not api.ParallelRetrieveToCas(
                     std::vector<Artifact::ObjectInfo>{Artifact::ObjectInfo{
@@ -758,7 +761,8 @@ class ExecutorImpl {
     [[nodiscard]] static auto GetAlternativeEndpoint(
         const ExecutionProperties& properties,
         const gsl::not_null<RemoteContext const*>& remote_context,
-        HashFunction::Type hash_type) -> std::unique_ptr<BazelApi> {
+        HashFunction::Type hash_type,
+        TmpDir::Ptr temp_space) -> std::unique_ptr<BazelApi> {
         for (auto const& [pred, endpoint] :
              remote_context->exec_config->dispatch) {
             bool match = true;
@@ -781,7 +785,8 @@ class ExecutorImpl {
                     remote_context->auth,
                     remote_context->retry_config,
                     config,
-                    HashFunction{hash_type});
+                    HashFunction{hash_type},
+                    std::move(temp_space));
             }
         }
         return nullptr;

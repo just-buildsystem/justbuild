@@ -33,6 +33,7 @@
 #include "src/buildtool/execution_api/git/git_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 class LocalApi final : public IExecutionApi {
   public:
@@ -104,6 +105,8 @@ class LocalApi final : public IExecutionApi {
     }
 
     [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
+
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr final;
 
   private:
     LocalContext const& local_context_;

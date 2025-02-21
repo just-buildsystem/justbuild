@@ -152,3 +152,7 @@ auto MRLocalApi::GetHashType() const noexcept -> HashFunction::Type {
     return compat_local_api_ == nullptr ? native_local_api_->GetHashType()
                                         : compat_local_api_->GetHashType();
 }
+
+auto MRLocalApi::GetTempSpace() const noexcept -> TmpDir::Ptr {
+    return native_local_api_->GetTempSpace();
+}

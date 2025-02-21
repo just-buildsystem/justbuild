@@ -144,7 +144,8 @@ BazelApi::BazelApi(std::string const& instance_name,
                    gsl::not_null<Auth const*> const& auth,
                    gsl::not_null<RetryConfig const*> const& retry_config,
                    ExecutionConfiguration const& exec_config,
-                   HashFunction hash_function) noexcept {
+                   HashFunction hash_function,
+                   TmpDir::Ptr temp_space) noexcept {
     network_ = std::make_shared<BazelNetwork>(instance_name,
                                               host,
                                               port,
@@ -152,7 +153,7 @@ BazelApi::BazelApi(std::string const& instance_name,
                                               retry_config,
                                               exec_config,
                                               hash_function,
-                                              /*temp_space=*/nullptr);
+                                              std::move(temp_space));
 }
 
 // implement move constructor in cpp, where all members are complete types
@@ -604,4 +605,8 @@ auto BazelApi::CreateAction(
 [[nodiscard]] auto BazelApi::GetHashType() const noexcept
     -> HashFunction::Type {
     return network_->GetHashFunction().GetType();
+}
+
+[[nodiscard]] auto BazelApi::GetTempSpace() const noexcept -> TmpDir::Ptr {
+    return network_->GetTempSpace();
 }

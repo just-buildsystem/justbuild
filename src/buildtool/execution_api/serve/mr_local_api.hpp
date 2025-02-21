@@ -31,6 +31,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief Multi-repo-specific implementation of the abstract Execution API.
 /// Handles interaction between a native storage and a remote, irrespective of
@@ -132,6 +133,8 @@ class MRLocalApi final : public IExecutionApi {
         -> std::unordered_set<ArtifactDigest> final;
 
     [[nodiscard]] auto GetHashType() const noexcept -> HashFunction::Type final;
+
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr final;
 
   private:
     // retain local context references to have direct access to storages

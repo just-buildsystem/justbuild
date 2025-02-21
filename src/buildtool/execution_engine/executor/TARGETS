@@ -38,6 +38,7 @@
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path_rebase"]
     , ["src/utils/cpp", "prefix"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "execution_engine", "executor"]
   }

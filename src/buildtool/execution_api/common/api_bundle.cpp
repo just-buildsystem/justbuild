@@ -43,7 +43,8 @@ auto ApiBundle::Create(
             remote_context->auth,
             remote_context->retry_config,
             config,
-            local_context->storage_config->hash_function);
+            local_context->storage_config->hash_function,
+            local_api->GetTempSpace());
     }
     return ApiBundle{.local = std::move(local_api),
                      .remote = std::move(remote_api)};
@@ -63,7 +64,8 @@ auto ApiBundle::MakeRemote(
                                           authentication,
                                           retry_config,
                                           config,
-                                          HashFunction{local->GetHashType()});
+                                          HashFunction{local->GetHashType()},
+                                          local->GetTempSpace());
     }
     return local;
 }

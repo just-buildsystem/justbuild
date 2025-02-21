@@ -57,9 +57,12 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 #include "test/utils/executor/test_api_bundle.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 /// \brief Mockup API test config.
 struct TestApiConfig {
@@ -190,8 +193,11 @@ class TestAction : public IExecutionAction {
 class TestApi : public IExecutionApi {
   public:
     explicit TestApi(TestApiConfig config,
-                     HashFunction::Type hash_type) noexcept
-        : config_{std::move(config)}, hash_type_{hash_type} {}
+                     HashFunction::Type hash_type,
+                     TmpDir::Ptr temp_space) noexcept
+        : config_{std::move(config)},
+          hash_type_{hash_type},
+          temp_space_{std::move(temp_space)} {}
 
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& /*unused*/,
@@ -284,9 +290,14 @@ class TestApi : public IExecutionApi {
         return hash_type_;
     }
 
+    [[nodiscard]] auto GetTempSpace() const noexcept -> TmpDir::Ptr final {
+        return temp_space_;
+    }
+
   private:
     TestApiConfig config_{};
     HashFunction::Type hash_type_;
+    TmpDir::Ptr temp_space_;
 };
 
 [[nodiscard]] auto SetupConfig(std::filesystem::path const& ws)
@@ -334,12 +345,13 @@ class TestApi : public IExecutionApi {
 }
 
 TEST_CASE("Executor: Process artifact", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
     std::filesystem::path workspace_path{
         "test/buildtool/execution_engine/executor"};
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    HashFunction const hash_function = storage_config.Get().hash_function;
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
@@ -356,7 +368,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -375,7 +390,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if uploading local artifact failed") {
         config.artifacts[NamedDigest("local.cpp").hash()].uploads = false;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -394,7 +412,10 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
     SECTION("Processing fails if known artifact is not available") {
         config.artifacts[NamedDigest("known.cpp").hash()].available = false;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -412,13 +433,14 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
 }
 
 TEST_CASE("Executor: Process action", "[executor]") {
+    auto const storage_config = TestStorageConfig::Create();
     std::filesystem::path workspace_path{
         "test/buildtool/execution_engine/executor"};
 
     DependencyGraph g;
     auto [config, repo_config] = CreateTest(&g, workspace_path);
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    HashFunction const hash_function = storage_config.Get().hash_function;
 
     auto const local_cpp_id =
         ArtifactDescription::CreateLocal("local.cpp", "").Id();
@@ -442,7 +464,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                        .exec_config = &remote_config};
 
     SECTION("Processing succeeds for valid config") {
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -464,7 +489,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if result was is not cached") {
         config.response.cached = false;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -486,7 +514,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing succeeds even if output is not available in CAS") {
         config.artifacts[NamedDigest("output2.exe").hash()].available = false;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -511,7 +542,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if execution failed") {
         config.execution.failed = true;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -533,7 +567,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if exit code is non-zero") {
         config.response.exit_code = 1;
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);
@@ -558,7 +595,10 @@ TEST_CASE("Executor: Process action", "[executor]") {
     SECTION("Processing fails if any output is missing") {
         config.execution.outputs = {"output1.exe" /*, "output2.exe"*/};
 
-        auto api = std::make_shared<TestApi>(config, hash_function.GetType());
+        auto api = std::make_shared<TestApi>(
+            config,
+            hash_function.GetType(),
+            storage_config.Get().CreateTypedTmpDir("temp_space"));
         Statistics stats{};
         Progress progress{};
         auto const apis = CreateTestApiBundle(api);

@@ -85,6 +85,7 @@
     , ["src/buildtool/execution_api/bazel_msg", "execution_config"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_engine/dag", "dag"]
+    , ["src/utils/cpp", "tmp_dir"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "remote"]
   , "private-deps":

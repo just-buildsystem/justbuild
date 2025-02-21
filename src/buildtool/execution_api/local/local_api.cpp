@@ -333,3 +333,7 @@ auto LocalApi::SpliceBlob(ArtifactDigest const& blob_digest,
 auto LocalApi::GetHashType() const noexcept -> HashFunction::Type {
     return local_context_.storage_config->hash_function.GetType();
 }
+
+auto LocalApi::GetTempSpace() const noexcept -> TmpDir::Ptr {
+    return local_context_.storage_config->CreateTypedTmpDir("api_space");
+}

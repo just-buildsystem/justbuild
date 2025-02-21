@@ -426,7 +426,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                                                 &*auth_config,
                                                 &*retry_config,
                                                 config,
-                                                hash_fct);
+                                                hash_fct,
+                                                mr_local_api->GetTempSpace());
     }
     bool const has_remote_api = remote_api != nullptr;
 

@@ -21,13 +21,13 @@
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/execution_config.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/buildtool/execution_engine/executor/executor_api.test.hpp"
-#include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
@@ -44,16 +44,18 @@ TEST_CASE("Executor<BazelApi>: Upload blob", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    auto storage_config = TestStorageConfig::Create();
 
     TestBlobUpload(&repo_config, [&] {
-        return std::make_shared<BazelApi>("remote-execution",
-                                          remote_config->remote_address->host,
-                                          remote_config->remote_address->port,
-                                          &*auth_config,
-                                          &retry_config,
-                                          config,
-                                          hash_function);
+        return std::make_shared<BazelApi>(
+            "remote-execution",
+            remote_config->remote_address->host,
+            remote_config->remote_address->port,
+            &*auth_config,
+            &retry_config,
+            config,
+            storage_config.Get().hash_function,
+            storage_config.Get().CreateTypedTmpDir("test_space"));
     });
 }
 
@@ -73,7 +75,7 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    auto storage_config = TestStorageConfig::Create();
 
     TestHelloWorldCompilation(
         &repo_config,
@@ -87,7 +89,8 @@ TEST_CASE("Executor<BazelApi>: Compile hello world", "[executor]") {
                 &*auth_config,
                 &retry_config,
                 config,
-                hash_function);
+                storage_config.Get().hash_function,
+                storage_config.Get().CreateTypedTmpDir("test_space"));
         },
         &*auth_config,
         false /* not hermetic */);
@@ -109,7 +112,7 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    auto storage_config = TestStorageConfig::Create();
 
     TestGreeterCompilation(
         &repo_config,
@@ -123,7 +126,8 @@ TEST_CASE("Executor<BazelApi>: Compile greeter", "[executor]") {
                 &*auth_config,
                 &retry_config,
                 config,
-                hash_function);
+                storage_config.Get().hash_function,
+                storage_config.Get().CreateTypedTmpDir("test_space"));
         },
         &*auth_config,
         false /* not hermetic */);
@@ -145,7 +149,7 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    auto storage_config = TestStorageConfig::Create();
 
     TestUploadAndDownloadTrees(
         &repo_config,
@@ -159,7 +163,8 @@ TEST_CASE("Executor<BazelApi>: Upload and download trees", "[executor]") {
                 &*auth_config,
                 &retry_config,
                 config,
-                hash_function);
+                storage_config.Get().hash_function,
+                storage_config.Get().CreateTypedTmpDir("test_space"));
         },
         &*auth_config,
         false /* not hermetic */);
@@ -181,7 +186,7 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
 
     RetryConfig retry_config{};  // default retry config
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    auto storage_config = TestStorageConfig::Create();
 
     TestRetrieveOutputDirectories(
         &repo_config,
@@ -195,7 +200,8 @@ TEST_CASE("Executor<BazelApi>: Retrieve output directories", "[executor]") {
                 &*auth_config,
                 &retry_config,
                 config,
-                hash_function);
+                storage_config.Get().hash_function,
+                storage_config.Get().CreateTypedTmpDir("test_space"));
         },
         &*auth_config,
         false /* not hermetic */);

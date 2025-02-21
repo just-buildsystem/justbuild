@@ -30,6 +30,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// \brief Abstract remote execution API
 /// Can be used to create actions.
@@ -156,6 +157,8 @@ class IExecutionApi {
 
     [[nodiscard]] virtual auto GetHashType() const noexcept
         -> HashFunction::Type = 0;
+
+    [[nodiscard]] virtual auto GetTempSpace() const noexcept -> TmpDir::Ptr = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_EXECUTION_APIHPP
