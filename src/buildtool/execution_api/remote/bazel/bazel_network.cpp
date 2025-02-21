@@ -90,7 +90,7 @@ auto BazelNetwork::DoUploadBlobs(
         // First upload all blobs that must use bytestream api because of their
         // size:
         for (auto it = blobs.begin(); it != blobs.end();) {
-            if (it->data->size() <= MessageLimits::kMaxGrpcLength) {
+            if (it->GetContentSize() <= MessageLimits::kMaxGrpcLength) {
                 ++it;
                 continue;
             }
@@ -114,7 +114,7 @@ auto BazelNetwork::UploadBlobs(std::unordered_set<ArtifactBlob>&& blobs,
                                bool skip_find_missing) noexcept -> bool {
     if (not skip_find_missing) {
         auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
-            &blobs, [](ArtifactBlob const& blob) { return blob.digest; });
+            &blobs, [](ArtifactBlob const& blob) { return blob.GetDigest(); });
         if (back_map == nullptr) {
             return false;
         }

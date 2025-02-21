@@ -43,7 +43,8 @@ auto BlobTree::FromDirectoryTree(DirectoryTreePtr const& tree,
                 if (not blob_tree) {
                     return std::nullopt;
                 }
-                auto raw_id = FromHexString((*blob_tree)->Blob().digest.hash());
+                auto raw_id =
+                    FromHexString((*blob_tree)->blob_.GetDigest().hash());
                 if (not raw_id) {
                     return std::nullopt;
                 }

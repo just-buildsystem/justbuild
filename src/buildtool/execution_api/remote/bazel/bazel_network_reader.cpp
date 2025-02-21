@@ -67,7 +67,7 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
 
     if (auto blob = ReadSingleBlob(digest)) {
         return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-            *blob->data);
+            *blob->ReadContent());
     }
     Logger::Log(
         LogLevel::Debug, "Directory {} not found in CAS", digest.hash());
@@ -94,7 +94,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
             }
             bool valid = std::all_of(
                 blobs.begin(), blobs.end(), [](ArtifactBlob const& blob) {
-                    return PathIsNonUpwards(*blob.data);
+                    return PathIsNonUpwards(*blob.ReadContent());
                 });
             if (not valid) {
                 return false;
@@ -104,7 +104,7 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
         return true;
     };
 
-    std::string const& content = *read_blob->data;
+    std::string const content = *read_blob->ReadContent();
     return GitRepo::ReadTreeData(content,
                                  hash_function_.HashTreeData(content).Bytes(),
                                  check_symlinks,
@@ -122,7 +122,7 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
     }
 
     try {
-        return std::invoke(dumper, *read_blob->data);
+        return std::invoke(dumper, *read_blob->ReadContent());
     } catch (...) {
         return false;
     }
@@ -193,7 +193,8 @@ auto BazelNetworkReader::BatchReadBlobs(
 
     // Map digests to blobs for further lookup:
     auto const back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
-        &batched_blobs, [](ArtifactBlob const& blob) { return blob.digest; });
+        &batched_blobs,
+        [](ArtifactBlob const& blob) { return blob.GetDigest(); });
 
     if (back_map == nullptr) {
         return {};
@@ -235,12 +236,12 @@ auto BazelNetworkReader::BatchReadBlobs(
 
 auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
     -> bool {
-    auto rehashed = blob.digest.IsTree()
+    auto rehashed = blob.GetDigest().IsTree()
                         ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-                              hash_function_, *blob.data)
+                              hash_function_, *blob.ReadContent())
                         : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                              hash_function_, *blob.data);
-    return rehashed == blob.digest;
+                              hash_function_, *blob.ReadContent());
+    return rehashed == blob.GetDigest();
 }
 
 auto BazelNetworkReader::GetMaxBatchTransferSize() const noexcept

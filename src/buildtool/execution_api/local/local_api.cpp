@@ -237,9 +237,10 @@ auto LocalApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
         blobs.end(),
         [&cas = local_context_.storage->CAS()](ArtifactBlob const& blob) {
             auto const cas_digest =
-                blob.digest.IsTree() ? cas.StoreTree(*blob.data)
-                                     : cas.StoreBlob(*blob.data, blob.is_exec);
-            return cas_digest and *cas_digest == blob.digest;
+                blob.GetDigest().IsTree()
+                    ? cas.StoreTree(*blob.ReadContent())
+                    : cas.StoreBlob(*blob.ReadContent(), blob.IsExecutable());
+            return cas_digest and *cas_digest == blob.GetDigest();
         });
 }
 

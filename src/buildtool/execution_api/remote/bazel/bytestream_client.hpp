@@ -137,14 +137,15 @@ class ByteStreamClient {
             auto writer = stub_->Write(&ctx, &response);
 
             auto const resource_name = ByteStreamUtils::WriteRequest::ToString(
-                instance_name, uuid, blob.digest);
+                instance_name, uuid, blob.GetDigest());
 
             google::bytestream::WriteRequest request{};
             request.set_resource_name(resource_name);
             request.mutable_data()->reserve(ByteStreamUtils::kChunkSize);
 
+            auto const data_to_read = blob.ReadContent();
             auto const to_read = ::IncrementalReader::FromMemory(
-                ByteStreamUtils::kChunkSize, &*blob.data);
+                ByteStreamUtils::kChunkSize, data_to_read.get());
             if (not to_read.has_value()) {
                 logger_.Emit(
                     LogLevel::Error,
@@ -169,7 +170,7 @@ class ByteStreamClient {
 
                 request.set_write_offset(static_cast<int>(pos));
                 request.set_finish_write(pos + chunk->size() >=
-                                         blob.data->size());
+                                         blob.GetContentSize());
                 if (writer->Write(request)) {
                     pos += chunk->size();
                     ++it;
@@ -206,12 +207,12 @@ class ByteStreamClient {
                 return false;
             }
             if (gsl::narrow<std::size_t>(response.committed_size()) !=
-                blob.data->size()) {
+                blob.GetContentSize()) {
                 logger_.Emit(
                     LogLevel::Warning,
                     "Commited size {} is different from the original one {}.",
                     response.committed_size(),
-                    blob.data->size());
+                    blob.GetContentSize());
                 return false;
             }
             return true;

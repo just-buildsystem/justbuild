@@ -38,7 +38,7 @@ class BlobTree {
 
     [[nodiscard]] auto Blob() const noexcept -> ArtifactBlob { return blob_; }
     [[nodiscard]] auto IsTree() const noexcept -> bool {
-        return blob_.digest.IsTree();
+        return blob_.GetDigest().IsTree();
     }
 
     /// \brief Create a `BlobTree` from a `DirectoryTree`.

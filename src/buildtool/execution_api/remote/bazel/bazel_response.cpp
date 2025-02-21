@@ -67,7 +67,7 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     if (digest.has_value()) {
         auto reader = network_->CreateReader();
         if (auto blob = reader.ReadSingleBlob(*digest)) {
-            return *blob->data;
+            return *blob->ReadContent();
         }
     }
     Logger::Log(LogLevel::Warning,
@@ -240,11 +240,11 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         for (auto const& tree_blob : tree_blobs) {
             try {
                 auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
-                    *tree_blob.data);
+                    *tree_blob.ReadContent());
                 if (not tree) {
                     return fmt::format(
                         "BazelResponse: failed to create Tree for {}",
-                        tree_blob.digest.hash());
+                        tree_blob.GetDigest().hash());
                 }
 
                 // The server does not store the Directory messages it just
@@ -266,7 +266,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
                 return fmt::format(
                     "BazelResponse: unexpected failure gathering digest for "
                     "{}:\n{}",
-                    tree_blob.digest.hash(),
+                    tree_blob.GetDigest().hash(),
                     ex.what());
             }
             ++pos;
@@ -291,7 +291,7 @@ auto BazelResponse::UploadTreeMessageDirectories(
     if (not rootdir_blob) {
         return unexpected{std::move(rootdir_blob).error()};
     }
-    auto const root_digest = rootdir_blob->digest;
+    auto const root_digest = rootdir_blob->GetDigest();
     // store or upload rootdir blob, taking maximum transfer size into account
     if (not UpdateContainerAndUpload(&dir_blobs,
                                      *std::move(rootdir_blob),
@@ -307,7 +307,7 @@ auto BazelResponse::UploadTreeMessageDirectories(
         if (not blob) {
             return unexpected{std::move(blob).error()};
         }
-        auto const blob_digest = blob->digest;
+        auto const blob_digest = blob->GetDigest();
         if (not UpdateContainerAndUpload(&dir_blobs,
                                          *std::move(blob),
                                          /*exception_is_fatal=*/false,

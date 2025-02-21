@@ -78,7 +78,7 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
         // Read blob
         auto blobs = cas_client.BatchReadBlobs(instance_name, {digest});
         REQUIRE(blobs.size() == 1);
-        CHECK(blobs.begin()->digest == digest);
-        CHECK(*blobs.begin()->data == content);
+        CHECK(blobs.begin()->GetDigest() == digest);
+        CHECK(*blobs.begin()->ReadContent() == content);
     }
 }

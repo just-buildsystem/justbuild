@@ -61,7 +61,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
         auto const downloaded_blob = stream.Read(instance_name, digest);
         REQUIRE(downloaded_blob.has_value());
-        CHECK(*downloaded_blob->data == content);
+        CHECK(*downloaded_blob->ReadContent() == content);
     }
 
     SECTION("Small blob with wrong digest") {
@@ -97,7 +97,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         SECTION("Download large blob") {
             auto const downloaded_blob = stream.Read(instance_name, digest);
             REQUIRE(downloaded_blob.has_value());
-            CHECK(*downloaded_blob->data == content);
+            CHECK(*downloaded_blob->ReadContent() == content);
         }
 
         SECTION("Incrementally download large blob") {

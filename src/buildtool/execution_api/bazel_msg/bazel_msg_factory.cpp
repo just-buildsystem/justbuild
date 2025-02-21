@@ -347,7 +347,7 @@ auto BazelMsgFactory::CreateDirectoryDigestFromTree(
         return std::nullopt;
     }
 
-    auto digest = bundle->blob.digest;
+    auto digest = bundle->blob.GetDigest();
     try {
         if (not process_blob(std::move(bundle->blob))) {
             return std::nullopt;
@@ -921,12 +921,12 @@ auto BazelMsgFactory::CreateActionDigestFromCommandLine(
         return std::nullopt;
     }
 
-    auto action = CreateActionBundle(cmd->digest, request);
+    auto action = CreateActionBundle(cmd->GetDigest(), request);
     if (not action) {
         return std::nullopt;
     }
 
-    auto result = action->digest;
+    auto result = action->GetDigest();
     if (request.store_blob) {
         std::invoke(*request.store_blob, *std::move(cmd));
         std::invoke(*request.store_blob, *std::move(action));

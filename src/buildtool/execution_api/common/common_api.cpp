@@ -106,7 +106,7 @@ auto CommonUploadBlobTree(BlobTreePtr const& blob_tree,
     {
         auto back_map = BackMap<ArtifactDigest, BlobTreePtr>::Make(
             &*blob_tree,
-            [](BlobTreePtr const& node) { return node->Blob().digest; });
+            [](BlobTreePtr const& node) { return node->Blob().GetDigest(); });
         if (back_map == nullptr) {
             Logger::Log(LogLevel::Error,
                         "Failed to retrieve the missing tree blobs for upload");
@@ -188,7 +188,7 @@ auto CommonUploadTreeNative(IExecutionApi const& api,
     auto tree_blob = (*blob_tree)->Blob();
     // Upload blob tree if tree is not available at the remote side (content
     // first).
-    if (not api.IsAvailable(tree_blob.digest)) {
+    if (not api.IsAvailable(tree_blob.GetDigest())) {
         if (not CommonUploadBlobTree(*blob_tree, api)) {
             Logger::Log(LogLevel::Debug,
                         "failed to upload blob tree for build root.");
@@ -201,7 +201,7 @@ auto CommonUploadTreeNative(IExecutionApi const& api,
             return std::nullopt;
         }
     }
-    return tree_blob.digest;
+    return tree_blob.GetDigest();
 }
 
 auto UpdateContainerAndUpload(
@@ -214,7 +214,7 @@ auto UpdateContainerAndUpload(
     // that we never store unnecessarily more data in the container than we need
     // per remote transfer.
     try {
-        if (blob.data->size() > MessageLimits::kMaxGrpcLength) {
+        if (blob.GetContentSize() > MessageLimits::kMaxGrpcLength) {
             // large blobs use individual stream upload
             if (not uploader(
                     std::unordered_set<ArtifactBlob>{{std::move(blob)}})) {
@@ -225,10 +225,10 @@ auto UpdateContainerAndUpload(
             if (not container->contains(blob)) {
                 std::size_t content_size = 0;
                 for (auto const& blob : *container) {
-                    content_size += blob.data->size();
+                    content_size += blob.GetContentSize();
                 }
 
-                if (content_size + blob.data->size() >
+                if (content_size + blob.GetContentSize() >
                     MessageLimits::kMaxGrpcLength) {
                     // swap away from original container to allow move during
                     // upload

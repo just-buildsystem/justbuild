@@ -81,24 +81,24 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     CHECK(link_blob);
 
     // both files are the same and should result in identical blobs
-    CHECK(*file1_blob->data == *file2_blob->data);
-    CHECK(file1_blob->digest.hash() == file2_blob->digest.hash());
-    CHECK(file1_blob->digest.size() == file2_blob->digest.size());
+    CHECK(*file1_blob->ReadContent() == *file2_blob->ReadContent());
+    CHECK(file1_blob->GetDigest().hash() == file2_blob->GetDigest().hash());
+    CHECK(file1_blob->GetDigest().size() == file2_blob->GetDigest().size());
 
     // create known artifacts
-    auto artifact1_opt =
-        ArtifactDescription::CreateKnown(file1_blob->digest, ObjectType::File)
-            .ToArtifact();
+    auto artifact1_opt = ArtifactDescription::CreateKnown(
+                             file1_blob->GetDigest(), ObjectType::File)
+                             .ToArtifact();
     auto artifact1 = DependencyGraph::ArtifactNode{std::move(artifact1_opt)};
 
-    auto artifact2_opt =
-        ArtifactDescription::CreateKnown(file2_blob->digest, ObjectType::File)
-            .ToArtifact();
+    auto artifact2_opt = ArtifactDescription::CreateKnown(
+                             file2_blob->GetDigest(), ObjectType::File)
+                             .ToArtifact();
     auto artifact2 = DependencyGraph::ArtifactNode{std::move(artifact2_opt)};
 
-    auto artifact3_opt =
-        ArtifactDescription::CreateKnown(link_blob->digest, ObjectType::Symlink)
-            .ToArtifact();
+    auto artifact3_opt = ArtifactDescription::CreateKnown(
+                             link_blob->GetDigest(), ObjectType::Symlink)
+                             .ToArtifact();
     auto artifact3 = DependencyGraph::ArtifactNode{std::move(artifact3_opt)};
 
     // create directory tree
@@ -111,9 +111,9 @@ TEST_CASE("Bazel internals: MessageFactory", "[execution_api]") {
     // a mapping between digests and content is needed; usually via a concrete
     // API one gets this content either locally or from the network
     std::unordered_map<ArtifactDigest, std::filesystem::path> fake_cas{
-        {file1_blob->digest, file1},
-        {file2_blob->digest, file2},
-        {link_blob->digest, link}};
+        {file1_blob->GetDigest(), file1},
+        {file2_blob->GetDigest(), file2},
+        {link_blob->GetDigest(), link}};
 
     // create blobs via tree
     std::unordered_set<ArtifactBlob> blobs{};

@@ -226,12 +226,12 @@ class TestApi : public IExecutionApi {
         return std::all_of(
             blobs.begin(), blobs.end(), [this](auto const& blob) {
                 // for local artifacts
-                auto it1 = config_.artifacts.find(*blob.data);
+                auto it1 = config_.artifacts.find(*blob.ReadContent());
                 if (it1 != config_.artifacts.end() and it1->second.uploads) {
                     return true;
                 }
                 // for known and action artifacts
-                auto it2 = config_.artifacts.find(blob.digest.hash());
+                auto it2 = config_.artifacts.find(blob.GetDigest().hash());
                 return it2 != config_.artifacts.end() and it2->second.uploads;
             });
     }

@@ -87,8 +87,11 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     // Read blobs in order
     auto reader = network.CreateReader();
-    std::vector<ArtifactDigest> to_read{
-        foo.digest, bar.digest, baz.digest, bar.digest, foo.digest};
+    std::vector<ArtifactDigest> to_read{foo.GetDigest(),
+                                        bar.GetDigest(),
+                                        baz.GetDigest(),
+                                        bar.GetDigest(),
+                                        foo.GetDigest()};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
@@ -96,11 +99,11 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 5);
-    CHECK(*blobs[0].data == content_foo);
-    CHECK(*blobs[1].data == content_bar);
-    CHECK(*blobs[2].data == content_baz);
-    CHECK(*blobs[3].data == content_bar);
-    CHECK(*blobs[4].data == content_foo);
+    CHECK(*blobs[0].ReadContent() == content_foo);
+    CHECK(*blobs[1].ReadContent() == content_bar);
+    CHECK(*blobs[2].ReadContent() == content_baz);
+    CHECK(*blobs[3].ReadContent() == content_bar);
+    CHECK(*blobs[4].ReadContent() == content_foo);
 }
 
 TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
@@ -149,7 +152,7 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     // Read blobs
     auto reader = network.CreateReader();
-    std::vector<ArtifactDigest> to_read{foo.digest, bar.digest};
+    std::vector<ArtifactDigest> to_read{foo.GetDigest(), bar.GetDigest()};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
@@ -157,6 +160,6 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 2);
-    CHECK(*blobs[0].data == content_foo);
-    CHECK(*blobs[1].data == content_bar);
+    CHECK(*blobs[0].ReadContent() == content_foo);
+    CHECK(*blobs[1].ReadContent() == content_bar);
 }

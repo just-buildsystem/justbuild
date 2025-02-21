@@ -46,7 +46,7 @@ namespace {
 
 [[nodiscard]] auto GetContentSize(ArtifactBlob const& blob) noexcept
     -> std::size_t {
-    return blob.data->size();
+    return blob.GetContentSize();
 }
 
 template <typename TRequest,
@@ -382,15 +382,15 @@ auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
     logger_.Emit(LogLevel::Trace, [&blob]() {
         std::ostringstream oss{};
         oss << "upload single blob" << std::endl;
-        oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
+        oss << fmt::format(" - {}", blob.GetDigest().hash()) << std::endl;
         return oss.str();
     });
 
     if (not stream_->Write(instance_name, blob)) {
         logger_.Emit(LogLevel::Error,
                      "Failed to write {}:{}",
-                     blob.digest.hash(),
-                     blob.digest.size());
+                     blob.GetDigest().hash(),
+                     blob.GetDigest().size());
         return false;
     }
     return true;
@@ -599,8 +599,9 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         request.set_instance_name(instance_name);
 
         auto& r = *request.add_requests();
-        (*r.mutable_digest()) = ArtifactDigestFactory::ToBazel(blob.digest);
-        r.set_data(*blob.data);
+        (*r.mutable_digest()) =
+            ArtifactDigestFactory::ToBazel(blob.GetDigest());
+        r.set_data(*blob.ReadContent());
         return request;
     };
 
@@ -623,7 +624,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                 logger_.Emit(
                     LogLevel::Warning,
                     "BatchUpdateBlobs: Failed to prepare request for {}",
-                    it->digest.hash());
+                    it->GetDigest().hash());
                 ++it;
                 continue;
             }
@@ -681,7 +682,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         std::ostringstream oss{};
         oss << "upload blobs" << std::endl;
         for (auto const& blob : blobs) {
-            oss << fmt::format(" - {}", blob.digest.hash()) << std::endl;
+            oss << fmt::format(" - {}", blob.GetDigest().hash()) << std::endl;
         }
         oss << "received blobs" << std::endl;
         for (auto const& digest : updated) {
@@ -701,7 +702,8 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         std::unordered_set<ArtifactBlob> missing_blobs;
         missing_blobs.reserve(missing);
         for (auto const& blob : blobs) {
-            auto bazel_digest = ArtifactDigestFactory::ToBazel(blob.digest);
+            auto bazel_digest =
+                ArtifactDigestFactory::ToBazel(blob.GetDigest());
             if (not updated.contains(bazel_digest)) {
                 missing_blobs.emplace(blob);
             }

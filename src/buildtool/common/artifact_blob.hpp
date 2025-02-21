@@ -24,22 +24,51 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
-struct ArtifactBlob final {
-    ArtifactBlob(ArtifactDigest digest,
-                 std::string mydata,
-                 bool is_exec) noexcept
-        : digest{std::move(digest)},
-          data{std::make_shared<std::string>(std::move(mydata))},
-          is_exec{is_exec} {}
+class ArtifactBlob final {
+  public:
+    explicit ArtifactBlob(ArtifactDigest digest,
+                          std::string content,
+                          bool is_exec) noexcept
+        : digest_{std::move(digest)},
+          content_{std::make_shared<std::string const>(std::move(content))},
+          is_executable_{is_exec} {}
 
     [[nodiscard]] auto operator==(ArtifactBlob const& other) const noexcept
         -> bool {
-        return digest == other.digest and is_exec == other.is_exec;
+        return digest_ == other.digest_ and
+               is_executable_ == other.is_executable_;
     }
 
-    ArtifactDigest digest;
-    std::shared_ptr<std::string> data;
-    bool is_exec = false;
+    /// \brief Obtain the digest of the content.
+    [[nodiscard]] auto GetDigest() const noexcept -> ArtifactDigest const& {
+        return digest_;
+    }
+
+    /// \brief Obtain the size of the content.
+    [[nodiscard]] auto GetContentSize() const noexcept -> std::size_t {
+        return content_->size();
+    }
+
+    /// \brief Read the content from source.
+    [[nodiscard]] auto ReadContent() const noexcept
+        -> std::shared_ptr<std::string const> {
+        return content_;
+    }
+
+    /// \brief Set executable permission.
+    void SetExecutable(bool is_executable) noexcept {
+        is_executable_ = is_executable;
+    }
+
+    /// \brief Obtain executable permission.
+    [[nodiscard]] auto IsExecutable() const noexcept -> bool {
+        return is_executable_;
+    }
+
+  private:
+    ArtifactDigest digest_;
+    std::shared_ptr<std::string const> content_;
+    bool is_executable_;
 };
 
 namespace std {
@@ -48,8 +77,8 @@ struct hash<ArtifactBlob> {
     [[nodiscard]] auto operator()(ArtifactBlob const& blob) const noexcept
         -> std::size_t {
         std::size_t seed{};
-        hash_combine(&seed, blob.digest);
-        hash_combine(&seed, blob.is_exec);
+        hash_combine(&seed, blob.GetDigest());
+        hash_combine(&seed, blob.IsExecutable());
         return seed;
     }
 };
