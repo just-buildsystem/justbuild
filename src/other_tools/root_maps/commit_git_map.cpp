@@ -974,14 +974,8 @@ void EnsureCommit(
 
                                 return;
                             }
-                            // just serve should have made the tree available in
-                            // the remote CAS, so log this attempt and revert to
-                            // network
-                            (*logger)(fmt::format("Tree {} marked as served, "
-                                                  "but not found on remote",
-                                                  root_tree_id),
-                                      /*fatal=*/false);
-
+                            // just serve did not make the tree available in
+                            // the remote CAS, so fall back to network
                             NetworkFetchAndSetPresentRoot(
                                 repo_info,
                                 repo_root,

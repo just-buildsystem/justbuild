@@ -199,9 +199,6 @@ void HandleAbsentForeignFile(ForeignFileInfo const& key,
                       /*fatal=*/true);
             return;
         }
-        (*logger)(
-            fmt::format("Failed to set up root via serve, continuing anyway"),
-            /*fatal=*/false);
     }
     else {
         (*logger)(fmt::format("Workspace root {} marked absent but no "
