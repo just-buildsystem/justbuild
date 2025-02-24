@@ -103,16 +103,6 @@ auto ParseArchiveContent(ExpressionPtr const& repo_desc,
         .origin = origin};
 }
 
-auto IsValidFileName(const std::string& s) -> bool {
-    if (s.find_first_of("/\0") != std::string::npos) {
-        return false;
-    }
-    if (s.empty() or s == "." or s == "..") {
-        return false;
-    }
-    return true;
-}
-
 auto ParseArchiveDescription(ExpressionPtr const& repo_desc,
                              std::string const& repo_type,
                              std::string const& origin,

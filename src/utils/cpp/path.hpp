@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_UTILS_CPP_PATH_HPP
 
 #include <filesystem>
+#include <string>
 
 [[nodiscard]] static inline auto ToNormalPath(
     std::filesystem::path const& p) noexcept -> std::filesystem::path {
@@ -56,6 +57,17 @@
     // check confined upwards condition; this call also handles the case when
     // applied_to is an absolute path
     return PathIsNonUpwards(applied_to.parent_path() / path);
+}
+
+/// \brief Predicate if a given string is a valid filename.
+[[nodiscard]] static inline auto IsValidFileName(const std::string& s) -> bool {
+    if (s.find_first_of("/\0") != std::string::npos) {
+        return false;
+    }
+    if (s.empty() or s == "." or s == "..") {
+        return false;
+    }
+    return true;
 }
 
 #endif  // INCLUDED_SRC_UTILS_CPP_PATH_HPP
