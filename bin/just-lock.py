@@ -70,12 +70,6 @@ GIT_NOBODY_ENV: Dict[str, str] = {
     "GIT_CONFIG_SYSTEM": "/dev/null",
 }
 
-SPECIAL_PRAGMA_TO_CAS_RESOLVE_MAP: Dict[str, str] = {
-    "ignore": "ignore",
-    "resolve-partially": "tree-upwards",
-    "resolve-completely": "tree-all"
-}
-
 
 class ObjectType(Enum):
     FILE = 1
@@ -2051,10 +2045,9 @@ def rewrite_cloned_repo(repos: Json, *, clone_to: str, target_repo: str,
     # Keep relevant pragmas from the workspace root repository
     pragma: Json = {}
     existing: Json = repos[ws_root_repo]["repository"].get("pragma", {})
-    if ws_root_desc["repository"]["type"] not in ["archive", "zip"]:
-        special = existing.get("special", None)
-        if special:
-            pragma["special"] = special
+    special = existing.get("special", None)
+    if special:
+        pragma["special"] = special
     to_git = existing.get("to_git", False)
     if to_git:
         pragma["to_git"] = True
@@ -2188,13 +2181,8 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         # Fetch the archive
         content = archive_fetch_with_parse(repository,
                                            fail_context=fail_context)
-        # Stage the content; first resolve special entries, if needed, then keep
-        # the relevant subdir, if given
-        special_pragma: Optional[str] = repository.get("pragma",
-                                                       {}).get("special", None)
-
-        if (special_pragma not in SPECIAL_PRAGMA_TO_CAS_RESOLVE_MAP.keys()
-                and subdir is None):
+        # Stage the content of the relevant subdir
+        if subdir is None:
             # Unpack directly to clone location
             unpack_archive(content,
                            archive_type=repo_type,
@@ -2203,43 +2191,12 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         else:
             # Unpack to a temporary dir
             workdir: str = create_tmp_dir(type="archive-unpack")
-            srcdir: str = os.path.join(workdir, "src")
             unpack_archive(content,
                            archive_type=repo_type,
-                           unpack_to=srcdir,
+                           unpack_to=workdir,
                            fail_context=fail_context)
-
-            move_from_dir: str = srcdir
-            if (special_pragma is not None and special_pragma
-                    in SPECIAL_PRAGMA_TO_CAS_RESOLVE_MAP.keys()):
-                # Resolve the tree according to the pragma
-                resolve_special_arg = SPECIAL_PRAGMA_TO_CAS_RESOLVE_MAP[
-                    special_pragma]
-                resolved_tree = run_cmd(
-                    g_LAUNCHER + [
-                        g_JUST, "add-to-cas", "--local-build-root", g_ROOT,
-                        "--resolve-special=%s" % resolve_special_arg, srcdir
-                    ],
-                    cwd=workdir,
-                    stdout=subprocess.PIPE,
-                    fail_context=fail_context)[0].decode('utf-8').strip()
-                # Stage the resolved tree
-                resolved_dir: str = os.path.join(workdir, "resolved")
-                subdir_args: List[str] = []
-                if subdir is not None:
-                    subdir_args = ["-P", subdir]
-                run_cmd(g_LAUNCHER + [
-                    g_JUST, "install-cas", "--local-build-root", g_ROOT,
-                    "%s::t" % resolved_tree, "-o", resolved_dir
-                ] + subdir_args,
-                        cwd=workdir,
-                        fail_context=fail_context)
-                move_from_dir = resolved_dir
-            else:
-                # Subdir is not None, so keep only that subdirectory
-                move_from_dir = os.path.join(move_from_dir, cast(str, subdir))
-
-            # Do the move into clone directory
+            # Keep relevant subdir
+            move_from_dir: str = os.path.join(workdir, subdir)
             os.makedirs(clone_to, exist_ok=True)
             for entry in os.listdir(move_from_dir):
                 # shutil.move uses os.rename if on same filesystem or
@@ -2250,7 +2207,6 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                 except Exception as ex:
                     fail(fail_context + "Moving file path %s failed with:\n%r" %
                          (os.path.join(move_from_dir, entry), ex))
-
             # Clean up tmp dir
             try_rmtree(workdir)
 

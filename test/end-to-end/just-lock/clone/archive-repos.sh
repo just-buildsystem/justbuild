@@ -57,7 +57,7 @@ cat > repos.in.json <<EOF
       , "content": "${ZIP_REPO_CONTENT}"
       , "fetch": "http://non-existent.example.org/zip_repo.zip"
       , "subdir": "root"
-      , "pragma": {"special": "resolve-partially"}
+      , "pragma": {"special": "resolve-completely"}
       }
     }
   , "tgz_repo":
@@ -118,7 +118,9 @@ grep "${CLONE_TO}/zip" repos.json
 grep "${CLONE_TO}/tgz" repos.json
 grep "${CLONE_TO}/foreign" repos.json
 grep "${CLONE_TO}/distdir" repos.json
-[ ! $(grep pragma repos.json) ]  # special pragmas should have been resolved
+# check special pragmas are kept
+grep resolve-completely repos.json
+grep ignore repos.json
 echo
 
 # Check setup with local clones:
@@ -127,24 +129,16 @@ echo
 echo
 
 # Check that the clones have the expected content
-"${JUST}" install-cas --local-build-root "${LBR_ARCHIVES}" \
-    "$(jq '."repositories"."zip_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"')::t" \
-    -P root -o "${INSTALL_ZIP}"
-diff -ruN "${INSTALL_ZIP}" "${CLONE_TO}/zip"
+[ $(jq '."repositories"."zip_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"') \
+    = $("${JUST}" add-to-cas --local-build-root "${LBR_CLONES}" --resolve-special=tree-all "${CLONE_TO}/zip") ]
 
-"${JUST}" install-cas --local-build-root "${LBR_ARCHIVES}" \
-    "$(jq '."repositories"."tgz_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"')::t" \
-    -P root/baz -o "${INSTALL_TGZ}"
-diff -ruN "${INSTALL_TGZ}" "${CLONE_TO}/tgz"
+[ $(jq '."repositories"."tgz_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"') \
+    = $("${JUST}" add-to-cas --local-build-root "${LBR_CLONES}" --resolve-special=ignore "${CLONE_TO}/tgz") ]
 
-"${JUST}" install-cas --local-build-root "${LBR_ARCHIVES}" \
-    "$(jq '."repositories"."foreign_file"."workspace_root" | .[1]' "${CONF}" | tr -d '"')::t" \
-    -o "${INSTALL_FOREIGN}"
-diff -ruN "${INSTALL_FOREIGN}" "${CLONE_TO}/foreign"
+[ $(jq '."repositories"."foreign_file"."workspace_root" | .[1]' "${CONF}" | tr -d '"') \
+    = $("${JUST}" add-to-cas --local-build-root "${LBR_CLONES}" "${CLONE_TO}/foreign") ]
 
-"${JUST}" install-cas --local-build-root "${LBR_ARCHIVES}" \
-    "$(jq '."repositories"."distdir_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"')::t" \
-    -o "${INSTALL_DISTDIR}"
-diff -ruN "${INSTALL_DISTDIR}" "${CLONE_TO}/distdir"
+[ $(jq '."repositories"."distdir_repo"."workspace_root" | .[1]' "${CONF}" | tr -d '"') \
+    = $("${JUST}" add-to-cas --local-build-root "${LBR_CLONES}" "${CLONE_TO}/distdir") ]
 
 echo "OK"
