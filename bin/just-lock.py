@@ -1210,14 +1210,14 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"commit\" to be a string, but found:\n%r" %
              (json.dumps(commit, indent=2), ))
 
-    mirrors: Optional[List[str]] = imports_entry.get("mirrors", [])
-    if mirrors is not None and not isinstance(mirrors, list):
+    mirrors: List[str] = imports_entry.get("mirrors", [])
+    if not isinstance(mirrors, list):
         fail(fail_context +
              "Expected field \"mirrors\" to be a list, but found:\n%r" %
              (json.dumps(mirrors, indent=2), ))
 
-    inherit_env: Optional[List[str]] = imports_entry.get("inherit env", [])
-    if inherit_env is not None and not isinstance(inherit_env, list):
+    inherit_env: List[str] = imports_entry.get("inherit env", [])
+    if not isinstance(inherit_env, list):
         fail(fail_context +
              "Expected field \"inherit env\" to be a list, but found:\n%r" %
              (json.dumps(inherit_env, indent=2), ))
@@ -1468,8 +1468,8 @@ def archive_fetch_with_parse(repository: Json, *, fail_context: str) -> str:
         fail(fail_context +
              "Expected field \"content\" to be a string, but found:\n%r" %
              (json.dumps(content, indent=2), ))
-    mirrors: Optional[List[str]] = repository.get("mirrors", [])
-    if mirrors is not None and not isinstance(mirrors, list):
+    mirrors: List[str] = repository.get("mirrors", [])
+    if not isinstance(mirrors, list):
         fail(fail_context +
              "Expected field \"mirrors\" to be a list, but found:\n%r" %
              (json.dumps(mirrors, indent=2), ))
@@ -1619,8 +1619,8 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"content\" to be a string, but found:\n%r" %
              (json.dumps(content, indent=2), ))
 
-    mirrors: Optional[List[str]] = imports_entry.get("mirrors", [])
-    if mirrors is not None and not isinstance(mirrors, list):
+    mirrors: List[str] = imports_entry.get("mirrors", [])
+    if not isinstance(mirrors, list):
         fail(fail_context +
              "Expected field \"mirrors\" to be a list, but found:\n%r" %
              (json.dumps(mirrors, indent=2), ))
@@ -1753,7 +1753,7 @@ def git_tree_checkout(command: List[str], do_generate: bool, *,
     for envar in inherit_env:
         if envar in curr_env:
             new_envs[envar] = curr_env[envar]
-    command_env = dict(command_env, **new_envs)
+    cmd_env = dict(command_env, **new_envs)
 
     # Generate the command to be run, if needed
     if do_generate:
@@ -1761,7 +1761,7 @@ def git_tree_checkout(command: List[str], do_generate: bool, *,
             type="cmd-gen")  # to avoid polluting the current dir
         data, _ = run_cmd(g_LAUNCHER + command,
                           cwd=tmpdir,
-                          env=command_env,
+                          env=cmd_env,
                           stdout=subprocess.PIPE,
                           fail_context=fail_context)
         command = json.loads(data)
@@ -1771,7 +1771,7 @@ def git_tree_checkout(command: List[str], do_generate: bool, *,
     workdir: str = create_tmp_dir(type="git-tree-checkout")
     run_cmd(g_LAUNCHER + command,
             cwd=workdir,
-            env=command_env,
+            env=cmd_env,
             fail_context=fail_context)
 
     # Import root tree to Git cache; as we do not have the tree hash, identify
@@ -1789,7 +1789,7 @@ def git_tree_checkout(command: List[str], do_generate: bool, *,
     repo_stub: Dict[str, Any] = {
         "type": "git tree",
         "cmd": command,
-        "env": command_env,
+        "env": command_env,  # original env
         "id": tree_id,  # the root tree id
     }
     if inherit_env:
@@ -1848,14 +1848,14 @@ def import_from_git_tree(core_repos: Json, imports_entry: Json) -> Json:
         if subdir == ".":
             subdir = None  # treat as if missing
 
-    command_env: Optional[Json] = imports_entry.get("env", {})
-    if command_env is not None and not isinstance(command_env, dict):
+    command_env: Json = imports_entry.get("env", {})
+    if not isinstance(command_env, dict):
         fail(fail_context +
              "Expected field \"env\" to be a map, but found:\n%r" %
              (json.dumps(command_env, indent=2), ))
 
-    inherit_env: Optional[List[str]] = imports_entry.get("inherit env", [])
-    if inherit_env is not None and not isinstance(inherit_env, list):
+    inherit_env: List[str] = imports_entry.get("inherit env", [])
+    if not isinstance(inherit_env, list):
         fail(fail_context +
              "Expected field \"inherit env\" to be a list, but found:\n%r" %
              (json.dumps(inherit_env, indent=2), ))
@@ -2054,8 +2054,8 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
             fail(fail_context +
                  "Expected field \"branch\" to be a string, but found:\n%r" %
                  (json.dumps(branch, indent=2), ))
-        mirrors: Optional[List[str]] = repository.get("mirrors", [])
-        if mirrors is not None and not isinstance(mirrors, list):
+        mirrors: List[str] = repository.get("mirrors", [])
+        if not isinstance(mirrors, list):
             fail(fail_context +
                  "Expected field \"mirrors\" to be a list, but found:\n%r" %
                  (json.dumps(mirrors, indent=2), ))
@@ -2063,7 +2063,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         # are interested also in the Git history, so a simple commit checkout is
         # not enough; try mirrors first, as they are closer
         cloned: bool = False
-        sources = [url] if mirrors is None else mirrors + [url]
+        sources = mirrors + [url]
         for source in sources:
             if (run_cmd(g_LAUNCHER +
                         [g_GIT, "clone", "-b", branch, source, clone_to],
@@ -2284,13 +2284,13 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
             fail(fail_context +
                  "Expected field \"cmd\" to be a list, but found:\n%r" %
                  (json.dumps(command, indent=2), ))
-        command_env: Optional[Json] = repository.get("env", {})
-        if command_env is not None and not isinstance(command_env, dict):
+        command_env: Json = repository.get("env", {})
+        if not isinstance(command_env, dict):
             fail(fail_context +
                  "Expected field \"env\" to be a map, but found:\n%r" %
                  (json.dumps(command_env, indent=2), ))
-        inherit_env: Optional[List[str]] = repository.get("inherit env", [])
-        if inherit_env is not None and not isinstance(inherit_env, list):
+        inherit_env: List[str] = repository.get("inherit env", [])
+        if not isinstance(inherit_env, list):
             fail(fail_context +
                  "Expected field \"inherit env\" to be a list, but found:\n%r" %
                  (json.dumps(inherit_env, indent=2), ))
