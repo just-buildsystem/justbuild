@@ -22,6 +22,7 @@
 #include "justbuild/just_serve/just_serve.pb.h"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/serve_api/remote/config.hpp"
 
 // This service can be used by the client to double-check the server
 // configuration.
@@ -30,9 +31,11 @@ class ConfigurationService final
   public:
     explicit ConfigurationService(
         HashFunction::Type hash_type,
-        gsl::not_null<RemoteExecutionConfig const*> const&
-            remote_config) noexcept
-        : hash_type_{hash_type}, remote_config_{*remote_config} {};
+        gsl::not_null<RemoteExecutionConfig const*> const& remote_config,
+        gsl::not_null<RemoteServeConfig const*> const& serve_config) noexcept
+        : hash_type_{hash_type},
+          remote_config_{*remote_config},
+          serve_config_{*serve_config} {}
 
     // Returns the address of the associated remote endpoint, if set,
     // or an empty string signaling that the serve endpoint acts also
@@ -58,6 +61,7 @@ class ConfigurationService final
   private:
     HashFunction::Type hash_type_;
     RemoteExecutionConfig const& remote_config_;
+    RemoteServeConfig const& serve_config_;
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP

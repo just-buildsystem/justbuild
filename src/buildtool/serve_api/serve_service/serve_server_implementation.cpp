@@ -138,7 +138,8 @@ auto ServeServerImpl::Run(
                      &apis,
                      lock_,
                      serve ? &*serve : nullptr};
-    ConfigurationService cs{hash_type, remote_context->exec_config};
+    ConfigurationService cs{
+        hash_type, remote_context->exec_config, &serve_config};
 
     // For the SourceTreeService we need to always have access to a native
     // storage. In compatible mode, this requires creating a second local

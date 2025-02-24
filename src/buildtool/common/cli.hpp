@@ -186,6 +186,8 @@ struct ServeArguments {
     std::optional<std::string> remote_serve_address;
     // repositories populated from just-serve config file
     std::vector<std::filesystem::path> repositories;
+    // remote execution endpoint as seen by the client
+    std::optional<std::string> client_remote_address;
 };
 
 struct GcArguments {

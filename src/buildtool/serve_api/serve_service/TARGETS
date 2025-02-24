@@ -170,6 +170,7 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":

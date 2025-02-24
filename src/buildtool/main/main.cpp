@@ -192,6 +192,7 @@ void SetupLogging(LogArguments const& clargs) {
     -> std::optional<RemoteServeConfig> {
     RemoteServeConfig::Builder builder;
     builder.SetRemoteAddress(srvargs.remote_serve_address)
+        .SetClientExecutionAddress(srvargs.client_remote_address)
         .SetKnownRepositories(srvargs.repositories)
         .SetJobs(cargs.jobs)
         .SetActionTimeout(bargs.timeout)

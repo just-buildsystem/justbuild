@@ -34,8 +34,11 @@
 struct RemoteServeConfig final {
     class Builder;
 
-    // Server address of remote execution.
+    // Server address of the serve endpoint.
     std::optional<ServerAddress> const remote_address;
+
+    // Execution endpoint used by the client.
+    std::optional<ServerAddress> const client_execution_address;
 
     // Known Git repositories to serve server.
     std::vector<std::filesystem::path> const known_repositories;
@@ -55,6 +58,13 @@ struct RemoteServeConfig final {
 
 class RemoteServeConfig::Builder final {
   public:
+    // Set remote execution and cache address, unsets if parsing `address` fails
+    auto SetClientExecutionAddress(std::optional<std::string> value) noexcept
+        -> Builder& {
+        client_execution_address_ = std::move(value);
+        return *this;
+    }
+
     // Set remote execution and cache address, unsets if parsing `address` fails
     auto SetRemoteAddress(std::optional<std::string> value) noexcept
         -> Builder& {
@@ -110,7 +120,15 @@ class RemoteServeConfig::Builder final {
                                 *remote_address_)};
             }
         }
-
+        auto client_execution_address = default_config.client_execution_address;
+        if (client_execution_address_.has_value()) {
+            client_execution_address = ParseAddress(*client_execution_address_);
+            if (not client_execution_address) {
+                return unexpected{
+                    fmt::format("Setting client execution address '{}' failed.",
+                                *client_execution_address_)};
+            }
+        }
         auto known_repositories = default_config.known_repositories;
         if (known_repositories_.has_value()) {
             try {
@@ -154,6 +172,7 @@ class RemoteServeConfig::Builder final {
 
         return RemoteServeConfig{
             .remote_address = std::move(remote_address),
+            .client_execution_address = std::move(client_execution_address),
             .known_repositories = std::move(known_repositories),
             .jobs = jobs,
             .build_jobs = build_jobs,
@@ -162,8 +181,11 @@ class RemoteServeConfig::Builder final {
     }
 
   private:
-    // Server address of remote execution.
+    // Server address of the serve endpoint.
     std::optional<std::string> remote_address_;
+
+    // Execution endpoint used by the client.
+    std::optional<std::string> client_execution_address_;
 
     // Known Git repositories to serve server.
     std::optional<std::vector<std::filesystem::path>> known_repositories_;

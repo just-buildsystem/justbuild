@@ -27,7 +27,13 @@ auto ConfigurationService::RemoteExecutionEndpoint(
     const ::justbuild::just_serve::RemoteExecutionEndpointRequest* /*request*/,
     ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
     -> ::grpc::Status {
-    auto address = remote_config_.remote_address;
+    std::optional<ServerAddress> address;
+    if (serve_config_.client_execution_address.has_value()) {
+        address = serve_config_.client_execution_address;
+    }
+    else {
+        address = remote_config_.remote_address;
+    }
     response->set_address(address ? address->ToJson().dump() : std::string());
     return ::grpc::Status::OK;
 }
