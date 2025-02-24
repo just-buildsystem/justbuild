@@ -54,23 +54,17 @@ void BackupToRemote(ArtifactDigest const& digest,
                      &native_storage_config,
                      compat_storage_config,
                      compat_storage_config != nullptr ? &*local_api : nullptr};
-        if (not git_api.RetrieveToCas(
+        if (git_api.RetrieveToCas(
                 {Artifact::ObjectInfo{.digest = digest,
                                       .type = ObjectType::Tree}},
                 remote_api)) {
-            // give a warning
-            (*logger)(fmt::format(
-                          "Failed to back up tree {} from local CAS to remote",
-                          digest.hash()),
-                      /*fatal=*/false);
+            return;
         }
     }
-    else {
-        // give a warning
-        (*logger)(fmt::format("Failed to SetGitCAS at {}",
-                              native_storage_config.GitRoot().string()),
-                  /*fatal=*/false);
-    }
+    // give a warning
+    (*logger)(fmt::format("Failed to back up tree {} from local CAS to remote",
+                          digest.hash()),
+              /*fatal=*/false);
 }
 
 /// \brief Moves the root tree from local CAS to the Git cache and sets the
