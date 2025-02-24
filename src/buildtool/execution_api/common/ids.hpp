@@ -129,4 +129,12 @@ static void EncodeUUIDVariant1(std::string* uuid) {
     return ss.str();
 }
 
+/// \brief Create a UUID for the current process
+[[nodiscard]] static inline auto CreateUUID() -> std::string {
+    auto process_seed = CreateProcessUniqueId();
+    // as CreateUUIDVersion4 still uses the process-specific random number,
+    // we can afford to use a constant seed.
+    return CreateUUIDVersion4(process_seed ? *process_seed : "unknown");
+}
+
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP
