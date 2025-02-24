@@ -49,6 +49,11 @@ A feature release on top of `1.4.0`, backwards compatible.
   is now correctly honored, if announced by the server.
 - Missing entries in the documentation have been added.
 
+### Release `1.5.0~beta1` (2025-02-24)
+
+First beta release for the upcoming `1.5.0` release; see release
+notes there.
+
 ## Release `1.4.0` (2024-11-04)
 
 A feature release on top of `1.3.0`, backwards compatible with
