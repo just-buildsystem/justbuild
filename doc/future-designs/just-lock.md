@@ -435,8 +435,6 @@ The type of a _source_ is defined by the string value of the mandatory subfield
   from the same **git** source, the user must split that **git** source into two
   corresponding **git**  entries and place the **generic** entry between them.
 
-  The calling environment is inherited.
-
   Proposed format:
   ``` jsonc
   { "source": "generic"
@@ -445,5 +443,6 @@ The type of a _source_ is defined by the string value of the mandatory subfield
                           // if missing, defaults to "."
   , "cmd": [...]          // mandatory; command to run, as list of strings
   , "env": {...}          // optional; map of envariables needed by script
+  , "inherit env": [...]      // optional; list of envariables to inherit
   }
   ```
