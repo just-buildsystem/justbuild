@@ -84,6 +84,23 @@ SUPPORTED_BLOB_TYPES: List[ObjectType] = [
 
 SHA1_SIZE_BYTES: int = 20
 
+
+class LogLimit(Enum):
+    ERROR = 1
+    WARN = 2
+    INFO = 3
+
+
+LOGGER_MAP: Dict[LogLimit, Tuple[str, str]] = {
+    # Color is fmt::color::red
+    LogLimit.ERROR: (f"\033[38;2;255;0;0mERROR:\033[0m", 6 * " "),
+    # Color is fmt::color::orange
+    LogLimit.WARN: (f"\033[38;2;255;0;0mWARN:\033[0m", 5 * " "),
+    # Color is fmt::color::lime_green
+    LogLimit.INFO: (f"\033[38;2;50;205;50mINFO:\033[0m", 5 * " ")
+}
+"""Mapping from log limit to pair of colored prefix and continuation prefix."""
+
 ###
 # Global vars
 ##
@@ -108,23 +125,31 @@ def log(*args: str, **kwargs: Any) -> None:
     print(*args, file=sys.stderr, **kwargs)
 
 
+def formatted_log(log_limit: LogLimit, msg: str) -> None:
+    parts: List[str] = msg.rstrip('\n').split('\n')
+    new_msg: str = "%s %s" % (LOGGER_MAP[log_limit][0], parts[0])
+    for part in parts[1:]:
+        new_msg += "\n%s %s" % (LOGGER_MAP[log_limit][1], part)
+    log(new_msg)
+
+
 def fail(s: str, exit_code: int = 1) -> NoReturn:
     """Log as error and exit. Matches the color scheme of 'just-mr'."""
-    # Color is fmt::color::red
-    log(f"\033[38;2;255;0;0mERROR:\033[0m {s}")
+    formatted_log(LogLimit.ERROR, s)
     sys.exit(exit_code)
 
 
 def warn(s: str) -> None:
     """Log as warning. Matches the color scheme of 'just-mr'."""
-    # Color is fmt::color::orange
-    log(f"\033[38;2;255;0;0mWARN:\033[0m {s}")
+    formatted_log(LogLimit.WARN, s)
 
 
 def report(s: Optional[str]) -> None:
     """Log as information message. Matches the color scheme of 'just-mr'."""
-    # Color is fmt::color::lime_green
-    log("" if s is None else f"\033[38;2;50;205;50mINFO:\033[0m {s}")
+    if s is None:
+        log("")
+    else:
+        formatted_log(LogLimit.INFO, s)
 
 
 def run_cmd(
