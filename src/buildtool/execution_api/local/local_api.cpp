@@ -153,11 +153,11 @@ auto LocalApi::RetrieveToCas(
     // Collect blobs of missing artifacts from local CAS. Trees are
     // processed recursively before any blob is uploaded.
     std::unordered_set<ArtifactBlob> container;
+    auto const& cas = local_context_.storage->CAS();
     for (auto const& info : missing) {
         // Recursively process trees.
         if (IsTreeObject(info->type)) {
-            auto reader =
-                TreeReader<LocalCasReader>{&local_context_.storage->CAS()};
+            auto reader = TreeReader<LocalCasReader>{&cas};
             auto const& result = reader.ReadDirectTreeEntries(
                 info->digest, std::filesystem::path{});
             if (not result or not RetrieveToCas(result->infos, api)) {
@@ -166,25 +166,18 @@ auto LocalApi::RetrieveToCas(
         }
 
         // Determine artifact path.
-        auto const path =
+        auto path =
             IsTreeObject(info->type)
-                ? local_context_.storage->CAS().TreePath(info->digest)
-                : local_context_.storage->CAS().BlobPath(
-                      info->digest, IsExecutableObject(info->type));
-        if (not path) {
+                ? cas.TreePath(info->digest)
+                : cas.BlobPath(info->digest, IsExecutableObject(info->type));
+        if (not path.has_value()) {
             return false;
         }
 
-        // Read artifact content (file or symlink).
-        auto content = FileSystemManager::ReadFile(*path);
-        if (not content) {
-            return false;
-        }
-
-        auto blob = ArtifactBlob::FromMemory(
-            local_context_.storage_config->hash_function,
-            info->type,
-            *std::move(content));
+        auto blob =
+            ArtifactBlob::FromFile(local_context_.storage_config->hash_function,
+                                   info->type,
+                                   *std::move(path));
         if (not blob.has_value()) {
             return false;
         }
