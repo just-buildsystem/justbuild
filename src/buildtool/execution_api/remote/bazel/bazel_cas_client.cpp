@@ -36,6 +36,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/utils/cpp/back_map.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 namespace {
 
@@ -302,12 +303,19 @@ auto BazelCasClient::BatchReadBlobs(
                                 std::vector<ArtifactBlob>* v,
                                 bazel_re::BatchReadBlobsResponse_Response const&
                                     r) {
-                                if (auto value =
-                                        back_map->GetReference(r.digest())) {
-                                    v->emplace_back(*value.value(),
-                                                    r.data(),
-                                                    /*is_exec=*/false);
+                                auto ref = back_map->GetReference(r.digest());
+                                if (not ref.has_value()) {
+                                    return;
                                 }
+                                auto blob = ArtifactBlob::FromMemory(
+                                    HashFunction{ref.value()->GetHashType()},
+                                    ref.value()->IsTree() ? ObjectType::Tree
+                                                          : ObjectType::File,
+                                    r.data());
+                                if (not blob.has_value()) {
+                                    return;
+                                }
+                                v->emplace_back(*std::move(blob));
                             });
                         if (batch_response.ok) {
                             std::move(batch_response.result.begin(),

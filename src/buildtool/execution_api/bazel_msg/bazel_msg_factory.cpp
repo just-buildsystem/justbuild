@@ -164,13 +164,14 @@ struct DirectoryNodeBundle final {
 
     // SHA256 is used since bazel types are processed here.
     HashFunction const hash_function{HashFunction::Type::PlainSHA256};
-    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, *content);
-
-    return DirectoryNodeBundle{
-        .message = CreateDirectoryNode(dir_name, digest),
-        .blob = ArtifactBlob{
-            std::move(digest), std::move(*content), /*is_exec=*/false}};
+    auto blob = ArtifactBlob::FromMemory(
+        hash_function, ObjectType::File, *std::move(content));
+    if (not blob.has_value()) {
+        return std::nullopt;
+    }
+    auto const digest = blob->GetDigest();
+    return DirectoryNodeBundle{.message = CreateDirectoryNode(dir_name, digest),
+                               .blob = *std::move(blob)};
 }
 
 /// \brief Create bundle for protobuf message Command from args strings.
@@ -201,11 +202,12 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        request.hash_function, *content);
-    return ArtifactBlob{std::move(digest),
-                        std::move(*content),
-                        /*is_exec=*/false};
+    auto blob = ArtifactBlob::FromMemory(
+        request.hash_function, ObjectType::File, *std::move(content));
+    if (not blob.has_value()) {
+        return std::nullopt;
+    }
+    return *std::move(blob);
 }
 
 /// \brief Create bundle for protobuf message Action from Command.
@@ -240,11 +242,12 @@ struct DirectoryNodeBundle final {
     if (not content) {
         return std::nullopt;
     }
-    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        request.hash_function, *content);
-    return ArtifactBlob{std::move(digest),
-                        std::move(*content),
-                        /*is_exec=*/false};
+    auto blob = ArtifactBlob::FromMemory(
+        request.hash_function, ObjectType::File, *std::move(content));
+    if (not blob.has_value()) {
+        return std::nullopt;
+    }
+    return *std::move(blob);
 }
 
 /// \brief Convert `DirectoryTree` to `DirectoryNodeBundle`.

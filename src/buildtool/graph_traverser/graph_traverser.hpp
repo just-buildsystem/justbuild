@@ -53,7 +53,6 @@
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/common/statistics.hpp"
@@ -73,6 +72,7 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/base_progress_reporter.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/json.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -313,21 +313,27 @@ class GraphTraverser {
         std::vector<std::string> const& blobs) const noexcept -> bool {
         std::unordered_set<ArtifactBlob> container;
         HashFunction const hash_function{context_.apis->remote->GetHashType()};
-        for (auto const& blob : blobs) {
-            auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                hash_function, blob);
+        for (auto const& content : blobs) {
+            auto blob = ArtifactBlob::FromMemory(
+                hash_function, ObjectType::File, content);
+            if (not blob.has_value()) {
+                logger_->Emit(LogLevel::Trace,
+                              "Failed to create ArtifactBlob for:\n{}",
+                              nlohmann::json(content).dump());
+                return false;
+            }
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
                     "Will upload blob {}, its digest has id {} and size {}.",
-                    nlohmann::json(blob).dump(),
-                    digest.hash(),
-                    digest.size());
+                    nlohmann::json(content).dump(),
+                    blob->GetDigest().hash(),
+                    blob->GetDigest().size());
             });
             // Store and/or upload blob, taking into account the maximum
             // transfer size.
             if (not UpdateContainerAndUpload(
                     &container,
-                    ArtifactBlob{std::move(digest), blob, /*is_exec=*/false},
+                    *std::move(blob),
                     /*exception_is_fatal=*/true,
                     [&api = context_.apis->remote](
                         std::unordered_set<ArtifactBlob>&& blobs) {

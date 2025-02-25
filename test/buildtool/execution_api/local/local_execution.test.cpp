@@ -273,19 +273,19 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
     auto api = LocalApi(&local_context, &repo_config);
 
     std::string test_content("test");
-    auto test_digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        storage_config.Get().hash_function, test_content);
-    REQUIRE(api.Upload(
-        {ArtifactBlob{test_digest, test_content, /*is_exec=*/false}}, false));
+    auto const test_blob = ArtifactBlob::FromMemory(
+        storage_config.Get().hash_function, ObjectType::File, test_content);
+    REQUIRE(test_blob);
+    REQUIRE(api.Upload({*test_blob}, false));
 
     std::string input_path{"dir/subdir/input"};
     std::string output_path{"output_file"};
 
     std::vector<std::string> const cmdline = {"cp", input_path, output_path};
 
-    auto local_artifact_opt =
-        ArtifactDescription::CreateKnown(test_digest, ObjectType::File)
-            .ToArtifact();
+    auto local_artifact_opt = ArtifactDescription::CreateKnown(
+                                  test_blob->GetDigest(), ObjectType::File)
+                                  .ToArtifact();
     auto local_artifact =
         DependencyGraph::ArtifactNode{std::move(local_artifact_opt)};
 
@@ -310,7 +310,8 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
         auto const artifacts = output->Artifacts();
         REQUIRE(artifacts.has_value());
         REQUIRE(artifacts.value()->contains(output_path));
-        CHECK(artifacts.value()->at(output_path).digest == test_digest);
+        CHECK(artifacts.value()->at(output_path).digest ==
+              test_blob->GetDigest());
 
         // ensure result IS in cache
         output = action->Execute(nullptr);
@@ -329,7 +330,8 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
         auto const artifacts = output->Artifacts();
         REQUIRE(artifacts.has_value());
         REQUIRE(artifacts.value()->contains(output_path));
-        CHECK(artifacts.value()->at(output_path).digest == test_digest);
+        CHECK(artifacts.value()->at(output_path).digest ==
+              test_blob->GetDigest());
 
         // ensure result IS STILL NOT in cache
         output = action->Execute(nullptr);

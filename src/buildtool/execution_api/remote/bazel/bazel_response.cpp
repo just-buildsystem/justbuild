@@ -50,12 +50,8 @@ auto ProcessDirectoryMessage(HashFunction hash_function,
                 fmt::format("found invalid symlink at {}", link.name())};
         }
     }
-    auto data = dir.SerializeAsString();
-    auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, data);
-    return ArtifactBlob{std::move(digest),
-                        std::move(data),
-                        /*is_exec=*/false};
+    return ArtifactBlob::FromMemory(
+        hash_function, ObjectType::File, dir.SerializeAsString());
 }
 
 }  // namespace

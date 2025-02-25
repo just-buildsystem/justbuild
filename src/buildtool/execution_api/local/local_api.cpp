@@ -25,7 +25,6 @@
 
 #include <grpcpp/support/status.h>
 
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_api/common/common_api.hpp"
@@ -177,26 +176,23 @@ auto LocalApi::RetrieveToCas(
         }
 
         // Read artifact content (file or symlink).
-        auto const& content = FileSystemManager::ReadFile(*path);
+        auto content = FileSystemManager::ReadFile(*path);
         if (not content) {
             return false;
         }
 
-        // Regenerate digest since object infos read by
-        // storage_.ReadTreeInfos() will contain 0 as size.
-        ArtifactDigest digest =
-            IsTreeObject(info->type)
-                ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-                      local_context_.storage_config->hash_function, *content)
-                : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                      local_context_.storage_config->hash_function, *content);
+        auto blob = ArtifactBlob::FromMemory(
+            local_context_.storage_config->hash_function,
+            info->type,
+            *std::move(content));
+        if (not blob.has_value()) {
+            return false;
+        }
 
         // Collect blob and upload to remote CAS if transfer size reached.
         if (not UpdateContainerAndUpload(
                 &container,
-                ArtifactBlob{std::move(digest),
-                             *content,
-                             IsExecutableObject(info->type)},
+                *std::move(blob),
                 /*exception_is_fatal=*/true,
                 [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                     return api.Upload(std::move(blobs),

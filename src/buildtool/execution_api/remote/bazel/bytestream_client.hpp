@@ -33,8 +33,10 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/port.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 #include "src/buildtool/execution_api/common/ids.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
@@ -115,7 +117,15 @@ class ByteStreamClient {
         if (not data) {
             return std::nullopt;
         }
-        return ArtifactBlob{digest, std::move(output), /*is_exec=*/false};
+
+        auto blob = ArtifactBlob::FromMemory(
+            HashFunction{digest.GetHashType()},
+            digest.IsTree() ? ObjectType::Tree : ObjectType::File,
+            std::move(output));
+        if (not blob.has_value() or blob->GetDigest() != digest) {
+            return std::nullopt;
+        }
+        return *std::move(blob);
     }
 
     [[nodiscard]] auto Write(std::string const& instance_name,

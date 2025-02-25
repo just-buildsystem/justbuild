@@ -223,19 +223,16 @@ auto GitApi::RetrieveToCas(
             return false;
         }
 
-        ArtifactDigest digest =
-            IsTreeObject(info->type)
-                ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-                      hash_function, *content)
-                : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                      hash_function, *content);
+        auto blob = ArtifactBlob::FromMemory(
+            hash_function, info->type, *std::move(content));
+        if (not blob.has_value()) {
+            return false;
+        }
 
         // Collect blob and upload to remote CAS if transfer size reached.
         if (not UpdateContainerAndUpload(
                 &container,
-                ArtifactBlob{std::move(digest),
-                             std::move(*content),
-                             IsExecutableObject(info->type)},
+                *std::move(blob),
                 /*exception_is_fatal=*/true,
                 [&api](std::unordered_set<ArtifactBlob>&& blobs) {
                     return api.Upload(std::move(blobs),

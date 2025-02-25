@@ -24,13 +24,13 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
@@ -60,25 +60,26 @@ TEST_CASE("Bazel internals: CAS Client", "[execution_api]") {
     SECTION("Valid digest and blob") {
         // digest of "test"
         HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
-        auto const digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-            hash_function, content);
-
         // Valid blob
-        ArtifactBlob blob{digest, content, /*is_exec=*/false};
+        auto const blob =
+            ArtifactBlob::FromMemory(hash_function, ObjectType::File, content);
+        REQUIRE(blob.has_value());
 
         // Search blob via digest
-        auto digests = cas_client.FindMissingBlobs(instance_name, {digest});
+        auto digests =
+            cas_client.FindMissingBlobs(instance_name, {blob->GetDigest()});
         CHECK(digests.size() <= 1);
 
         if (not digests.empty()) {
             // Upload blob, if not found
-            CHECK(cas_client.BatchUpdateBlobs(instance_name, {blob}) == 1U);
+            CHECK(cas_client.BatchUpdateBlobs(instance_name, {*blob}) == 1U);
         }
 
         // Read blob
-        auto blobs = cas_client.BatchReadBlobs(instance_name, {digest});
+        auto blobs =
+            cas_client.BatchReadBlobs(instance_name, {blob->GetDigest()});
         REQUIRE(blobs.size() == 1);
-        CHECK(blobs.begin()->GetDigest() == digest);
+        CHECK(blobs.begin()->GetDigest() == blob->GetDigest());
         auto const read_content = blobs.begin()->ReadContent();
         CHECK(read_content != nullptr);
         CHECK(*read_content == content);

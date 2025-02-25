@@ -30,6 +30,7 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
@@ -53,13 +54,14 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         std::string content("foobar");
 
         // digest of "foobar"
-        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-            hash_function, content);
+        auto const blob =
+            ArtifactBlob::FromMemory(hash_function, ObjectType::File, content);
+        REQUIRE(blob.has_value());
 
-        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
-        CHECK(stream.Write(instance_name, blob));
+        CHECK(stream.Write(instance_name, *blob));
 
-        auto const downloaded_blob = stream.Read(instance_name, digest);
+        auto const downloaded_blob =
+            stream.Read(instance_name, blob->GetDigest());
         REQUIRE(downloaded_blob.has_value());
 
         auto const downloaded_content = downloaded_blob->ReadContent();
@@ -91,14 +93,15 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         // digest of "instance_nameinstance_nameinstance_..."
-        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-            hash_function, content);
-        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
+        auto const blob =
+            ArtifactBlob::FromMemory(hash_function, ObjectType::File, content);
+        REQUIRE(blob.has_value());
 
-        CHECK(stream.Write(instance_name, blob));
+        CHECK(stream.Write(instance_name, *blob));
 
         SECTION("Download large blob") {
-            auto const downloaded_blob = stream.Read(instance_name, digest);
+            auto const downloaded_blob =
+                stream.Read(instance_name, blob->GetDigest());
             REQUIRE(downloaded_blob.has_value());
 
             auto const downloaded_content = downloaded_blob->ReadContent();
@@ -107,7 +110,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         }
 
         SECTION("Incrementally download large blob") {
-            auto reader = stream.IncrementalRead(instance_name, digest);
+            auto reader =
+                stream.IncrementalRead(instance_name, blob->GetDigest());
 
             std::string data{};
             auto chunk = reader.Next();

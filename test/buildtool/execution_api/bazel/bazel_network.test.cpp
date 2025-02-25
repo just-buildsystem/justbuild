@@ -28,7 +28,6 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
@@ -37,6 +36,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
@@ -69,29 +69,26 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     std::string content_bar("bar");
     std::string content_baz(kLargeSize, 'x');  // single larger blob
 
-    ArtifactBlob foo{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                         hash_function, content_foo),
-                     content_foo,
-                     /*is_exec=*/false};
-    ArtifactBlob bar{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                         hash_function, content_bar),
-                     content_bar,
-                     /*is_exec=*/false};
-    ArtifactBlob baz{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                         hash_function, content_baz),
-                     content_baz,
-                     /*is_exec=*/false};
+    auto const foo =
+        ArtifactBlob::FromMemory(hash_function, ObjectType::File, content_foo);
+    REQUIRE(foo.has_value());
+    auto const bar =
+        ArtifactBlob::FromMemory(hash_function, ObjectType::File, content_bar);
+    REQUIRE(bar.has_value());
+    auto const baz =
+        ArtifactBlob::FromMemory(hash_function, ObjectType::File, content_baz);
+    REQUIRE(baz.has_value());
 
     // Search blobs via digest
-    REQUIRE(network.UploadBlobs({foo, bar, baz}));
+    REQUIRE(network.UploadBlobs({*foo, *bar, *baz}));
 
     // Read blobs in order
     auto reader = network.CreateReader();
-    std::vector<ArtifactDigest> to_read{foo.GetDigest(),
-                                        bar.GetDigest(),
-                                        baz.GetDigest(),
-                                        bar.GetDigest(),
-                                        foo.GetDigest()};
+    std::vector<ArtifactDigest> to_read{foo->GetDigest(),
+                                        bar->GetDigest(),
+                                        baz->GetDigest(),
+                                        bar->GetDigest(),
+                                        foo->GetDigest()};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());

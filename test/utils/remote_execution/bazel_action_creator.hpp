@@ -37,6 +37,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_cas_client.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
@@ -71,27 +72,34 @@
                        return env_var_message;
                    });
 
-    auto cmd_data = cmd.SerializeAsString();
-    auto cmd_id = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, cmd_data);
-    blobs.emplace(cmd_id, cmd_data, /*is_exec=*/false);
+    auto const cmd_blob = ArtifactBlob::FromMemory(
+        hash_function, ObjectType::File, cmd.SerializeAsString());
+    if (not cmd_blob.has_value()) {
+        return nullptr;
+    }
+    blobs.emplace(*cmd_blob);
 
-    bazel_re::Directory empty_dir;
-    auto dir_data = empty_dir.SerializeAsString();
-    auto dir_id = ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-        hash_function, dir_data);
-    blobs.emplace(dir_id, dir_data, /*is_exec=*/false);
+    bazel_re::Directory const empty_dir;
+    auto const dir_blob = ArtifactBlob::FromMemory(
+        hash_function, ObjectType::Tree, empty_dir.SerializeAsString());
+    if (not dir_blob.has_value()) {
+        return nullptr;
+    }
+    blobs.emplace(*dir_blob);
 
     bazel_re::Action action;
-    (*action.mutable_command_digest()) = ArtifactDigestFactory::ToBazel(cmd_id);
+    (*action.mutable_command_digest()) =
+        ArtifactDigestFactory::ToBazel(cmd_blob->GetDigest());
     action.set_do_not_cache(false);
     (*action.mutable_input_root_digest()) =
-        ArtifactDigestFactory::ToBazel(dir_id);
+        ArtifactDigestFactory::ToBazel(dir_blob->GetDigest());
 
-    auto action_data = action.SerializeAsString();
-    auto action_id = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, action_data);
-    blobs.emplace(action_id, action_data, /*is_exec=*/false);
+    auto const action_blob = ArtifactBlob::FromMemory(
+        hash_function, ObjectType::File, action.SerializeAsString());
+    if (not action_blob.has_value()) {
+        return nullptr;
+    }
+    blobs.emplace(*action_blob);
 
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     if (not auth_config) {
@@ -117,7 +125,7 @@
 
     if (cas_client.BatchUpdateBlobs(instance_name, blobs) == blobs.size()) {
         return std::make_unique<bazel_re::Digest>(
-            ArtifactDigestFactory::ToBazel(action_id));
+            ArtifactDigestFactory::ToBazel(action_blob->GetDigest()));
     }
     return nullptr;
 }

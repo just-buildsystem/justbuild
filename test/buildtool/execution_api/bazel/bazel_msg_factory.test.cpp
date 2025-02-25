@@ -28,12 +28,12 @@
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
 
 namespace {
@@ -46,14 +46,16 @@ namespace {
     if (not type) {
         return std::nullopt;
     }
-    auto const content = FileSystemManager::ReadContentAtPath(fpath, *type);
+    auto content = FileSystemManager::ReadContentAtPath(fpath, *type);
     if (not content.has_value()) {
         return std::nullopt;
     }
-    return ArtifactBlob{ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                            hash_function, *content),
-                        *content,
-                        IsExecutableObject(*type)};
+    auto blob = ArtifactBlob::FromMemory(
+        hash_function, ObjectType::File, *std::move(content));
+    if (not blob.has_value()) {
+        return std::nullopt;
+    }
+    return *std::move(blob);
 }
 }  // namespace
 
