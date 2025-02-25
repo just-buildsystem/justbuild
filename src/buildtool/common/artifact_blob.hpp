@@ -29,13 +29,6 @@
 
 class ArtifactBlob final {
   public:
-    explicit ArtifactBlob(ArtifactDigest digest,
-                          std::string content,
-                          bool is_exec) noexcept
-        : digest_{std::move(digest)},
-          content_{std::make_shared<std::string const>(std::move(content))},
-          is_executable_{is_exec} {}
-
     /// \brief Create ArtifactBlob and keep the given content in memory. The
     /// content is hashed based on the given hash function and ObjectType.
     /// \param hash_function    Hash function that must be used for hashing.
