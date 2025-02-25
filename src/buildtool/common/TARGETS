@@ -83,7 +83,9 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["artifact_blob"]
   , "hdrs": ["artifact_blob.hpp"]
-  , "deps": ["common", ["src/utils/cpp", "hash_combine"]]
+  , "srcs": ["artifact_blob.cpp"]
+  , "deps": ["common"]
+  , "private-deps": [["src/utils/cpp", "hash_combine"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "common":

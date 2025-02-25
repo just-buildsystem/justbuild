@@ -19,10 +19,9 @@
 #include <functional>
 #include <memory>
 #include <string>
-#include <utility>  //std::move
+#include <utility>
 
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/utils/cpp/hash_combine.hpp"
 
 class ArtifactBlob final {
   public:
@@ -51,9 +50,7 @@ class ArtifactBlob final {
 
     /// \brief Read the content from source.
     [[nodiscard]] auto ReadContent() const noexcept
-        -> std::shared_ptr<std::string const> {
-        return content_;
-    }
+        -> std::shared_ptr<std::string const>;
 
     /// \brief Set executable permission.
     void SetExecutable(bool is_executable) noexcept {
@@ -75,12 +72,7 @@ namespace std {
 template <>
 struct hash<ArtifactBlob> {
     [[nodiscard]] auto operator()(ArtifactBlob const& blob) const noexcept
-        -> std::size_t {
-        std::size_t seed{};
-        hash_combine(&seed, blob.GetDigest());
-        hash_combine(&seed, blob.IsExecutable());
-        return seed;
-    }
+        -> std::size_t;
 };
 }  // namespace std
 
