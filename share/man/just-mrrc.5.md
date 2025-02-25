@@ -165,6 +165,23 @@ The just-mrrc is given by a JSON object.
    points, etc. This is particularly useful when simultaneously
    working on several projects with different settings.
 
+ - The value for the key *`"invocation log"`* is a JSON object
+   specifying how each invocation should be logged. It supports
+   the following subkeys.
+   - *`"directory"`* A simple location object specifying under which
+     directory the invocations should be logged. If not given, no
+     invocation logging will happen.
+   - *`"project id"`* A path fragment specifying the subdirectory of
+     the given directory; if not specified, `"unknown"` will be used.
+     Under this directory, for each invocation, an invocation-log
+     directory will be created. The *`"project id"`* is given as
+     a separate subkey, in order to allow workspace-specific rc
+     files that are merged in to set this value.
+   - *`"metadata"`* A file name specifying where in the invocation-log
+     directory the metadata file should be stored. If not given,
+     no metadata file will be written. See **`just-profile`**(5) for
+     details of the format.
+
 
 EXAMPLE
 =======
@@ -182,6 +199,10 @@ An example just-mrrc file could look like the following:
   , {"root": "home", "path": ".just-repos.json"}
   , {"root": "system", "path": "etc/just-repos.json"}
   ]
+, "invocation log":
+  { "directory": {"root": "system", "path": "var/opt/just-invocation"}
+  , "metadata": "metadata.json"
+  }
 , "absent":
   [ {"root": "workspace", "path": "etc/absent.json"}
   , {"root": "home", "path": ".just-absent"}
