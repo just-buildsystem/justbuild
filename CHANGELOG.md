@@ -22,7 +22,6 @@ A feature release on top of `1.4.0`, backwards compatible.
 - `just add-to-cas` now supports the `--resolve-special` option, which
   defines how special entries (e.g., symlinks) are to be handled when
   adding directories to CAS.
-
 - `just serve` accepts a new subkey `"client address"` for the key
   `"execution endpoint"` in the configuration file. It informs the
   `serve` instance that the client will access the remote-execution
@@ -57,7 +56,11 @@ A feature release on top of `1.4.0`, backwards compatible.
   is now correctly honored, if announced by the server.
 - Missing entries in the documentation have been added.
 
-### Release `1.5.0~beta1` (2025-02-24)
+### Changes since `1.5.0~beta1`
+
+- New configuration option `"client address"` for `just serve`.
+
+## Release `1.5.0~beta1` (2025-02-24)
 
 First beta release for the upcoming `1.5.0` release; see release
 notes there.
