@@ -1122,107 +1122,32 @@ def handle_import(remote_type: str, remote_stub: Dict[str, Any],
 
 
 ###
+# Checkout utils
+##
+
+
+class CheckoutInfo:
+    """Stores the result of fetching and checking out source repositories."""
+    def __init__(self, srcdir: str, remote_stub: Json, to_clean_up: str):
+        self.srcdir = srcdir
+        """Sources directory"""
+        self.remote_stub = remote_stub
+        """Stub of remote configuration."""
+        self.to_clean_up = to_clean_up
+        """Temporary directory to clean up after handling imports."""
+
+
+###
 # Import from Git
 ##
 
 
-def git_checkout(url: str, branch: str, *, commit: Optional[str],
-                 mirrors: List[str], inherit_env: List[str],
-                 fail_context: str) -> Tuple[str, Dict[str, Any], str]:
+def git_checkout(imports_entry: Json) -> Optional[CheckoutInfo]:
     """Fetch a given remote Git repository and checkout a specified branch.
     Return the checkout location, the repository description stub to use for
     rewriting 'file'-type dependencies, and the temp dir to later clean up."""
-    workdir: str = create_tmp_dir(type="git-checkout")
-    srcdir: str = os.path.join(workdir, "src")
-
-    fail_context += "While checking out branch %r of %r:\n" % (branch, url)
-    if commit is None:
-        # Get top commit of remote branch from definitive source location
-        fetch_url = git_url_is_path(url)
-        if fetch_url is None:
-            fetch_url = url
-        else:
-            fetch_url = os.path.abspath(fetch_url)
-        commit = run_cmd(
-            g_LAUNCHER + [g_GIT, "ls-remote", fetch_url, branch],
-            cwd=workdir,
-            stdout=subprocess.PIPE,
-            fail_context=fail_context)[0].decode('utf-8').split('\t')[0]
-        if not git_commit_present(commit, upstream=None):
-            # If commit not in Git cache repository, do shallow clone and get
-            # HEAD commit from definitive source location
-            run_cmd(g_LAUNCHER + [
-                g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"
-            ],
-                    cwd=workdir,
-                    fail_context=fail_context)
-            # In the very small chance that the remote top commit changed in the
-            # meanwhile, only trust what has been actually cloned
-            commit = run_cmd(
-                g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
-                cwd=srcdir,
-                stdout=subprocess.PIPE,
-                fail_context=fail_context)[0].decode('utf-8').strip()
-            report("Importing remote Git commit %s" % (commit, ))
-            # Cache this commit by fetching it to Git cache and tagging it
-            ensure_git_init(upstream=None, fail_context=fail_context)
-            git_fetch(from_repo=srcdir,
-                      to_repo=None,
-                      fetchable=commit,
-                      fail_context=fail_context)
-            git_keep(commit, upstream=None, fail_context=fail_context)
-    else:
-        if not git_commit_present(commit, upstream=None):
-            # If commit not in Git cache repository, fetch witnessing branch
-            # from remote into the Git cache repository. Try mirrors first, as
-            # they are closer
-            ensure_git_init(upstream=None, fail_context=fail_context)
-            fetched: bool = False
-            for source in mirrors + [url]:
-                if git_fetch(from_repo=source,
-                             to_repo=None,
-                             fetchable=branch,
-                             fail_context=None) and git_commit_present(
-                                 commit, upstream=None):
-                    fetched = True
-                    break
-            if not fetched:
-                fail(fail_context +
-                     "Failed to fetch commit %s.\nTried locations:\n%s" % (
-                         commit,
-                         "\n".join(["\t%s" % (x, ) for x in mirrors + [url]]),
-                     ))
-            git_keep(commit, upstream=None, fail_context=fail_context)
-        # Create checkout from commit in Git cache repository
-        ensure_git_init(upstream=srcdir,
-                        init_bare=False,
-                        fail_context=fail_context)
-        git_fetch(from_repo=None,
-                  to_repo=srcdir,
-                  fetchable=commit,
-                  fail_context=fail_context)
-        run_cmd(g_LAUNCHER + [g_GIT, "checkout", commit],
-                cwd=srcdir,
-                fail_context=fail_context)
-
-    # Prepare the description stub used to rewrite "file"-type dependencies
-    repo_stub: Dict[str, Any] = {
-        "type": "git",
-        "repository": url,
-        "branch": branch,
-        "commit": commit,
-    }
-    if mirrors:
-        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
-    if inherit_env:
-        repo_stub = dict(repo_stub, **{"inherit env": inherit_env})
-    return srcdir, repo_stub, workdir
-
-
-def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
-    """Handles imports from Git repositories."""
     # Set granular logging message
-    fail_context: str = "While importing from source \"git\":\n"
+    fail_context: str = "While checking out source \"git\":\n"
 
     # Get the repositories list
     repos: List[Any] = imports_entry.get("repos", [])
@@ -1232,10 +1157,10 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
              (json.dumps(repos, indent=2), ))
 
     # Check if anything is to be done
-    if not repos:  # empty
-        return core_repos
+    if not repos:
+        return None
 
-    # Parse source config fields
+    # Parse source fetch fields
     url: str = imports_entry.get("url", None)
     if not isinstance(url, str):
         fail(fail_context +
@@ -1266,6 +1191,121 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
              "Expected field \"inherit env\" to be a list, but found:\n%r" %
              (json.dumps(inherit_env, indent=2), ))
 
+    # Fetch the source repository
+    workdir: str = create_tmp_dir(type="git-checkout")
+    srcdir: str = os.path.join(workdir, "src")
+
+    if commit is None:
+        # Get top commit of remote branch from definitive source location
+        fetch_url = git_url_is_path(url)
+        if fetch_url is None:
+            fetch_url = url
+        else:
+            fetch_url = os.path.abspath(fetch_url)
+        commit = run_cmd(
+            g_LAUNCHER + [g_GIT, "ls-remote", fetch_url, branch],
+            cwd=workdir,
+            stdout=subprocess.PIPE,
+            fail_context=fail_context)[0].decode('utf-8').split('\t')[0]
+        if not git_commit_present(commit, upstream=None):
+            # If commit not in Git cache repository, do shallow clone and get
+            # HEAD commit from definitive source location
+            report("\tFetching top commit from remote Git [%s]" % (url, ))
+            run_cmd(g_LAUNCHER + [
+                g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"
+            ],
+                    cwd=workdir,
+                    fail_context=fail_context)
+            # In the very small chance that the remote top commit changed in the
+            # meanwhile, only trust what has been actually cloned
+            commit = run_cmd(
+                g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
+                cwd=srcdir,
+                stdout=subprocess.PIPE,
+                fail_context=fail_context)[0].decode('utf-8').strip()
+            # Cache this commit by fetching it to Git cache and tagging it
+            ensure_git_init(upstream=None, fail_context=fail_context)
+            git_fetch(from_repo=srcdir,
+                      to_repo=None,
+                      fetchable=commit,
+                      fail_context=fail_context)
+            git_keep(commit, upstream=None, fail_context=fail_context)
+        else:
+            report("\tCache hit for commit %s" % (commit, ))
+            # Create checkout from commit in Git cache repository
+            ensure_git_init(upstream=srcdir,
+                            init_bare=False,
+                            fail_context=fail_context)
+            git_fetch(from_repo=None,
+                      to_repo=srcdir,
+                      fetchable=commit,
+                      fail_context=fail_context)
+            run_cmd(g_LAUNCHER + [g_GIT, "checkout", commit],
+                    cwd=srcdir,
+                    fail_context=fail_context)
+    else:
+        if not git_commit_present(commit, upstream=None):
+            # If commit not in Git cache repository, fetch witnessing branch
+            # from remote into the Git cache repository. Try mirrors first, as
+            # they are closer
+            ensure_git_init(upstream=None, fail_context=fail_context)
+            report("\tFetching commit %s from remote Git [%s]" % (commit, url))
+            fetched: bool = False
+            for source in mirrors + [url]:
+                if git_fetch(from_repo=source,
+                             to_repo=None,
+                             fetchable=branch,
+                             fail_context=None) and git_commit_present(
+                                 commit, upstream=None):
+                    fetched = True
+                    break
+            if not fetched:
+                fail(fail_context +
+                     "Failed to fetch commit %s.\nTried locations:\n%s" % (
+                         commit,
+                         "\n".join(["\t%s" % (x, ) for x in mirrors + [url]]),
+                     ))
+            git_keep(commit, upstream=None, fail_context=fail_context)
+        else:
+            report("\tCache hit for commit %s" % (commit, ))
+        # Create checkout from commit in Git cache repository
+        ensure_git_init(upstream=srcdir,
+                        init_bare=False,
+                        fail_context=fail_context)
+        git_fetch(from_repo=None,
+                  to_repo=srcdir,
+                  fetchable=commit,
+                  fail_context=fail_context)
+        run_cmd(g_LAUNCHER + [g_GIT, "checkout", commit],
+                cwd=srcdir,
+                fail_context=fail_context)
+
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    repo_stub: Dict[str, Any] = {
+        "type": "git",
+        "repository": url,
+        "branch": branch,
+        "commit": commit,
+    }
+    if mirrors:
+        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
+    if inherit_env:
+        repo_stub = dict(repo_stub, **{"inherit env": inherit_env})
+
+    return CheckoutInfo(srcdir, repo_stub, workdir)
+
+
+def import_from_git(core_repos: Json, imports_entry: Json,
+                    checkout_info: CheckoutInfo) -> Json:
+    """Handles imports from Git repositories. Requires the result of a call to
+    git_checkout."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"git\":\n"
+
+    # Get needed known fields (validated during checkout)
+    repos: List[Any] = imports_entry["repos"]
+
+    # Parse remaining fields
     as_plain: Optional[bool] = imports_entry.get("as plain", False)
     if as_plain is not None and not isinstance(as_plain, bool):
         fail(fail_context +
@@ -1289,20 +1329,13 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
         # only enabled if as_plain is true
         pragma_special = None
 
-    # Fetch the source Git repository
-    srcdir, remote_stub, to_clean_up = git_checkout(url,
-                                                    branch,
-                                                    commit=commit,
-                                                    mirrors=mirrors,
-                                                    inherit_env=inherit_env,
-                                                    fail_context=fail_context)
-
     # Read in the foreign config file
     if foreign_config_file:
-        foreign_config_file = os.path.join(srcdir, foreign_config_file)
+        foreign_config_file = os.path.join(checkout_info.srcdir,
+                                           foreign_config_file)
     else:
         foreign_config_file = get_repository_config_file(
-            DEFAULT_JUSTMR_CONFIG_NAME, srcdir)
+            DEFAULT_JUSTMR_CONFIG_NAME, checkout_info.srcdir)
     foreign_config: Json = {}
     if as_plain:
         foreign_config = {"main": "", "repositories": DEFAULT_REPO}
@@ -1331,7 +1364,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
         repo_entry = cast(Json, repo_entry)
 
         new_repos = handle_import("git",
-                                  remote_stub,
+                                  checkout_info.remote_stub,
                                   repo_entry,
                                   new_repos,
                                   foreign_config,
@@ -1339,7 +1372,7 @@ def import_from_git(core_repos: Json, imports_entry: Json) -> Json:
                                   fail_context=fail_context)
 
     # Clean up local fetch
-    try_rmtree(to_clean_up)
+    try_rmtree(checkout_info.to_clean_up)
     return new_repos
 
 
@@ -2853,8 +2886,10 @@ def lock_config(input_file: str) -> Json:
                  (json.dumps(source, indent=2), ))
 
         if source == "git":
-            core_config["repositories"] = import_from_git(
-                core_config["repositories"], entry)
+            checkout_info = git_checkout(entry)
+            if checkout_info is not None:
+                core_config["repositories"] = import_from_git(
+                    core_config["repositories"], entry, checkout_info)
         elif source == "file":
             core_config["repositories"] = import_from_file(
                 core_config["repositories"], entry)
