@@ -291,7 +291,7 @@ def git_keep(commit: str, *, upstream: Optional[str],
              fail_context: str) -> None:
     """Keep commit by tagging it. It is a user error if the referenced Git
     repository does not exist."""
-    git_env = {**os.environ, **GIT_NOBODY_ENV}
+    git_env = {**os.environ.copy(), **GIT_NOBODY_ENV}
     run_cmd(g_LAUNCHER + [
         g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
         "keep-%s" % (commit, ), commit
@@ -502,7 +502,7 @@ def import_to_git(target: str, *, repo_type: str, content_id: str,
              "Writing tree to temporary repository failed with:\n%r" % (ex, ))
 
     # Commit the tree
-    git_env = {**os.environ, **GIT_NOBODY_ENV}
+    git_env = {**os.environ.copy(), **GIT_NOBODY_ENV}
     commit: str = run_cmd(g_LAUNCHER + [
         g_GIT, "commit-tree", tree_id, "-m",
         "Content of %s %r" % (repo_type, content_id)
@@ -1786,7 +1786,7 @@ def git_tree_checkout(command: List[str], do_generate: bool, *,
     fail_context += "While checking out Git-tree:\n"
 
     # Set the command environment
-    curr_env = os.environ
+    curr_env = os.environ.copy()
     new_envs = {}
     for envar in inherit_env:
         if envar in curr_env:
@@ -2375,7 +2375,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                  "Expected field \"inherit env\" to be a list, but found:\n%r" %
                  (json.dumps(inherit_env, indent=2), ))
         # Get the actual command environment
-        curr_env = os.environ
+        curr_env = os.environ.copy()
         new_envs = {}
         for envar in inherit_env:
             if envar in curr_env:
