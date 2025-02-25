@@ -143,9 +143,8 @@ class ByteStreamClient {
             request.set_resource_name(resource_name);
             request.mutable_data()->reserve(ByteStreamUtils::kChunkSize);
 
-            auto const data_to_read = blob.ReadContent();
-            auto const to_read = ::IncrementalReader::FromMemory(
-                ByteStreamUtils::kChunkSize, data_to_read.get());
+            auto const to_read =
+                blob.ReadIncrementally(ByteStreamUtils::kChunkSize);
             if (not to_read.has_value()) {
                 logger_.Emit(
                     LogLevel::Error,

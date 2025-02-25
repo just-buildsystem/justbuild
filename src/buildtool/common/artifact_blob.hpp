@@ -22,6 +22,8 @@
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/incremental_reader.hpp"
 
 class ArtifactBlob final {
   public:
@@ -51,6 +53,14 @@ class ArtifactBlob final {
     /// \brief Read the content from source.
     [[nodiscard]] auto ReadContent() const noexcept
         -> std::shared_ptr<std::string const>;
+
+    /// \brief Create an IncrementalReader that uses this ArtifactBlob's content
+    /// source.
+    /// \param chunk_size   Size of chunk, must be greater than 0.
+    /// \return Valid IncrementalReader on success or an error message on
+    /// failure.
+    [[nodiscard]] auto ReadIncrementally(std::size_t chunk_size) const& noexcept
+        -> expected<IncrementalReader, std::string>;
 
     /// \brief Set executable permission.
     void SetExecutable(bool is_executable) noexcept {

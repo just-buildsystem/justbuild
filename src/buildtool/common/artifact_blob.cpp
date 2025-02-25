@@ -21,6 +21,15 @@ auto ArtifactBlob::ReadContent() const noexcept
     return content_;
 }
 
+auto ArtifactBlob::ReadIncrementally(std::size_t chunk_size) const& noexcept
+    -> expected<IncrementalReader, std::string> {
+    if (content_ == nullptr) {
+        return unexpected<std::string>{
+            "ArtifactBlob::ReadIncrementally: missing memory source"};
+    }
+    return IncrementalReader::FromMemory(chunk_size, content_.get());
+}
+
 namespace std {
 auto hash<ArtifactBlob>::operator()(ArtifactBlob const& blob) const noexcept
     -> std::size_t {

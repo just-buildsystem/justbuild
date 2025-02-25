@@ -84,7 +84,11 @@
   , "name": ["artifact_blob"]
   , "hdrs": ["artifact_blob.hpp"]
   , "srcs": ["artifact_blob.cpp"]
-  , "deps": ["common"]
+  , "deps":
+    [ "common"
+    , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "incremental_reader"]
+    ]
   , "private-deps": [["src/utils/cpp", "hash_combine"]]
   , "stage": ["src", "buildtool", "common"]
   }
