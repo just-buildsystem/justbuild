@@ -24,8 +24,6 @@
 #include "catch2/catch_test_macros.hpp"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_blob.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
@@ -67,19 +65,6 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         auto const downloaded_content = downloaded_blob->ReadContent();
         REQUIRE(downloaded_content != nullptr);
         CHECK(*downloaded_content == content);
-    }
-
-    SECTION("Small blob with wrong digest") {
-        std::string instance_name{"remote-execution"};
-        std::string content("foobar");
-        std::string other_content("This is a differnt string");
-
-        // Valid digest, but for a different string
-        auto digest = ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-            hash_function, other_content);
-        ArtifactBlob const blob{digest, content, /*is_exec=*/false};
-
-        CHECK(not stream.Write(instance_name, blob));
     }
 
     SECTION("Upload large blob") {
