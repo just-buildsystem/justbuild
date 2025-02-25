@@ -181,6 +181,12 @@ The just-mrrc is given by a JSON object.
      directory the metadata file should be stored. If not given,
      no metadata file will be written. See **`just-profile`**(5) for
      details of the format.
+   - *`"--dump-graph"`* A file name specifying the file in
+     the invocation-log directory for an invocation-specific
+     `--dump-graph` option.
+   - *`"--dump-plain-graph"`* A file name specifying the file
+     in the invocation-log directory for an invocation-specific
+     `--dump-plain-graph` option.
 
 
 EXAMPLE
@@ -202,6 +208,7 @@ An example just-mrrc file could look like the following:
 , "invocation log":
   { "directory": {"root": "system", "path": "var/opt/just-invocation"}
   , "metadata": "metadata.json"
+  , "--dump-graph": "graph.json"
   }
 , "absent":
   [ {"root": "workspace", "path": "etc/absent.json"}

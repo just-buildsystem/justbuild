@@ -295,7 +295,30 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                         nlohmann::json(dir.string()).dump());
         }
     }
-
+    // invocation-specific
+    if (log_dir and supports_remote_properties) {
+        if (invocation_log.graph_file) {
+            if (not IsValidFileName(*invocation_log.graph_file)) {
+                Logger::Log(LogLevel::Error,
+                            "Invalid file name for option --dump-graph: {}",
+                            nlohmann::json(*invocation_log.graph_file).dump());
+                std::exit(kExitClargsError);
+            }
+            cmd.emplace_back("--dump-graph");
+            cmd.emplace_back(*log_dir / *invocation_log.graph_file);
+        }
+        if (invocation_log.graph_file_plain) {
+            if (not IsValidFileName(*invocation_log.graph_file_plain)) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Invalid file name for option --dump-plain-graph: {}",
+                    nlohmann::json(*invocation_log.graph_file_plain).dump());
+                std::exit(kExitClargsError);
+            }
+            cmd.emplace_back("--dump-plain-graph");
+            cmd.emplace_back(*log_dir / *invocation_log.graph_file_plain);
+        }
+    }
     // add (remaining) args given by user as clargs
     for (auto it = just_cmd_args.additional_just_args.begin() +
                    additional_args_offset;

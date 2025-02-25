@@ -610,6 +610,16 @@ namespace {
             if (metadata->IsString()) {
                 clargs->invocation_log.metadata = metadata->String();
             }
+            auto graph_file =
+                invocation_log->Get("--dump-graph", Expression::none_t{});
+            if (graph_file->IsString()) {
+                clargs->invocation_log.graph_file = graph_file->String();
+            }
+            auto graph_file_plain =
+                invocation_log->Get("--dump-plain-graph", Expression::none_t{});
+            if (graph_file_plain->IsString()) {
+                clargs->invocation_log.graph_file = graph_file_plain->String();
+            }
         }
     }
     // read config lookup order
