@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
-#define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
+#ifndef INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_BLOB_HPP
+#define INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_BLOB_HPP
 
 #include <cstddef>
 #include <functional>
@@ -55,4 +55,4 @@ struct hash<ArtifactBlob> {
 };
 }  // namespace std
 
-#endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_ARTIFACT_BLOB_HPP
+#endif  // INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_BLOB_HPP

@@ -22,9 +22,9 @@
 #include <vector>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/execution_api/bazel_msg/directory_tree.hpp"
-#include "src/buildtool/execution_api/common/artifact_blob.hpp"
 
 class BlobTree;
 using BlobTreePtr = gsl::not_null<std::shared_ptr<BlobTree>>;

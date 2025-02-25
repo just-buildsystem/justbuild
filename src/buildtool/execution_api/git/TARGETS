@@ -11,9 +11,9 @@
     ]
   , "private-deps":
     [ ["@", "json", "", "json"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common_api"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_tree"]

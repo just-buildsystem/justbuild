@@ -12,10 +12,10 @@
   , "deps":
     [ "directory_tree"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]

@@ -26,9 +26,9 @@
   , "srcs": ["mr_local_api.cpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/execution_api/common", "artifact_blob"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/execution_engine/dag", "dag"]

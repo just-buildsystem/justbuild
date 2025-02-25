@@ -79,6 +79,13 @@
     ]
   , "stage": ["src", "buildtool", "common"]
   }
+, "artifact_blob":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["artifact_blob"]
+  , "hdrs": ["artifact_blob.hpp"]
+  , "deps": ["common", ["src/utils/cpp", "hash_combine"]]
+  , "stage": ["src", "buildtool", "common"]
+  }
 , "common":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["common"]

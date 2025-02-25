@@ -11,10 +11,10 @@
     ]
   , "srcs": ["tree_reader_utils.cpp"]
   , "deps":
-    [ "artifact_blob"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
     , ["@", "protoc", "", "libprotobuf"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
@@ -104,10 +104,10 @@
   , "hdrs": ["common_api.hpp"]
   , "srcs": ["common_api.cpp"]
   , "deps":
-    [ "artifact_blob"
-    , "blob_tree"
+    [ "blob_tree"
     , "common"
     , ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/execution_api/bazel_msg", "bazel_msg_factory"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
@@ -128,8 +128,8 @@
   , "hdrs": ["blob_tree.hpp"]
   , "srcs": ["blob_tree.cpp"]
   , "deps":
-    [ "artifact_blob"
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/execution_api/bazel_msg", "directory_tree"]
     ]
   , "private-deps":
@@ -141,14 +141,6 @@
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "hex_string"]
     ]
-  , "stage": ["src", "buildtool", "execution_api", "common"]
-  }
-, "artifact_blob":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["artifact_blob"]
-  , "hdrs": ["artifact_blob.hpp"]
-  , "deps":
-    [["src/buildtool/common", "common"], ["src/utils/cpp", "hash_combine"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 }
