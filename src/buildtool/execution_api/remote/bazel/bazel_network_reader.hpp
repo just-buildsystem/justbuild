@@ -95,9 +95,6 @@ class BazelNetworkReader final {
         -> std::vector<ArtifactBlob>;
 
     [[nodiscard]] auto GetMaxBatchTransferSize() const noexcept -> std::size_t;
-
-    [[nodiscard]] auto Validate(ArtifactBlob const& blob) const noexcept
-        -> bool;
 };
 
 class BazelNetworkReader::IncrementalReader final {

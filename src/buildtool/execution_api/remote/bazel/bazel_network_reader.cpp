@@ -179,11 +179,7 @@ auto BazelNetworkReader::MakeAuxiliaryMap(
 
 auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
     const noexcept -> std::optional<ArtifactBlob> {
-    auto blob = cas_.ReadSingleBlob(instance_name_, digest);
-    if (not blob or not Validate(*blob)) {
-        return std::nullopt;
-    }
-    return blob;
+    return cas_.ReadSingleBlob(instance_name_, digest);
 }
 
 auto BazelNetworkReader::ReadIncrementally(
@@ -208,53 +204,15 @@ auto BazelNetworkReader::BatchReadBlobs(
         return {};
     }
 
+    // Restore the requested order:
     std::vector<ArtifactBlob> artifacts;
     artifacts.reserve(digests.size());
-
-    // To not validate blobs several times, hash the result of validation:
-    std::unordered_map<std::size_t, ArtifactBlob const*> validated;
-    validated.reserve(digests.size());
-
-    auto const hasher = std::hash<ArtifactDigest>{};
     for (ArtifactDigest const& digest : digests) {
-        std::size_t const hash = std::invoke(hasher, digest);
-        // If the blob has been validated already, just return the result:
-        if (auto it = validated.find(hash); it != validated.end()) {
-            if (it->second != nullptr) {
-                artifacts.push_back(*it->second);
-            }
-            continue;
-        }
-
-        // Blob hasn't been processed yet, perform validation:
-        auto value = back_map->GetReference(digest);
-        if (not value.has_value()) {
-            continue;
-        }
-
-        if (Validate(*value.value())) {
-            validated[hash] = &artifacts.emplace_back(*value.value());
-        }
-        else {
-            validated[hash] = nullptr;
+        if (auto value = back_map->GetReference(digest)) {
+            artifacts.emplace_back(*value.value());
         }
     }
     return artifacts;
-}
-
-auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
-    -> bool {
-    auto const content = blob.ReadContent();
-    if (content == nullptr) {
-        return false;
-    }
-
-    auto rehashed = blob.GetDigest().IsTree()
-                        ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-                              hash_function_, *content)
-                        : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                              hash_function_, *content);
-    return rehashed == blob.GetDigest();
 }
 
 auto BazelNetworkReader::GetMaxBatchTransferSize() const noexcept
