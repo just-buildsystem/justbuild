@@ -95,6 +95,7 @@
     [ "artifact_digest_factory"
     , ["@", "fmt", "", "fmt"]
     , ["src/utils/cpp", "hash_combine"]
+    , ["src/utils/cpp", "in_place_visitor"]
     ]
   , "stage": ["src", "buildtool", "common"]
   }

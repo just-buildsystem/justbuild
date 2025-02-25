@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <variant>
 
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -79,12 +80,15 @@ class ArtifactBlob final {
     }
 
   private:
+    using InMemory = std::shared_ptr<std::string const>;
+    using ContentSource = std::variant<InMemory>;
+
     ArtifactDigest digest_;
-    std::shared_ptr<std::string const> content_;
+    ContentSource content_;
     bool is_executable_;
 
     explicit ArtifactBlob(ArtifactDigest digest,
-                          std::shared_ptr<std::string const> content,
+                          ContentSource content,
                           bool is_executable) noexcept
         : digest_{std::move(digest)},
           content_{std::move(content)},

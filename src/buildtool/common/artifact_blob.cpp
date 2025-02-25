@@ -19,6 +19,7 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
+#include "src/utils/cpp/in_place_visitor.hpp"
 
 auto ArtifactBlob::FromMemory(HashFunction hash_function,
                               ObjectType type,
@@ -45,16 +46,39 @@ auto ArtifactBlob::FromMemory(HashFunction hash_function,
 
 auto ArtifactBlob::ReadContent() const noexcept
     -> std::shared_ptr<std::string const> {
-    return content_;
+    using Result = std::shared_ptr<std::string const>;
+    static constexpr InPlaceVisitor kVisitor{
+        [](InMemory const& value) -> Result { return value; },
+    };
+    try {
+        return std::visit(kVisitor, content_);
+    } catch (...) {
+        return nullptr;
+    }
 }
 
 auto ArtifactBlob::ReadIncrementally(std::size_t chunk_size) const& noexcept
     -> expected<IncrementalReader, std::string> {
-    if (content_ == nullptr) {
+    using Result = expected<IncrementalReader, std::string>;
+    const InPlaceVisitor visitor{
+        [chunk_size](InMemory const& value) -> Result {
+            if (value == nullptr) {
+                return unexpected<std::string>{
+                    "ArtifactBlob::ReadIncrementally: missing memory source"};
+            }
+            return IncrementalReader::FromMemory(chunk_size, value.get());
+        },
+    };
+    try {
+        return std::visit(visitor, content_);
+    } catch (std::exception const& e) {
+        return unexpected{fmt::format(
+            "ArtifactBlob::ReadIncrementally: Got an exception:\n{}",
+            e.what())};
+    } catch (...) {
         return unexpected<std::string>{
-            "ArtifactBlob::ReadIncrementally: missing memory source"};
+            "ArtifactBlob::ReadIncrementally: Got an unknown exception"};
     }
-    return IncrementalReader::FromMemory(chunk_size, content_.get());
 }
 
 namespace std {
