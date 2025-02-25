@@ -19,6 +19,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 
 #include "src/buildtool/build_engine/expression/configuration.hpp"
 #include "src/buildtool/common/retry_cli.hpp"
@@ -26,7 +27,8 @@
 #include "src/buildtool/storage/storage.hpp"
 #include "src/other_tools/just_mr/cli.hpp"
 
-/// \brief Setup for a multi-repository build.
+/// \brief Setup for a multi-repository build. Return the pair
+/// of path and hash (as hex-string) of the multi-repository configuration.
 [[nodiscard]] auto MultiRepoSetup(
     std::shared_ptr<Configuration> const& config,
     MultiRepoCommonArguments const& common_args,
@@ -38,6 +40,6 @@
     Storage const& native_storage,
     bool interactive,
     std::string const& multi_repo_tool_name)
-    -> std::optional<std::filesystem::path>;
+    -> std::optional<std::pair<std::filesystem::path, std::string>>;
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_SETUP_HPP

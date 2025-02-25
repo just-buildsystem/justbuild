@@ -433,7 +433,7 @@ auto main(int argc, char* argv[]) -> int {
             // report success
             Logger::Log(LogLevel::Info, "Setup completed");
             // print config file to stdout
-            std::cout << mr_config_path->string() << std::endl;
+            std::cout << mr_config_path->first.string() << std::endl;
             return kExitSuccess;
         }
 

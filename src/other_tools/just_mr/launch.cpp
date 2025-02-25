@@ -33,6 +33,7 @@
 #include <memory>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "fmt/chrono.h"
@@ -86,7 +87,8 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool supports_remote_properties{false};
     bool supports_serve{false};
     bool supports_dispatch{false};
-    std::optional<std::filesystem::path> mr_config_path{std::nullopt};
+    std::optional<std::pair<std::filesystem::path, std::string>> mr_config_pair{
+        std::nullopt};
 
     std::optional<LockFile> lock{};
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
@@ -105,7 +107,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                 config_file, common_args.absent_repository_file);
 
             use_config = true;
-            mr_config_path = MultiRepoSetup(config,
+            mr_config_pair = MultiRepoSetup(config,
                                             common_args,
                                             setup_args,
                                             just_cmd_args,
@@ -115,7 +117,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                                             storage,
                                             /*interactive=*/false,
                                             multi_repo_tool_name);
-            if (not mr_config_path) {
+            if (not mr_config_pair) {
                 Logger::Log(LogLevel::Error,
                             "Failed to setup config for calling \"{} {}\"",
                             common_args.just_path
@@ -141,7 +143,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     }
     if (use_config) {
         cmd.emplace_back("-C");
-        cmd.emplace_back(mr_config_path->string());
+        cmd.emplace_back(mr_config_pair->first.string());
     }
     if (use_build_root and forward_build_root) {
         cmd.emplace_back("--local-build-root");
@@ -313,6 +315,9 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
 
         auto meta = nlohmann::json::object();
         meta["time"] = invocation_time;
+        if (mr_config_pair) {
+            meta["configuration"] = mr_config_pair->second;
+        }
         meta["cmdline"] = cmd;
         // "configuration" -- the blob-identifier of the multi-repo
         // configuration
