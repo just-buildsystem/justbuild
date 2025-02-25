@@ -291,15 +291,21 @@ def git_keep(commit: str, *, upstream: Optional[str],
              fail_context: str) -> None:
     """Keep commit by tagging it. It is a user error if the referenced Git
     repository does not exist."""
+    root: str = git_root(upstream=upstream)
+    # acquire exclusive lock
+    lockfile = lock_acquire(os.path.join(Path(root).parent, "init_open.lock"))
+    # tag commit
     git_env = {**os.environ.copy(), **GIT_NOBODY_ENV}
     run_cmd(g_LAUNCHER + [
         g_GIT, "tag", "-f", "-m", "Keep referenced tree alive",
         "keep-%s" % (commit, ), commit
     ],
-            cwd=git_root(upstream=upstream),
+            cwd=root,
             env=git_env,
             attempts=3,
             fail_context=fail_context)
+    # release exclusive lock
+    lock_release(lockfile)
 
 
 def ensure_git_init(*,
@@ -358,7 +364,10 @@ def git_fetch(*, from_repo: Optional[str], to_repo: Optional[str],
         path_url = git_url_is_path(from_repo)
         if path_url is not None:
             from_repo = os.path.abspath(path_url)
-    return run_cmd(g_LAUNCHER + [g_GIT, "fetch", from_repo, fetchable],
+    return run_cmd(g_LAUNCHER + [
+        g_GIT, "fetch", "--no-auto-gc", "--no-write-fetch-head", from_repo,
+        fetchable
+    ],
                    cwd=git_root(upstream=to_repo),
                    fail_context=fail_context)[1] == 0
 
