@@ -15,11 +15,24 @@
 #include "src/buildtool/common/artifact_blob.hpp"
 
 #include <exception>
+#include <optional>
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 #include "src/utils/cpp/in_place_visitor.hpp"
+
+namespace {
+[[nodiscard]] auto ReadFromFile(std::filesystem::path const& file) noexcept
+    -> std::shared_ptr<std::string const> {
+    auto content = FileSystemManager::ReadFile(file);
+    if (not content.has_value()) {
+        return nullptr;
+    }
+    return std::make_shared<std::string const>(*std::move(content));
+}
+}  // namespace
 
 auto ArtifactBlob::FromMemory(HashFunction hash_function,
                               ObjectType type,
@@ -44,11 +57,46 @@ auto ArtifactBlob::FromMemory(HashFunction hash_function,
     }
 }
 
+auto ArtifactBlob::FromFile(HashFunction hash_function,
+                            ObjectType type,
+                            std::filesystem::path file) noexcept
+    -> expected<ArtifactBlob, std::string> {
+    try {
+        if (not FileSystemManager::IsFile(file)) {
+            return unexpected{
+                fmt::format("ArtifactBlob::FromFile: Not a regular file:\n{}",
+                            file.string())};
+        }
+        auto digest = IsTreeObject(type)
+                          ? ArtifactDigestFactory::HashFileAs<ObjectType::Tree>(
+                                hash_function, file)
+                          : ArtifactDigestFactory::HashFileAs<ObjectType::File>(
+                                hash_function, file);
+        if (not digest.has_value()) {
+            return unexpected{fmt::format(
+                "ArtifactBlob::FromFile: Failed to hash {}", file.string())};
+        }
+        return ArtifactBlob{
+            *std::move(digest), std::move(file), IsExecutableObject(type)};
+    } catch (const std::exception& e) {
+        return unexpected{fmt::format(
+            "ArtifactBlob::FromFile: Got an exception while processing {}:\n{}",
+            file.string(),
+            e.what())};
+    } catch (...) {
+        return unexpected{
+            fmt::format("ArtifactBlob::FromFile: Got an unknown exception "
+                        "while processing {}",
+                        file.string())};
+    }
+}
+
 auto ArtifactBlob::ReadContent() const noexcept
     -> std::shared_ptr<std::string const> {
     using Result = std::shared_ptr<std::string const>;
     static constexpr InPlaceVisitor kVisitor{
         [](InMemory const& value) -> Result { return value; },
+        [](InFile const& value) -> Result { return ::ReadFromFile(value); },
     };
     try {
         return std::visit(kVisitor, content_);
@@ -67,6 +115,9 @@ auto ArtifactBlob::ReadIncrementally(std::size_t chunk_size) const& noexcept
                     "ArtifactBlob::ReadIncrementally: missing memory source"};
             }
             return IncrementalReader::FromMemory(chunk_size, value.get());
+        },
+        [chunk_size](InFile const& value) -> Result {
+            return IncrementalReader::FromFile(chunk_size, value);
         },
     };
     try {

@@ -94,6 +94,7 @@
   , "private-deps":
     [ "artifact_digest_factory"
     , ["@", "fmt", "", "fmt"]
+    , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "in_place_visitor"]
     ]

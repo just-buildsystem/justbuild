@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_COMMON_ARTIFACT_BLOB_HPP
 
 #include <cstddef>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -41,6 +42,18 @@ class ArtifactBlob final {
                                          std::string content) noexcept
         -> expected<ArtifactBlob, std::string>;
 
+    /// \brief Create ArtifactBlob based on the existing file. The content is
+    /// hashed based on the given hash function and ObjectType.
+    /// \param hash_function    Hash function that must be used for hashing.
+    /// \param type             Type of the content.
+    /// \param file             Existing file to be used as the source of
+    /// content.
+    /// \return Valid ArtifactBlob on success or an error message on failure.
+    [[nodiscard]] static auto FromFile(HashFunction hash_function,
+                                       ObjectType type,
+                                       std::filesystem::path file) noexcept
+        -> expected<ArtifactBlob, std::string>;
+
     [[nodiscard]] auto operator==(ArtifactBlob const& other) const noexcept
         -> bool {
         return digest_ == other.digest_ and
@@ -57,7 +70,8 @@ class ArtifactBlob final {
         return digest_.size();
     }
 
-    /// \brief Read the content from source.
+    /// \brief Read the content from source. This operation may result in the
+    /// entire file being read into memory.
     [[nodiscard]] auto ReadContent() const noexcept
         -> std::shared_ptr<std::string const>;
 
@@ -81,7 +95,8 @@ class ArtifactBlob final {
 
   private:
     using InMemory = std::shared_ptr<std::string const>;
-    using ContentSource = std::variant<InMemory>;
+    using InFile = std::filesystem::path;
+    using ContentSource = std::variant<InMemory, InFile>;
 
     ArtifactDigest digest_;
     ContentSource content_;
