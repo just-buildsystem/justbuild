@@ -146,6 +146,15 @@ profiling is done only on a best-effort basis. Using asynchronous
 profile logging, the regular developer workflow is not affected by
 the overhead of writing these detailed machine-readable logs.
 
+### `just` options `--dump-graph` and `--dump-plain-graph` become cummulative
+
+The options `--dump-graph` and `--dump-plain-graph` change their
+semantics from "latest wins" to be cummulative, in the same way as
+`-f` is already. That is, if these options are given several times
+then `just` will also write the graph file to several destinations.
+In this way, it is possible to have an invocation-specific logging
+of the action graph without interfering with other graph logging.
+
 ### `just-mr` to support passing unique log options on each invocation
 
 The configuration file for `just-mr` will be extended by an
@@ -184,7 +193,8 @@ Inside this directory the requested files with the specified file
 names will be created, in the case of `"--profile"`, `"--dump-graph"`,
 and `"--dump-plain-graph"` by passing the appropriate options to
 the invocation of `just`. If `"async"` is set to `true`, the option
-`--async-profile` will be given as well.
+`--async-profile` will be given as well to all targets building (i.e.,
+`build`, `install`, and `rebuild`).
 
 The meta-data will be written just by `just-mr` itself, just before
 doing the `exec` call. The file contains a JSON object with keys
