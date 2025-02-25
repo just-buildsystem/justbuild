@@ -594,14 +594,20 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
 
     auto const max_content_size = GetMaxBatchTransferSize(instance_name);
 
-    auto request_creator = [&instance_name](ArtifactBlob const& blob) {
+    auto request_creator = [&instance_name](ArtifactBlob const& blob)
+        -> std::optional<bazel_re::BatchUpdateBlobsRequest> {
+        auto const content = blob.ReadContent();
+        if (content == nullptr) {
+            return std::nullopt;
+        }
+
         bazel_re::BatchUpdateBlobsRequest request;
         request.set_instance_name(instance_name);
 
         auto& r = *request.add_requests();
         (*r.mutable_digest()) =
             ArtifactDigestFactory::ToBazel(blob.GetDigest());
-        r.set_data(*blob.ReadContent());
+        r.set_data(*content);
         return request;
     };
 

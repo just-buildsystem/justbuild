@@ -237,9 +237,15 @@ auto BazelApi::CreateAction(
         for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
             auto gpos = artifact_pos[count + pos];
             auto const& type = artifacts_info[gpos].type;
-            if (not FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
-                                                   /*kSetWritable=*/true>(
-                    *blobs[pos].ReadContent(), output_paths[gpos], type)) {
+
+            bool written = false;
+            if (auto const content = blobs[pos].ReadContent()) {
+                written = FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
+                                                         /*kSetWritable=*/true>(
+                    *content, output_paths[gpos], type);
+            }
+
+            if (not written) {
                 Logger::Log(LogLevel::Warning,
                             "staging to output path {} failed.",
                             output_paths[gpos].string());
@@ -486,7 +492,9 @@ auto BazelApi::CreateAction(
     -> std::optional<std::string> {
     auto reader = network_->CreateReader();
     if (auto blob = reader.ReadSingleBlob(artifact_info.digest)) {
-        return *blob->ReadContent();
+        if (auto const content = blob->ReadContent()) {
+            return *content;
+        }
     }
     return std::nullopt;
 }
@@ -520,7 +528,9 @@ auto BazelApi::CreateAction(
             targets->reserve(digests.size());
             for (auto blobs : reader.ReadIncrementally(&digests)) {
                 for (auto const& blob : blobs) {
-                    targets->emplace_back(*blob.ReadContent());
+                    if (auto const content = blob.ReadContent()) {
+                        targets->emplace_back(*content);
+                    }
                 }
             }
         });

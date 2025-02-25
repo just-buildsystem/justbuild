@@ -67,7 +67,9 @@ auto BazelResponse::ReadStringBlob(bazel_re::Digest const& id) noexcept
     if (digest.has_value()) {
         auto reader = network_->CreateReader();
         if (auto blob = reader.ReadSingleBlob(*digest)) {
-            return *blob->ReadContent();
+            if (auto const content = blob->ReadContent()) {
+                return *content;
+            }
         }
     }
     Logger::Log(LogLevel::Warning,
@@ -239,8 +241,11 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     for (auto tree_blobs : reader.ReadIncrementally(&tree_digests)) {
         for (auto const& tree_blob : tree_blobs) {
             try {
-                auto tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
-                    *tree_blob.ReadContent());
+                std::optional<bazel_re::Tree> tree;
+                if (auto const content = tree_blob.ReadContent()) {
+                    tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
+                        *content);
+                }
                 if (not tree) {
                     return fmt::format(
                         "BazelResponse: failed to create Tree for {}",

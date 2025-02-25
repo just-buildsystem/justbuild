@@ -232,16 +232,22 @@ auto LocalApi::RetrieveToMemory(Artifact::ObjectInfo const& artifact_info)
 
 auto LocalApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
                       bool /*skip_find_missing*/) const noexcept -> bool {
-    return std::all_of(
+    // Blobs could have been received over the network, so a simple failure
+    // could result in lost traffic. Try add all blobs and fail if at least
+    // one is corrupted.
+    std::size_t const valid_count = std::count_if(
         blobs.begin(),
         blobs.end(),
         [&cas = local_context_.storage->CAS()](ArtifactBlob const& blob) {
-            auto const cas_digest =
-                blob.GetDigest().IsTree()
-                    ? cas.StoreTree(*blob.ReadContent())
-                    : cas.StoreBlob(*blob.ReadContent(), blob.IsExecutable());
+            std::optional<ArtifactDigest> cas_digest;
+            if (auto const content = blob.ReadContent()) {
+                cas_digest = blob.GetDigest().IsTree()
+                                 ? cas.StoreTree(*content)
+                                 : cas.StoreBlob(*content, blob.IsExecutable());
+            }
             return cas_digest and *cas_digest == blob.GetDigest();
         });
+    return valid_count == blobs.size();
 }
 
 auto LocalApi::UploadTree(

@@ -66,8 +66,10 @@ auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
     }
 
     if (auto blob = ReadSingleBlob(digest)) {
-        return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-            *blob->ReadContent());
+        if (auto const content = blob->ReadContent()) {
+            return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
+                *content);
+        }
     }
     Logger::Log(
         LogLevel::Debug, "Directory {} not found in CAS", digest.hash());
@@ -83,6 +85,11 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
         Logger::Log(LogLevel::Debug, "Tree {} not found in CAS", digest.hash());
         return std::nullopt;
     }
+    auto const content = read_blob->ReadContent();
+    if (content == nullptr) {
+        return std::nullopt;
+    }
+
     auto check_symlinks = [this](std::vector<ArtifactDigest> const& ids) {
         size_t const size = ids.size();
         size_t count = 0;
@@ -94,7 +101,8 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
             }
             bool valid = std::all_of(
                 blobs.begin(), blobs.end(), [](ArtifactBlob const& blob) {
-                    return PathIsNonUpwards(*blob.ReadContent());
+                    auto const content = blob.ReadContent();
+                    return content != nullptr and PathIsNonUpwards(*content);
                 });
             if (not valid) {
                 return false;
@@ -104,9 +112,8 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
         return true;
     };
 
-    std::string const content = *read_blob->ReadContent();
-    return GitRepo::ReadTreeData(content,
-                                 hash_function_.HashTreeData(content).Bytes(),
+    return GitRepo::ReadTreeData(*content,
+                                 hash_function_.HashTreeData(*content).Bytes(),
                                  check_symlinks,
                                  /*is_hex_id=*/false);
 }
@@ -122,7 +129,8 @@ auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,
     }
 
     try {
-        return std::invoke(dumper, *read_blob->ReadContent());
+        auto const content = read_blob->ReadContent();
+        return content != nullptr and std::invoke(dumper, *content);
     } catch (...) {
         return false;
     }
@@ -236,11 +244,16 @@ auto BazelNetworkReader::BatchReadBlobs(
 
 auto BazelNetworkReader::Validate(ArtifactBlob const& blob) const noexcept
     -> bool {
+    auto const content = blob.ReadContent();
+    if (content == nullptr) {
+        return false;
+    }
+
     auto rehashed = blob.GetDigest().IsTree()
                         ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
-                              hash_function_, *blob.ReadContent())
+                              hash_function_, *content)
                         : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                              hash_function_, *blob.ReadContent());
+                              hash_function_, *content);
     return rehashed == blob.GetDigest();
 }
 

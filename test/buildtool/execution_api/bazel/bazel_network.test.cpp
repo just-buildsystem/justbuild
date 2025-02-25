@@ -99,6 +99,9 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 5);
+    for (auto const& blob : blobs) {
+        REQUIRE(blob.ReadContent() != nullptr);
+    }
     CHECK(*blobs[0].ReadContent() == content_foo);
     CHECK(*blobs[1].ReadContent() == content_bar);
     CHECK(*blobs[2].ReadContent() == content_baz);
@@ -160,6 +163,9 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
 
     // Check order maintained
     REQUIRE(blobs.size() == 2);
+    for (auto const& blob : blobs) {
+        REQUIRE(blob.ReadContent() != nullptr);
+    }
     CHECK(*blobs[0].ReadContent() == content_foo);
     CHECK(*blobs[1].ReadContent() == content_bar);
 }
