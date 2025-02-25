@@ -14,7 +14,34 @@
 
 #include "src/buildtool/common/artifact_blob.hpp"
 
+#include <exception>
+
+#include "fmt/core.h"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
+
+auto ArtifactBlob::FromMemory(HashFunction hash_function,
+                              ObjectType type,
+                              std::string content) noexcept
+    -> expected<ArtifactBlob, std::string> {
+    try {
+        auto digest = IsTreeObject(type)
+                          ? ArtifactDigestFactory::HashDataAs<ObjectType::Tree>(
+                                hash_function, content)
+                          : ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                                hash_function, content);
+        return ArtifactBlob{
+            std::move(digest),
+            std::make_shared<std::string const>(std::move(content)),
+            IsExecutableObject(type)};
+    } catch (const std::exception& e) {
+        return unexpected{fmt::format(
+            "ArtifactBlob::FromMemory: Got an exception:\n{}", e.what())};
+    } catch (...) {
+        return unexpected<std::string>{
+            "ArtifactBlob::FromMemory: Got an unknown exception"};
+    }
+}
 
 auto ArtifactBlob::ReadContent() const noexcept
     -> std::shared_ptr<std::string const> {

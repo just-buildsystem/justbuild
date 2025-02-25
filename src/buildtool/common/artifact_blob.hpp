@@ -22,6 +22,8 @@
 #include <utility>
 
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/incremental_reader.hpp"
 
@@ -33,6 +35,17 @@ class ArtifactBlob final {
         : digest_{std::move(digest)},
           content_{std::make_shared<std::string const>(std::move(content))},
           is_executable_{is_exec} {}
+
+    /// \brief Create ArtifactBlob and keep the given content in memory. The
+    /// content is hashed based on the given hash function and ObjectType.
+    /// \param hash_function    Hash function that must be used for hashing.
+    /// \param type             Type of the content.
+    /// \param content          String to be stored
+    /// \return Valid ArtifactBlob on success or an error message on failure.
+    [[nodiscard]] static auto FromMemory(HashFunction hash_function,
+                                         ObjectType type,
+                                         std::string content) noexcept
+        -> expected<ArtifactBlob, std::string>;
 
     [[nodiscard]] auto operator==(ArtifactBlob const& other) const noexcept
         -> bool {
@@ -47,7 +60,7 @@ class ArtifactBlob final {
 
     /// \brief Obtain the size of the content.
     [[nodiscard]] auto GetContentSize() const noexcept -> std::size_t {
-        return content_->size();
+        return digest_.size();
     }
 
     /// \brief Read the content from source.
@@ -76,6 +89,13 @@ class ArtifactBlob final {
     ArtifactDigest digest_;
     std::shared_ptr<std::string const> content_;
     bool is_executable_;
+
+    explicit ArtifactBlob(ArtifactDigest digest,
+                          std::shared_ptr<std::string const> content,
+                          bool is_executable) noexcept
+        : digest_{std::move(digest)},
+          content_{std::move(content)},
+          is_executable_{is_executable} {}
 };
 
 namespace std {

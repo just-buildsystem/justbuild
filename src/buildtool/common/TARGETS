@@ -86,10 +86,16 @@
   , "srcs": ["artifact_blob.cpp"]
   , "deps":
     [ "common"
+    , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "incremental_reader"]
     ]
-  , "private-deps": [["src/utils/cpp", "hash_combine"]]
+  , "private-deps":
+    [ "artifact_digest_factory"
+    , ["@", "fmt", "", "fmt"]
+    , ["src/utils/cpp", "hash_combine"]
+    ]
   , "stage": ["src", "buildtool", "common"]
   }
 , "common":
