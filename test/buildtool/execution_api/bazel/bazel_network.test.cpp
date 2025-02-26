@@ -135,24 +135,28 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
     std::string content_foo("foo");
     std::string content_bar(kLargeSize, 'x');  // single larger blob
 
-    auto const info_foo =
-        HashInfo::HashData(hash_function, content_foo, /*is_tree=*/false);
-    auto const info_bar =
-        HashInfo::HashData(hash_function, content_bar, /*is_tree=*/false);
+    // Create and upload blobs:
+    {
+        auto const foo_blob = ArtifactBlob::FromMemory(
+            hash_function, ObjectType::File, content_foo);
+        REQUIRE(foo_blob.has_value());
+        auto const bar_blob = ArtifactBlob::FromMemory(
+            hash_function, ObjectType::File, content_bar);
+        REQUIRE(bar_blob.has_value());
+        REQUIRE(network.UploadBlobs({*foo_blob, *bar_blob}));
+    }
 
-    ArtifactBlob foo{ArtifactDigest(info_foo, /*size_unknown=*/0),
-                     content_foo,
-                     /*is_exec=*/false};
-    ArtifactBlob bar{ArtifactDigest(info_bar, /*size_unknown=*/0),
-                     content_bar,
-                     /*is_exec=*/false};
-
-    // Upload blobs
-    REQUIRE(network.UploadBlobs({foo, bar}));
+    // Create digests of unknown size:
+    auto const foo_digest = ArtifactDigest{
+        HashInfo::HashData(hash_function, content_foo, /*is_tree=*/false),
+        /*size_unknown=*/0};
+    auto const bar_digest = ArtifactDigest{
+        HashInfo::HashData(hash_function, content_bar, /*is_tree=*/false),
+        /*size_unknown=*/0};
 
     // Read blobs
     auto reader = network.CreateReader();
-    std::vector<ArtifactDigest> to_read{foo.GetDigest(), bar.GetDigest()};
+    std::vector<ArtifactDigest> to_read{foo_digest, bar_digest};
     std::vector<ArtifactBlob> blobs{};
     for (auto next : reader.ReadIncrementally(&to_read)) {
         blobs.insert(blobs.end(), next.begin(), next.end());
