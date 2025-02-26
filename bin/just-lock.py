@@ -2206,6 +2206,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                  (json.dumps(commit, indent=2), ))
         # If commit in Git cache, stage it and return
         if git_commit_present(commit, upstream=None):
+            report("\tCache hit for commit %s" % (commit, ))
             stage_git_commit(commit,
                              upstream=None,
                              stage_to=clone_to,
@@ -2230,6 +2231,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         # Clone the branch fully and reset to specific commit; in this case, we
         # are interested also in the Git history, so a simple commit checkout is
         # not enough; try mirrors first, as they are closer
+        report("\tCloning commit %s from remote" % (commit, ))
         cloned: bool = False
         sources = mirrors + [url]
         for source in sources:
@@ -2402,6 +2404,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
         # If tree is in Git cache, stage it from there
         if (try_read_object_from_repo(tree_id, "tree", upstream=None)
                 is not None):
+            report("\tCache hit for Git-tree %s" % (tree_id, ))
             os.makedirs(clone_to, exist_ok=True)
             stage_git_entry(fpath=clone_to,
                             obj_id=tree_id,
@@ -2433,6 +2436,7 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                 new_envs[envar] = curr_env[envar]
         command_env = dict(command_env, **new_envs)
         # Generate the content
+        report("\tGenerating Git-tree content")
         os.makedirs(clone_to, exist_ok=True)
         run_cmd(g_LAUNCHER + command,
                 cwd=clone_to,
@@ -2950,22 +2954,36 @@ def lock_config(input_file: str) -> Json:
             fail("Unknown source for import entry \n%r" %
                  (json.dumps(entry, indent=2), ))
 
-    # Clone specified Git repositories locally
+    # Clone specified Git repositories locally asynchronously
     rewritten_repos: Json = {}
-    for clone_to, (known_repo, deps_chain) in g_CLONE_MAP.items():
+
+    def run_clone(*, repos: Json, clone_to: str, known_repo: str,
+                  deps_chain: List[str]) -> None:
+        """Perform the cloning and update, if needed, the outer 'keep' list and
+        fill in the 'rewritten_repos' dict. These updates are atomic, so no
+        extra locking is needed."""
         # Find target repository and clone its workspace root
-        result = clone_repo(core_config["repositories"], known_repo, deps_chain,
-                            clone_to)
+        result = clone_repo(repos, known_repo, deps_chain, clone_to)
         if result is not None:
             target_repo, cloned_repo = result
             # Rewrite description of target repo to point to clone location
             rewritten_repos[target_repo] = rewrite_cloned_repo(
-                core_config["repositories"],
+                repos,
                 clone_to=clone_to,
                 target_repo=target_repo,
                 ws_root_repo=cloned_repo)
             # Add start and target repos to 'keep' list
-            keep += [known_repo, target_repo]
+            keep.extend([known_repo, target_repo])
+
+    if g_CLONE_MAP:
+        report("Clone repositories")
+    with ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as ts:
+        for clone_to, (known_repo, deps_chain) in g_CLONE_MAP.items():
+            ts.submit(run_clone,
+                      repos=core_config["repositories"],
+                      clone_to=clone_to,
+                      known_repo=known_repo,
+                      deps_chain=deps_chain)
 
     core_config["repositories"].update(rewritten_repos)
 
