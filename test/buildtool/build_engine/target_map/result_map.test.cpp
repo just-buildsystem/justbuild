@@ -81,7 +81,7 @@ TEST_CASE("empty map", "[result_map]") {
           R"({"actions": {}, "blobs": [], "trees": {}})"_json);
 
     auto filename = (GetTestDir() / "test_empty.graph").string();
-    map.ToFile(filename, &stats, &progress);
+    map.ToFile({std::filesystem::path(filename)}, &stats, &progress);
     std::ifstream file(filename);
     nlohmann::json from_file{};
     file >> from_file;
@@ -146,7 +146,7 @@ TEST_CASE("origins creation", "[result_map]") {
         0}])"_json;
 
     auto filename = (GetTestDir() / "test_with_origins.graph").string();
-    map.ToFile(filename, &stats, &progress);
+    map.ToFile({std::filesystem::path(filename)}, &stats, &progress);
     std::ifstream file(filename);
     nlohmann::json from_file{};
     file >> from_file;
@@ -182,7 +182,8 @@ TEST_CASE("blobs uniqueness", "[result_map]") {
                          {"trees", nlohmann::json::object()}});
 
     auto filename = (GetTestDir() / "test_unique_blobs.graph").string();
-    map.ToFile</*kIncludeOrigins=*/false>(filename, &stats, &progress);
+    map.ToFile</*kIncludeOrigins=*/false>(
+        {std::filesystem::path(filename)}, &stats, &progress);
     std::ifstream file(filename);
     nlohmann::json from_file{};
     file >> from_file;

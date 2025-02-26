@@ -18,9 +18,9 @@
 #include <algorithm>
 #include <compare>
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iomanip>
 #include <iterator>
 #include <memory>
 #include <mutex>
@@ -381,15 +381,21 @@ class ResultTargetMap {
     }
 
     template <bool kIncludeOrigins = true>
-    auto ToFile(std::string const& graph_file,
+    auto ToFile(std::vector<std::filesystem::path> const& destinations,
                 gsl::not_null<Statistics const*> const& stats,
                 gsl::not_null<Progress*> const& progress,
                 int indent = 2) const -> void {
-        Logger::Log(
-            LogLevel::Info, "Dumping action graph to file {}.", graph_file);
-        std::ofstream os(graph_file);
-        os << std::setw(indent) << ToJson<kIncludeOrigins>(stats, progress)
-           << std::endl;
+        if (not destinations.empty()) {
+            // As serialization is expensive, compute the string only once
+            auto data = ToJson<kIncludeOrigins>(stats, progress).dump(indent);
+            for (auto const& graph_file : destinations) {
+                Logger::Log(LogLevel::Info,
+                            "Dumping action graph to file {}.",
+                            graph_file.string());
+                std::ofstream os(graph_file);
+                os << data << std::endl;
+            }
+        }
     }
 
     void Clear(gsl::not_null<TaskSystem*> const& ts) {

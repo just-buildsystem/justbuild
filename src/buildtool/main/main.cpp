@@ -1150,14 +1150,10 @@ auto main(int argc, char* argv[]) -> int {
                     not_eligible);
             }
 
-            if (arguments.analysis.graph_file) {
-                analyse_result->result_map.ToFile(
-                    *arguments.analysis.graph_file, &stats, &progress);
-            }
-            if (arguments.analysis.graph_file_plain) {
-                analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
-                    *arguments.analysis.graph_file_plain, &stats, &progress);
-            }
+            analyse_result->result_map.ToFile(
+                arguments.analysis.graph_file, &stats, &progress);
+            analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
+                arguments.analysis.graph_file_plain, &stats, &progress);
             auto const [artifacts, runfiles] =
                 ReadOutputArtifacts(analyse_result->target);
             if (arguments.analysis.artifacts_to_build_file) {

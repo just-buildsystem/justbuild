@@ -73,8 +73,8 @@ struct AnalysisArguments {
     std::optional<std::filesystem::path> target_root;
     std::optional<std::filesystem::path> rule_root;
     std::optional<std::filesystem::path> expression_root;
-    std::optional<std::filesystem::path> graph_file;
-    std::optional<std::filesystem::path> graph_file_plain;
+    std::vector<std::filesystem::path> graph_file;
+    std::vector<std::filesystem::path> graph_file_plain;
     std::optional<std::filesystem::path> artifacts_to_build_file;
     std::optional<std::filesystem::path> serve_errors_file;
 };
@@ -346,16 +346,22 @@ static inline auto SetupAnalysisArguments(
                     "errors as json.")
         ->type_name("PATH");
     if (with_graph) {
-        app->add_option(
+        app->add_option_function<std::string>(
                "--dump-graph",
-               clargs->graph_file,
+               [clargs](auto const& file_) {
+                   clargs->graph_file.emplace_back(file_);
+               },
                "File path for writing the action graph description to.")
-            ->type_name("PATH");
-        app->add_option("--dump-plain-graph",
-                        clargs->graph_file_plain,
-                        "File path for writing the action graph description "
-                        "(without origins) to.")
-            ->type_name("PATH");
+            ->type_name("PATH")
+            ->trigger_on_parse();
+        app->add_option_function<std::string>(
+               "--dump-plain-graph",
+               [clargs](auto const& file_) {
+                   clargs->graph_file_plain.emplace_back(file_);
+               },
+               "File path for writing the action graph description to.")
+            ->type_name("PATH")
+            ->trigger_on_parse();
         app->add_option("--dump-artifacts-to-build",
                         clargs->artifacts_to_build_file,
                         "File path for writing the artifacts to build to.")
