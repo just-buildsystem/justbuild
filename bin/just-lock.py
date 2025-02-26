@@ -16,6 +16,7 @@
 import fcntl
 import hashlib
 import json
+import multiprocessing
 import os
 import shutil
 import stat
@@ -29,6 +30,7 @@ from argparse import ArgumentParser, ArgumentError, RawTextHelpFormatter
 from pathlib import Path
 from typing import Any, Dict, List, NoReturn, Optional, Set, TextIO, Tuple, Union, cast
 from enum import Enum
+from concurrent.futures import ThreadPoolExecutor
 
 # generic JSON type that avoids getter issues; proper use is being enforced by
 # return types of methods and typing vars holding return values of json getters
@@ -2870,18 +2872,49 @@ def lock_config(input_file: str) -> Json:
         fail("Expected field \"keep\" to be a list, but found:\n%r" %
              (json.dumps(keep, indent=2), ))
 
+    # Acquire garbage collector locks
+    git_gc_lock = gc_repo_lock_acquire(is_shared=True)
+    storage_gc_lock = gc_storage_lock_acquire(is_shared=True)
+
+    # Do checkouts asynchronously
+    checkouts: Dict[int, Optional[CheckoutInfo]] = {}
+
+    def run_checkout(*, source: str, key: int, entry: Json) -> None:
+        """Run checkout and updates the outer variable 'checkouts'. Updates are
+        atomic, so no extra locking is needed."""
+        if source == "git":
+            checkouts[key] = git_checkout(entry)
+        elif source == "archive":
+            checkouts[key] = archive_checkout(entry)
+        elif source == "git tree":
+            checkouts[key] = git_tree_checkout(entry)
+
+    report("Check out sources")
+    with ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as ts:
+        for index, entry in enumerate(imports):
+            if not isinstance(entry, dict):
+                fail("Expected import entries to be objects, but found:\n%r" %
+                     (json.dumps(entry, indent=2), ))
+            entry = cast(Json, entry)
+
+            source = entry.get("source")
+            if not isinstance(source, str):
+                fail(
+                    "Expected field \"source\" to be a string, but found:\n%r" %
+                    (json.dumps(source, indent=2), ))
+
+            # Add task only for sources that do work
+            if source in ["git", "archive", "git tree"]:
+                ts.submit(run_checkout, source=source, key=index, entry=entry)
+
     # Initialize the core config, which will be extended with imports
     core_config: Json = {}
     if main is not None:
         core_config["main"] = main
     core_config["repositories"] = repositories
 
-    # Acquire garbage collector locks
-    git_gc_lock = gc_repo_lock_acquire(is_shared=True)
-    storage_gc_lock = gc_storage_lock_acquire(is_shared=True)
-
     # Handle imports
-    for entry in imports:
+    for index, entry in enumerate(imports):
         if not isinstance(entry, dict):
             fail("Expected import entries to be objects, but found:\n%r" %
                  (json.dumps(entry, indent=2), ))
@@ -2893,7 +2926,8 @@ def lock_config(input_file: str) -> Json:
                  (json.dumps(source, indent=2), ))
 
         if source == "git":
-            checkout_info = git_checkout(entry)
+            # Get checkout info
+            checkout_info = checkouts[index]
             if checkout_info is not None:
                 core_config["repositories"] = import_from_git(
                     core_config["repositories"], entry, checkout_info)
@@ -2901,12 +2935,12 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_file(
                 core_config["repositories"], entry)
         elif source == "archive":
-            checkout_info = archive_checkout(entry)
+            checkout_info = checkouts[index]
             if checkout_info is not None:
                 core_config["repositories"] = import_from_archive(
                     core_config["repositories"], entry, checkout_info)
         elif source == "git tree":
-            checkout_info = git_tree_checkout(entry)
+            checkout_info = checkouts[index]
             if checkout_info is not None:
                 core_config["repositories"] = import_from_git_tree(
                     core_config["repositories"], entry, checkout_info)
