@@ -1496,9 +1496,12 @@ def archive_fetch(locations: List[str],
             data = try_read_object_from_repo(content, "blob", upstream=None)
             if data is not None:
                 _, content = add_to_cas(data)
+                report("\tCache hit for archive %s" % (content, ))
                 return content
         # Fetch from remote
         fetched: bool = False
+        report("\tFetching archive from remote locations [%s]" %
+               (locations[-1]))
         for source in locations:
             data, err_code = run_cmd(g_LAUNCHER + ["wget", "-O", "-", source],
                                      stdout=subprocess.PIPE,
@@ -1608,56 +1611,11 @@ def unpack_archive(content_id: str, *, archive_type: str, unpack_to: str,
     return
 
 
-def archive_checkout(fetch: str, *, archive_type: str, content: Optional[str],
-                     mirrors: List[str], sha256: Optional[str],
-                     sha512: Optional[str], subdir: Optional[str],
-                     fail_context: str) -> Tuple[str, Dict[str, Any], str]:
+def archive_checkout(imports_entry: Json) -> Optional[CheckoutInfo]:
     """Fetch a given remote archive to local CAS, unpack it, check content,
     and return the checkout location."""
-    fail_context += "While checking out archive %r:\n" % (fetch)
-    if content is None:
-        # If content is not known, get it from the definitive source location
-        content = archive_fetch([fetch],
-                                content=None,
-                                sha256=sha256,
-                                sha512=sha512,
-                                fail_context=fail_context)
-    else:
-        # If content known, try the mirrors first, as they are closer
-        archive_fetch(mirrors + [fetch],
-                      content=content,
-                      sha256=sha256,
-                      sha512=sha512,
-                      fail_context=fail_context)
-
-    workdir: str = create_tmp_dir(type="archive-checkout")
-    unpack_archive(content,
-                   archive_type=archive_type,
-                   unpack_to=workdir,
-                   fail_context=fail_context)
-    srcdir = (workdir if subdir is None else os.path.join(workdir, subdir))
-
-    # Prepare the description stub used to rewrite "file"-type dependencies
-    repo_stub: Dict[str, Any] = {
-        "type": "zip" if archive_type == "zip" else "archive",
-        "fetch": fetch,
-        "content": content,
-    }
-    if mirrors:
-        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
-    if sha256 is not None:
-        repo_stub = dict(repo_stub, **{"sha256": sha256})
-    if sha512 is not None:
-        repo_stub = dict(repo_stub, **{"sha512": sha512})
-    if subdir is not None:
-        repo_stub = dict(repo_stub, **{"subdir": subdir})
-    return srcdir, repo_stub, workdir
-
-
-def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
-    """Handles imports from archive-type repositories."""
     # Set granular logging message
-    fail_context: str = "While importing from source \"archive\":\n"
+    fail_context: str = "While checking out source \"archive\":\n"
 
     # Get the repositories list
     repos: List[Any] = imports_entry.get("repos", [])
@@ -1667,10 +1625,10 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
              (json.dumps(repos, indent=2), ))
 
     # Check if anything is to be done
-    if not repos:  # empty
-        return core_repos
+    if not repos:
+        return None
 
-    # Parse source config fields
+    # Parse source fetch fields
     fetch: str = imports_entry.get("fetch", None)
     if not isinstance(fetch, str):
         fail(fail_context +
@@ -1731,6 +1689,61 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
         if subdir == ".":
             subdir = None  # treat as if missing
 
+    # Fetch the source repository
+    if content is None:
+        # If content is not known, get it from the definitive source location
+        content = archive_fetch([fetch],
+                                content=None,
+                                sha256=sha256,
+                                sha512=sha512,
+                                fail_context=fail_context)
+    else:
+        # If content known, try the mirrors first, as they are closer
+        archive_fetch(mirrors + [fetch],
+                      content=content,
+                      sha256=sha256,
+                      sha512=sha512,
+                      fail_context=fail_context)
+
+    workdir: str = create_tmp_dir(type="archive-checkout")
+    unpack_archive(content,
+                   archive_type=archive_type,
+                   unpack_to=workdir,
+                   fail_context=fail_context)
+    srcdir = (workdir if subdir is None else os.path.join(workdir, subdir))
+
+    # Prepare the description stub used to rewrite "file"-type dependencies
+    repo_stub: Dict[str, Any] = {
+        "type": "zip" if archive_type == "zip" else "archive",
+        "fetch": fetch,
+        "content": content,
+    }
+    if mirrors:
+        repo_stub = dict(repo_stub, **{"mirrors": mirrors})
+    if sha256 is not None:
+        repo_stub = dict(repo_stub, **{"sha256": sha256})
+    if sha512 is not None:
+        repo_stub = dict(repo_stub, **{"sha512": sha512})
+    if subdir is not None:
+        repo_stub = dict(repo_stub, **{"subdir": subdir})
+
+    return CheckoutInfo(srcdir, repo_stub, workdir)
+
+
+def import_from_archive(core_repos: Json, imports_entry: Json,
+                        checkout_info: CheckoutInfo) -> Json:
+    """Handles imports from archive-type repositories. Requires the result of a
+    call to archive_checkout."""
+    # Set granular logging message
+    fail_context: str = "While importing from source \"archive\":\n"
+
+    # Get needed known fields (validated during checkout)
+    repos: List[Any] = imports_entry["repos"]
+    archive_type: str = imports_entry.get("type", "tar")
+    if archive_type != "zip":
+        archive_type = "archive"  # type name as in Just-MR
+
+    # Parse remaining fields
     as_plain: Optional[bool] = imports_entry.get("as plain", False)
     if as_plain is not None and not isinstance(as_plain, bool):
         fail(fail_context +
@@ -1754,23 +1767,13 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
         # only enabled if as_plain is true
         pragma_special = None
 
-    # Fetch archive to local CAS and unpack
-    srcdir, remote_stub, to_clean_up = archive_checkout(
-        fetch,
-        archive_type=archive_type,
-        content=content,
-        mirrors=mirrors,
-        sha256=sha256,
-        sha512=sha512,
-        subdir=subdir,
-        fail_context=fail_context)
-
     # Read in the foreign config file
     if foreign_config_file:
-        foreign_config_file = os.path.join(srcdir, foreign_config_file)
+        foreign_config_file = os.path.join(checkout_info.srcdir,
+                                           foreign_config_file)
     else:
         foreign_config_file = get_repository_config_file(
-            DEFAULT_JUSTMR_CONFIG_NAME, srcdir)
+            DEFAULT_JUSTMR_CONFIG_NAME, checkout_info.srcdir)
     foreign_config: Json = {}
     if as_plain:
         foreign_config = {"main": "", "repositories": DEFAULT_REPO}
@@ -1799,7 +1802,7 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
         repo_entry = cast(Json, repo_entry)
 
         new_repos = handle_import(archive_type,
-                                  remote_stub,
+                                  checkout_info.remote_stub,
                                   repo_entry,
                                   new_repos,
                                   foreign_config,
@@ -1807,7 +1810,7 @@ def import_from_archive(core_repos: Json, imports_entry: Json) -> Json:
                                   fail_context=fail_context)
 
     # Clean up local fetch
-    try_rmtree(to_clean_up)
+    try_rmtree(checkout_info.to_clean_up)
     return new_repos
 
 
@@ -2894,8 +2897,10 @@ def lock_config(input_file: str) -> Json:
             core_config["repositories"] = import_from_file(
                 core_config["repositories"], entry)
         elif source == "archive":
-            core_config["repositories"] = import_from_archive(
-                core_config["repositories"], entry)
+            checkout_info = archive_checkout(entry)
+            if checkout_info is not None:
+                core_config["repositories"] = import_from_archive(
+                    core_config["repositories"], entry, checkout_info)
         elif source == "git tree":
             core_config["repositories"] = import_from_git_tree(
                 core_config["repositories"], entry)
