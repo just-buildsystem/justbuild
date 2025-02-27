@@ -2358,7 +2358,8 @@ def clone_repo(repos: Json, known_repo: str, deps_chain: List[str],
                             symlinks=True,
                             dirs_exist_ok=True)
         except Exception as ex:
-            report("Copying file path %s failed with:\n%r" % (clone_to, ex))
+            fail(fail_context + "Copying file path %s failed with:\n%r" %
+                 (clone_to, ex))
         imported_tree_id = import_to_git(workdir,
                                          repo_type="git-tree",
                                          content_id=tree_id,
