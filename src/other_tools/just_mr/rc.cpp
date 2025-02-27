@@ -620,6 +620,11 @@ namespace {
             if (graph_file_plain->IsString()) {
                 clargs->invocation_log.graph_file = graph_file_plain->String();
             }
+            auto profile =
+                invocation_log->Get("--profile", Expression::none_t{});
+            if (profile->IsString()) {
+                clargs->invocation_log.profile = profile->String();
+            }
         }
     }
     // read config lookup order

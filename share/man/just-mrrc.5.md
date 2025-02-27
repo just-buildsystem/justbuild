@@ -187,6 +187,8 @@ The just-mrrc is given by a JSON object.
    - *`"--dump-plain-graph"`* A file name specifying the file
      in the invocation-log directory for an invocation-specific
      `--dump-plain-graph` option.
+   - *`"--profile"`* A file name specifying the file in invocation-log
+     directory for an invocation-specific `--profile` option.
 
 
 EXAMPLE
@@ -209,6 +211,7 @@ An example just-mrrc file could look like the following:
   { "directory": {"root": "system", "path": "var/opt/just-invocation"}
   , "metadata": "metadata.json"
   , "--dump-graph": "graph.json"
+  , "--profile": "profile.json"
   }
 , "absent":
   [ {"root": "workspace", "path": "etc/absent.json"}

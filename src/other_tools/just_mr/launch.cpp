@@ -318,6 +318,16 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back("--dump-plain-graph");
             cmd.emplace_back(*log_dir / *invocation_log.graph_file_plain);
         }
+        if (invocation_log.profile) {
+            if (not IsValidFileName(*invocation_log.profile)) {
+                Logger::Log(LogLevel::Error,
+                            "Invalid file name for option --profile: {}",
+                            nlohmann::json(*invocation_log.profile).dump());
+                std::exit(kExitClargsError);
+            }
+            cmd.emplace_back("--profile");
+            cmd.emplace_back(*log_dir / *invocation_log.profile);
+        }
     }
     // add (remaining) args given by user as clargs
     for (auto it = just_cmd_args.additional_just_args.begin() +
