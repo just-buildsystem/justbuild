@@ -92,8 +92,7 @@
     ]
   , "srcs": ["artifact_digest_factory.cpp"]
   , "deps":
-    [ "protocol_traits"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]
@@ -104,7 +103,11 @@
     , ["src/utils/cpp", "hash_combine"]
     ]
   , "private-deps":
-    ["bazel_digest_factory", "bazel_types", ["@", "gsl", "", "gsl"]]
+    [ "bazel_digest_factory"
+    , "bazel_types"
+    , "protocol_traits"
+    , ["@", "gsl", "", "gsl"]
+    ]
   , "stage": ["src", "buildtool", "common"]
   }
 , "artifact_description":

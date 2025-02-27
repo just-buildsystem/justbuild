@@ -27,10 +27,9 @@
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/identifier.hpp"
-#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/crypto/hash_info.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -104,22 +103,14 @@ class Artifact {
             }
 
             auto const object_type = FromChar(*type.c_str());
-            // TODO(design): The logic of ArtifactDigestFactory::Create is
-            // duplicated here to avoid a cyclic dependency. A better solution
-            // is advisable.
-            auto hash_info =
-                HashInfo::Create(hash_type,
-                                 id,
-                                 ProtocolTraits::IsTreeAllowed(hash_type) and
-                                     IsTreeObject(object_type));
-            if (not hash_info) {
-                Logger::Log(
-                    LogLevel::Debug, "{}", std::move(hash_info).error());
+            auto digest = ArtifactDigestFactory::Create(
+                hash_type, id, size, IsTreeObject(object_type));
+            if (not digest) {
+                Logger::Log(LogLevel::Debug, "{}", std::move(digest).error());
                 return std::nullopt;
             }
-            return ObjectInfo{
-                .digest = ArtifactDigest{*std::move(hash_info), size},
-                .type = object_type};
+            return ObjectInfo{.digest = *std::move(digest),
+                              .type = object_type};
         }
     };
 
