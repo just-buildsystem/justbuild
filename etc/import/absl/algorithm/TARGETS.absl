@@ -52,6 +52,7 @@
   , "hdrs": ["container.h"]
   , "deps":
     [ "algorithm"
+    , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/base", "nullability"]
     , ["absl/meta", "type_traits"]

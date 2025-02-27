@@ -380,7 +380,12 @@
   , "name": ["strip"]
   , "stage": ["absl", "log", "internal"]
   , "hdrs": ["strip.h"]
-  , "deps": ["log_message", "nullstream", ["absl/base", "log_severity"]]
+  , "deps":
+    [ "log_message"
+    , "nullstream"
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "log_severity"]
+    ]
   }
 , "voidify":
   { "type": "export"

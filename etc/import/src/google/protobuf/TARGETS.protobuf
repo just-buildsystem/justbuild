@@ -196,6 +196,7 @@
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
     [ "compiler/code_generator.h"
+    , "compiler/code_generator_lite.h"
     , "compiler/command_line_interface.h"
     , "compiler/cpp/enum.h"
     , "compiler/cpp/extension.h"
@@ -255,7 +256,6 @@
     , "compiler/java/helpers.h"
     , "compiler/java/internal_helpers.h"
     , "compiler/java/java_features.pb.h"
-    , "compiler/java/kotlin_generator.h"
     , "compiler/java/lite/enum.h"
     , "compiler/java/lite/enum_field.h"
     , "compiler/java/lite/extension.h"
@@ -273,6 +273,9 @@
     , "compiler/java/names.h"
     , "compiler/java/options.h"
     , "compiler/java/shared_code_generator.h"
+    , "compiler/kotlin/file.h"
+    , "compiler/kotlin/generator.h"
+    , "compiler/kotlin/message.h"
     , "compiler/objectivec/enum.h"
     , "compiler/objectivec/enum_field.h"
     , "compiler/objectivec/extension.h"
@@ -302,8 +305,9 @@
     , "compiler/ruby/ruby_generator.h"
     , "compiler/rust/accessors/accessor_case.h"
     , "compiler/rust/accessors/accessors.h"
+    , "compiler/rust/accessors/default_value.h"
     , "compiler/rust/accessors/generator.h"
-    , "compiler/rust/accessors/helpers.h"
+    , "compiler/rust/accessors/with_presence.h"
     , "compiler/rust/context.h"
     , "compiler/rust/crate_mapping.h"
     , "compiler/rust/enum.h"
@@ -314,6 +318,7 @@
     , "compiler/rust/relative_path.h"
     , "compiler/rust/rust_field_type.h"
     , "compiler/rust/rust_keywords.h"
+    , "compiler/rust/upb_helpers.h"
     , "compiler/scc.h"
     , "compiler/subprocess.h"
     , "compiler/versions.h"
@@ -394,6 +399,7 @@
     , ["@", "absl", "absl/hash", "hash"]
     , ["@", "absl", "absl/log", "absl_check"]
     , ["@", "absl", "absl/log", "absl_log"]
+    , ["@", "absl", "absl/log", "log"]
     , ["@", "absl", "absl/meta", "type_traits"]
     , ["@", "absl", "absl/numeric", "bits"]
     , ["@", "absl", "absl/status", "status"]
@@ -496,6 +502,7 @@
     , ["@", "absl", "absl/base", "base"]
     , ["@", "absl", "absl/base", "core_headers"]
     , ["@", "absl", "absl/base", "dynamic_annotations"]
+    , ["@", "absl", "absl/cleanup", "cleanup"]
     , ["@", "absl", "absl/container", "btree"]
     , ["@", "absl", "absl/container", "fixed_array"]
     , ["@", "absl", "absl/container", "flat_hash_map"]
@@ -528,10 +535,12 @@
 , "libprotoc":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["libprotoc"]
-  , "hdrs": ["protoc_headers"]
+  , "hdrs":
+    ["protoc_headers", ["upb_generator", "names_hdrs"], ["upb", "port_hdrs"]]
   , "srcs":
     [ "compiler/main.cc"
     , "compiler/code_generator.cc"
+    , "compiler/code_generator_lite.cc"
     , "compiler/command_line_interface.cc"
     , "compiler/cpp/enum.cc"
     , "compiler/cpp/extension.cc"
@@ -590,7 +599,6 @@
     , "compiler/java/helpers.cc"
     , "compiler/java/internal_helpers.cc"
     , "compiler/java/java_features.pb.cc"
-    , "compiler/java/kotlin_generator.cc"
     , "compiler/java/lite/enum.cc"
     , "compiler/java/lite/enum_field.cc"
     , "compiler/java/lite/extension.cc"
@@ -606,6 +614,9 @@
     , "compiler/java/name_resolver.cc"
     , "compiler/java/names.cc"
     , "compiler/java/shared_code_generator.cc"
+    , "compiler/kotlin/file.cc"
+    , "compiler/kotlin/generator.cc"
+    , "compiler/kotlin/message.cc"
     , "compiler/objectivec/enum.cc"
     , "compiler/objectivec/enum_field.cc"
     , "compiler/objectivec/extension.cc"
@@ -633,13 +644,15 @@
     , "compiler/ruby/ruby_generator.cc"
     , "compiler/rust/accessors/accessor_case.cc"
     , "compiler/rust/accessors/accessors.cc"
-    , "compiler/rust/accessors/helpers.cc"
+    , "compiler/rust/accessors/default_value.cc"
     , "compiler/rust/accessors/map.cc"
     , "compiler/rust/accessors/repeated_field.cc"
+    , "compiler/rust/accessors/singular_cord.cc"
     , "compiler/rust/accessors/singular_message.cc"
     , "compiler/rust/accessors/singular_scalar.cc"
     , "compiler/rust/accessors/singular_string.cc"
     , "compiler/rust/accessors/unsupported_field.cc"
+    , "compiler/rust/accessors/with_presence.cc"
     , "compiler/rust/context.cc"
     , "compiler/rust/crate_mapping.cc"
     , "compiler/rust/enum.cc"
@@ -650,16 +663,14 @@
     , "compiler/rust/relative_path.cc"
     , "compiler/rust/rust_field_type.cc"
     , "compiler/rust/rust_keywords.cc"
+    , "compiler/rust/upb_helpers.cc"
     , "compiler/subprocess.cc"
     , "compiler/versions.cc"
     , "compiler/zip_writer.cc"
     , "testing/file.cc"
+    , ["upb_generator", "names_srcs"]
     ]
-  , "deps":
-    [ ["@", "absl", "absl/log", "initialize"]
-    , ["", "libprotobuf"]
-    , ["upb_generator", "mangle"]
-    ]
+  , "deps": [["@", "absl", "absl/log", "initialize"], ["", "libprotobuf"]]
   }
 , "protoc":
   { "type": ["@", "rules", "CC", "binary"]

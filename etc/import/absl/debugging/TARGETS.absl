@@ -197,9 +197,132 @@
   , "hdrs": ["internal/demangle.h"]
   , "srcs": ["internal/demangle.cc"]
   , "deps":
-    [ ["absl/base", "base"]
+    [ "demangle_rust"
+    , ["absl/base", "base"]
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/base", "nullability"]
+    , ["absl/numeric", "bits"]
+    ]
+  }
+, "bounded_utf8_length_sequence":
+  { "type": "export"
+  , "target": "bounded_utf8_length_sequence (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "bounded_utf8_length_sequence (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["bounded_utf8_length_sequence"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/bounded_utf8_length_sequence.h"]
+  , "deps": [["absl/base", "config"], ["absl/numeric", "bits"]]
+  }
+, "decode_rust_punycode":
+  { "type": "export"
+  , "target": "decode_rust_punycode (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "decode_rust_punycode (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["decode_rust_punycode"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/decode_rust_punycode.h"]
+  , "srcs": ["internal/decode_rust_punycode.cc"]
+  , "deps":
+    [ "bounded_utf8_length_sequence"
+    , "utf8_for_code_point"
+    , ["absl/base", "config"]
+    , ["absl/base", "nullability"]
+    ]
+  }
+, "demangle_rust":
+  { "type": "export"
+  , "target": "demangle_rust (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "demangle_rust (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["demangle_rust"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/demangle_rust.h"]
+  , "srcs": ["internal/demangle_rust.cc"]
+  , "deps":
+    [ "decode_rust_punycode"
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     ]
+  }
+, "utf8_for_code_point":
+  { "type": "export"
+  , "target": "utf8_for_code_point (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "utf8_for_code_point (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["utf8_for_code_point"]
+  , "stage": ["absl", "debugging"]
+  , "hdrs": ["internal/utf8_for_code_point.h"]
+  , "srcs": ["internal/utf8_for_code_point.cc"]
+  , "deps": [["absl/base", "config"]]
   }
 }

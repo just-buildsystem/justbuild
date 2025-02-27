@@ -89,6 +89,7 @@
     , "upb/reflection/method_def.h"
     , "upb/reflection/oneof_def.h"
     , "upb/reflection/service_def.h"
+    , "upb/reflection/descriptor_bootstrap.h"
     ]
   , "private-hdrs":
     [ "upb/reflection/internal/def_builder.h"
@@ -452,7 +453,7 @@
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["text"]
   , "srcs": ["upb/text/encode.c"]
-  , "hdrs": ["upb/text/encode.h"]
+  , "hdrs": ["upb/text/encode.h", "upb/text/options.h"]
   , "deps":
     [ "base"
     , "eps_copy_input_stream"
@@ -462,6 +463,24 @@
     , "message_types"
     , "port"
     , "reflection"
+    , "text_internal"
+    , "wire_reader"
+    , ["@", "protobuf", "third_party/utf8_range", "utf8_range"]
+    ]
+  , "pure C": ["YES"]
+  }
+, "text_internal":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["text_internal"]
+  , "srcs": ["upb/text/internal/encode.c"]
+  , "hdrs": ["upb/text/internal/encode.h", "upb/text/options.h"]
+  , "deps":
+    [ "base"
+    , "eps_copy_input_stream"
+    , "lex"
+    , "message"
+    , "message_internal"
+    , "port"
     , "wire_reader"
     , ["@", "protobuf", "third_party/utf8_range", "utf8_range"]
     ]

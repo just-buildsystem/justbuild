@@ -1,9 +1,13 @@
-{ "mangle":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["mangle"]
+{ "names_srcs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    ["common/names.cc", "minitable/names.cc", "minitable/names_internal.cc"]
   , "stage": ["upb_generator"]
-  , "srcs": ["mangle.cc"]
-  , "hdrs": ["mangle.h"]
-  , "deps": [["@", "absl", "absl/strings", "strings"]]
+  }
+, "names_hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    ["common/names.h", "minitable/names.h", "minitable/names_internal.h"]
+  , "stage": ["upb_generator"]
   }
 }

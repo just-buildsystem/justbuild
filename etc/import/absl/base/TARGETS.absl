@@ -311,7 +311,7 @@
   , "name": ["no_destructor"]
   , "stage": ["absl", "base"]
   , "hdrs": ["no_destructor.h"]
-  , "deps": ["config"]
+  , "deps": ["config", "nullability"]
   }
 , "nullability":
   { "type": "export"
@@ -338,7 +338,7 @@
   , "name": ["nullability"]
   , "stage": ["absl", "base"]
   , "hdrs": ["nullability.h", "internal/nullability_impl.h"]
-  , "deps": ["core_headers", ["absl/meta", "type_traits"]]
+  , "deps": ["config", "core_headers", ["absl/meta", "type_traits"]]
   }
 , "raw_logging_internal":
   { "type": "export"
@@ -607,5 +607,33 @@
   , "stage": ["absl", "base"]
   , "hdrs": ["prefetch.h"]
   , "deps": ["config", "core_headers"]
+  }
+, "poison":
+  { "type": "export"
+  , "target": "poison (unexported)"
+  , "flexible_config":
+    [ "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ARCH"
+    , "CC"
+    , "CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "DEBUG"
+    , "ENV"
+    , "HOST_ARCH"
+    , "OS"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    ]
+  }
+, "poison (unexported)":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["poison"]
+  , "stage": ["absl", "base"]
+  , "srcs": ["internal/poison.cc"]
+  , "hdrs": ["internal/poison.h"]
+  , "deps": ["config", "core_headers", "malloc_internal"]
   }
 }

@@ -234,13 +234,13 @@
   , "ssl":
     { "repository":
       { "type": "archive"
-      , "content": "2142a2813a0d387f5f86dd90635d29a88b5b6c66"
-      , "fetch": "https://github.com/google/boringssl/archive/b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6.tar.gz"
-      , "sha256": "c70d519e4ee709b7a74410a5e3a937428b8198d793a3d771be3dd2086ae167c8"
-      , "sha512": "3a35107ce0b891911608b97e24a3437fb849bcb738f699eab74e55a2e0fd911f4a448ac1f2b11f444bcf7ae5794b7fa109009043a0f5dbeec5d73cf3909651c0"
-      , "subdir": "boringssl-b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6"
+      , "content": "d9ff3aa3d22337e93cb0a0e2df00ca8abea2fac6"
+      , "fetch": "https://github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz"
+      , "sha256": "2f12c33d2cf25a658a1b981fb96923dac87e9175fb20e45db6950ee36c526356"
+      , "sha512": "51f91bee640e38ce20c180195de6811b5be7522240faae2b57158fa9c298ed09292ecb09c770df5d4fc6a3100bc2459de4e9d312e315265c1ea7ade347bad3f2"
+      , "subdir": "boringssl-dec0d8f681348af8bb675e07bd89989665fca8bc"
       , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/b8b3e6e11166719a8ebfa43c0cde9ad7d57a84f6.tar.gz"
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz"
         ]
       }
     , "target_root": "import targets"
@@ -248,7 +248,7 @@
     , "bindings": {"rules": "rules-boringssl", "patches": "patches"}
     , "bootstrap":
       { "arch_map": {"arm64": "aarch64"}
-      , "build": "{cc} {cflags} -I . -I src/include -c src/crypto/*.c src/crypto/*/*.c src/gen/crypto/*.c src/crypto/*/*.S src/crypto/*/*/*.S src/gen/bcm/*.S src/gen/crypto/*.S src/third_party/fiat/asm/*.S && {ar} cqs libcrypto.a *.o"
+      , "build": "{cxx} {cxxflags} -I . -I src/include -c `find . '(' -ipath './src/crypto/*.cc' -o -ipath './src/gen/crypto/*.cc' -o -ipath './src/crypto/*.S' -o -ipath './src/gen/bcm/*.S' -o -ipath './src/gen/crypto/*.S' -o -ipath './src/third_party/fiat/asm/*.S' ')' -type f ! -ipath '*_test.*' ! -ipath '*/test/*'` && {ar} cqs libcrypto.a *.o"
       , "link": ["-lcrypto", "-pthread"]
       , "include_dir": "src/include/openssl"
       , "include_name": "openssl"
@@ -258,11 +258,11 @@
   , "protobuf":
     { "repository":
       { "type": "archive"
-      , "content": "eef52bb7f76e8c87ab741d6d9139a837f4b399d4"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v27.2/protobuf-27.2.tar.gz"
-      , "sha256": "e4ff2aeb767da6f4f52485c2e72468960ddfe5262483879ef6ad552e52757a77"
-      , "sha512": "664c66b62cf1ed0c65d9b910d8e67d4d5d471113697f1b8edf1573cd5c0fc8e850ac53ce984e48e6c6b9cbbefa12f8530058384e7388e65a59c1e46d03772397"
-      , "subdir": "protobuf-27.2"
+      , "content": "e8787a2f6d661aaaec426743c4e9667be7c8ba2f"
+      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v29.0/protobuf-29.0.tar.gz"
+      , "sha256": "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c"
+      , "sha512": "c5637486a533557ea909d1f880b0f0064fff0c4665612e023170941310c45bf8e7373d2c67de621824b056530e98792c00799d71ec4ff7b6af9142cdc4cb8dee"
+      , "subdir": "protobuf-29.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.protobuf"
@@ -308,13 +308,13 @@
   , "com_google_absl":
     { "repository":
       { "type": "archive"
-      , "content": "e9bacd5f3a5c3a51f4f0f50e9ed963464714caa7"
-      , "fetch": "https://github.com/abseil/abseil-cpp/releases/download/20240116.0/abseil-cpp-20240116.0.tar.gz"
-      , "sha256": "338420448b140f0dfd1a1ea3c3ce71b3bc172071f24f4d9a57d59b45037da440"
-      , "sha512": "018488e69cca472ef118631bd79bca4ef0cf1363432e79b81532942168d305511e4cdf4dc72611275e9a9de00cd71c0245be4ec287ff36147248e218218bf825"
-      , "subdir": "abseil-cpp-20240116.0"
+      , "content": "b5cc395c49afa2a2dec1d9c4072500494b126974"
+      , "fetch": "https://github.com/abseil/abseil-cpp/releases/download/20240722.0/abseil-cpp-20240722.0.tar.gz"
+      , "sha256": "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3"
+      , "sha512": "bd2cca8f007f2eee66f51c95a979371622b850ceb2ce3608d00ba826f7c494a1da0fba3c1427728f2c173fe50d59b701da35c2c9fdad2752a5a49746b1c8ef31"
+      , "subdir": "abseil-cpp-20240722.0"
       , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/20240116.0.tar.gz"
+        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz"
         ]
       }
     , "target_root": "import targets"
@@ -392,11 +392,11 @@
   , "com_github_grpc_grpc":
     { "repository":
       { "type": "archive"
-      , "content": "11573055daa6b91b4873e8e6118d0535ddc05418"
-      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.67.1.tar.gz"
-      , "sha256": "d74f8e99a433982a12d7899f6773e285c9824e1d9a173ea1d1fb26c9bd089299"
-      , "sha512": "4f9b63278590be282b5578ec6c5f607f11046fdac3e62b5bf9054f664971312efee621e1fd3a086eaf978d41f4cd83bab7f2947c9e6189dc30bcb69263f481dc"
-      , "subdir": "grpc-1.67.1"
+      , "content": "a6a8b898fa1d8abe70ed77f45236940d0a5871f2"
+      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.70.1.tar.gz"
+      , "sha256": "c4e85806a3a23fd2a78a9f8505771ff60b2beef38305167d50f5e8151728e426"
+      , "sha512": "35382987b33abb57a27105570c91db048853d95111f125bc6fac8a25f758c29ab2c699c63330b445b0a08f04c9dbc4dfa1dc0c33a7e2d8ea99d06d884a3c9852"
+      , "subdir": "grpc-1.70.1"
       , "pragma": {"special": "ignore"}
       }
     , "target_root": "import targets"

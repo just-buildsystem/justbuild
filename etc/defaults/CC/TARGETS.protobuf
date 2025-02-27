@@ -56,7 +56,8 @@
                 , "expr": {"type": "var", "name": "COMPILER_FAMILY"}
                 , "case":
                   { "gnu": ["-Wno-attributes"]
-                  , "clang": ["-Wno-atomic-alignment"]
+                  , "clang":
+                    ["-Wno-atomic-alignment", "-Wno-return-stack-address"]
                   }
                 , "default": ["-Wno-deprecated-enum-enum-conversion"]
                 }

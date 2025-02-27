@@ -50,6 +50,7 @@
             , "-Wno-sign-compare"
             , "-Wno-implicit-fallthrough"
             , "-DOSATOMIC_USE_INLINED=1"
+            , "-Wno-attributes"
             ]
           }
         , { "type": "case"

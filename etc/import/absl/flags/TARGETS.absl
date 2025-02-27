@@ -173,10 +173,10 @@
   , "stage": ["absl", "flags"]
   , "hdrs": ["declare.h", "flag.h"]
   , "deps":
-    [ "config"
+    [ "commandlineflag"
+    , "config"
     , "flag_internal"
     , "reflection"
-    , ["absl/base", "base"]
     , ["absl/base", "config"]
     , ["absl/base", "core_headers"]
     , ["absl/strings", "strings"]

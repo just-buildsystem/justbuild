@@ -55,9 +55,6 @@
               , "-Wwrite-strings"
               , "-Wshadow"
               , "-fno-common"
-              , "-Wmissing-prototypes"
-              , "-Wold-style-definition"
-              , "-Wstrict-prototypes"
               ]
             ]
           ]

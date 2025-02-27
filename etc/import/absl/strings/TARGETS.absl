@@ -63,7 +63,6 @@
     , "has_absl_stringify.h"
     , "internal/damerau_levenshtein_distance.h"
     , "internal/string_constant.h"
-    , "internal/has_absl_stringify.h"
     , "match.h"
     , "numbers.h"
     , "str_cat.h"
@@ -203,6 +202,7 @@
     , ["absl/functional", "function_ref"]
     , ["absl/meta", "type_traits"]
     , ["absl/numeric", "bits"]
+    , ["absl/types", "compare"]
     , ["absl/types", "optional"]
     , ["absl/types", "span"]
     ]
@@ -320,8 +320,8 @@
   , "hdrs": ["internal/cordz_handle.h"]
   , "srcs": ["internal/cordz_handle.cc"]
   , "deps":
-    [ ["absl/base", "base"]
-    , ["absl/base", "config"]
+    [ ["absl/base", "config"]
+    , ["absl/base", "no_destructor"]
     , ["absl/base", "raw_logging_internal"]
     , ["absl/synchronization", "synchronization"]
     ]

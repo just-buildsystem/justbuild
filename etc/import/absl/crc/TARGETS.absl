@@ -27,8 +27,8 @@
   , "deps":
     [ "crc32c"
     , ["absl/base", "config"]
+    , ["absl/base", "no_destructor"]
     , ["absl/numeric", "bits"]
-    , ["absl/strings", "strings"]
     ]
   }
 , "crc32c":

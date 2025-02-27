@@ -138,6 +138,7 @@
     [ "impl/codegen/proto_buffer_reader.h"
     , "impl/codegen/proto_buffer_writer.h"
     , "impl/codegen/proto_utils.h"
+    , "impl/generic_serialize.h"
     , "impl/proto_utils.h"
     ]
   , "stage": ["grpcpp"]
@@ -164,6 +165,11 @@
 , "global_callback_hook_headers":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs": ["support/global_callback_hook.h"]
+  , "stage": ["grpcpp"]
+  }
+, "grpcpp_xds_server_builder_headers":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs": ["xds_server_builder.h"]
   , "stage": ["grpcpp"]
   }
 }

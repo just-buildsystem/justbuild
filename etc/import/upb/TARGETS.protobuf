@@ -1,0 +1,11 @@
+{ "port_hdrs":
+  { "type": ["@", "rules", "data", "staged"]
+  , "srcs":
+    [ "port/atomic.h"
+    , "port/def.inc"
+    , "port/undef.inc"
+    , "port/vsnprintf_compat.h"
+    ]
+  , "stage": ["upb"]
+  }
+}

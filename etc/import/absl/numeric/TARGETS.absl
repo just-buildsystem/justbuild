@@ -25,7 +25,12 @@
   , "hdrs":
     ["int128.h", "int128_have_intrinsic.inc", "int128_no_intrinsic.inc"]
   , "srcs": ["int128.cc"]
-  , "deps": ["bits", ["absl/base", "config"], ["absl/base", "core_headers"]]
+  , "deps":
+    [ "bits"
+    , ["absl/base", "config"]
+    , ["absl/base", "core_headers"]
+    , ["absl/types", "compare"]
+    ]
   }
 , "bits":
   { "type": "export"

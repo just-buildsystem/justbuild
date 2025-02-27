@@ -217,6 +217,8 @@
     , "internal_seed_material"
     , "seed_gen_exception"
     , ["absl/base", "config"]
+    , ["absl/base", "nullability"]
+    , ["absl/strings", "string_view"]
     , ["absl/types", "span"]
     ]
   }
