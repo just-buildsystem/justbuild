@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TRAVERSER_TRAVERSER_HPP
 
 #include <atomic>
+#include <concepts>
 #include <cstddef>
 #include <functional>
 #include <string>
@@ -28,15 +29,14 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
-#include "src/utils/cpp/concepts.hpp"
 
 /// \brief Concept required for Runners used by the Traverser.
 template <class T>
 concept Runnable = requires(T const r,
                             DependencyGraph::ActionNode const* action,
                             DependencyGraph::ArtifactNode const* artifact) {
-    { r.Process(action) } -> same_as<bool>;
-    { r.Process(artifact) } -> same_as<bool>;
+    { r.Process(action) } -> std::same_as<bool>;
+    { r.Process(artifact) } -> std::same_as<bool>;
 };
 
 /// \brief Class to traverse the dependency graph executing necessary actions
