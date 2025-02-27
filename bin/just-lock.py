@@ -1128,30 +1128,40 @@ def git_checkout(url: str, branch: str, *, commit: Optional[str],
 
     fail_context += "While checking out branch %r of %r:\n" % (branch, url)
     if commit is None:
-        # If no commit given, do shallow clone and get HEAD commit from
-        # definitive source location
+        # Get top commit of remote branch from definitive source location
         fetch_url = git_url_is_path(url)
         if fetch_url is None:
             fetch_url = url
         else:
             fetch_url = os.path.abspath(fetch_url)
-        run_cmd(
-            g_LAUNCHER +
-            [g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"],
+        commit = run_cmd(
+            g_LAUNCHER + [g_GIT, "ls-remote", fetch_url, branch],
             cwd=workdir,
-            fail_context=fail_context)
-        commit = run_cmd(g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
-                         cwd=srcdir,
-                         stdout=subprocess.PIPE,
-                         fail_context=fail_context)[0].decode('utf-8').strip()
-        report("Importing remote Git commit %s" % (commit, ))
-        # Cache this commit by fetching it to Git cache and tagging it
-        ensure_git_init(upstream=None, fail_context=fail_context)
-        git_fetch(from_repo=srcdir,
-                  to_repo=None,
-                  fetchable=commit,
-                  fail_context=fail_context)
-        git_keep(commit, upstream=None, fail_context=fail_context)
+            stdout=subprocess.PIPE,
+            fail_context=fail_context)[0].decode('utf-8').split('\t')[0]
+        if not git_commit_present(commit, upstream=None):
+            # If commit not in Git cache repository, do shallow clone and get
+            # HEAD commit from definitive source location
+            run_cmd(g_LAUNCHER + [
+                g_GIT, "clone", "-b", branch, "--depth", "1", fetch_url, "src"
+            ],
+                    cwd=workdir,
+                    fail_context=fail_context)
+            # In the very small chance that the remote top commit changed in the
+            # meanwhile, only trust what has been actually cloned
+            commit = run_cmd(
+                g_LAUNCHER + [g_GIT, "log", "-n", "1", "--pretty=%H"],
+                cwd=srcdir,
+                stdout=subprocess.PIPE,
+                fail_context=fail_context)[0].decode('utf-8').strip()
+            report("Importing remote Git commit %s" % (commit, ))
+            # Cache this commit by fetching it to Git cache and tagging it
+            ensure_git_init(upstream=None, fail_context=fail_context)
+            git_fetch(from_repo=srcdir,
+                      to_repo=None,
+                      fetchable=commit,
+                      fail_context=fail_context)
+            git_keep(commit, upstream=None, fail_context=fail_context)
     else:
         if not git_commit_present(commit, upstream=None):
             # If commit not in Git cache repository, fetch witnessing branch
