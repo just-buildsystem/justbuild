@@ -156,7 +156,8 @@ def run_cmd(
     cmd: List[str],
     *,
     env: Optional[Any] = None,
-    stdout: Optional[Any] = subprocess.DEVNULL,
+    stdout: Optional[Any] = subprocess.DEVNULL,  # ignore output by default
+    stderr: Optional[Any] = subprocess.PIPE,  # capture errors by default
     stdin: Optional[Any] = None,
     input: Optional[bytes] = None,
     cwd: str,
@@ -172,14 +173,16 @@ def run_cmd(
                                 cwd=cwd,
                                 env=env,
                                 stdout=stdout,
+                                stderr=stderr,
                                 stdin=stdin,
                                 input=input)
         if result.returncode == 0:
             return result.stdout, result.returncode  # return successful result
     if fail_context is not None:
-        fail("%sCommand %s in %s failed after %d attempt%s" %
-             (fail_context, cmd, cwd, attempts, "" if attempts == 1 else "s"))
-    return result.stdout, result.returncode  # return result of last failure
+        fail("%sCommand %s in %s failed after %d attempt%s with:\n%s" %
+             (fail_context, cmd, cwd, attempts, "" if attempts == 1 else "s",
+              result.stderr))
+    return result.stderr, result.returncode  # return result of last failure
 
 
 def try_rmtree(tree: str) -> None:
