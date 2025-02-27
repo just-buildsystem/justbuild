@@ -113,9 +113,9 @@ auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
     };
 
     return GitRepo::ReadTreeData(*content,
-                                 hash_function_.HashTreeData(*content).Bytes(),
+                                 digest.hash(),
                                  check_symlinks,
-                                 /*is_hex_id=*/false);
+                                 /*is_hex_id=*/true);
 }
 
 auto BazelNetworkReader::DumpRawTree(Artifact::ObjectInfo const& info,

@@ -20,9 +20,9 @@
 #include <utility>
 
 #include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/tree_reader_utils.hpp"
@@ -87,14 +87,11 @@ auto RetrieveSubPathId(Artifact::ObjectInfo object_info,
             object_info = *new_object_info;
         }
         else {
-            auto const hash = HashFunction{HashFunction::Type::GitSHA1}
-                                  .HashTreeData(*data)
-                                  .Bytes();
             auto entries = GitRepo::ReadTreeData(
                 *data,
-                hash,
+                object_info.digest.hash(),
                 [](auto const& /*unused*/) { return true; },
-                /*is_hex_id=*/false);
+                /*is_hex_id=*/true);
             if (not entries) {
                 Logger::Log(LogLevel::Warning,
                             "Failed to parse tree {} at path '{}'",
