@@ -23,13 +23,12 @@
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
-#include "src/buildtool/common/repository_config.hpp"
-#include "src/buildtool/execution_api/serve/mr_git_api.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
 #include "src/other_tools/git_operations/git_ops_types.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 namespace {
@@ -39,51 +38,24 @@ namespace {
 void UploadToServeAndSetRoot(
     ServeApi const& serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    std::string const& tree_id,
+    StorageConfig const* /*compat_storage_config*/,
+    std::string const& /*tree_id*/,
     ArtifactDigest const& digest,
-    gsl::not_null<IExecutionApi const*> const& local_api,
-    IExecutionApi const& remote_api,
+    gsl::not_null<IExecutionApi const*> const& /*local_api*/,
+    IExecutionApi const& /*remote_api*/,
     bool ignore_special,
     TreeIdGitMap::SetterPtr const& setter,
     TreeIdGitMap::LoggerPtr const& logger) {
-    // upload to remote CAS
-    auto repo_config = RepositoryConfig{};
-    if (repo_config.SetGitCAS(native_storage_config->GitRoot())) {
-        auto git_api =
-            MRGitApi{&repo_config,
-                     native_storage_config,
-                     compat_storage_config,
-                     compat_storage_config != nullptr ? &*local_api : nullptr};
-        if (not git_api.RetrieveToCas(
-                {Artifact::ObjectInfo{.digest = digest,
-                                      .type = ObjectType::Tree}},
-                remote_api)) {
-            (*logger)(fmt::format("Failed to sync tree {} from local Git cache "
-                                  "to remote CAS",
-                                  tree_id),
-                      /*fatal=*/true);
-            return;
-        }
-    }
-    else {
-        (*logger)(fmt::format("Failed to SetGitCAS at {}",
-                              native_storage_config->GitRoot().string()),
-                  /*fatal=*/true);
-        return;
-    }
-    // tell serve to set up the root from the remote CAS tree;
-    if (not serve.GetTreeFromRemote(digest)) {
-        (*logger)(
-            fmt::format("Serve endpoint failed to sync root tree {}.", tree_id),
-            /*fatal=*/true);
+    auto uploaded = serve.UploadTree(digest, native_storage_config->GitRoot());
+    if (not uploaded.has_value()) {
+        (*logger)(uploaded.error().Message(), /*fatal=*/true);
         return;
     }
     // set workspace root as absent
     auto root = nlohmann::json::array(
         {ignore_special ? FileRoot::kGitTreeIgnoreSpecialMarker
                         : FileRoot::kGitTreeMarker,
-         tree_id});
+         digest.hash()});
     (*setter)(std::pair(std::move(root), /*is_cache_hit=*/false));
 }
 
