@@ -54,7 +54,7 @@
     auto const [artifacts, runfiles] =
         ReadOutputArtifacts(analysis_result->target);
 
-    auto const [actions, blobs, trees] = analysis_result->result_map.ToResult(
+    auto [actions, blobs, trees] = analysis_result->result_map.ToResult(
         analyse_context->statistics, analyse_context->progress, logger);
 
     auto const cache_targets = analysis_result->result_map.CacheTargets();
@@ -69,8 +69,12 @@
         extra_artifacts.emplace_back(desc);
     }
 
-    auto build_result = traverser.BuildAndStage(
-        artifacts, {}, actions, blobs, trees, std::move(extra_artifacts));
+    auto build_result = traverser.BuildAndStage(artifacts,
+                                                {},
+                                                std::move(actions),
+                                                std::move(blobs),
+                                                std::move(trees),
+                                                std::move(extra_artifacts));
 
     if (not build_result) {
         if (logger != nullptr) {

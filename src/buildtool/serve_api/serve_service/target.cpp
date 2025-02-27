@@ -531,24 +531,6 @@ auto TargetService::ServeTarget(
     logger_->Emit(
         LogLevel::Info, "Analysed target {}", analyse_result->id.ToString());
 
-    // get the output artifacts
-    auto const [artifacts, runfiles] =
-        ReadOutputArtifacts(analyse_result->target);
-
-    // get the analyse_result map outputs
-    auto const& [actions, blobs, trees] =
-        analyse_result->result_map.ToResult(&stats, &progress, &logger);
-
-    // collect cache targets and artifacts for target-level caching
-    auto const cache_targets = analyse_result->result_map.CacheTargets();
-    auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
-
-    // Clean up analyse_result map, now that it is no longer needed
-    {
-        TaskSystem ts{serve_config_.jobs};
-        analyse_result->result_map.Clear(&ts);
-    }
-
     auto jobs = serve_config_.build_jobs;
     if (jobs == 0) {
         jobs = serve_config_.jobs;
@@ -584,12 +566,30 @@ auto TargetService::ServeTarget(
             ProgressReporter::Reporter(&stats, &progress, &logger),
             &logger};
 
+        // get the output artifacts
+        auto const [artifacts, runfiles] =
+            ReadOutputArtifacts(analyse_result->target);
+
+        // get the analyse_result map outputs
+        auto [actions, blobs, trees] =
+            analyse_result->result_map.ToResult(&stats, &progress, &logger);
+
+        // collect cache targets and artifacts for target-level caching
+        auto const cache_targets = analyse_result->result_map.CacheTargets();
+        auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
+
+        // Clean up analyse_result map, now that it is no longer needed
+        {
+            TaskSystem ts{serve_config_.jobs};
+            analyse_result->result_map.Clear(&ts);
+        }
+
         // perform build
         auto build_result = traverser.BuildAndStage(artifacts,
                                                     runfiles,
-                                                    actions,
-                                                    blobs,
-                                                    trees,
+                                                    std::move(actions),
+                                                    std::move(blobs),
+                                                    std::move(trees),
                                                     std::move(cache_artifacts));
 
         if (not build_result) {

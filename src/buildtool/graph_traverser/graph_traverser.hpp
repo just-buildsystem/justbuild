@@ -114,18 +114,18 @@ class GraphTraverser {
     [[nodiscard]] auto BuildAndStage(
         std::map<std::string, ArtifactDescription> const& artifact_descriptions,
         std::map<std::string, ArtifactDescription> const& runfile_descriptions,
-        std::vector<ActionDescription::Ptr> const& action_descriptions,
-        std::vector<std::string> const& blobs,
-        std::vector<Tree::Ptr> const& trees,
+        std::vector<ActionDescription::Ptr>&& action_descriptions,
+        std::vector<std::string>&& blobs,
+        std::vector<Tree::Ptr>&& trees,
         std::vector<ArtifactDescription>&& extra_artifacts = {}) const
         -> std::optional<BuildResult> {
         DependencyGraph graph;  // must outlive artifact_nodes
         auto artifacts = BuildArtifacts(&graph,
                                         artifact_descriptions,
                                         runfile_descriptions,
-                                        action_descriptions,
-                                        trees,
-                                        blobs,
+                                        std::move(action_descriptions),
+                                        std::move(trees),
+                                        std::move(blobs),
                                         extra_artifacts);
         if (not artifacts) {
             return std::nullopt;
@@ -211,7 +211,7 @@ class GraphTraverser {
         if (not desc) {
             return std::nullopt;
         }
-        auto const [blobs, tree_descs, actions] = *desc;
+        auto [blobs, tree_descs, actions] = *std::move(desc);
 
         HashFunction::Type const hash_type =
             context_.apis->local->GetHashType();
@@ -245,8 +245,11 @@ class GraphTraverser {
             artifact_descriptions.emplace(rel_path, std::move(*artifact));
         }
 
-        return BuildAndStage(
-            artifact_descriptions, {}, action_descriptions, blobs, trees);
+        return BuildAndStage(artifact_descriptions,
+                             {},
+                             std::move(action_descriptions),
+                             std::move(blobs),
+                             std::move(trees));
     }
 
   private:
@@ -496,9 +499,9 @@ class GraphTraverser {
         gsl::not_null<DependencyGraph*> const& graph,
         std::map<std::string, ArtifactDescription> const& artifacts,
         std::map<std::string, ArtifactDescription> const& runfiles,
-        std::vector<ActionDescription::Ptr> const& actions,
-        std::vector<Tree::Ptr> const& trees,
-        std::vector<std::string> const& blobs,
+        std::vector<ActionDescription::Ptr>&& actions,
+        std::vector<Tree::Ptr>&& trees,
+        std::vector<std::string>&& blobs,
         std::vector<ArtifactDescription> const& extra_artifacts = {}) const
         -> std::optional<
             std::tuple<std::vector<std::filesystem::path>,
