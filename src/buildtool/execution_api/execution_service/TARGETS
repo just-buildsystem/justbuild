@@ -24,7 +24,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "protoc", "", "libprotobuf"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
@@ -57,7 +56,6 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
@@ -88,7 +86,6 @@
     [ "cas_utils"
     , ["@", "fmt", "", "fmt"]
     , ["@", "protoc", "", "libprotobuf"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]

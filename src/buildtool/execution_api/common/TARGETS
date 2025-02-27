@@ -26,7 +26,6 @@
     ]
   , "private-deps":
     [ ["@", "json", "", "json"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "path"]
@@ -59,10 +58,7 @@
     , ["src/utils/cpp", "expected"]
     ]
   , "private-deps":
-    [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
-    , ["src/buildtool/common", "bazel_types"]
-    ]
+    [["@", "fmt", "", "fmt"], ["src/buildtool/common", "bazel_types"]]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
 , "api_bundle":

@@ -59,26 +59,6 @@
     ]
   , "stage": ["src", "buildtool", "common"]
   }
-, "artifact_digest_factory":
-  { "type": ["@", "rules", "CC", "library"]
-  , "name": ["artifact_digest_factory"]
-  , "hdrs": ["artifact_digest_factory.hpp"]
-  , "srcs": ["artifact_digest_factory.cpp"]
-  , "deps":
-    [ "common"
-    , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/crypto", "hash_info"]
-    , ["src/buildtool/file_system", "object_type"]
-    , ["src/utils/cpp", "expected"]
-    ]
-  , "private-deps":
-    [ "bazel_digest_factory"
-    , "bazel_types"
-    , "protocol_traits"
-    , ["@", "gsl", "", "gsl"]
-    ]
-  , "stage": ["src", "buildtool", "common"]
-  }
 , "artifact_blob":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["artifact_blob"]
@@ -92,8 +72,7 @@
     , ["src/utils/cpp", "incremental_reader"]
     ]
   , "private-deps":
-    [ "artifact_digest_factory"
-    , ["@", "fmt", "", "fmt"]
+    [ ["@", "fmt", "", "fmt"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/utils/cpp", "hash_combine"]
     , ["src/utils/cpp", "in_place_visitor"]
@@ -106,10 +85,12 @@
   , "hdrs":
     [ "action.hpp"
     , "artifact_digest.hpp"
+    , "artifact_digest_factory.hpp"
     , "artifact.hpp"
     , "identifier.hpp"
     , "statistics.hpp"
     ]
+  , "srcs": ["artifact_digest_factory.cpp"]
   , "deps":
     [ "protocol_traits"
     , ["@", "fmt", "", "fmt"]
@@ -122,6 +103,8 @@
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "hash_combine"]
     ]
+  , "private-deps":
+    ["bazel_digest_factory", "bazel_types", ["@", "gsl", "", "gsl"]]
   , "stage": ["src", "buildtool", "common"]
   }
 , "artifact_description":
@@ -136,8 +119,7 @@
     , ["src/buildtool/file_system", "object_type"]
     ]
   , "private-deps":
-    [ "artifact_digest_factory"
-    , ["@", "gsl", "", "gsl"]
+    [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/utils/cpp", "expected"]

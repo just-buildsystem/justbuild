@@ -15,7 +15,7 @@
   , "data": [["buildtool/storage", "test_data"]]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/file_system", "object_type"]
@@ -33,7 +33,6 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "bazel_types"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]

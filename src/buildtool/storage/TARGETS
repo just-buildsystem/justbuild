@@ -59,7 +59,6 @@
     , ["src/buildtool/build_engine/base_maps", "entity_name_data"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/common", "artifact_description"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
@@ -109,7 +108,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hasher"]
     , ["src/buildtool/file_system", "file_storage"]
@@ -169,7 +168,6 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/file_system", "object_type"]
     ]
   }

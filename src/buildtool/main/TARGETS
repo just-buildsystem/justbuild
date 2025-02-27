@@ -165,7 +165,6 @@
   , "private-deps":
     [ "archive"
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_api/remote", "config"]
@@ -386,7 +385,6 @@
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
     [ ["", "libarchive"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]

@@ -19,7 +19,6 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_root"]
@@ -57,7 +56,6 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_root"]
@@ -97,7 +95,7 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
+    , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_root"]
     , ["src/buildtool/file_system", "file_system_manager"]
@@ -132,7 +130,6 @@
   , "stage": ["src", "other_tools", "root_maps"]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/crypto", "hash_info"]

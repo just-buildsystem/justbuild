@@ -30,7 +30,6 @@
   , "stage": ["src", "buildtool", "serve_api", "remote"]
   , "private-deps":
     [ ["@", "grpc", "", "grpc++"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/logging", "log_level"]
@@ -92,7 +91,6 @@
     , ["@", "grpc", "", "grpc++"]
     , ["@", "json", "", "json"]
     , ["@", "protoc", "", "libprotobuf"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common/remote", "client_common"]
     , ["src/buildtool/crypto", "hash_function"]

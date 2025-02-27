@@ -8,7 +8,6 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "src", "src/buildtool/common", "artifact_blob"]
     , ["@", "src", "src/buildtool/common", "artifact_description"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "common"]
@@ -29,7 +28,6 @@
   , "srcs": ["bytestream_utils.test.cpp"]
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
     , ["@", "src", "src/buildtool/execution_api/common", "bytestream_utils"]
@@ -49,7 +47,6 @@
   , "private-deps":
     [ ["@", "catch2", "", "catch2"]
     , ["@", "gsl", "", "gsl"]
-    , ["@", "src", "src/buildtool/common", "artifact_digest_factory"]
     , ["@", "src", "src/buildtool/common", "common"]
     , ["@", "src", "src/buildtool/common", "protocol_traits"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]

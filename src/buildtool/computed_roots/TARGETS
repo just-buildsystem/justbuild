@@ -118,7 +118,6 @@
     , ["src/buildtool/build_engine/base_maps", "targets_file_map"]
     , ["src/buildtool/build_engine/expression", "expression"]
     , ["src/buildtool/build_engine/target_map", "configured_target"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]

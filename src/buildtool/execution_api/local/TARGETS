@@ -21,7 +21,6 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_blob"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]

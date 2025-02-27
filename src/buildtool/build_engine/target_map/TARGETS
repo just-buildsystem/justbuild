@@ -69,7 +69,6 @@
     , ["src/buildtool/build_engine/expression", "linked_map"]
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "tree"]

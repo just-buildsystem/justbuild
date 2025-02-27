@@ -26,7 +26,6 @@
     [ "file_storage"
     , "object_type"
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
@@ -140,7 +139,6 @@
     [ "git_context"
     , ["@", "fmt", "", "fmt"]
     , ["", "libgit2"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/logging", "log_level"]
@@ -186,7 +184,6 @@
     , ["@", "gsl", "", "gsl"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/common", "artifact_description"]
-    , ["src/buildtool/common", "artifact_digest_factory"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "git_hashes_converter"]
     , ["src/buildtool/common", "protocol_traits"]
