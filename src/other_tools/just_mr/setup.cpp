@@ -392,17 +392,16 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
                             has_remote_api ? &*apis.remote : nullptr,
                             common_args.jobs);
 
-    auto tree_id_git_map = CreateTreeIdGitMap(
-        &git_tree_fetch_map,
-        &critical_git_op_map,
-        &import_to_git_map,
-        common_args.fetch_absent,
-        serve ? &*serve : nullptr,
-        &native_storage_config,
-        compat_storage_config != nullptr ? &*compat_storage_config : nullptr,
-        &(*apis.local),
-        has_remote_api ? &*apis.remote : nullptr,
-        common_args.jobs);
+    auto tree_id_git_map =
+        CreateTreeIdGitMap(&git_tree_fetch_map,
+                           &critical_git_op_map,
+                           &import_to_git_map,
+                           common_args.fetch_absent,
+                           serve ? &*serve : nullptr,
+                           &native_storage_config,
+                           &(*apis.local),
+                           has_remote_api ? &*apis.remote : nullptr,
+                           common_args.jobs);
 
     auto repos_to_setup_map = CreateReposToSetupMap(config,
                                                     main,

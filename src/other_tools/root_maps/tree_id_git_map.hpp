@@ -71,7 +71,6 @@ using TreeIdGitMap =
     bool fetch_absent,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> TreeIdGitMap;

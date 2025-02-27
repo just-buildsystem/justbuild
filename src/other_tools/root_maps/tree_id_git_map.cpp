@@ -38,11 +38,7 @@ namespace {
 void UploadToServeAndSetRoot(
     ServeApi const& serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* /*compat_storage_config*/,
-    std::string const& /*tree_id*/,
     ArtifactDigest const& digest,
-    gsl::not_null<IExecutionApi const*> const& /*local_api*/,
-    IExecutionApi const& /*remote_api*/,
     bool ignore_special,
     TreeIdGitMap::SetterPtr const& setter,
     TreeIdGitMap::LoggerPtr const& logger) {
@@ -64,12 +60,9 @@ void UploadToServeAndSetRoot(
 void MoveCASTreeToGitAndProcess(
     ServeApi const& serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
-    std::string const& tree_id,
     ArtifactDigest const& digest,
     gsl::not_null<ImportToGitMap*> const& import_to_git_map,
     gsl::not_null<IExecutionApi const*> const& local_api,
-    gsl::not_null<IExecutionApi const*> const& remote_api,
     bool ignore_special,
     gsl::not_null<TaskSystem*> const& ts,
     TreeIdGitMap::SetterPtr const& setter,
@@ -88,23 +81,19 @@ void MoveCASTreeToGitAndProcess(
             {Artifact::ObjectInfo{.digest = digest, .type = ObjectType::Tree}},
             {tmp_dir->GetPath()})) {
         (*logger)(fmt::format("Failed to copy git-tree {} to {}",
-                              tree_id,
+                              digest.hash(),
                               tmp_dir->GetPath().string()),
                   true);
         return;
     }
-    CommitInfo c_info{tmp_dir->GetPath(), "tree", tree_id};
+    CommitInfo c_info{tmp_dir->GetPath(), "tree", digest.hash()};
     import_to_git_map->ConsumeAfterKeysReady(
         ts,
         {std::move(c_info)},
         [&serve,
          native_storage_config,
-         compat_storage_config,
          tmp_dir,  // keep tmp_dir alive
-         tree_id,
          digest,
-         local_api,
-         remote_api,
          ignore_special,
          setter,
          logger](auto const& values) {
@@ -117,16 +106,13 @@ void MoveCASTreeToGitAndProcess(
             // the root from the remote CAS tree; set root as absent on success
             UploadToServeAndSetRoot(serve,
                                     native_storage_config,
-                                    compat_storage_config,
-                                    tree_id,
                                     digest,
-                                    local_api,
-                                    *remote_api,
                                     ignore_special,
                                     setter,
                                     logger);
         },
-        [logger, tmp_dir, tree_id](auto const& msg, bool fatal) {
+        [logger, tmp_dir, tree_id = digest.hash()](auto const& msg,
+                                                   bool fatal) {
             (*logger)(fmt::format(
                           "While moving git-tree {} from {} to local git:\n{}",
                           tree_id,
@@ -145,7 +131,6 @@ auto CreateTreeIdGitMap(
     bool fetch_absent,
     ServeApi const* serve,
     gsl::not_null<StorageConfig const*> const& native_storage_config,
-    StorageConfig const* compat_storage_config,
     gsl::not_null<IExecutionApi const*> const& local_api,
     IExecutionApi const* remote_api,
     std::size_t jobs) -> TreeIdGitMap {
@@ -155,7 +140,6 @@ auto CreateTreeIdGitMap(
                         fetch_absent,
                         serve,
                         native_storage_config,
-                        compat_storage_config,
                         local_api,
                         remote_api](auto ts,
                                     auto setter,
@@ -238,11 +222,9 @@ auto CreateTreeIdGitMap(
                     {std::move(op_key)},
                     [serve,
                      native_storage_config,
-                     compat_storage_config,
                      digest,
                      import_to_git_map,
                      local_api,
-                     remote_api,
                      key,
                      ts,
                      setter,
@@ -287,17 +269,12 @@ auto CreateTreeIdGitMap(
                             // upload tree from Git cache to remote CAS and tell
                             // serve to set up the root from the remote CAS
                             // tree, then set root as absent
-                            UploadToServeAndSetRoot(
-                                *serve,
-                                native_storage_config,
-                                compat_storage_config,
-                                key.tree_info.tree_hash.Hash(),
-                                digest,
-                                local_api,
-                                *remote_api,
-                                key.ignore_special,
-                                setter,
-                                logger);
+                            UploadToServeAndSetRoot(*serve,
+                                                    native_storage_config,
+                                                    digest,
+                                                    key.ignore_special,
+                                                    setter,
+                                                    logger);
                             // done!
                             return;
                         }
@@ -305,19 +282,15 @@ auto CreateTreeIdGitMap(
                         if (local_api->IsAvailable(digest)) {
                             // Move tree locally from CAS to Git cache, then
                             // continue processing it by UploadToServeAndSetRoot
-                            MoveCASTreeToGitAndProcess(
-                                *serve,
-                                native_storage_config,
-                                compat_storage_config,
-                                key.tree_info.tree_hash.Hash(),
-                                digest,
-                                import_to_git_map,
-                                local_api,
-                                remote_api,
-                                key.ignore_special,
-                                ts,
-                                setter,
-                                logger);
+                            MoveCASTreeToGitAndProcess(*serve,
+                                                       native_storage_config,
+                                                       digest,
+                                                       import_to_git_map,
+                                                       local_api,
+                                                       key.ignore_special,
+                                                       ts,
+                                                       setter,
+                                                       logger);
                             // done!
                             return;
                         }
