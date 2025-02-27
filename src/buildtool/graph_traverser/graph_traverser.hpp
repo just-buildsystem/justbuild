@@ -313,22 +313,19 @@ class GraphTraverser {
     /// of the uploads fails, execution is terminated
     /// \param[in]  blobs   blobs to be uploaded
     [[nodiscard]] auto UploadBlobs(
-        std::vector<std::string> const& blobs) const noexcept -> bool {
+        std::vector<std::string>&& blobs) const noexcept -> bool {
         std::unordered_set<ArtifactBlob> container;
         HashFunction const hash_function{context_.apis->remote->GetHashType()};
-        for (auto const& content : blobs) {
+        for (auto& content : blobs) {
             auto blob = ArtifactBlob::FromMemory(
-                hash_function, ObjectType::File, content);
+                hash_function, ObjectType::File, std::move(content));
             if (not blob.has_value()) {
-                logger_->Emit(LogLevel::Trace,
-                              "Failed to create ArtifactBlob for:\n{}",
-                              nlohmann::json(content).dump());
+                logger_->Emit(LogLevel::Trace, "Failed to create ArtifactBlob");
                 return false;
             }
             Logger::Log(logger_, LogLevel::Trace, [&]() {
                 return fmt::format(
-                    "Will upload blob {}, its digest has id {} and size {}.",
-                    nlohmann::json(content).dump(),
+                    "Will upload blob, its digest has id {} and size {}.",
                     blob->GetDigest().hash(),
                     blob->GetDigest().size());
             });
@@ -507,7 +504,7 @@ class GraphTraverser {
             std::tuple<std::vector<std::filesystem::path>,
                        std::vector<DependencyGraph::ArtifactNode const*>,
                        std::vector<DependencyGraph::ArtifactNode const*>>> {
-        if (not UploadBlobs(blobs)) {
+        if (not UploadBlobs(std::move(blobs))) {
             return std::nullopt;
         }
 
