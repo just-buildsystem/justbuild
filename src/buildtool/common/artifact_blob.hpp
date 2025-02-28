@@ -19,6 +19,7 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <variant>
@@ -110,6 +111,12 @@ class ArtifactBlob final {
     /// failure.
     [[nodiscard]] auto ReadIncrementally(std::size_t chunk_size) const& noexcept
         -> expected<IncrementalReader, std::string>;
+
+    /// \brief Obtain the path to the file that is used as the content source.
+    /// If ArtifactBlob doesn't use a filesystem source or an internal error
+    /// occurs, std::nullopt is returned.
+    [[nodiscard]] auto GetFilePath() const& noexcept
+        -> std::optional<std::filesystem::path>;
 
     /// \brief Set executable permission.
     void SetExecutable(bool is_executable) noexcept {

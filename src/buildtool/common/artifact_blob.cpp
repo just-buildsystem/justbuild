@@ -15,7 +15,6 @@
 #include "src/buildtool/common/artifact_blob.hpp"
 
 #include <exception>
-#include <optional>
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -199,6 +198,21 @@ auto ArtifactBlob::ReadIncrementally(std::size_t chunk_size) const& noexcept
     } catch (...) {
         return unexpected<std::string>{
             "ArtifactBlob::ReadIncrementally: Got an unknown exception"};
+    }
+}
+
+auto ArtifactBlob::GetFilePath() const& noexcept
+    -> std::optional<std::filesystem::path> {
+    using Result = std::optional<std::filesystem::path>;
+    static constexpr InPlaceVisitor kVisitor{
+        [](InMemory const&) -> Result { return std::nullopt; },
+        [](InFile const& value) -> Result { return value; },
+        [](InTempFile const& value) -> Result { return value->GetPath(); },
+    };
+    try {
+        return std::visit(kVisitor, content_);
+    } catch (...) {
+        return std::nullopt;
     }
 }
 
