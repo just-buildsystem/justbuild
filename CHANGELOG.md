@@ -56,9 +56,18 @@ A feature release on top of `1.4.0`, backwards compatible.
   is now correctly honored, if announced by the server.
 - Missing entries in the documentation have been added.
 
+## Release `1.5.0~beta2` (2025-02-28)
+
+Second beta release for the upcoming `1.5.0` release; see release
+notes there.
+
 ### Changes since `1.5.0~beta1`
 
 - New configuration option `"client address"` for `just serve`.
+- `just-lock` now fetches and clones repositories in parallel.
+- Blob content is not any more kept in memory unecessarily at
+  various places.
+- Various internal clean up of the code base.
 
 ## Release `1.5.0~beta1` (2025-02-24)
 
