@@ -415,7 +415,7 @@ auto BazelCasClient::IncrementalReadSingleBlob(std::string const& instance_name,
 auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
                                     ArtifactDigest const& digest) const noexcept
     -> std::optional<ArtifactBlob> {
-    return stream_->Read(instance_name, digest);
+    return stream_->Read(instance_name, digest, temp_space_);
 }
 
 auto BazelCasClient::SplitBlob(HashFunction hash_function,

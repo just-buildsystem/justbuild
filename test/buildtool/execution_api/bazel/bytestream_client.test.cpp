@@ -28,12 +28,14 @@
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/remote_execution/test_auth_config.hpp"
 #include "test/utils/remote_execution/test_remote_config.hpp"
 
 TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
+    auto storage_config = TestStorageConfig::Create();
     auto auth_config = TestAuthConfig::ReadFromEnvironment();
     REQUIRE(auth_config);
 
@@ -45,7 +47,8 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
                                    remote_config->remote_address->port,
                                    &*auth_config};
 
-    HashFunction const hash_function{TestHashType::ReadFromEnvironment()};
+    HashFunction const hash_function = storage_config.Get().hash_function;
+    auto const temp_space = storage_config.Get().CreateTypedTmpDir("space");
 
     SECTION("Upload small blob") {
         std::string instance_name{"remote-execution"};
@@ -59,7 +62,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
         CHECK(stream.Write(instance_name, *blob));
 
         auto const downloaded_blob =
-            stream.Read(instance_name, blob->GetDigest());
+            stream.Read(instance_name, blob->GetDigest(), temp_space);
         REQUIRE(downloaded_blob.has_value());
 
         auto const downloaded_content = downloaded_blob->ReadContent();
@@ -86,7 +89,7 @@ TEST_CASE("ByteStream Client: Transfer single blob", "[execution_api]") {
 
         SECTION("Download large blob") {
             auto const downloaded_blob =
-                stream.Read(instance_name, blob->GetDigest());
+                stream.Read(instance_name, blob->GetDigest(), temp_space);
             REQUIRE(downloaded_blob.has_value());
 
             auto const downloaded_content = downloaded_blob->ReadContent();

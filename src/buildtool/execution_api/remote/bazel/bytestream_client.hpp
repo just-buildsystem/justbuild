@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <memory>
 #include <optional>
 #include <string>
@@ -41,6 +42,7 @@
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/incremental_reader.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
 
 /// Implements client side for google.bytestream.ByteStream service.
 class ByteStreamClient {
@@ -105,23 +107,34 @@ class ByteStreamClient {
     }
 
     [[nodiscard]] auto Read(std::string const& instance_name,
-                            ArtifactDigest const& digest) const noexcept
+                            ArtifactDigest const& digest,
+                            TmpDir::Ptr const& temp_space) const noexcept
         -> std::optional<ArtifactBlob> {
-        auto reader = IncrementalRead(instance_name, digest);
-        std::string output{};
-        auto data = reader.Next();
-        while (data and not data->empty()) {
-            output.append(data->begin(), data->end());
-            data = reader.Next();
-        }
-        if (not data) {
+        auto temp_file = TmpDir::CreateFile(temp_space, digest.hash());
+        if (temp_file == nullptr) {
             return std::nullopt;
         }
 
-        auto blob = ArtifactBlob::FromMemory(
+        auto reader = IncrementalRead(instance_name, digest);
+        try {
+            std::ofstream stream{temp_file->GetPath(), std::ios_base::binary};
+
+            auto data = reader.Next();
+            while (data.has_value() and not data->empty() and stream.good()) {
+                stream << *data;
+                data = reader.Next();
+            }
+            if (not stream.good() or not data.has_value()) {
+                return std::nullopt;
+            }
+        } catch (...) {
+            return std::nullopt;
+        }
+
+        auto blob = ArtifactBlob::FromTempFile(
             HashFunction{digest.GetHashType()},
             digest.IsTree() ? ObjectType::Tree : ObjectType::File,
-            std::move(output));
+            std::move(temp_file));
         if (not blob.has_value() or blob->GetDigest() != digest) {
             return std::nullopt;
         }
