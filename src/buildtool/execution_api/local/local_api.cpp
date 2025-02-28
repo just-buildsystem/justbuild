@@ -217,9 +217,17 @@ auto LocalApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
         blobs.begin(),
         blobs.end(),
         [&cas = local_context_.storage->CAS()](ArtifactBlob const& blob) {
+            bool const is_tree = blob.GetDigest().IsTree();
+
             std::optional<ArtifactDigest> cas_digest;
-            if (auto const content = blob.ReadContent()) {
-                cas_digest = blob.GetDigest().IsTree()
+            if (auto const path = blob.GetFilePath()) {
+                static constexpr bool kOwner = true;
+                cas_digest =
+                    is_tree ? cas.StoreTree<kOwner>(*path)
+                            : cas.StoreBlob<kOwner>(*path, blob.IsExecutable());
+            }
+            else if (auto const content = blob.ReadContent()) {
+                cas_digest = is_tree
                                  ? cas.StoreTree(*content)
                                  : cas.StoreBlob(*content, blob.IsExecutable());
             }
