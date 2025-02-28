@@ -61,23 +61,33 @@
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
-  , "arguments_config": []
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
   , "stage": ["end-to-end"]
   , "deps":
-    [ "remote tests"
-    , ["./", "actions", "TESTS"]
-    , ["./", "build-fails", "TESTS"]
-    , ["./", "built-in-rules", "TESTS"]
-    , ["./", "cli", "TESTS"]
-    , ["./", "execution-service", "TESTS"]
-    , ["./", "gc", "TESTS"]
-    , ["./", "generated-binary", "TESTS"]
-    , ["./", "git-import", "TESTS"]
-    , ["./", "just-lock", "TESTS"]
-    , ["./", "symlinks", "TESTS"]
-    , ["./", "target-cache", "TESTS"]
-    , ["./", "target-tests", "TESTS"]
-    , ["./", "user-errors", "TESTS"]
-    ]
+    { "type": "`"
+    , "$1":
+      [ "remote tests"
+      , ["./", "actions", "TESTS"]
+      , ["./", "build-fails", "TESTS"]
+      , ["./", "built-in-rules", "TESTS"]
+      , ["./", "cli", "TESTS"]
+      , ["./", "execution-service", "TESTS"]
+      , ["./", "gc", "TESTS"]
+      , ["./", "generated-binary", "TESTS"]
+      , ["./", "git-import", "TESTS"]
+      , ["./", "just-lock", "TESTS"]
+      , { "type": ",@"
+        , "$1":
+          { "type": "if"
+          , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+          , "else": [["./", "profile", "TESTS"]]
+          }
+        }
+      , ["./", "symlinks", "TESTS"]
+      , ["./", "target-cache", "TESTS"]
+      , ["./", "target-tests", "TESTS"]
+      , ["./", "user-errors", "TESTS"]
+      ]
+    }
   }
 }

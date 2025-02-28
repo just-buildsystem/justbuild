@@ -31,7 +31,7 @@ readonly RC="${ETC_DIR}/rc.json"
 cat > "${RC}" <<EOF
 { "invocation log":
   { "directory": {"root": "system", "path": "${LOG_DIR#/}"}
-  , "meta data": "meta.json"
+  , "metadata": "meta.json"
   , "--dump-graph": "graph.json"
   , "--profile": "profile.json"
   }
@@ -71,20 +71,20 @@ echo blablabla > data.txt
 # As this is the first invocation, we can find the invocation-log dir by a glob
 INVOCATION_DIR="$(ls -d "${LOG_DIR}"/invocation-log-test/*)"
 
-# ... this should create a meta-data file.
-META_DATA_FILE="${INVOCATION_DIR}/meta.json"
-echo "Meta data file ${META_DATA_FILE}"
-cat "${META_DATA_FILE}"
+# ... this should create a metadata file.
+METADATA_FILE="${INVOCATION_DIR}/meta.json"
+echo "Meta data file ${METADATA_FILE}"
+cat "${METADATA_FILE}"
 echo
 
 # Sanity check: the local build root must occur in the command line as
 # it was specified in the rc file.
-[ $(jq '.cmdline | contains(["'"${LBR}"'"])' "${META_DATA_FILE}") = true ]
+[ $(jq '.cmdline | contains(["'"${LBR}"'"])' "${METADATA_FILE}") = true ]
 
 # Install the referenced configuration
 
 "${JUST_MR}" --rc "${RC}" install-cas -o "${REPORTED_CONFIG}" \
-  $(jq -r '.configuration' "${META_DATA_FILE}") 2>&1
+  $(jq -r '.configuration' "${METADATA_FILE}") 2>&1
 
 echo
 cat "${REPORTED_CONFIG}"
