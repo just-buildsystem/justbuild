@@ -91,12 +91,79 @@ auto ArtifactBlob::FromFile(HashFunction hash_function,
     }
 }
 
+auto ArtifactBlob::FromTempFile(HashFunction hash_function,
+                                ObjectType type,
+                                TmpFile::Ptr file) noexcept
+    -> expected<ArtifactBlob, std::string> {
+    try {
+        if (file == nullptr) {
+            return unexpected<std::string>{
+                "ArtifactBlob::CreateFromTempFile: missing temp file."};
+        }
+
+        auto digest = IsTreeObject(type)
+                          ? ArtifactDigestFactory::HashFileAs<ObjectType::Tree>(
+                                hash_function, file->GetPath())
+                          : ArtifactDigestFactory::HashFileAs<ObjectType::File>(
+                                hash_function, file->GetPath());
+        if (not digest.has_value()) {
+            return unexpected{fmt::format(
+                "ArtifactBlob::CreateFromTempFile: Failed to hash {}",
+                file->GetPath().string())};
+        }
+        return ArtifactBlob{
+            *std::move(digest), std::move(file), IsExecutableObject(type)};
+    } catch (const std::exception& e) {
+        return unexpected{fmt::format(
+            "ArtifactBlob::FromTempFile: Got an exception:\n{}", e.what())};
+    } catch (...) {
+        return unexpected<std::string>{
+            "ArtifactBlob::FromTempFile: Got an unknown exception."};
+    }
+}
+
+auto ArtifactBlob::FromTempFile(HashFunction hash_type,
+                                ObjectType type,
+                                TmpDir::Ptr const& temp_space,
+                                std::string const& content) noexcept
+    -> expected<ArtifactBlob, std::string> {
+    try {
+        if (temp_space == nullptr) {
+            return unexpected<std::string>{
+                "ArtifactBlob::FromTempFile: missing temp space."};
+        }
+
+        auto file = TmpDir::CreateFile(temp_space);
+        if (file == nullptr) {
+            return unexpected<std::string>{
+                "ArtifactBlob::FromTempFile: failed to create a new temp "
+                "file."};
+        }
+
+        if (not FileSystemManager::WriteFile(content, file->GetPath())) {
+            return unexpected<std::string>{
+                "ArtifactBlob::FromTempFile: failed to write content to a "
+                "temp file."};
+        }
+        return FromTempFile(hash_type, type, std::move(file));
+    } catch (const std::exception& e) {
+        return unexpected{fmt::format(
+            "ArtifactBlob::FromTempFile: Got an exception:\n{}", e.what())};
+    } catch (...) {
+        return unexpected<std::string>{
+            "ArtifactBlob::FromTempFile: Got an unknown exception."};
+    }
+}
+
 auto ArtifactBlob::ReadContent() const noexcept
     -> std::shared_ptr<std::string const> {
     using Result = std::shared_ptr<std::string const>;
     static constexpr InPlaceVisitor kVisitor{
         [](InMemory const& value) -> Result { return value; },
         [](InFile const& value) -> Result { return ::ReadFromFile(value); },
+        [](InTempFile const& value) -> Result {
+            return ::ReadFromFile(value->GetPath());
+        },
     };
     try {
         return std::visit(kVisitor, content_);
@@ -118,6 +185,9 @@ auto ArtifactBlob::ReadIncrementally(std::size_t chunk_size) const& noexcept
         },
         [chunk_size](InFile const& value) -> Result {
             return IncrementalReader::FromFile(chunk_size, value);
+        },
+        [chunk_size](InTempFile const& value) -> Result {
+            return IncrementalReader::FromFile(chunk_size, value->GetPath());
         },
     };
     try {
