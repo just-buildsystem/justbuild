@@ -57,6 +57,7 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]
+    , ["src/buildtool/profile", "profile"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/progress_reporting", "progress_reporter"]
     , ["src/buildtool/serve_api/remote", "config"]

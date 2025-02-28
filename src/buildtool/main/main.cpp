@@ -68,6 +68,7 @@
 #include "src/buildtool/main/install_cas.hpp"
 #include "src/buildtool/main/version.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/profile/profile.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -720,6 +721,7 @@ void DumpArtifactsToBuild(
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
+    std::optional<gsl::not_null<Profile*>> profile{};
     SetupDefaultLogging();
     try {
         auto arguments = ParseCommandLineArguments(argc, argv);
@@ -910,6 +912,12 @@ auto main(int argc, char* argv[]) -> int {
             return kExitFailure;
         }
 
+        // Setup profile logging, if requested
+        Profile profile_data(arguments.analysis.profile);
+        if (arguments.analysis.profile) {
+            profile = &profile_data;
+        }
+
         // If no execution endpoint was given, the client should default to the
         // serve endpoint, if given.
         if (not arguments.endpoint.remote_execution_address.has_value() and
@@ -927,6 +935,9 @@ auto main(int argc, char* argv[]) -> int {
         auto remote_exec_config =
             CreateRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
         if (not remote_exec_config) {
+            if (profile) {
+                (*profile)->Write(kExitFailure);
+            }
             return kExitFailure;
         }
 
@@ -946,6 +957,9 @@ auto main(int argc, char* argv[]) -> int {
             arguments.endpoint, arguments.protocol.hash_type);
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
+            if (profile) {
+                (*profile)->Write(kExitFailure);
+            }
             return kExitFailure;
         }
         auto const storage = Storage::Create(&*storage_config);
@@ -1031,6 +1045,9 @@ auto main(int argc, char* argv[]) -> int {
                                          traverse_args,
                                          &exec_context,
                                          eval_root_jobs)) {
+            if (profile) {
+                (*profile)->Write(kExitFailure);
+            }
             return kExitFailure;
         }
 #else
@@ -1040,6 +1057,9 @@ auto main(int argc, char* argv[]) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL
         auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {
+            if (profile) {
+                (*profile)->Write(kExitFailure);
+            }
             return kExitFailure;
         }
 
@@ -1072,18 +1092,25 @@ auto main(int argc, char* argv[]) -> int {
                                                      main_ws_root,
                                                      &repo_config,
                                                      arguments.analysis)) {
-                return arguments.describe.describe_rule
-                           ? DescribeUserDefinedRule(
-                                 id->target,
-                                 &repo_config,
-                                 arguments.common.jobs,
-                                 arguments.describe.print_json)
-                           : DescribeTarget(*id,
-                                            &repo_config,
-                                            serve,
-                                            main_apis,
-                                            arguments.common.jobs,
-                                            arguments.describe.print_json);
+                auto result =
+                    arguments.describe.describe_rule
+                        ? DescribeUserDefinedRule(id->target,
+                                                  &repo_config,
+                                                  arguments.common.jobs,
+                                                  arguments.describe.print_json)
+                        : DescribeTarget(*id,
+                                         &repo_config,
+                                         serve,
+                                         main_apis,
+                                         arguments.common.jobs,
+                                         arguments.describe.print_json);
+                if (profile) {
+                    (*profile)->Write(result);
+                }
+                return result;
+            }
+            if (profile) {
+                (*profile)->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -1091,6 +1118,10 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
         auto id = ReadConfiguredTarget(
             main_repo, main_ws_root, &repo_config, arguments.analysis);
+        if (profile) {
+            (*profile)->SetTarget(id.target.ToJson());
+            (*profile)->SetConfiguration(id.config.ToJson());
+        }
         auto serve_errors = nlohmann::json::array();
         std::mutex serve_errors_access{};
         BuildMaps::Target::ServeFailureLogReporter collect_serve_errors =
@@ -1170,6 +1201,9 @@ auto main(int argc, char* argv[]) -> int {
                     TaskSystem ts{arguments.common.jobs};
                     analyse_result->result_map.Clear(&ts);
                 }
+                if (profile) {
+                    (*profile)->Write(kExitSuccess);
+                }
                 return kExitSuccess;
             }
 #ifndef BOOTSTRAP_BUILD_TOOL
@@ -1225,15 +1259,22 @@ auto main(int argc, char* argv[]) -> int {
                     Logger::Log(LogLevel::Warning,
                                 "Build result contains failed artifacts.");
                 }
-                return build_result->failed_artifacts
-                           ? kExitSuccessFailedArtifacts
-                           : kExitSuccess;
+                auto result = build_result->failed_artifacts
+                                  ? kExitSuccessFailedArtifacts
+                                  : kExitSuccess;
+                if (profile) {
+                    (*profile)->Write(result);
+                }
+                return result;
             }
 #endif  // BOOTSTRAP_BUILD_TOOL
         }
     } catch (std::exception const& ex) {
         Logger::Log(
             LogLevel::Error, "Caught exception with message: {}", ex.what());
+    }
+    if (profile) {
+        (*profile)->Write(kExitFailure);
     }
     return kExitFailure;
 }

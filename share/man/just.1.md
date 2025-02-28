@@ -434,6 +434,10 @@ type, size) as value. Each artifact is guaranteed to be *`KNOWN`* in
 CAS. Therefore, this option cannot be used with **`analyse`**.  
 Supported by: build|install|rebuild|traverse.
 
+**`--profile`** *`PATH`*  
+Write a profile to the specified path.  
+Supported by: analyse|build|install|rebuild|traverse.
+
 **`--dump-graph`** *`PATH`*  
 File path for writing the action graph description to. See
 **`just-graph-file`**(5) for more details.  

@@ -77,6 +77,7 @@ struct AnalysisArguments {
     std::vector<std::filesystem::path> graph_file_plain;
     std::optional<std::filesystem::path> artifacts_to_build_file;
     std::optional<std::filesystem::path> serve_errors_file;
+    std::optional<std::string> profile;
 };
 
 /// \brief Arguments required for describing targets/rules.
@@ -344,6 +345,9 @@ static inline auto SetupAnalysisArguments(
                     clargs->serve_errors_file,
                     "File path for dumping the blob identifiers of serve "
                     "errors as json.")
+        ->type_name("PATH");
+    app->add_option(
+           "--profile", clargs->profile, "Location to write the profile to.")
         ->type_name("PATH");
     if (with_graph) {
         app->add_option_function<std::string>(

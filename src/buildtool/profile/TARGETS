@@ -1,0 +1,9 @@
+{ "profile":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["profile"]
+  , "hdrs": ["profile.hpp"]
+  , "srcs": ["profile.cpp"]
+  , "deps": [["@", "json", "", "json"]]
+  , "stage": ["src", "buildtool", "profile"]
+  }
+}
