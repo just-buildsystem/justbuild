@@ -135,6 +135,7 @@
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/buildtool/execution_engine/executor", "context"]

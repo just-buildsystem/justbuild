@@ -14,6 +14,7 @@
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "git_hashes_converter"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/bazel_msg", "execution_config"]
@@ -45,8 +46,8 @@
   , "hdrs": ["context.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/progress_reporting", "progress"]

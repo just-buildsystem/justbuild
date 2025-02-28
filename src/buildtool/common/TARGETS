@@ -88,7 +88,6 @@
     , "artifact_digest_factory.hpp"
     , "artifact.hpp"
     , "identifier.hpp"
-    , "statistics.hpp"
     ]
   , "srcs": ["artifact_digest_factory.cpp"]
   , "deps":
@@ -220,6 +219,12 @@
   , "name": ["protocol_traits"]
   , "hdrs": ["protocol_traits.hpp"]
   , "deps": [["src/buildtool/crypto", "hash_function"]]
+  , "stage": ["src", "buildtool", "common"]
+  }
+, "statistics":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["statistics"]
+  , "hdrs": ["statistics.hpp"]
   , "stage": ["src", "buildtool", "common"]
   }
 }

@@ -28,7 +28,7 @@
     [ "base_progress_reporter"
     , "progress"
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":
@@ -61,7 +61,7 @@
     [ "base_progress_reporter"
     , "progress"
     , ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/logging", "logging"]
     ]
   , "private-deps":

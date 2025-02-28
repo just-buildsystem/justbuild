@@ -36,6 +36,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
     , ["src/buildtool/common", "protocol_traits"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/common/remote", "remote_common"]
     , ["src/buildtool/common/remote", "retry_config"]
     , ["src/buildtool/computed_roots", "evaluate"]
@@ -248,8 +249,8 @@
   , "hdrs": ["analyse_context.hpp"]
   , "deps":
     [ ["@", "gsl", "", "gsl"]
-    , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "config"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/progress_reporting", "progress"]
     , ["src/buildtool/serve_api/remote", "serve_api"]
     , ["src/buildtool/storage", "storage"]

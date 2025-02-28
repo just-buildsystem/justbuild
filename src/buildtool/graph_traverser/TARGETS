@@ -11,6 +11,7 @@
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/common", "tree"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
