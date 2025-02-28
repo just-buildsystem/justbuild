@@ -64,6 +64,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/profile/profile.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 #include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/utils/cpp/back_map.hpp"
@@ -828,11 +829,19 @@ class Executor {
                 context_.statistics,
                 context_.progress);
             // check response and save digests of results
-            return not response or Impl::ParseResponse(*logger_,
-                                                       *response,
-                                                       action,
-                                                       context_.statistics,
-                                                       context_.progress);
+            if (not response) {
+                return true;
+            }
+            auto result = Impl::ParseResponse(*logger_,
+                                              *response,
+                                              action,
+                                              context_.statistics,
+                                              context_.progress);
+            if (context_.profile) {
+                (*context_.profile)
+                    ->NoteActionCompleted(action->Content().Id(), *response);
+            }
+            return result;
         }
 
         Logger logger("action:" + action->Content().Id());
@@ -851,11 +860,16 @@ class Executor {
             context_.progress);
 
         // check response and save digests of results
-        return not response or Impl::ParseResponse(logger,
-                                                   *response,
-                                                   action,
-                                                   context_.statistics,
-                                                   context_.progress);
+        if (not response) {
+            return true;
+        }
+        auto result = Impl::ParseResponse(
+            logger, *response, action, context_.statistics, context_.progress);
+        if (context_.profile) {
+            (*context_.profile)
+                ->NoteActionCompleted(action->Content().Id(), *response);
+        }
+        return result;
     }
 
     /// \brief Check artifact is available to the CAS or upload it.

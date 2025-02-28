@@ -3,7 +3,10 @@
   , "name": ["profile"]
   , "hdrs": ["profile.hpp"]
   , "srcs": ["profile.cpp"]
-  , "deps": [["@", "json", "", "json"]]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/execution_api/common", "common"]
+    ]
   , "stage": ["src", "buildtool", "profile"]
   }
 }

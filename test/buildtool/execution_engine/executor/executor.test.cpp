@@ -353,7 +353,8 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -371,7 +372,8 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(not runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -389,7 +391,8 @@ TEST_CASE("Executor: Process artifact", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -436,7 +439,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -457,7 +461,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -478,7 +483,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -502,7 +508,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -523,7 +530,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));
@@ -547,7 +555,8 @@ TEST_CASE("Executor: Process action", "[executor]") {
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
 
         CHECK(runner.Process(g.ArtifactNodeWithId(local_cpp_id)));

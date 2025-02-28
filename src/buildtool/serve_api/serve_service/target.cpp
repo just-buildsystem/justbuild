@@ -558,7 +558,8 @@ auto TargetService::ServeTarget(
                                             .apis = &local_apis,
                                             .remote_context = &dispatch_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = std::nullopt};
 
         GraphTraverser const traverser{
             std::move(traverser_args),

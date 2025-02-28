@@ -201,7 +201,8 @@ class TestProject {
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser const gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -277,7 +278,8 @@ class TestProject {
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser const gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -327,7 +329,8 @@ class TestProject {
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser const gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -393,7 +396,8 @@ class TestProject {
         .apis = &full_apis,
         .remote_context = &remote_context,
         .statistics = &stats,
-        .progress = &progress};
+        .progress = &progress,
+        .profile = std::nullopt};
 
     GraphTraverser const gt_upload{clargs_update_cpp.gtargs,
                                    &full_context,
@@ -422,7 +426,8 @@ class TestProject {
         .apis = &apis_known,
         .remote_context = &remote_context,
         .statistics = &stats,
-        .progress = &progress};
+        .progress = &progress,
+        .profile = std::nullopt};
     GraphTraverser const gt{
         clargs.gtargs, &context_known, [](auto /*done*/, auto /*cv*/) {}};
     auto const result =
@@ -474,7 +479,8 @@ static void TestBlobsUploadedAndUsed(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -532,7 +538,8 @@ static void TestEnvironmentVariablesSetAndUsed(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -590,7 +597,8 @@ static void TestTreesUsed(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -648,7 +656,8 @@ static void TestNestedTreesUsed(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     GraphTraverser gt{
         clargs.gtargs, &exec_context, [](auto /*done*/, auto /*cv*/) {}};
@@ -705,7 +714,8 @@ static void TestFlakyHelloWorldDetected(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = &stats,
-                                        .progress = &progress};
+                                        .progress = &progress,
+                                        .profile = std::nullopt};
 
     {
         auto clargs = p.CmdLineArgs("_entry_points_ctimes");

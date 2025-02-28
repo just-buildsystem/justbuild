@@ -15,11 +15,14 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_CONTEXT_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_CONTEXT_HPP
 
+#include <optional>
+
 #include "gsl/gsl"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
+#include "src/buildtool/profile/profile.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 
 /// \brief Aggregate to be passed to graph traverser.
@@ -30,6 +33,7 @@ struct ExecutionContext final {
     gsl::not_null<RemoteContext const*> const remote_context;
     gsl::not_null<Statistics*> const statistics;
     gsl::not_null<Progress*> const progress;
+    std::optional<gsl::not_null<Profile*>> const profile;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_EXECUTOR_CONTEXT_HPP

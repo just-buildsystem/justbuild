@@ -205,7 +205,8 @@ void ComputeAndFill(
                                               context->apis,
                                               context->remote_context,
                                               &statistics,
-                                              &progress};
+                                              &progress,
+                                              std::nullopt};
 
     auto cache_lookup =
         expected<std::optional<std::string>, std::monostate>(std::nullopt);

@@ -20,6 +20,17 @@ void Profile::Write(int exit_code) {
     if (not output_file_) {
         return;
     }
+
+    if (not actions_.empty()) {
+        auto actions = nlohmann::json::object();
+        for (auto const& [k, v] : actions_) {
+            auto entry = nlohmann::json::object();
+            entry["cached"] = v.cached;
+            actions[k] = entry;
+        }
+        profile_["actions"] = actions;
+    }
+
     profile_["exit code"] = exit_code;
 
     std::ofstream os(*output_file_);
@@ -32,4 +43,10 @@ void Profile::SetTarget(nlohmann::json target) {
 
 void Profile::SetConfiguration(nlohmann::json configuration) {
     profile_["configuration"] = std::move(configuration);
+}
+
+void Profile::NoteActionCompleted(std::string const& id,
+                                  IExecutionResponse::Ptr const& response) {
+    std::unique_lock lock{mutex_};
+    actions_[id] = ActionData{.cached = response->IsCached()};
 }

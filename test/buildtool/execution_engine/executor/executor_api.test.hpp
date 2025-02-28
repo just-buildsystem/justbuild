@@ -159,7 +159,8 @@ static inline void RunHelloWorldCompilation(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = stats,
-                                        .progress = progress};
+                                        .progress = progress,
+                                        .profile = std::nullopt};
     Executor runner{&exec_context};
 
     // upload local artifacts
@@ -290,7 +291,8 @@ static inline void RunGreeterCompilation(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = stats,
-                                        .progress = progress};
+                                        .progress = progress,
+                                        .profile = std::nullopt};
     Executor runner{&exec_context};
 
     // upload local artifacts
@@ -457,7 +459,8 @@ static inline void TestUploadAndDownloadTrees(
                                         .apis = &apis,
                                         .remote_context = &remote_context,
                                         .statistics = stats,
-                                        .progress = progress};
+                                        .progress = progress,
+                                        .profile = std::nullopt};
     Executor runner{&exec_context};
 
     REQUIRE(runner.Process(g.ArtifactNodeWithId(foo_id)));
@@ -629,7 +632,8 @@ static inline void TestRetrieveOutputDirectories(
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = stats,
-                                            .progress = progress};
+                                            .progress = progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
@@ -683,7 +687,8 @@ static inline void TestRetrieveOutputDirectories(
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = stats,
-                                            .progress = progress};
+                                            .progress = progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
@@ -754,7 +759,8 @@ static inline void TestRetrieveOutputDirectories(
                                             .apis = &apis,
                                             .remote_context = &remote_context,
                                             .statistics = stats,
-                                            .progress = progress};
+                                            .progress = progress,
+                                            .profile = std::nullopt};
         Executor runner{&exec_context};
         REQUIRE(runner.Process(action));
 
@@ -828,7 +834,8 @@ static inline void TestRetrieveOutputDirectories(
                 .apis = &apis,
                 .remote_context = &remote_context,
                 .statistics = stats,
-                .progress = progress};
+                .progress = progress,
+                .profile = std::nullopt};
             Executor runner{&exec_context};
             CHECK_FALSE(runner.Process(action));
         }
@@ -855,7 +862,8 @@ static inline void TestRetrieveOutputDirectories(
                 .apis = &apis,
                 .remote_context = &remote_context,
                 .statistics = stats,
-                .progress = progress};
+                .progress = progress,
+                .profile = std::nullopt};
             Executor runner{&exec_context};
             CHECK_FALSE(runner.Process(action));
         }

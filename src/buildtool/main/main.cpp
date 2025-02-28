@@ -999,7 +999,8 @@ auto main(int argc, char* argv[]) -> int {
                                             .apis = &main_apis,
                                             .remote_context = &remote_context,
                                             .statistics = &stats,
-                                            .progress = &progress};
+                                            .progress = &progress,
+                                            .profile = profile};
         const GraphTraverser::CommandLineArguments traverse_args{
             jobs,
             std::move(arguments.build),
