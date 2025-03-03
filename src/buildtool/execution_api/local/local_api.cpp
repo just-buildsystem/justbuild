@@ -181,21 +181,10 @@ auto LocalApi::RetrieveToCas(
         if (not blob.has_value()) {
             return false;
         }
-
-        // Collect blob and upload to remote CAS if transfer size reached.
-        if (not UpdateContainerAndUpload(
-                &container,
-                *std::move(blob),
-                /*exception_is_fatal=*/true,
-                [&api](std::unordered_set<ArtifactBlob>&& blobs) {
-                    return api.Upload(std::move(blobs),
-                                      /*skip_find_missing=*/true);
-                })) {
-            return false;
-        }
+        container.emplace(*std::move(blob));
     }
 
-    // Upload remaining blobs to remote CAS.
+    // Upload blobs to remote CAS.
     return api.Upload(std::move(container), /*skip_find_missing=*/true);
 }
 

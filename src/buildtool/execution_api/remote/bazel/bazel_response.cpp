@@ -286,21 +286,13 @@ auto BazelResponse::UploadTreeMessageDirectories(
         return network.UploadBlobs(std::move(blobs));
     };
     auto const hash_function = network_->GetHashFunction();
-    std::unordered_set<ArtifactBlob> dir_blobs{};
 
     auto rootdir_blob = ProcessDirectoryMessage(hash_function, tree.root());
     if (not rootdir_blob) {
         return unexpected{std::move(rootdir_blob).error()};
     }
     auto const root_digest = rootdir_blob->GetDigest();
-    // store or upload rootdir blob, taking maximum transfer size into account
-    if (not UpdateContainerAndUpload(&dir_blobs,
-                                     *std::move(rootdir_blob),
-                                     /*exception_is_fatal=*/false,
-                                     upload_callback)) {
-        return unexpected{fmt::format(
-            "failed to upload Tree with root digest {}", root_digest.hash())};
-    }
+    std::unordered_set<ArtifactBlob> dir_blobs{*std::move(rootdir_blob)};
 
     for (auto const& subdir : tree.children()) {
         // store or upload blob, taking maximum transfer size into account
