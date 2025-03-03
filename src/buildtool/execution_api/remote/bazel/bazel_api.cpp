@@ -59,45 +59,29 @@ namespace {
         return false;
     }
 
-    std::vector const digests(back_map->GetKeys().begin(),
-                              back_map->GetKeys().end());
-
-    // Fetch blobs from this CAS.
+    // Fetch blobs from this CAS:
     auto reader = network->CreateReader();
-    std::size_t count{};
-    std::unordered_set<ArtifactBlob> container{};
-    for (auto blobs : reader.ReadIncrementally(&digests)) {
-        if (count + blobs.size() > digests.size()) {
-            Logger::Log(LogLevel::Warning,
-                        "received more blobs than requested.");
-            return false;
-        }
-        for (auto& blob : blobs) {
-            auto const info = back_map->GetReference(blob.GetDigest());
-            blob.SetExecutable(info.has_value() and
-                               IsExecutableObject(info.value()->type));
-            // Collect blob and upload to other CAS if transfer size reached.
-            if (not UpdateContainerAndUpload(
-                    &container,
-                    std::move(blob),
-                    /*exception_is_fatal=*/true,
-                    [&api](std::unordered_set<ArtifactBlob>&& blobs) {
-                        return api.Upload(std::move(blobs),
-                                          /*skip_find_missing=*/true);
-                    })) {
-                return false;
-            }
-        }
-        count += blobs.size();
+    auto read_blobs = reader.Read(back_map->GetKeys());
+
+    // Restore executable permissions:
+    std::unordered_set<ArtifactBlob> result;
+    result.reserve(read_blobs.size());
+    for (auto it = read_blobs.begin(); it != read_blobs.end();) {
+        auto const info = back_map->GetReference(it->GetDigest());
+
+        auto node = read_blobs.extract(it++);
+        node.value().SetExecutable(info.has_value() and
+                                   IsExecutableObject(info.value()->type));
+        result.insert(std::move(node));
     }
 
-    if (count != digests.size()) {
+    auto const all_fetched = result.size() == infos.size();
+    if (not all_fetched) {
         Logger::Log(LogLevel::Debug, "could not retrieve all requested blobs.");
-        return false;
     }
-
-    // Upload remaining blobs to other CAS.
-    return api.Upload(std::move(container), /*skip_find_missing=*/true);
+    // Upload blobs to other CAS.
+    return api.Upload(std::move(result), /*skip_find_missing=*/true) and
+           all_fetched;
 }
 
 [[nodiscard]] auto RetrieveToCasSplitted(
@@ -227,54 +211,36 @@ auto BazelApi::CreateAction(
     }
 
     // Request file blobs
-    auto size = file_digests.size();
-    auto reader = network_->CreateReader();
-    std::size_t count{};
-    for (auto blobs : reader.ReadIncrementally(&file_digests)) {
-        if (count + blobs.size() > size) {
-            Logger::Log(LogLevel::Warning,
-                        "received more blobs than requested.");
-            return false;
-        }
-        for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
-            auto gpos = artifact_pos[count + pos];
-            auto const& type = artifacts_info[gpos].type;
-            auto const& dst = output_paths[gpos];
-
-            bool written = false;
-            if (auto const path = blobs[pos].GetFilePath()) {
-                if (FileSystemManager::CreateDirectory(dst.parent_path()) and
-                    FileSystemManager::RemoveFile(dst)) {
-                    written =
-                        IsSymlinkObject(type)
-                            ? FileSystemManager::CopySymlinkAs<
-                                  /*kSetEpochTime=*/true>(*path, dst)
-                            : FileSystemManager::CreateFileHardlinkAs<
-                                  /*kSetEpochTime=*/true>(*path, dst, type);
-                }
-            }
-            else if (auto const content = blobs[pos].ReadContent()) {
-                written = FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
-                                                         /*kSetWritable=*/true>(
-                    *content, dst, type);
-            }
-
-            if (not written) {
-                Logger::Log(LogLevel::Warning,
-                            "staging to output path {} failed.",
-                            dst.string());
-                return false;
-            }
-        }
-        count += blobs.size();
-    }
-
-    if (count != size) {
+    auto const blobs = network_->CreateReader().ReadOrdered(file_digests);
+    if (blobs.size() != file_digests.size()) {
         Logger::Log(LogLevel::Warning,
                     "could not retrieve all requested blobs.");
         return false;
     }
+    for (std::size_t i = 0; i < blobs.size(); ++i) {
+        auto const gpos = artifact_pos[i];
+        auto const type = artifacts_info[gpos].type;
+        auto const& dst = output_paths[gpos];
 
+        bool written = false;
+        if (auto const path = blobs[i].GetFilePath()) {
+            if (FileSystemManager::CreateDirectory(dst.parent_path()) and
+                FileSystemManager::RemoveFile(dst)) {
+                written = IsSymlinkObject(type)
+                              ? FileSystemManager::CopySymlinkAs<
+                                    /*kSetEpochTime=*/true>(*path, dst)
+                              : FileSystemManager::CreateFileHardlinkAs<
+                                    /*kSetEpochTime=*/true>(*path, dst, type);
+            }
+        }
+
+        if (not written) {
+            Logger::Log(LogLevel::Warning,
+                        "staging to output path {} failed.",
+                        dst.string());
+            return false;
+        }
+    }
     return true;
 }
 
@@ -540,11 +506,9 @@ auto BazelApi::CreateAction(
             gsl::not_null<std::vector<std::string>*> const& targets) {
             auto reader = network->CreateReader();
             targets->reserve(digests.size());
-            for (auto blobs : reader.ReadIncrementally(&digests)) {
-                for (auto const& blob : blobs) {
-                    if (auto const content = blob.ReadContent()) {
-                        targets->emplace_back(*content);
-                    }
+            for (auto const& blob : reader.ReadOrdered(digests)) {
+                if (auto const content = blob.ReadContent()) {
+                    targets->emplace_back(*content);
                 }
             }
         });
