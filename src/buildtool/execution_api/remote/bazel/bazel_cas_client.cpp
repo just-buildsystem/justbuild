@@ -301,7 +301,7 @@ auto BazelCasClient::BatchReadBlobs(
                             bazel_re::BatchReadBlobsResponse_Response,
                             bazel_re::BatchReadBlobsResponse>(
                             response,
-                            [&back_map](
+                            [this, &back_map](
                                 std::vector<ArtifactBlob>* v,
                                 bazel_re::BatchReadBlobsResponse_Response const&
                                     r) {
@@ -309,10 +309,11 @@ auto BazelCasClient::BatchReadBlobs(
                                 if (not ref.has_value()) {
                                     return;
                                 }
-                                auto blob = ArtifactBlob::FromMemory(
+                                auto blob = ArtifactBlob::FromTempFile(
                                     HashFunction{ref.value()->GetHashType()},
                                     ref.value()->IsTree() ? ObjectType::Tree
                                                           : ObjectType::File,
+                                    temp_space_,
                                     r.data());
                                 if (not blob.has_value()) {
                                     return;
