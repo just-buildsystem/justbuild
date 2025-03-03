@@ -66,6 +66,16 @@
     , ["end-to-end", "git-import-under-test"]
     ]
   }
+, "indirections":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["indirections"]
+  , "test": ["indirections.sh"]
+  , "deps":
+    [ ["", "mr-tool-under-test"]
+    , ["", "tool-under-test"]
+    , ["end-to-end", "git-import-under-test"]
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
@@ -78,7 +88,12 @@
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
         , "then": []
         , "else":
-          ["chained-import", "annotations", "computed", "tree_structure"]
+          [ "chained-import"
+          , "annotations"
+          , "computed"
+          , "indirections"
+          , "tree_structure"
+          ]
         }
       ]
     }
