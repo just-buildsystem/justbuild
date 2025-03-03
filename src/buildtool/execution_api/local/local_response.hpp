@@ -77,6 +77,10 @@ class LocalResponse final : public IExecutionResponse {
     }
     auto IsCached() const noexcept -> bool final { return output_.is_cached; };
 
+    auto ExecutionDuration() noexcept -> double final {
+        return output_.duration;
+    }
+
     auto ActionDigest() const noexcept -> std::string const& final {
         return action_id_;
     }

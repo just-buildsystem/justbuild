@@ -58,6 +58,10 @@ class IExecutionResponse {
 
     [[nodiscard]] virtual auto StdOut() noexcept -> std::string = 0;
 
+    // Duration of the actual action execution, in seconds. The value may
+    // be 0 if the action was taken from cache.
+    [[nodiscard]] virtual auto ExecutionDuration() noexcept -> double = 0;
+
     [[nodiscard]] virtual auto ActionDigest() const noexcept
         -> std::string const& = 0;
 

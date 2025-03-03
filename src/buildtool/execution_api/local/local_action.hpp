@@ -49,6 +49,7 @@ class LocalAction final : public IExecutionAction {
     struct Output {
         bazel_re::ActionResult action;
         bool is_cached{};
+        double duration{};
     };
 
     using OutputFileOrSymlink =

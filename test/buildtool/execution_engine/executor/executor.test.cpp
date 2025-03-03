@@ -104,6 +104,9 @@ class TestResponse : public IExecutionResponse {
     [[nodiscard]] auto IsCached() const noexcept -> bool final {
         return config_.response.cached;
     }
+    [[nodiscard]] auto ExecutionDuration() noexcept -> double final {
+        return 0;
+    }
     [[nodiscard]] auto HasStdErr() const noexcept -> bool final { return true; }
     [[nodiscard]] auto HasStdOut() const noexcept -> bool final { return true; }
     [[nodiscard]] auto StdErr() noexcept -> std::string final { return {}; }
