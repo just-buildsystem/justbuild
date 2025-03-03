@@ -234,44 +234,41 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     // collect root digests from trees and store them
     auto reader = network_->CreateReader();
     int pos = 0;
-    for (auto tree_blobs : reader.ReadIncrementally(&tree_digests)) {
-        for (auto const& tree_blob : tree_blobs) {
-            try {
-                std::optional<bazel_re::Tree> tree;
-                if (auto const content = tree_blob.ReadContent()) {
-                    tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
-                        *content);
-                }
-                if (not tree) {
-                    return fmt::format(
-                        "BazelResponse: failed to create Tree for {}",
-                        tree_blob.GetDigest().hash());
-                }
-
-                // The server does not store the Directory messages it just
-                // has sent us as part of the Tree message. If we want to be
-                // able to use the Directories as inputs for actions, we
-                // have to upload them manually.
-                auto root_digest = UploadTreeMessageDirectories(*tree);
-                if (not root_digest) {
-                    auto error =
-                        fmt::format("BazelResponse: {}", root_digest.error());
-                    Logger::Log(LogLevel::Trace, error);
-                    return error;
-                }
-                artifacts.emplace(
-                    action_result.output_directories(pos).path(),
-                    Artifact::ObjectInfo{.digest = *root_digest,
-                                         .type = ObjectType::Tree});
-            } catch (std::exception const& ex) {
-                return fmt::format(
-                    "BazelResponse: unexpected failure gathering digest for "
-                    "{}:\n{}",
-                    tree_blob.GetDigest().hash(),
-                    ex.what());
+    for (auto const& tree_blob : reader.ReadOrdered(tree_digests)) {
+        try {
+            std::optional<bazel_re::Tree> tree;
+            if (auto const content = tree_blob.ReadContent()) {
+                tree = BazelMsgFactory::MessageFromString<bazel_re::Tree>(
+                    *content);
             }
-            ++pos;
+            if (not tree) {
+                return fmt::format(
+                    "BazelResponse: failed to create Tree for {}",
+                    tree_blob.GetDigest().hash());
+            }
+
+            // The server does not store the Directory messages it just
+            // has sent us as part of the Tree message. If we want to be
+            // able to use the Directories as inputs for actions, we
+            // have to upload them manually.
+            auto root_digest = UploadTreeMessageDirectories(*tree);
+            if (not root_digest) {
+                auto error =
+                    fmt::format("BazelResponse: {}", root_digest.error());
+                Logger::Log(LogLevel::Trace, error);
+                return error;
+            }
+            artifacts.emplace(action_result.output_directories(pos).path(),
+                              Artifact::ObjectInfo{.digest = *root_digest,
+                                                   .type = ObjectType::Tree});
+        } catch (std::exception const& ex) {
+            return fmt::format(
+                "BazelResponse: unexpected failure gathering digest for "
+                "{}:\n{}",
+                tree_blob.GetDigest().hash(),
+                ex.what());
         }
+        ++pos;
     }
     artifacts_ = std::move(artifacts);
     dir_symlinks_ = std::move(dir_symlinks);
