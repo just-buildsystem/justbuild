@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/local/local_action.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
@@ -203,8 +204,10 @@ auto LocalAction::Run(ArtifactDigest const& action_id) const noexcept
     std::copy(cmdline_.begin(), cmdline_.end(), std::back_inserter(cmdline));
 
     SystemCommand system{"LocalExecution"};
+    auto start_time = std::chrono::system_clock::now();
     auto const exit_code =
         system.Execute(cmdline, env_vars_, build_root / cwd_, *exec_path);
+    auto end_time = std::chrono::system_clock::now();
     if (exit_code.has_value()) {
         Output result{};
         result.action.set_exit_code(*exit_code);
@@ -226,6 +229,8 @@ auto LocalAction::Run(ArtifactDigest const& action_id) const noexcept
                 }
             }
         }
+        result.duration =
+            std::chrono::duration<double>(end_time - start_time).count();
         return result;
     }
 
