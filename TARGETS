@@ -285,13 +285,20 @@
   }
 , "bootstrap-src":
   { "type": "install"
-  , "files": {"ROOT": "ROOT", "TARGETS": "TARGETS"}
+  , "tainted": ["test"]
   , "dirs":
-    [ [["TREE", null, "bin"], "."]
-    , [["TREE", null, "rules"], "."]
+    [ [["TREE", null, "rules"], "."]
     , [["TREE", null, "etc"], "."]
     , [["TREE", null, "src/buildtool"], "."]
     , [["TREE", null, "src/utils"], "."]
+    ]
+  , "deps":
+    [ "ROOT"
+    , "TARGETS"
+    , "bin/bootstrap-traverser.py"
+    , "bin/bootstrap.py"
+    , "bin/just-mr.py"
+    , "bin/parallel-bootstrap-traverser.py"
     ]
   }
 }

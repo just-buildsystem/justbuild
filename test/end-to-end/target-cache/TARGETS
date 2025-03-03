@@ -35,7 +35,10 @@
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
 , "bootstrap-src-staged":
-  {"type": "install", "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]}
+  { "type": "install"
+  , "tainted": ["test"]
+  , "dirs": [[["@", "src", "", "bootstrap-src"], "src"]]
+  }
 , "check-sharding":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["check-sharding"]
