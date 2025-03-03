@@ -22,6 +22,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "gsl/gsl"
@@ -72,6 +73,12 @@ class BazelNetworkReader final {
 
     [[nodiscard]] auto ReadSingleBlob(ArtifactDigest const& digest)
         const noexcept -> std::optional<ArtifactBlob>;
+
+    [[nodiscard]] auto Read(std::unordered_set<ArtifactDigest> const& digests)
+        const noexcept -> std::unordered_set<ArtifactBlob>;
+
+    [[nodiscard]] auto ReadOrdered(std::vector<ArtifactDigest> const& digests)
+        const noexcept -> std::vector<ArtifactBlob>;
 
     [[nodiscard]] auto ReadIncrementally(
         gsl::not_null<std::vector<ArtifactDigest> const*> const& digests)
