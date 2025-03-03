@@ -782,8 +782,10 @@ def get_repo_to_import(config: Json) -> str:
     fail("Config does not contain any repositories; unsure what to import")
 
 
-def get_base_repo_if_computed(repo: Json) -> Optional[str]:
+def get_base_repo_if_computed(repo: Any, repos_config: Json) -> Optional[str]:
     """If repository is computed, return the base repository name."""
+    while isinstance(repo, str):
+        repo = repos_config[repo]["repository"]
     if repo.get("type") in ["computed", "tree structure"]:
         return cast(str, repo.get("repo"))
     return None
@@ -820,7 +822,7 @@ def repos_to_import(repos_config: Json, entry: str,
                 visit(repo)
         else:
             # if computed, visit the referred repository
-            repo_base = get_base_repo_if_computed(cast(Json, repo))
+            repo_base = get_base_repo_if_computed(repo, repos_config)
             if repo_base is not None:
                 extra_imports.discard(repo_base)
                 visit(repo_base)
@@ -833,8 +835,8 @@ def repos_to_import(repos_config: Json, entry: str,
                 if extra not in known and extra not in to_import:
                     extra_imports.add(extra)
                 extra_repo_base = get_base_repo_if_computed(
-                    cast(Json,
-                         repos_config.get(extra, {}).get("repository", {})))
+                    repos_config.get(extra, {}).get("repository", {}),
+                    repos_config)
                 if extra_repo_base is not None:
                     extra_imports.discard(extra_repo_base)
                     visit(extra_repo_base)
