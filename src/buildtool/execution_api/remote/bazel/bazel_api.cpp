@@ -239,18 +239,30 @@ auto BazelApi::CreateAction(
         for (std::size_t pos = 0; pos < blobs.size(); ++pos) {
             auto gpos = artifact_pos[count + pos];
             auto const& type = artifacts_info[gpos].type;
+            auto const& dst = output_paths[gpos];
 
             bool written = false;
-            if (auto const content = blobs[pos].ReadContent()) {
+            if (auto const path = blobs[pos].GetFilePath()) {
+                if (FileSystemManager::CreateDirectory(dst.parent_path()) and
+                    FileSystemManager::RemoveFile(dst)) {
+                    written =
+                        IsSymlinkObject(type)
+                            ? FileSystemManager::CopySymlinkAs<
+                                  /*kSetEpochTime=*/true>(*path, dst)
+                            : FileSystemManager::CreateFileHardlinkAs<
+                                  /*kSetEpochTime=*/true>(*path, dst, type);
+                }
+            }
+            else if (auto const content = blobs[pos].ReadContent()) {
                 written = FileSystemManager::WriteFileAs</*kSetEpochTime=*/true,
                                                          /*kSetWritable=*/true>(
-                    *content, output_paths[gpos], type);
+                    *content, dst, type);
             }
 
             if (not written) {
                 Logger::Log(LogLevel::Warning,
                             "staging to output path {} failed.",
-                            output_paths[gpos].string());
+                            dst.string());
                 return false;
             }
         }
