@@ -88,16 +88,13 @@ TEST_CASE("Bazel network: write/read blobs", "[execution_api]") {
     REQUIRE(network.UploadBlobs({*foo, *bar, *baz}));
 
     // Read blobs in order
-    auto reader = network.CreateReader();
     std::vector<ArtifactDigest> to_read{foo->GetDigest(),
                                         bar->GetDigest(),
                                         baz->GetDigest(),
                                         bar->GetDigest(),
                                         foo->GetDigest()};
-    std::vector<ArtifactBlob> blobs{};
-    for (auto next : reader.ReadIncrementally(&to_read)) {
-        blobs.insert(blobs.end(), next.begin(), next.end());
-    }
+    std::vector<ArtifactBlob> const blobs =
+        network.CreateReader().ReadOrdered(to_read);
 
     // Check order maintained
     REQUIRE(blobs.size() == 5);
@@ -163,12 +160,8 @@ TEST_CASE("Bazel network: read blobs with unknown size", "[execution_api]") {
         /*size_unknown=*/0};
 
     // Read blobs
-    auto reader = network.CreateReader();
-    std::vector<ArtifactDigest> to_read{foo_digest, bar_digest};
-    std::vector<ArtifactBlob> blobs{};
-    for (auto next : reader.ReadIncrementally(&to_read)) {
-        blobs.insert(blobs.end(), next.begin(), next.end());
-    }
+    std::vector<ArtifactBlob> const blobs =
+        network.CreateReader().ReadOrdered({foo_digest, bar_digest});
 
     // Check order maintained
     REQUIRE(blobs.size() == 2);

@@ -15,10 +15,8 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
 
-#include <cstddef>
 #include <filesystem>
 #include <functional>
-#include <iterator>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -80,10 +78,6 @@ class BazelNetworkReader final {
     [[nodiscard]] auto ReadOrdered(std::vector<ArtifactDigest> const& digests)
         const noexcept -> std::vector<ArtifactBlob>;
 
-    [[nodiscard]] auto ReadIncrementally(
-        gsl::not_null<std::vector<ArtifactDigest> const*> const& digests)
-        const noexcept -> IncrementalReader;
-
   private:
     using DirectoryMap =
         std::unordered_map<ArtifactDigest, bazel_re::Directory>;
@@ -96,67 +90,6 @@ class BazelNetworkReader final {
     [[nodiscard]] auto MakeAuxiliaryMap(
         std::vector<bazel_re::Directory>&& full_tree) const noexcept
         -> std::optional<DirectoryMap>;
-
-    [[nodiscard]] auto BatchReadBlobs(
-        std::vector<ArtifactDigest> const& digests) const noexcept
-        -> std::vector<ArtifactBlob>;
-
-    [[nodiscard]] auto GetMaxBatchTransferSize() const noexcept -> std::size_t;
-};
-
-class BazelNetworkReader::IncrementalReader final {
-  public:
-    IncrementalReader(
-        BazelNetworkReader const& owner,
-        gsl::not_null<std::vector<ArtifactDigest> const*> digests) noexcept
-        : owner_(owner), digests_(*digests) {}
-
-    class Iterator final {
-      public:
-        using value_type = std::vector<ArtifactBlob>;
-        using pointer = value_type*;
-        using reference = value_type&;
-        using difference_type = std::ptrdiff_t;
-        using iterator_category = std::forward_iterator_tag;
-
-        Iterator(BazelNetworkReader const& owner,
-                 std::vector<ArtifactDigest>::const_iterator begin,
-                 std::vector<ArtifactDigest>::const_iterator end) noexcept;
-
-        auto operator*() const noexcept -> value_type;
-        auto operator++() noexcept -> Iterator&;
-
-        [[nodiscard]] friend auto operator==(Iterator const& lhs,
-                                             Iterator const& rhs) noexcept
-            -> bool {
-            return lhs.begin_ == rhs.begin_ and lhs.end_ == rhs.end_ and
-                   lhs.current_ == rhs.current_;
-        }
-
-        [[nodiscard]] friend auto operator!=(Iterator const& lhs,
-                                             Iterator const& rhs) noexcept
-            -> bool {
-            return not(lhs == rhs);
-        }
-
-      private:
-        BazelNetworkReader const& owner_;
-        std::vector<ArtifactDigest>::const_iterator begin_;
-        std::vector<ArtifactDigest>::const_iterator end_;
-        std::vector<ArtifactDigest>::const_iterator current_;
-    };
-
-    [[nodiscard]] auto begin() const noexcept {
-        return Iterator{owner_, digests_.begin(), digests_.end()};
-    }
-
-    [[nodiscard]] auto end() const noexcept {
-        return Iterator{owner_, digests_.end(), digests_.end()};
-    }
-
-  private:
-    BazelNetworkReader const& owner_;
-    std::vector<ArtifactDigest> const& digests_;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP
