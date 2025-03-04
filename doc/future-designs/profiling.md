@@ -135,17 +135,6 @@ the following key (and more keys possibly added in the future).
       completing the action can be taken; in this case, the fact
       that this fallback was taken is also recorded.
 
-Additionally, `just` will receive a flag `--async-profile`,
-defaulting to false. If given, the writing of the action graphs (if
-`--dump-graph` or `--dump-plain-graph` is given) as well the profile (if
-`--profile` is given) are asynchronously written in a forked-off
-subprocess (note that, at the moments those files are written,
-`just` is single threaded) and the main process does not wait for
-the child (i.e., follows a fork-and-forget strategy); in this case,
-profiling is done only on a best-effort basis. Using asynchronous
-profile logging, the regular developer workflow is not affected by
-the overhead of writing these detailed machine-readable logs.
-
 ### `just` options `--dump-graph` and `--dump-plain-graph` become cummulative
 
 The options `--dump-graph` and `--dump-plain-graph` change their
