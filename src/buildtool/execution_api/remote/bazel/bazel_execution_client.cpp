@@ -21,6 +21,7 @@
 #include "fmt/core.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/text_format.h"
+#include "google/protobuf/timestamp.pb.h"
 #include "google/rpc/status.pb.h"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
@@ -271,6 +272,14 @@ auto BazelExecutionClient::ExtractContents(
     for (const auto& [k, v] : exec_response.server_logs()) {
         output.server_logs[k].CopyFrom(v);
     }
+    auto metadata = exec_response.result().execution_metadata();
+    auto const& start_time = metadata.worker_start_timestamp();
+    auto const& stop_time = metadata.worker_completed_timestamp();
+    const double k_one_nanosecond_in_seconds = 1e-9;
+    output.duration =
+        static_cast<double>(stop_time.seconds() - start_time.seconds()) +
+        k_one_nanosecond_in_seconds *
+            static_cast<double>(stop_time.nanos() - start_time.nanos());
     response.output = output;
     response.state = ExecutionResponse::State::Finished;
 
