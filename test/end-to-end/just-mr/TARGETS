@@ -226,6 +226,12 @@
   , "test": ["gc-drop.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "ignore-special":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["ignore-special"]
+  , "test": ["ignore-special.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
@@ -265,6 +271,7 @@
               , "fetch-absent-archives"
               , "fetch-absent-archives-symlinks"
               , "fetch-absent-distdir-archive"
+              , "ignore-special"
               ]
             ]
           }
