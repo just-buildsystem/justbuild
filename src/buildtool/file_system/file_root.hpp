@@ -539,7 +539,8 @@ class FileRoot {
                             return true;
                         },
                         /*allow_upwards=*/false,
-                        ignore_special_)) {
+                        ignore_special_,
+                        /*log_failure_at=*/LogLevel::Warning)) {
                     return DirectoryEntries{std::move(map)};
                 }
             }

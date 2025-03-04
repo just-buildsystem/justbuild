@@ -310,7 +310,8 @@ class CASTreeImporter final {
                     dir_reader,
                     /*allow_upwards=*/true,
                     /*ignore_special=*/resolve_special_ ==
-                        ResolveSpecial::Ignore)) {
+                        ResolveSpecial::Ignore,
+                    /*log_failure_at=*/LogLevel::Error)) {
                 if (auto tree = GitRepo::CreateShallowTree(entries)) {
                     // store tree
                     return store_tree_(tree->second);

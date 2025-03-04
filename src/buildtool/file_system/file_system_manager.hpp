@@ -745,7 +745,8 @@ class FileSystemManager {
         std::filesystem::path const& dir,
         ReadDirEntryFunc const& read_entry,
         bool allow_upwards = false,
-        bool ignore_special = false) noexcept -> bool {
+        bool ignore_special = false,
+        LogLevel log_failure_at = LogLevel::Debug) noexcept -> bool {
         try {
             for (auto const& entry : std::filesystem::directory_iterator{dir}) {
                 ObjectType type{};
@@ -775,7 +776,7 @@ class FileSystemManager {
                         }
                         else {
                             Logger::Log(
-                                LogLevel::Error,
+                                log_failure_at,
                                 "unsupported upwards symlink dir entry {}",
                                 entry.path().string());
                             return false;
@@ -786,7 +787,7 @@ class FileSystemManager {
                     }
                 }
                 else {
-                    Logger::Log(LogLevel::Error,
+                    Logger::Log(log_failure_at,
                                 "unsupported type for dir entry {}",
                                 entry.path().string());
                     return false;
@@ -797,7 +798,7 @@ class FileSystemManager {
             }
         } catch (std::exception const& ex) {
             Logger::Log(
-                LogLevel::Error, "reading directory {} failed", dir.string());
+                log_failure_at, "reading directory {} failed", dir.string());
             return false;
         }
         return true;
