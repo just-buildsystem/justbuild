@@ -4,7 +4,7 @@
     , "implicitly assuming a remote execution in the background."
     ]
   , "target_fields": ["deps", "test"]
-  , "string_fields": ["keep", "name"]
+  , "string_fields": ["keep", "name", "keep-dirs"]
   , "config_vars":
     [ "ARCH"
     , "HOST_ARCH"
@@ -46,6 +46,11 @@
       , "the test might generate that should be kept as part of the output."
       , "This might be useful for further analysis of the test"
       ]
+    , "keep-dirs":
+      [ "List of names (relative to the test working directory) of directories"
+      , "that the test might generate that should be kept as part of the"
+      , "output. This might be useful for further analysis of the test"
+      ]
     , "deps":
       [ "Any targets that should be staged (with artifacts and runfiles) into"
       , "the tests working directory"
@@ -79,7 +84,8 @@
     , "        the respective file descriptor"
     , "remotestdout/remotestderr: Any output of the remote-execution server"
     , "        implicit to that test"
-    , "work:   In this directory, all the files specified to \"keep\" are staged"
+    , "work:   In this directory, all the files specified to \"keep\" and"
+    , "        \"keep-dirs\" are staged"
     , "time-start/time-stop: The time (decimally coded) in seconds since the"
     , "        epoch when the test invocation started and ended."
     , "pwd:    the directory in which the test was carried out"
@@ -130,6 +136,7 @@
           }
         ]
       , ["keep", {"type": "FIELD", "name": "keep"}]
+      , ["keep-dirs", {"type": "FIELD", "name": "keep-dirs"}]
       , ["deps-fieldname", "deps"]
       , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       ]
@@ -280,7 +287,7 @@
     , "in the background."
     ]
   , "target_fields": ["deps", "test", "repos"]
-  , "string_fields": ["keep", "name"]
+  , "string_fields": ["keep", "keep-dirs", "name"]
   , "config_vars":
     [ "ARCH"
     , "HOST_ARCH"
@@ -331,6 +338,11 @@
       [ "List of names (relative to the test working directory) of files that"
       , "the test might generate that should be kept as part of the output."
       , "This might be useful for further analysis of the test"
+      ]
+    , "keep-dirs":
+      [ "List of names (relative to the test working directory) of directories"
+      , "that the test might generate that should be kept as part of the"
+      , "output. This might be useful for further analysis of the test"
       ]
     , "deps":
       [ "Any targets that should be staged (with artifacts and runfiles) into"
@@ -418,6 +430,7 @@
           }
         ]
       , ["keep", {"type": "FIELD", "name": "keep"}]
+      , ["keep-dirs", {"type": "FIELD", "name": "keep-dirs"}]
       , ["deps-fieldname", "deps"]
       , ["transition", {"type": "CALL_EXPRESSION", "name": "host transition"}]
       , [ "data"
