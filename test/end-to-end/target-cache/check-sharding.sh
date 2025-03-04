@@ -362,4 +362,4 @@ if ! grep serve result/test.out; then
 fi
 echo
 
-echo ok
+echo OK

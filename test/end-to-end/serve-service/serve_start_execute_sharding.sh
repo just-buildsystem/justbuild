@@ -186,4 +186,4 @@ echo
 )
 
 cleanup
-echo ok
+echo OK
