@@ -26,6 +26,9 @@ void Profile::Write(int exit_code) {
         for (auto const& [k, v] : actions_) {
             auto entry = nlohmann::json::object();
             entry["cached"] = v.cached;
+            if (not v.cached) {
+                entry["duration"] = v.duration;
+            }
             actions[k] = entry;
         }
         profile_["actions"] = actions;
@@ -48,5 +51,6 @@ void Profile::SetConfiguration(nlohmann::json configuration) {
 void Profile::NoteActionCompleted(std::string const& id,
                                   IExecutionResponse::Ptr const& response) {
     std::unique_lock lock{mutex_};
-    actions_[id] = ActionData{.cached = response->IsCached()};
+    actions_[id] = ActionData{.cached = response->IsCached(),
+                              .duration = response->ExecutionDuration()};
 }

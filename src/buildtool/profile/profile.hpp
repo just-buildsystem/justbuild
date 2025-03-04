@@ -28,7 +28,7 @@
 class Profile {
   public:
     explicit Profile(std::optional<std::string> output_file)
-        : output_file_{std::move(output_file)}, actions_{}, mutex_{} {
+        : output_file_{std::move(output_file)} {
         profile_ = nlohmann::json::object();
     }
 
@@ -41,6 +41,7 @@ class Profile {
   private:
     struct ActionData {
         bool cached;
+        double duration;
     };
 
     std::optional<std::string> output_file_;
