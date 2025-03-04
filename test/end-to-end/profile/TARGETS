@@ -5,9 +5,23 @@
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep-dirs": ["log"]
   }
+, "time":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["time"]
+  , "test": ["time.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep-dirs": ["log"]
+  }
+, "time, remote":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["time-remote"]
+  , "test": ["time.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep-dirs": ["log"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["profile"]
-  , "deps": ["basic"]
+  , "deps": ["basic", "time", "time, remote"]
   }
 }
