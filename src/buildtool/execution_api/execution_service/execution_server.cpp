@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -46,13 +47,21 @@
 #include "src/utils/cpp/path.hpp"
 
 namespace {
+void SetTimeStamp(
+    gsl::not_null<::google::protobuf::Timestamp*> const& t,
+    std::chrono::time_point<std::chrono::high_resolution_clock> const& tvalue) {
+    const int64_t k_nanoseconds_per_second = 1'000'000'000;
+    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                     tvalue.time_since_epoch())
+                     .count();
+    t->set_seconds(nanos / k_nanoseconds_per_second);
+    t->set_nanos(static_cast<int32_t>(nanos % k_nanoseconds_per_second));
+}
+
 void UpdateTimeStamp(
     gsl::not_null<::google::longrunning::Operation*> const& op) {
     ::google::protobuf::Timestamp t;
-    t.set_seconds(
-        std::chrono::duration_cast<std::chrono::seconds>(
-            std::chrono::high_resolution_clock::now().time_since_epoch())
-            .count());
+    SetTimeStamp(&t, std::chrono::high_resolution_clock::now());
     op->mutable_metadata()->PackFrom(t);
 }
 
@@ -246,11 +255,20 @@ auto ExecutionServiceImpl::Execute(
         return ::grpc::Status{grpc::StatusCode::INTERNAL,
                               std::move(execute_response).error()};
     }
+    ::bazel_re::ExecuteResponse response = *execute_response;
+    SetTimeStamp(response.mutable_result()
+                     ->mutable_execution_metadata()
+                     ->mutable_worker_start_timestamp(),
+                 t0);
+    SetTimeStamp(response.mutable_result()
+                     ->mutable_execution_metadata()
+                     ->mutable_worker_completed_timestamp(),
+                 t1);
 
     // Store the result in action cache
     if (i_execution_response->ExitCode() == 0 and not action->do_not_cache()) {
-        if (not storage_.ActionCache().StoreResult(
-                *action_digest, execute_response->result())) {
+        if (not storage_.ActionCache().StoreResult(*action_digest,
+                                                   response.result())) {
             auto const str =
                 fmt::format("Could not store action result for action {}",
                             action_digest->hash());
@@ -260,7 +278,7 @@ auto ExecutionServiceImpl::Execute(
         }
     }
 
-    WriteResponse(*execute_response, writer, std::move(op));
+    WriteResponse(response, writer, std::move(op));
     return ::grpc::Status::OK;
 }
 
