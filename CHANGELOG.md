@@ -56,6 +56,18 @@ A feature release on top of `1.4.0`, backwards compatible.
   is now correctly honored, if announced by the server.
 - Missing entries in the documentation have been added.
 
+
+### Changes since `1.5.0~beta2`
+
+- Fixed how `just-import-git` and `just-lock` handle the transitively
+  implied base repositories of computed roots; the lack of properly
+  handling indirections led to crashes even if computed roots where
+  not used at all.
+- A case was fixed where special entries where not ignored properly,
+  even though this was requested.
+- Unnecessary verbosity reduced.
+- Updated dependencies.
+
 ## Release `1.5.0~beta2` (2025-02-28)
 
 Second beta release for the upcoming `1.5.0` release; see release
