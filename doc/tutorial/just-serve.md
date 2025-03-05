@@ -321,7 +321,7 @@ Our `repos.json` at this stage reads:
   , "fmtlib":
     { "repository":
       { "type": "git"
-      , "branch": "master"
+      , "branch": "8.1.1"
       , "commit": "b6f4ceaed0a0a24ccf575fab6c56dd50ccf6f1a9"
       , "repository": "https://github.com/fmtlib/fmt.git"
       }
