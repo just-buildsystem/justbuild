@@ -102,7 +102,10 @@ auto BazelCapabilitiesClient::GetCapabilities(
                                      status.error_message())};
     };
 
-    if (not WithRetry(get_capabilities, retry_config_, logger_) or
+    if (not WithRetry(get_capabilities,
+                      retry_config_,
+                      logger_,
+                      /*fatal_log_level=*/LogLevel::Debug) or
         not response.has_value()) {
         logger_.Emit(
             LogLevel::Warning,
