@@ -134,7 +134,8 @@ void ResolveKnownEntry(GitObjectToResolve const& obj,
         auto children = source_git_repo->ReadTree(
             entry_info.id,
             [](auto const& /*unused*/) { return true; },
-            /*is_hex_id=*/true);
+            /*is_hex_id=*/true,
+            /*ignore_special=*/obj.pragma_special == PragmaSpecial::Ignore);
         if (not children) {
             (*logger)(fmt::format("ResolveSymlinks: failed to read entries of "
                                   "subtree {} in root tree {}",
