@@ -35,6 +35,7 @@ dependencies locally (neither as source nor as binary).
   - [How to create a single-node remote execution service](doc/tutorial/just-execute.org)
   - [Dependency management using Target-level Cache as a Service](doc/tutorial/just-serve.md)
   - [Cross compiling and testing cross-compiled targets](doc/tutorial/cross-compiling.md)
+  - [Multi-repository configuration management](doc/tutorial/just-lock.md)
   - [Computed roots](doc/tutorial/computed.md)
 
 ## Documentation
