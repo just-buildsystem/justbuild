@@ -656,7 +656,6 @@ auto CreateGitTreeFetchMap(
                         // define temp repo path
                         auto tmp_dir = native_storage_config->CreateTypedTmpDir(
                             "git-tree");
-                        ;
                         if (not tmp_dir) {
                             (*logger)(fmt::format("Could not create unique "
                                                   "path for target {}",
