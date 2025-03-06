@@ -1,4 +1,4 @@
-## Release `1.5.0` (UNRELEASED)
+## Release `1.5.0` (2025-03-06)
 
 A feature release on top of `1.4.0`, backwards compatible.
 
@@ -67,6 +67,7 @@ A feature release on top of `1.4.0`, backwards compatible.
   even though this was requested.
 - Unnecessary verbosity reduced.
 - Updated dependencies.
+- Documentation extended.
 
 ## Release `1.5.0~beta2` (2025-02-28)
 
