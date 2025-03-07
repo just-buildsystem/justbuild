@@ -435,7 +435,8 @@ CAS. Therefore, this option cannot be used with **`analyse`**.
 Supported by: build|install|rebuild|traverse.
 
 **`--profile`** *`PATH`*  
-Write a profile to the specified path.  
+Write a profile to the specified path. See **`just-profile`**(5) for
+details on the format.  
 Supported by: analyse|build|install|rebuild|traverse.
 
 **`--dump-graph`** *`PATH`*  
