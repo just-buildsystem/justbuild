@@ -26,7 +26,7 @@
 // Atomic wrapper with notify/wait capabilities.
 // TODO(modernize): Replace any use this class by C++20's std::atomic<T>, once
 // libcxx adds support for notify_*() and wait().
-// [https://libcxx.llvm.org/docs/Cxx2aStatus.html]
+// [https://libcxx.llvm.org/Status/Cxx20.html]
 template <class T>
 class atomic {  // NOLINT(readability-identifier-naming)
   public:
@@ -97,7 +97,7 @@ class atomic {  // NOLINT(readability-identifier-naming)
 // Atomic shared_pointer with notify/wait capabilities.
 // TODO(modernize): Replace any use this class by C++20's
 // std::atomic<std::shared_ptr<T>>, once libcxx adds support for it.
-// [https://libcxx.llvm.org/docs/Cxx2aStatus.html]
+// [https://libcxx.llvm.org/Status/Cxx20.html]
 template <class T>
 class atomic_shared_ptr {  // NOLINT(readability-identifier-naming)
     using ptr_t = std::shared_ptr<T>;
