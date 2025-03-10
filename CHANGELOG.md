@@ -2,6 +2,13 @@
 
 A feature release on top of `1.5.0`, backwards compatible.
 
+### Fixes
+
+- `just execute` and `just serve` now create their pid and info
+  files atomically; so waiting processes can assume the content
+  to be available as soon as the requested file appears on the
+  file sytem.
+
 ## Release `1.5.0` (2025-03-06)
 
 A feature release on top of `1.4.0`, backwards compatible.
