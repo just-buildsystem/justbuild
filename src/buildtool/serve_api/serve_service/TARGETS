@@ -90,6 +90,7 @@
     , ["src/buildtool/execution_api/execution_service", "operations_server"]
     , ["src/buildtool/execution_api/local", "local_api"]
     , ["src/buildtool/execution_api/serve", "mr_local_api"]
+    , ["src/buildtool/file_system", "atomic"]
     , ["src/buildtool/file_system", "file_system_manager"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/logging", "log_level"]

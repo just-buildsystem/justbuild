@@ -23,7 +23,6 @@
 #endif
 
 #include <filesystem>
-#include <fstream>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -46,6 +45,7 @@
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
 #include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/serve/mr_local_api.hpp"
+#include "src/buildtool/file_system/atomic.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -57,21 +57,6 @@
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
-
-namespace {
-template <typename T>
-auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
-    std::ofstream of{file};
-    if (not of.good()) {
-        Logger::Log(LogLevel::Error,
-                    "Could not open {}. Make sure to have write permissions",
-                    file);
-        return false;
-    }
-    of << content;
-    return true;
-}
-}  // namespace
 
 auto ServeServerImpl::Create(std::optional<std::string> interface,
                              std::optional<int> port,
@@ -248,7 +233,8 @@ auto ServeServerImpl::Run(
         {"interface", interface_}, {"port", port_}, {"pid", pid}};
 
     if (not pid_file_.empty()) {
-        if (not TryWrite(pid_file_, pid)) {
+        if (not FileSystemAtomic::WriteFile(pid_file_,
+                                            fmt::format("{}", pid))) {
             server->Shutdown();
             return false;
         }
@@ -263,7 +249,7 @@ auto ServeServerImpl::Run(
                 info_str);
 
     if (not info_file_.empty()) {
-        if (not TryWrite(info_file_, info_str)) {
+        if (not FileSystemAtomic::WriteFile(info_file_, info_str)) {
             server->Shutdown();
             return false;
         }
