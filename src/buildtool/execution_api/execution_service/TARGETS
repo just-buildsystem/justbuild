@@ -119,6 +119,7 @@
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "port"]
     , ["src/buildtool/crypto", "hash_function"]
+    , ["src/buildtool/file_system", "atomic"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "config"]

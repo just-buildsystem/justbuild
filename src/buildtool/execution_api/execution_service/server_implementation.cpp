@@ -20,7 +20,6 @@
 #error "Non-unix is not supported yet"
 #endif
 
-#include <fstream>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -40,25 +39,11 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
+#include "src/buildtool/file_system/atomic.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
-
-namespace {
-template <typename T>
-auto TryWrite(std::string const& file, T const& content) noexcept -> bool {
-    std::ofstream of{file};
-    if (not of.good()) {
-        Logger::Log(LogLevel::Error,
-                    "Could not open {}. Make sure to have write permissions",
-                    file);
-        return false;
-    }
-    of << content;
-    return true;
-}
-}  // namespace
 
 auto ServerImpl::Create(std::optional<std::string> interface,
                         std::optional<int> port,
@@ -144,7 +129,8 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
         {"interface", interface_}, {"port", port_}, {"pid", pid}};
 
     if (not pid_file_.empty()) {
-        if (not TryWrite(pid_file_, pid)) {
+        if (not FileSystemAtomic::WriteFile(pid_file_,
+                                            fmt::format("{}", pid))) {
             server->Shutdown();
             return false;
         }
@@ -157,7 +143,7 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
                 info_str);
 
     if (not info_file_.empty()) {
-        if (not TryWrite(info_file_, info_str)) {
+        if (not FileSystemAtomic::WriteFile(info_file_, info_str)) {
             server->Shutdown();
             return false;
         }
