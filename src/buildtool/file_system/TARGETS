@@ -209,4 +209,12 @@
     ]
   , "stage": ["src", "buildtool", "file_system"]
   }
+, "atomic":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["atomic"]
+  , "hdrs": ["atomic.hpp"]
+  , "srcs": ["atomic.cpp"]
+  , "private-deps": [["@", "fmt", "", "fmt"]]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 }
