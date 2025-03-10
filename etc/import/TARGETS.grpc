@@ -2076,6 +2076,27 @@
     ]
   }
 , "config_vars":
+  { "type": "export"
+  , "target": "config_vars (unexported)"
+  , "flexible_config":
+    [ "OS"
+    , "ARCH"
+    , "HOST_ARCH"
+    , "TARGET_ARCH"
+    , "TOOLCHAIN_CONFIG"
+    , "DEBUG"
+    , "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    , "PKG_CONFIG_ARGS"
+    ]
+  }
+, "config_vars (unexported)":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config_vars"]
   , "srcs":
