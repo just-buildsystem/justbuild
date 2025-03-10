@@ -160,7 +160,7 @@ The just-mrrc is given by a JSON object.
    an existing file, this file is read as an additional rc file
    overlaying the given rc file in the specified order; the value
    of `"rc files"` in the overlaying files is ignored.  
-   In this way, an rc file commited to a repository can be allowed
+   In this way, an rc file committed to a repository can be allowed
    to set a sensible configuration, remote-execution and serve end
    points, etc. This is particularly useful when simultaneously
    working on several projects with different settings.
