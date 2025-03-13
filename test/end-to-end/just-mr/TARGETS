@@ -240,6 +240,13 @@
   , "keep-dirs": ["log"]
   , "keep": ["out/just-repo-config.json"]
   }
+, "cas-root":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["cas-root"]
+  , "test": ["cas-root.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep-dirs": ["lbr-analyse", "out"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
@@ -272,7 +279,12 @@
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
               , "then": []
-              , "else": ["fetch-remote", "fetch-remote-git-tree", "stay-local"]
+              , "else":
+                [ "fetch-remote"
+                , "fetch-remote-git-tree"
+                , "stay-local"
+                , "cas-root"
+                ]
               }
             , [ "fetch-absent"
               , "fetch-absent-git-tree"
