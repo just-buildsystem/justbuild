@@ -37,6 +37,7 @@ dependencies locally (neither as source nor as binary).
   - [Cross compiling and testing cross-compiled targets](doc/tutorial/cross-compiling.md)
   - [Multi-repository configuration management](doc/tutorial/just-lock.md)
   - [Computed roots](doc/tutorial/computed.md)
+  - [More build delegation through a serve endpoint](doc/tutorial/build-delegation.md)
 
 ## Documentation
 
