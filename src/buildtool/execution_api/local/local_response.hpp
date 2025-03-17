@@ -72,6 +72,24 @@ class LocalResponse final : public IExecutionResponse {
         Logger::Log(LogLevel::Debug, "reading stdout failed");
         return {};
     }
+    auto StdErrDigest() noexcept -> std::optional<ArtifactDigest> final {
+        auto digest = ArtifactDigestFactory::FromBazel(
+            storage_.GetHashFunction().GetType(),
+            output_.action.stderr_digest());
+        if (digest) {
+            return *digest;
+        }
+        return std::nullopt;
+    }
+    auto StdOutDigest() noexcept -> std::optional<ArtifactDigest> final {
+        auto digest = ArtifactDigestFactory::FromBazel(
+            storage_.GetHashFunction().GetType(),
+            output_.action.stdout_digest());
+        if (digest) {
+            return *digest;
+        }
+        return std::nullopt;
+    }
     auto ExitCode() const noexcept -> int final {
         return output_.action.exit_code();
     }

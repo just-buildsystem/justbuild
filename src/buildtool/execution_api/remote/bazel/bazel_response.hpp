@@ -25,7 +25,9 @@
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_execution_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
@@ -51,6 +53,24 @@ class BazelResponse final : public IExecutionResponse {
     }
     auto StdOut() noexcept -> std::string final {
         return ReadStringBlob(output_.action_result.stdout_digest());
+    }
+    auto StdErrDigest() noexcept -> std::optional<ArtifactDigest> final {
+        auto digest = ArtifactDigestFactory::FromBazel(
+            network_->GetHashFunction().GetType(),
+            output_.action_result.stderr_digest());
+        if (digest) {
+            return *digest;
+        }
+        return std::nullopt;
+    }
+    auto StdOutDigest() noexcept -> std::optional<ArtifactDigest> final {
+        auto digest = ArtifactDigestFactory::FromBazel(
+            network_->GetHashFunction().GetType(),
+            output_.action_result.stdout_digest());
+        if (digest) {
+            return *digest;
+        }
+        return std::nullopt;
     }
     auto ExitCode() const noexcept -> int final {
         return output_.action_result.exit_code();

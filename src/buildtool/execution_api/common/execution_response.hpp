@@ -17,12 +17,14 @@
 
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 /// \brief Abstract response.
@@ -53,6 +55,12 @@ class IExecutionResponse {
     [[nodiscard]] virtual auto HasStdErr() const noexcept -> bool = 0;
 
     [[nodiscard]] virtual auto HasStdOut() const noexcept -> bool = 0;
+
+    [[nodiscard]] virtual auto StdErrDigest() noexcept
+        -> std::optional<ArtifactDigest> = 0;
+
+    [[nodiscard]] virtual auto StdOutDigest() noexcept
+        -> std::optional<ArtifactDigest> = 0;
 
     [[nodiscard]] virtual auto StdErr() noexcept -> std::string = 0;
 

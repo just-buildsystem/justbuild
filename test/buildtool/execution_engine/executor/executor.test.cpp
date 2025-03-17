@@ -111,6 +111,14 @@ class TestResponse : public IExecutionResponse {
     [[nodiscard]] auto HasStdOut() const noexcept -> bool final { return true; }
     [[nodiscard]] auto StdErr() noexcept -> std::string final { return {}; }
     [[nodiscard]] auto StdOut() noexcept -> std::string final { return {}; }
+    [[nodiscard]] auto StdErrDigest() noexcept
+        -> std::optional<ArtifactDigest> final {
+        return std::nullopt;
+    }
+    [[nodiscard]] auto StdOutDigest() noexcept
+        -> std::optional<ArtifactDigest> final {
+        return std::nullopt;
+    }
     [[nodiscard]] auto ActionDigest() const noexcept
         -> std::string const& final {
         static const std::string kEmptyHash;
