@@ -53,6 +53,13 @@ The profile file contains the following information.
 
   - For the key *`"time"`* for non-cached actions the build time in seconds.
 
+  - For the key *`"artifacts"`* an object with keys the output paths and values
+    the hashes of the corresponding artifacts as hex-encoded strings.
+
+  - For they keys *`"stdout"`* and *`"stderr"`* the hashes of stdout and stderr,
+    respectively, as hex-encoded strings, provided the respective output is
+    non-empty.
+
 
 See also
 ========
