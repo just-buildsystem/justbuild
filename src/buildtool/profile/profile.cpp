@@ -16,6 +16,10 @@
 
 #include <fstream>
 
+#include "gsl/gsl"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/utils/cpp/expected.hpp"
+
 void Profile::Write(int exit_code) {
     if (not output_file_) {
         return;
@@ -29,6 +33,7 @@ void Profile::Write(int exit_code) {
             if (not v.cached) {
                 entry["duration"] = v.duration;
             }
+            entry["artifacts"] = v.artifacts;
             actions[k] = entry;
         }
         profile_["actions"] = actions;
@@ -51,6 +56,21 @@ void Profile::SetConfiguration(nlohmann::json configuration) {
 void Profile::NoteActionCompleted(std::string const& id,
                                   IExecutionResponse::Ptr const& response) {
     std::unique_lock lock{mutex_};
-    actions_[id] = ActionData{.cached = response->IsCached(),
-                              .duration = response->ExecutionDuration()};
+    auto artifacts = response->Artifacts();
+    if (not artifacts) {
+        actions_[id] = ActionData{
+            .cached = response->IsCached(),
+            .duration = response->ExecutionDuration(),
+            .artifacts = std::unordered_map<std::string, std::string>()};
+    }
+    else {
+        actions_[id] = ActionData{
+            .cached = response->IsCached(),
+            .duration = response->ExecutionDuration(),
+            .artifacts = std::unordered_map<std::string, std::string>(
+                (*artifacts)->size())};
+        for (auto const& [k, v] : **artifacts) {
+            actions_[id].artifacts.emplace(k, v.digest.hash());
+        }
+    }
 }

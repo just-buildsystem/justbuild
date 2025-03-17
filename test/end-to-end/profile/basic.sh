@@ -22,6 +22,7 @@ readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly LOG_DIR="${PWD}/log"
 readonly ETC_DIR="${PWD}/etc"
 readonly WRK_DIR="${PWD}/work"
+readonly OUT="${TEST_TMPDIR}/out"
 
 # Set up an rc file, requesting invocation logging
 mkdir -p "${ETC_DIR}"
@@ -68,6 +69,11 @@ PROFILE="${INVOCATION_DIR}/profile.json"
 
 cat "${PROFILE}"
 [ $(jq '.actions | .[] | .cached' "${PROFILE}") = "false" ]
+
+OUT_ARTIFACT=$(jq -r '.actions | .[] | .artifacts."upper.txt"' "${PROFILE}")
+"${JUST_MR}" --rc "${RC}" install-cas -o "${OUT}/upper.txt" "${OUT_ARTIFACT}" 2>&1
+grep BLABLABLA "${OUT}/upper.txt"
+echo
 
 # Build again, this time the action should be cached;
 # again abuse the project id to distingush the runs
