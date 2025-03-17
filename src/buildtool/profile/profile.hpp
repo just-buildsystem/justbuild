@@ -42,6 +42,8 @@ class Profile {
     struct ActionData {
         bool cached;
         double duration;
+        std::optional<std::string> out;
+        std::optional<std::string> err;
         std::unordered_map<std::string, std::string> artifacts;
     };
 

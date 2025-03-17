@@ -53,7 +53,11 @@ cat > TARGETS <<'EOF'
   { "type": "generic"
   , "deps": ["data.txt"]
   , "outs": ["upper.txt"]
-  , "cmds": ["cat data.txt | tr a-z A-Z > upper.txt"]
+  , "cmds":
+    [ "cat data.txt | tr a-z A-Z > upper.txt"
+    , "echo StdOuT"
+    , "echo StdErR 1>&2"
+    ]
   }
 }
 EOF
@@ -73,6 +77,13 @@ cat "${PROFILE}"
 OUT_ARTIFACT=$(jq -r '.actions | .[] | .artifacts."upper.txt"' "${PROFILE}")
 "${JUST_MR}" --rc "${RC}" install-cas -o "${OUT}/upper.txt" "${OUT_ARTIFACT}" 2>&1
 grep BLABLABLA "${OUT}/upper.txt"
+
+STDOUT=$(jq -r '.actions | .[] | .stdout' "${PROFILE}")
+STDERR=$(jq -r '.actions | .[] | .stderr' "${PROFILE}")
+"${JUST_MR}" --rc "${RC}" install-cas -o "${OUT}/stdout" "${STDOUT}" 2>&1
+"${JUST_MR}" --rc "${RC}" install-cas -o "${OUT}/stderr" "${STDERR}" 2>&1
+grep StdOuT "${OUT}/stdout"
+grep StdErR "${OUT}/stderr"
 echo
 
 # Build again, this time the action should be cached;

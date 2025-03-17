@@ -34,6 +34,12 @@ void Profile::Write(int exit_code) {
                 entry["duration"] = v.duration;
             }
             entry["artifacts"] = v.artifacts;
+            if (v.out) {
+                entry["stdout"] = *v.out;
+            }
+            if (v.err) {
+                entry["stderr"] = *v.err;
+            }
             actions[k] = entry;
         }
         profile_["actions"] = actions;
@@ -57,16 +63,34 @@ void Profile::NoteActionCompleted(std::string const& id,
                                   IExecutionResponse::Ptr const& response) {
     std::unique_lock lock{mutex_};
     auto artifacts = response->Artifacts();
+    std::optional<std::string> out = std::nullopt;
+    std::optional<std::string> err = std::nullopt;
+    if (response->HasStdOut()) {
+        auto action_out = response->StdOutDigest();
+        if (action_out) {
+            out = action_out->hash();
+        }
+    }
+    if (response->HasStdErr()) {
+        auto action_err = response->StdErrDigest();
+        if (action_err) {
+            err = action_err->hash();
+        }
+    }
     if (not artifacts) {
         actions_[id] = ActionData{
             .cached = response->IsCached(),
             .duration = response->ExecutionDuration(),
+            .out = out,
+            .err = err,
             .artifacts = std::unordered_map<std::string, std::string>()};
     }
     else {
         actions_[id] = ActionData{
             .cached = response->IsCached(),
             .duration = response->ExecutionDuration(),
+            .out = out,
+            .err = err,
             .artifacts = std::unordered_map<std::string, std::string>(
                 (*artifacts)->size())};
         for (auto const& [k, v] : **artifacts) {
