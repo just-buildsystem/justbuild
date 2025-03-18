@@ -8,6 +8,8 @@ A feature release on top of `1.5.0`, backwards compatible.
   files atomically; so waiting processes can assume the content
   to be available as soon as the requested file appears on the
   file sytem.
+- `just serve` now fetches trees from remote execution in parallel
+  and through its local CAS; this fixes a performance issue.
 
 ## Release `1.5.0` (2025-03-06)
 
