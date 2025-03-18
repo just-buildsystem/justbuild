@@ -1637,13 +1637,25 @@ auto SourceTreeService::GetRemoteTree(
         response->set_status(GetRemoteTreeResponse::INTERNAL_ERROR);
         return ::grpc::Status::OK;
     }
-    if (not apis_.remote->RetrieveToPaths(
+    if (not apis_.remote->ParallelRetrieveToCas(
             {Artifact::ObjectInfo{.digest = *remote_digest,
                                   .type = ObjectType::Tree}},
-            {tmp_dir->GetPath()},
-            &(*apis_.local))) {
+            *apis_.local,
+            serve_config_.jobs,
+            true)) {
+        logger_->Emit(
+            LogLevel::Error,
+            "Failed to parallel retrieve tree {} from remote CAS to local CAS",
+            remote_digest->hash());
+        response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
+        return ::grpc::Status::OK;
+    }
+    if (not apis_.local->RetrieveToPaths(
+            {Artifact::ObjectInfo{.digest = *remote_digest,
+                                  .type = ObjectType::Tree}},
+            {tmp_dir->GetPath()})) {
         logger_->Emit(LogLevel::Error,
-                      "Failed to retrieve tree {} from remote CAS",
+                      "Failed to install tree {} from local CAS",
                       remote_digest->hash());
         response->set_status(GetRemoteTreeResponse::FAILED_PRECONDITION);
         return ::grpc::Status::OK;
