@@ -66,18 +66,20 @@ The following sections describe the needed changes in detail.
 
 ### Extend `["CC", "defaults"]` rule with new fields
 
-The `["CC", "defaults"]` rule should accept a new field `"DWP"` containing as a
-singleton list the path to the `dwp` tool to be used for packing DWARF files.
-This field should be handled the same as, e.g., the `"CC"` variable. The
-description of our toolchains should be extended with the `"DWP"` field,
-pointing to the location of the respective tool in the staged binaries folder.
+The `["CC", "defaults"]` should accept 3 new fields:
 
-The rule should also accept a new field `"DEBUGFLAGS"` containing as a list
-compile flags to be used for debug builds. This field should be handled in a
-similar way to, e.g., the `"ARFLAGS"` variable, but be used only if debug mode
-is enabled. If missing, default to [`"-g"`]. In this way, most users need not
-set those flags manually anymore, while advanced users can still set their own
-debug-level flags, as needed.
+ - `"DWP"`, containing as a singleton list the path to the `dwp` tool to be used
+   for packing DWARF files. This field should be handled the same as, e.g., the
+   `"CC"` variable. The description of our toolchains should be extended with
+   the `"DWP"` field, pointing to the location of the respective tool in the
+   staged binaries folder.
+
+ - `"ADD_DEBUGFLAGS"`, containing as a list compile flags to be appended to both
+   C and C++ flags for debug builds. As with other `"ADD_<X>FLAGS"` variables,
+   these extend the existing flags.
+
+ - `"DEBUGFLAGS"`, containing as a list the compile flags to be used for debug
+   builds, replacing existing.
 
 #### Change `"DEBUG"` configuration variable value type to map
 
@@ -96,10 +98,10 @@ The following supported keys are proposed:
 The `"FISSION_CONFIG"` map should accept the following keys:
 
  - `"USE_DWARF_SPLIT"`: If evaluated to `true`, appends the `-gsplit-dwarf`
-   flag to the `"DEBUGFLAGS"`.
+   flag to the compile flags.
 
  - `"DWARF_VERSION"`: Expects a number defining the DWARF format version. If
-   provided, appends the `-gdwarf-<version>` flag to the `"DEBUGFLAGS"`.
+   provided, appends the `-gdwarf-<version>` flag to the compile flag.
 
    Each toolchain comes with a default in terms of which version of the DWARF
    format is used. Basically all reasonably modern toolchains (GCC >=4.8.1,
@@ -109,8 +111,8 @@ The `"FISSION_CONFIG"` map should accept the following keys:
    format. However, the degree of implementation and default support of the
    various compilers and tools differs, so it is recommended to use version 4.
 
- - `"USE_GDB_INDEX"`: If evaluated to `true`, adds the `-Wl,--gdb-index` link
-   flag. Defaults to `false`.
+ - `"USE_GDB_INDEX"`: If evaluated to `true`, appends the `-Wl,--gdb-index` flag
+   to the linker flags. Defaults to `false`.
 
    This option enables, in linkers that support it, an optimization which
    bundles certain debug symbols sections together into a single `.gdb_index`
@@ -131,7 +133,7 @@ The `"FISSION_CONFIG"` map should accept the following keys:
     - Known unsupported linkers: `ld` (GNU)
 
  - `"USE_DEBUG_TYPES_SECTION"`: If evaluated to `true`, appends the
-   `-fdebug-types-section` flag to the `"DEBUGFLAGS"`. Defaults to `false`.
+   `-fdebug-types-section` flag to the compile flags. Defaults to `false`.
 
    This option enables, for toolchains supporting at least DWARFv4, an
    optimization that produces separate debug symbols sections for certain large
@@ -150,7 +152,11 @@ that it is the user's responsibility to configure the debug mode accordingly.
 It is always up to each toolchain how unsupported or unexpected combinations of
 flags are being handled.
 
-### Interface changes to the `"library"` and `"binary"` rules
+### Changes to `"library"` and `"binary"` rules
+
+The toolchain flags will be treated as before, with the addition that in debug
+mode, if the final compile flags list is empty, `["-g"]` will be used by
+default.
 
 The `"USE_DEBUG_FISSION"` flag of `"DEBUG"` will inform these rules on whether
 the debug fission logic should be used or not. In this way, only the combination
