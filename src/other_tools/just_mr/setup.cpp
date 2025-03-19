@@ -141,7 +141,7 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
         JustMR::Utils::ReachableRepositories(repos, *main, setup_repos);
     }
     Logger::Log(LogLevel::Info,
-                "Found {} repositories to set up",
+                "Found {} repositories involved",
                 setup_repos->to_setup.size());
 
     // setup local execution config

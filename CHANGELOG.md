@@ -1,6 +1,11 @@
 ## Release `1.5.1` (UNRELEASED)
 
-Bug fix release on top of `1.5.0`.
+Bug fixes on top of `1.5.0`.
+
+### Fixes
+
+- `just-mr` now also consideres computed roots (as no-op) when
+  reporting progress.
 
 ## Release `1.5.0` (2025-03-06)
 

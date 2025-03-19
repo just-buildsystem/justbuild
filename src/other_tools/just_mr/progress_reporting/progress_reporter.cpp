@@ -31,11 +31,15 @@ auto JustMRProgressReporter::Reporter(
         auto const total = progress->GetTotal();
         auto const local = stats->LocalPathsCounter();
         auto const cached = stats->CacheHitsCounter();
+        auto const computed = stats->ComputedCounter();
         auto const run = stats->ExecutedCounter();
         auto const active = progress->TaskTracker().Active();
         auto const sample = progress->TaskTracker().Sample();
-        auto msg =
-            fmt::format("{} local, {} cached, {} done", local, cached, run);
+        auto msg = fmt::format("{} comptued, {} local, {} cached, {} done",
+                               computed,
+                               local,
+                               cached,
+                               run);
         if ((active > 0) and not sample.empty()) {
             msg = fmt::format("{}; {} fetches ({}{})",
                               msg,
@@ -45,7 +49,7 @@ auto JustMRProgressReporter::Reporter(
         }
         constexpr int kOneHundred{100};
         int progress = kOneHundred;  // default if no work has to be done
-        if (auto const noops = cached + local; noops < total) {
+        if (auto const noops = cached + local + computed; noops < total) {
             progress = static_cast<int>(run * kOneHundred / (total - noops));
         }
         Logger::Log(LogLevel::Progress, "[{:3}%] {}", progress, msg);

@@ -883,6 +883,7 @@ auto CreateReposToSetupMap(
                     break;
                 }
                 case CheckoutType::Precomputed: {
+                    stats->IncrementComputedCounter();
                     PrecomputedRootCheckout(*resolved_repo_desc,
                                             std::move(repos),
                                             key,
