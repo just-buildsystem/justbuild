@@ -22,6 +22,7 @@ class JustMRStatistics final {
   public:
     void IncrementLocalPathsCounter() noexcept { ++num_local_paths_; }
     void IncrementCacheHitsCounter() noexcept { ++num_cache_hits_; }
+    void IncrementComputedCounter() noexcept { ++num_computed_; }
     void IncrementExecutedCounter() noexcept { ++num_executed_; }
 
     [[nodiscard]] auto LocalPathsCounter() const noexcept -> size_t {
@@ -30,6 +31,9 @@ class JustMRStatistics final {
     [[nodiscard]] auto CacheHitsCounter() const noexcept -> size_t {
         return num_cache_hits_;
     }
+    [[nodiscard]] auto ComputedCounter() const noexcept -> size_t {
+        return num_computed_;
+    }
     [[nodiscard]] auto ExecutedCounter() const noexcept -> size_t {
         return num_executed_;
     }
@@ -37,7 +41,9 @@ class JustMRStatistics final {
   private:
     std::atomic<std::size_t> num_local_paths_ = 0;  // roots that are real paths
     std::atomic<std::size_t> num_cache_hits_ = 0;   // no-ops
-    std::atomic<std::size_t> num_executed_ = 0;     // actual work done
+    std::atomic<std::size_t> num_computed_ =
+        0;  // no work to be done, as it is computed
+    std::atomic<std::size_t> num_executed_ = 0;  // actual work done
 };
 
 #endif  // INCLUDED_SRC_OTHER_TOOLS_JUST_MR_PROGRESS_REPORTING_STATISTICS_HPP
