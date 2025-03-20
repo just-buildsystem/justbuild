@@ -14,10 +14,12 @@
     , "CXXFLAGS"
     , "LDFLAGS"
     , "ARFLAGS"
+    , "DEBUGFLAGS"
     , "ADD_COMPILE_FLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
     , "ADD_LDFLAGS"
+    , "ADD_DEBUGFLAGS"
     , "AR"
     , "PATH"
     , "SYSTEM_TOOLS"
@@ -63,6 +65,11 @@
       , "object files. If the \"ARFLAGS\" specified in the defaults target are"
       , "empty, the rules will use [\"cqs\"]."
       ]
+    , "DEBUGFLAGS":
+      [ "Flags to be used for the debug-stage for both C and C++, instead of"
+      , "the resulting CFLAGS and CXXFLAGS, respectively."
+      , "Specifying this field overwrites values from \"base\"."
+      ]
     , "ADD_COMPILE_FLAGS":
       [ "Additional compilation flags for C and C++. Specifying this field"
       , "extends values from \"base\" for both, \"CFLAGS\" and \"CXXFLAGS\"."
@@ -78,6 +85,11 @@
     , "ADD_LDFLAGS":
       [ "Additional linker flags for linking the final CC library. Specifying"
       , "this field extends values from \"base\"."
+      ]
+    , "ADD_DEBUGFLAGS":
+      [ "Additional compilation flags for the debug-stage. Specifying this"
+      , "field extends values from \"base\" for both, \"CFLAGS\" and"
+      , "\"CXXFLAGS\"."
       ]
     , "PATH":
       [ "Path for looking up the compilers. Individual paths are joined"
@@ -119,6 +131,7 @@
       , ["CXXFLAGS", {"type": "FIELD", "name": "CXXFLAGS"}]
       , ["LDFLAGS", {"type": "FIELD", "name": "LDFLAGS"}]
       , ["ARFLAGS", {"type": "FIELD", "name": "ARFLAGS"}]
+      , ["DEBUGFLAGS", {"type": "FIELD", "name": "DEBUGFLAGS"}]
       , ["AR", {"type": "FIELD", "name": "AR"}]
       , ["PATH", {"type": "FIELD", "name": "PATH"}]
       , ["provider", "CC"]
@@ -166,6 +179,14 @@
         , { "type": "if"
           , "cond": {"type": "var", "name": "ARFLAGS"}
           , "then": {"type": "var", "name": "ARFLAGS"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
+          }
+        ]
+      , ["provider", "DEBUGFLAGS"]
+      , [ "DEBUGFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUGFLAGS"}
+          , "then": {"type": "var", "name": "DEBUGFLAGS"}
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides-++"}
           }
         ]
@@ -306,6 +327,40 @@
             [ {"type": "var", "name": "LDFLAGS"}
             , {"type": "FIELD", "name": "ADD_LDFLAGS"}
             ]
+          }
+        ]
+      , [ "CFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "++"
+            , "$1":
+              [ { "type": "if"
+                , "cond": {"type": "var", "name": "DEBUGFLAGS"}
+                , "then": {"type": "var", "name": "DEBUGFLAGS"}
+                , "else": {"type": "var", "name": "CFLAGS"}
+                }
+              , {"type": "FIELD", "name": "ADD_DEBUGFLAGS"}
+              ]
+            }
+          , "else": {"type": "var", "name": "CFLAGS"}
+          }
+        ]
+      , [ "CXXFLAGS"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DEBUG"}
+          , "then":
+            { "type": "++"
+            , "$1":
+              [ { "type": "if"
+                , "cond": {"type": "var", "name": "DEBUGFLAGS"}
+                , "then": {"type": "var", "name": "DEBUGFLAGS"}
+                , "else": {"type": "var", "name": "CXXFLAGS"}
+                }
+              , {"type": "FIELD", "name": "ADD_DEBUGFLAGS"}
+              ]
+            }
+          , "else": {"type": "var", "name": "CXXFLAGS"}
           }
         ]
       , ["deps-fieldnames", ["base", "deps"]]
