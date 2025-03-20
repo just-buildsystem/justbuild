@@ -1,6 +1,6 @@
 # Profiling builds
 
-## Problem statement and use cases
+## Use cases for logging build internals
 
 There are several use cases where inspection of the internals of
 a build can be provide additional insights.
@@ -11,7 +11,7 @@ For large projects, build times can grow quite large. While increased
 parallelism, e.g., via remote execution, helps to reduce build
 times, it cannot reduce build time below that of the critical path.
 So it is an important step in maintaining a code base to keep the
-criticial path short, both in terms of number of actions, but also,
+critical path short, both in terms of number of actions, but also,
 more importantly in terms of typical runtime of those actions. Such
 a task requires profiling data of real-world builds.
 
@@ -27,7 +27,7 @@ broke on the head branch, helping to identify the offending commit.
 
 ### Build-invocation sharing
 
-A different use case is to share a particular intersting build
+A different use case is to share a particular interesting build
 invocation with a different developer working on the same project.
 This can be a particularly interesting failure of a test (e.g.,
 one that is flaky with extremely low error probability) or a
@@ -35,14 +35,14 @@ hard-to-understand build error. Having all the information about
 that particular build invocation can facilitate cooperation, even
 with remote sites.
 
-## Considerations
+## Underlying design considerations
 
 In the described profiling use cases, the importance is evolution
 over time. For build steps, the relevant data is the time taken and
 the frequency that build step has to run. For steps that are only
 run very infrequently, usually the time taken is not that important.
 But for both those pieces of information, the evolution (typically
-along the main deveopment branch of the code base) is relevant.
+along the main development branch of the code base) is relevant.
  - If a build step suddenly has to be run a lot more often, and hence
    gets more relevant for the overall duration of the build, this
    can be a hint that a change in the dependency structure added
@@ -67,36 +67,36 @@ as presenting it in a friendly way.
 In order to keep things simple, for the time being, we only support
 one form of outputting the needed data: writing it to a file. The
 collection and transfer to a central database is a task that can be
-solved by a separate tool. Nevertheless, we chose paths in such a
-way, that log files can be written to a network file system, which
-is one possible way of central collection.
-
-In any case, we only output files in a machine-readable format.
+solved by a separate tool (or by using `just add-to-cas` to collect
+in the remote-execution CAS). Nevertheless, we chose paths in such
+a way, that log files can be written to a network file system,
+which is one possible way of central collection. In any case, all
+output files are in a machine-readable format.
 
 Collection of build data, if desired, should be done routinely.
 For the build-sharing use case it is not known ahead of time,
 which invocation will be the intersting one. Also, statistics over
-invocations are much more informative, if the data is complete.
-Therefore, the build-data collection should be configured in a
-configuration file. The only tool we have that routinely reads a
-configuration file is `just-mr`. As this is also routinely used
-as a launcher for `just`, its configuration file is a good place
-to configure build-insight logging. Following the current design,
-we let `just-mr` do all the necessary set up and extend `just`
-only minimally.
+invocations are much more informative, if the data is complete (or
+at least sampled in an unbiased way). Therefore, the build-data
+collection should be configured in a configuration file. The
+only tool we have that routinely reads a configuration file is
+`just-mr`. As this is also routinely used as a launcher for `just`,
+its configuration file is a good place to configure build-insight
+logging. Following the current design, we let `just-mr` do all the
+necessary set up and let `just` strictly follow instructions.
 
-## Proposed Changes
+## Relevant interfaces
 
-### `just` to receive a `--profile` option
+### The `--profile` option of `just`
 
-The build tool `just` will get a new option `--profile` with one
-file name as parameter. This option is accepted by all `just`
-subcommands that do at least analysis. After completing the attempt
-for the requested task, it will write to the specified file name
-a file containing information about that attempt. This will also
-happen if no build was attempted despite being requested, e.g., due
-to failure in analysis. The file contains a single JSON object, with
-the following key (and more keys possibly added in the future).
+The build tool `just` has an option `--profile` with one file name
+as parameter. This option is accepted by all `just` subcommands
+that do at least analysis. After completing the attempt for the
+requested task, it writes to the specified file name a file containing
+information about that attempt. This also happens if no build was
+attempted despite being requested, e.g., due to failure in analysis.
+The file contains a single JSON object, with the following key (and
+more keys possibly added in the future).
  - The key `"exit code"` contains the exit value of the `just`
    process; this allows easy filtering on the build and test results.
  - The key `"target"` contains the target in full-qualified form.
@@ -123,7 +123,7 @@ the following key (and more keys possibly added in the future).
       answer questions like "Which input files precisely are the
       ones that change frequently?" and "Are those header files
       even used for that particular compilation step?". In case of
-      tests, the collected outputs can be used to compare succesfull
+      tests, the collected outputs can be used to compare successful
       and failing runs of a flaky test.
     - Wether the action was cached.
     - For non-cached actions, the duration of the action, as
@@ -135,21 +135,21 @@ the following key (and more keys possibly added in the future).
       completing the action can be taken; in this case, the fact
       that this fallback was taken is also recorded.
 
-### `just` options `--dump-graph` and `--dump-plain-graph` become cummulative
+### `just` options `--dump-graph` and `--dump-plain-graph` are cumulative
 
-The options `--dump-graph` and `--dump-plain-graph` change their
-semantics from "latest wins" to be cummulative, in the same way as
-`-f` is already. That is, if these options are given several times
-then `just` will also write the graph file to several destinations.
-In this way, it is possible to have an invocation-specific logging
-of the action graph without interfering with other graph logging.
+From version 1.6 onwards, the options `--dump-graph` and
+`--dump-plain-graph` are no longer "latest wins" but cumulative.
+That is, if these options are given several times then `just` also
+writes the graph file to several destinations. In this way, it is
+possible to have an invocation-specific logging of the action graph
+without interfering with other graph logging.
 
 ### `just-mr` to support passing unique log options on each invocation
 
-The configuration file for `just-mr` will be extended by an
-additional entry `"invocation log"`. This entry, if given, is a
-JSON object; rc-file merging is done on the individual entries of
-the `"invocation log"` object. It will support the following keys.
+The configuration file for `just-mr` has an entry `"invocation
+log"`. This entry, if given, is a JSON object; rc-file merging is
+done on the individual entries of the `"invocation log"` object.
+It supports the following keys.
  - `"directory"` A single location object specifying the directory
    under which the invocation logging will happen. If not given, no
    invocation logging will happen and the other keys are ignored.
@@ -162,7 +162,6 @@ the `"invocation log"` object. It will support the following keys.
    respective file will not be requested in the invocation of `just`.
  - `"meta data"` A path fragment specifying the file name of the
    meta-data file. If not give, no meta-data file will be created.
- - `"async"` a boolean. If not given, `false` will be assumed.
 
 If invocation logging is requested, `just-mr` will create for each invocation
 a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
@@ -170,9 +169,10 @@ a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
    location object.
  - `<project-id>` is the value specified by the `"project id"`
    field (or `unknown`). The reason that subdirectory is specified
-   separately is to allow projects to set their project id in the
-   committed code base (via rc-file merging) wheras the general
-   logging location can be specified in a machine-specific way.
+   separately is to allow projects to set their project id in
+   the committed code base (via rc-file merging) whereas the
+   general logging location can be specified in a user-specific or
+   machine-specific way.
  - `<YYYY-mm-DD-HH:MM>` is the UTC timestamp (year, moth, day,
    hours, minutes) of the invocation and `<uuid>` is a universally
    unique id for that invocation (following RFC9562). The reason we
@@ -181,14 +181,12 @@ a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
 Inside this directory the requested files with the specified file
 names will be created, in the case of `"--profile"`, `"--dump-graph"`,
 and `"--dump-plain-graph"` by passing the appropriate options to
-the invocation of `just`. If `"async"` is set to `true`, the option
-`--async-profile` will be given as well to all targets building (i.e.,
-`build`, `install`, and `rebuild`).
+the invocation of `just`.
 
 The meta-data will be written just by `just-mr` itself, just before
 doing the `exec` call. The file contains a JSON object with keys
- - `"time"` The time stamp in seconds since the epoch as
-   floating-point number.
+ - `"time"` The time stamp in seconds since the epoch as floating-point
+   number, possibly rounded down to the nearest integer.
  - `"cmdline"` The command line, as vector of strings, that `just-mr`
    is about to `exec` to.
  - `"configuration"` The blob-identifier of the multi-repository
