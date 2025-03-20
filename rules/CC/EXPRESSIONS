@@ -813,7 +813,14 @@
   }
 , "lint information":
   { "vars":
-    [ "srcs"
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "pure C"
+    , "srcs"
     , "hdrs"
     , "private-hdrs"
     , "compile-deps"
@@ -836,7 +843,15 @@
   , "expression":
     { "type": "let*"
     , "bindings":
-      [ [ "NON_SYSTEM_TOOLS"
+      [ ["TOOLCHAIN_DIR", "toolchain"]
+      , ["TOOLCHAIN", {"type": "CALL_EXPRESSION", "name": "default-TOOLCHAIN"}]
+      , [ "TOOLCHAIN"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "TOOLCHAIN_DIR"}
+          , "$1": {"type": "var", "name": "TOOLCHAIN"}
+          }
+        ]
+      , [ "NON_SYSTEM_TOOLS"
         , {"type": "CALL_EXPRESSION", "name": "default-NON_SYSTEM_TOOLS"}
         ]
       , ["COMPILER", {"type": "CALL_EXPRESSION", "name": "compiler"}]
