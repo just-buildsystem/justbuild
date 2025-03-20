@@ -197,7 +197,7 @@ auto TargetService::CreateRemoteExecutionConfig(
     auto res = GetDispatchList(*dispatch_info_digest);
     if (not res) {
         auto err = std::move(res).error();
-        logger_->Emit(LogLevel::Error, "{}", err.error_message());
+        logger_->Emit(LogLevel::Info, "{}", err.error_message());
         return unexpected{std::move(err)};
     }
     // the remote and cache addresses are kept from the stored ApiBundle
@@ -330,7 +330,7 @@ auto TargetService::ServeTarget(
         auto msg = fmt::format("Parsing TargetCacheKey {} failed with:\n{}",
                                target_cache_key_digest->hash(),
                                ex.what());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
     if (not target_description_dict.IsNotNull() or
@@ -339,7 +339,7 @@ auto TargetService::ServeTarget(
             fmt::format("TargetCacheKey {} should contain a map, but found {}",
                         target_cache_key_digest->hash(),
                         target_description_dict.ToJson().dump());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
 
@@ -355,7 +355,7 @@ auto TargetService::ServeTarget(
                 fmt::format("TargetCacheKey {} does not contain key \"{}\"",
                             target_cache_key_digest->hash(),
                             key);
-            logger_->Emit(LogLevel::Error, "{}", error_msg);
+            logger_->Emit(LogLevel::Warning, "{}", error_msg);
             return false;
         }
         return true;
@@ -375,7 +375,7 @@ auto TargetService::ServeTarget(
             "found {}",
             target_cache_key_digest->hash(),
             repo_key.ToJson().dump());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::NOT_FOUND, msg};
     }
     auto const repo_key_dgst =
@@ -419,7 +419,7 @@ auto TargetService::ServeTarget(
                                   *repo_config_path,
                                   &repository_config,
                                   logger_)) {
-        logger_->Emit(LogLevel::Error, "{}", *msg);
+        logger_->Emit(LogLevel::Info, "{}", *msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, *msg};
     }
 
@@ -432,7 +432,7 @@ auto TargetService::ServeTarget(
             " found {}",
             target_cache_key_digest->hash(),
             target_expr.ToJson().dump());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     auto target_name = nlohmann::json::object();
@@ -443,7 +443,7 @@ auto TargetService::ServeTarget(
             "TargetCacheKey {}: parsing \"target_name\" failed with:\n{}",
             target_cache_key_digest->hash(),
             ex.what());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
@@ -456,7 +456,7 @@ auto TargetService::ServeTarget(
             " but found {}",
             target_cache_key_digest->hash(),
             config_expr.ToJson().dump());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
     Configuration config{};
@@ -468,7 +468,7 @@ auto TargetService::ServeTarget(
             "TargetCacheKey {}: parsing \"effective_config\" failed with:\n{}",
             target_cache_key_digest->hash(),
             ex.what());
-        logger_->Emit(LogLevel::Error, "{}", msg);
+        logger_->Emit(LogLevel::Warning, "{}", msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION, msg};
     }
 
@@ -484,7 +484,7 @@ auto TargetService::ServeTarget(
                                     parse_err);
         });
     if (not entity) {
-        logger_->Emit(LogLevel::Error, "{}", error_msg);
+        logger_->Emit(LogLevel::Warning, "{}", error_msg);
         return ::grpc::Status{::grpc::StatusCode::FAILED_PRECONDITION,
                               error_msg};
     }
