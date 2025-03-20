@@ -819,6 +819,7 @@
     , "CXXFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
+    , "DEBUG"
     , "pure C"
     , "srcs"
     , "hdrs"
@@ -1189,15 +1190,32 @@
     , "CXXFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
+    , "DEBUG"
     , "pure C"
     , "defaults-transition"
     ]
   , "imports": {"flags-cc": "flags-cc", "flags-cxx": "flags-cxx"}
   , "expression":
-    { "type": "if"
-    , "cond": {"type": "var", "name": "pure C"}
-    , "then": {"type": "CALL_EXPRESSION", "name": "flags-cc"}
-    , "else": {"type": "CALL_EXPRESSION", "name": "flags-cxx"}
+    { "type": "let*"
+    , "bindings":
+      [ [ "flags"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "pure C"}
+          , "then": {"type": "CALL_EXPRESSION", "name": "flags-cc"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "flags-cxx"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "if"
+      , "cond": {"type": "var", "name": "flags"}
+      , "then": {"type": "var", "name": "flags"}
+      , "else":
+        { "type": "if"
+        , "cond": {"type": "var", "name": "DEBUG"}
+        , "then": ["-g"]
+        }
+      }
     }
   }
 , "lib artifact":
@@ -1210,6 +1228,7 @@
     , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
+    , "DEBUG"
     , "name"
     , "pure C"
     , "srcs"
@@ -1590,6 +1609,7 @@
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
     , "ENV"
+    , "DEBUG"
     , "name"
     , "pure C"
     , "srcs"

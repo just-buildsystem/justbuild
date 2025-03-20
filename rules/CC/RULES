@@ -552,7 +552,10 @@
       , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
       ]
     , "ENV": ["The environment for any action generated."]
-    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    , "DEBUG":
+      [ "Compute the debug-stage, needed for local debugging."
+      , "If no compile flags are otherwise configured, [\"-g\"] will be taken."
+      ]
     , "LINT":
       [ "Also provide nodes describing compile actions and header files;"
       , "those can be used by lint rules (doing also the config transition)"
@@ -752,7 +755,10 @@
       , "taken from the [\"CC\", \"defaults\"] target"
       ]
     , "ENV": ["The environment for any action generated."]
-    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    , "DEBUG":
+      [ "Compute the debug-stage, needed for local debugging."
+      , "If no compile flags are otherwise configured, [\"-g\"] will be taken."
+      ]
     , "LINT":
       [ "Also provide nodes describing compile actions and header files;"
       , "those can be used by lint rules (doing also the config transition)"
