@@ -21,6 +21,7 @@
     , "ADD_LDFLAGS"
     , "ADD_DEBUGFLAGS"
     , "AR"
+    , "DWP"
     , "PATH"
     , "SYSTEM_TOOLS"
     ]
@@ -44,9 +45,13 @@
     , "CC": ["The C compiler to use"]
     , "CXX": ["The C++ compiler to use"]
     , "AR": ["The archiver tool to use"]
+    , "DWP":
+      [ "The DWARF format packaging tool to use. Required by debug builds that"
+      , "enable debug fission."
+      ]
     , "SYSTEM_TOOLS":
-      [ "List of tools (\"CC\", \"CXX\", or \"AR\") that should be taken from"
-      , "the system instead of from \"toolchain\" (if specified)."
+      [ "List of tools (\"CC\", \"CXX\", \"AR\", or \"DWP\") that should be"
+      , "taken from the system instead of from \"toolchain\" (if specified)."
       ]
     , "CFLAGS":
       [ "Flags for C compilation. Specifying this field overwrites"
@@ -149,6 +154,7 @@
       , ["ARFLAGS", {"type": "FIELD", "name": "ARFLAGS"}]
       , ["DEBUGFLAGS", {"type": "FIELD", "name": "DEBUGFLAGS"}]
       , ["AR", {"type": "FIELD", "name": "AR"}]
+      , ["DWP", {"type": "FIELD", "name": "DWP"}]
       , ["PATH", {"type": "FIELD", "name": "PATH"}]
       , ["provider", "CC"]
       , [ "CC"
@@ -214,6 +220,14 @@
           , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
           }
         ]
+      , ["provider", "DWP"]
+      , [ "DWP"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DWP"}
+          , "then": {"type": "var", "name": "DWP"}
+          , "else": {"type": "CALL_EXPRESSION", "name": "base-provides"}
+          }
+        ]
       , ["provider", "PATH"]
       , [ "PATH"
         , { "type": "nub_left"
@@ -270,6 +284,20 @@
                 , "then":
                   [ { "type": "singleton_map"
                     , "key": "AR"
+                    , "value":
+                      { "type": "if"
+                      , "cond": {"type": "FIELD", "name": "toolchain"}
+                      , "then": true
+                      , "else": false
+                      }
+                    }
+                  ]
+                }
+              , { "type": "if"
+                , "cond": {"type": "FIELD", "name": "DWP"}
+                , "then":
+                  [ { "type": "singleton_map"
+                    , "key": "DWP"
                     , "value":
                       { "type": "if"
                       , "cond": {"type": "FIELD", "name": "toolchain"}
@@ -432,6 +460,7 @@
           , "CXXFLAGS"
           , "LDFLAGS"
           , "AR"
+          , "DWP"
           , "ARFLAGS"
           , "PATH"
           , "ENV"
@@ -472,6 +501,7 @@
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
     , "AR"
+    , "DWP"
     , "ENV"
     , "DEBUG"
     , "LINT"
@@ -565,6 +595,11 @@
       ]
     , "AR":
       [ "The archive tool to used for creating the library"
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
+      ]
+    , "DWP":
+      [ "The DWARF format packaging tool to use in debug builds that enable"
+      , "debug fission."
       , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
       ]
     , "ENV": ["The environment for any action generated."]
@@ -726,6 +761,7 @@
     , "CXXFLAGS"
     , "ADD_CFLAGS"
     , "ADD_CXXFLAGS"
+    , "DWP"
     , "ENV"
     , "DEBUG"
     , "LINT"
@@ -784,6 +820,11 @@
     , "ADD_CXXFLAGS":
       [ "The flags to add to the default ones for CXX"
       , "taken from the [\"CC\", \"defaults\"] target"
+      ]
+    , "DWP":
+      [ "The DWARF format packaging tool to use in debug builds that enable"
+      , "debug fission."
+      , "If None, the respective value from [\"CC\", \"defaults\"] will be taken."
       ]
     , "ENV": ["The environment for any action generated."]
     , "DEBUG":

@@ -5,6 +5,7 @@
   , "CFLAGS": []
   , "CXXFLAGS": []
   , "AR": ["ar"]
+  , "DWP": ["dwp"]
   , "PATH": ["/bin", "/usr/bin"]
   }
 }
