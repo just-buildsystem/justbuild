@@ -158,6 +158,20 @@
     ]
   , "stage": ["src", "buildtool", "common"]
   }
+, "tree_overlay":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["tree_overlay"]
+  , "hdrs": ["tree_overlay.hpp"]
+  , "deps":
+    [ "action_description"
+    , "artifact_description"
+    , "common"
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
+    , ["src/buildtool/crypto", "hash_function"]
+    ]
+  , "stage": ["src", "buildtool", "common"]
+  }
 , "config":
   { "type": ["@", "rules", "CC", "library"]
   , "name": ["config"]
