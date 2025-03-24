@@ -1620,6 +1620,123 @@ TEST_CASE("Expression Evaluation", "[expression]") {  // NOLINT
         CHECK_FALSE(expr.Evaluate(env, fcts));
     }
 
+    SECTION("zip_with expression") {
+        auto expr = Expression::FromJson(R"(
+            { "type": "zip_with"
+            , "var_1": "key"
+            , "var_2": "val"
+            , "body": { "type": "concat"
+                      , "$1": { "type": "var"
+                              , "name": "key" }
+                      , "$2": { "type": "var"
+                              , "name": "val" }}})"_json);
+        REQUIRE(expr);
+
+        // ranges are missing (should default to empty list)
+        auto result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"([])"_json));
+
+        // one range is missing (should default to empty list)
+        expr = Add(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        REQUIRE(expr);
+
+        result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"([])"_json));
+
+        // ranges are lists with one entry
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["foo"]})"_json));
+        expr = Add(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["bar"]})"_json));
+        REQUIRE(expr);
+
+        result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"(["foobar"])"_json));
+
+        // ranges are lists with multiple entries
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["foo", "bar"]})"_json));
+        expr = Replace(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["bar", "baz"]})"_json));
+        REQUIRE(expr);
+
+        result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"(["foobar", "barbaz"])"_json));
+
+        // ranges are lists with different sizes
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["foo", "bar"]})"_json));
+        expr = Replace(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": ["bar"]})"_json));
+        REQUIRE(expr);
+
+        result = expr.Evaluate(env, fcts);
+        REQUIRE(result);
+        REQUIRE(result->IsList());
+        CHECK(result == Expression::FromJson(R"(["foobar"])"_json));
+
+        // fail if ranges are string
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_2", Expression::FromJson(R"("foo")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+
+        expr = Replace(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_1", Expression::FromJson(R"("foo")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+
+        // fail if ranges are number
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_2", Expression::FromJson(R"("4711")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+
+        expr = Replace(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_1", Expression::FromJson(R"("4711")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+
+        // fail if ranges are Boolean
+        expr = Replace(expr, "range_1", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_2", Expression::FromJson(R"("true")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+
+        expr = Replace(expr, "range_2", Expression::FromJson(R"(
+            { "type": "'"
+            , "$1": [""]})"_json));
+        expr = Replace(expr, "range_1", Expression::FromJson(R"("true")"_json));
+        REQUIRE(expr);
+        CHECK_FALSE(expr.Evaluate(env, fcts));
+    }
+
     SECTION("foldl expression") {
         auto expr = Expression::FromJson(R"(
             { "type": "foldl"
