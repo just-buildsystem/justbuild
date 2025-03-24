@@ -556,7 +556,10 @@ static inline void TestUploadAndDownloadTrees(
     SECTION("Dot-path non-tree as action input") {
         auto action_inputs = ActionDescription::inputs_t{{".", foo_desc}};
         ActionDescription action_desc{
-            {"foo"}, {}, Action{"action_id", {"echo"}, {}}, action_inputs};
+            {"foo"},
+            {},
+            Action{"action_id", std::vector<std::string>{"echo"}, {}},
+            action_inputs};
 
         REQUIRE(g.Add({action_desc}));
         auto const* action_node = g.ActionNodeWithId("action_id");

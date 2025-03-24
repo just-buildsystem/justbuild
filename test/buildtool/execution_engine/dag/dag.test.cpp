@@ -287,14 +287,18 @@ TEST_CASE("Add executable and library", "[dag]") {
 
 TEST_CASE("AddAction(id, empty action description) fails", "[dag]") {
     DependencyGraph g;
-    CHECK(not g.AddAction(ActionDescription{{}, {}, Action{"id", {}, {}}, {}}));
+    CHECK(not g.AddAction(ActionDescription{
+        {}, {}, Action{"id", std::vector<std::string>{}, {}}, {}}));
 }
 
 TEST_CASE("AddAction(Empty mandatory non-empty field in action description)",
           "[dag]") {
     DependencyGraph g;
     CHECK(not g.AddAction(ActionDescription{
-        {"output0", "output1"}, {}, Action{"empty command", {}, {}}, {}}));
+        {"output0", "output1"},
+        {},
+        Action{"empty command", std::vector<std::string>{}, {}},
+        {}}));
     CHECK(not g.AddAction(ActionDescription{
         {}, {}, Action{"empty output", {"echo", "hello"}, {}}, {}}));
 }

@@ -85,6 +85,12 @@ class Action {
     [[nodiscard]] auto IsTreeAction() const noexcept -> bool {
         return is_tree_;
     }
+    [[nodiscard]] auto IsTreeOverlayAction() const noexcept -> bool {
+        return is_tree_overlay_;
+    }
+    [[nodiscard]] auto IsOverlayDisjoint() const noexcept -> bool {
+        return overlay_disjoint_;
+    }
     [[nodiscard]] auto MayFail() const noexcept
         -> std::optional<std::string> const& {
         return may_fail_;
@@ -106,7 +112,14 @@ class Action {
 
     [[nodiscard]] static auto CreateTreeAction(
         ActionIdentifier const& id) noexcept -> Action {
-        return Action{id};
+        return Action{
+            id, /*is_tree_overlay=*/false, /*overlay_disjoint=*/false};
+    }
+
+    [[nodiscard]] static auto CreateTreeOverlayAction(
+        ActionIdentifier const& id,
+        bool disjoint) noexcept -> Action {
+        return Action{id, /*is_tree_overlay=*/true, disjoint};
     }
 
   private:
@@ -115,13 +128,20 @@ class Action {
     std::string cwd_;
     std::map<std::string, std::string> env_;
     bool is_tree_{};
+    bool is_tree_overlay_{};
+    bool overlay_disjoint_{};
     std::optional<std::string> may_fail_;
     bool no_cache_{};
     double timeout_scale_{};
     std::map<std::string, std::string> execution_properties_;
 
-    explicit Action(ActionIdentifier id) noexcept
-        : id_{std::move(id)}, is_tree_{true} {}
+    explicit Action(ActionIdentifier id,
+                    bool is_tree_overlay,
+                    bool overlay_disjoint) noexcept
+        : id_{std::move(id)},
+          is_tree_{not is_tree_overlay},
+          is_tree_overlay_{is_tree_overlay},
+          overlay_disjoint_{overlay_disjoint} {}
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_ACTION_HPP
