@@ -1035,6 +1035,35 @@ auto ForeachMapExpr(SubExprEvaluator&& eval,
     return ExpressionPtr{result};
 }
 
+auto ZipWithExpr(SubExprEvaluator&& eval,
+                 ExpressionPtr const& expr,
+                 Configuration const& env) -> ExpressionPtr {
+    auto range_1 = eval(expr->Get("range_1", Expression::kEmptyList), env);
+    auto const& range_1_list = range_1->List();
+    if (range_1_list.empty()) {
+        return Expression::kEmptyList;
+    }
+    auto range_2 = eval(expr->Get("range_2", Expression::kEmptyList), env);
+    auto const& range_2_list = range_2->List();
+    if (range_2_list.empty()) {
+        return Expression::kEmptyList;
+    }
+    auto const size = std::min(range_1_list.size(), range_2_list.size());
+    auto const& var_1 = expr->Get("var_1", "$1"s);
+    auto const& var_2 = expr->Get("var_2", "$2"s);
+    auto const& body = expr->Get("body", list_t{});
+    auto result = Expression::list_t{};
+    result.reserve(size);
+    for (auto it = std::make_pair(range_1_list.begin(), range_2_list.begin());
+         it.first != range_1_list.end() and it.second != range_2_list.end();
+         ++it.first, ++it.second) {
+        result.emplace_back(eval(body,
+                                 env.Update(var_1->String(), *it.first)
+                                     .Update(var_2->String(), *it.second)));
+    }
+    return ExpressionPtr{result};
+}
+
 auto FoldLeftExpr(SubExprEvaluator&& eval,
                   ExpressionPtr const& expr,
                   Configuration const& env) -> ExpressionPtr {
@@ -1331,6 +1360,7 @@ auto const kBuiltInFunctions =
                           {"from_subdir", FromSubdirExpr},
                           {"foreach", ForeachExpr},
                           {"foreach_map", ForeachMapExpr},
+                          {"zip_with", ZipWithExpr},
                           {"foldl", FoldLeftExpr},
                           {"let*", LetExpr},
                           {"env", EnvExpr},
