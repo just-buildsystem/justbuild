@@ -35,9 +35,15 @@ class ArtifactDescription final {
     using Known =
         std::tuple<ArtifactDigest, ObjectType, std::optional<std::string>>;
     using Action = std::pair<std::string, std::filesystem::path>;
-    using Tree = std::string;
 
   public:
+    struct Tree {
+        std::string tree;
+    };
+    struct TreeOverlay {
+        std::string tree_overlay;
+    };
+
     [[nodiscard]] static auto CreateLocal(std::filesystem::path path,
                                           std::string repository) noexcept
         -> ArtifactDescription;
@@ -55,6 +61,9 @@ class ArtifactDescription final {
     [[nodiscard]] static auto CreateTree(std::string tree_id) noexcept
         -> ArtifactDescription;
 
+    [[nodiscard]] static auto CreateTreeOverlay(
+        std::string tree_overlay_id) noexcept -> ArtifactDescription;
+
     [[nodiscard]] auto Id() const& noexcept -> ArtifactIdentifier const& {
         return id_;
     }
@@ -68,6 +77,10 @@ class ArtifactDescription final {
 
     [[nodiscard]] auto IsTree() const noexcept -> bool {
         return std::holds_alternative<Tree>(data_);
+    }
+
+    [[nodiscard]] auto IsTreeOverlay() const noexcept -> bool {
+        return std::holds_alternative<TreeOverlay>(data_);
     }
 
     [[nodiscard]] static auto FromJson(HashFunction::Type hash_type,
@@ -91,7 +104,7 @@ class ArtifactDescription final {
     }
 
   private:
-    std::variant<Local, Known, Action, Tree> data_;
+    std::variant<Local, Known, Action, Tree, TreeOverlay> data_;
     ArtifactIdentifier id_;
 
     template <typename T>

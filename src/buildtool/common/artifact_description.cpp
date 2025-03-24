@@ -43,6 +43,9 @@ namespace {
 [[nodiscard]] auto DescribeTreeArtifact(std::string const& tree_id)
     -> nlohmann::json;
 
+[[nodiscard]] auto DescribeTreeOverlayArtifact(
+    std::string const& tree_overlay_id) -> nlohmann::json;
+
 [[nodiscard]] auto CreateLocalArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription>;
 
@@ -55,6 +58,9 @@ namespace {
 
 [[nodiscard]] auto CreateTreeArtifactDescription(nlohmann::json const& data)
     -> std::optional<ArtifactDescription>;
+
+[[nodiscard]] auto CreateTreeOverlayArtifactDescription(
+    nlohmann::json const& data) -> std::optional<ArtifactDescription>;
 }  // namespace
 
 auto ArtifactDescription::CreateLocal(std::filesystem::path path,
@@ -81,7 +87,12 @@ auto ArtifactDescription::CreateKnown(ArtifactDigest digest,
 
 auto ArtifactDescription::CreateTree(std::string tree_id) noexcept
     -> ArtifactDescription {
-    return ArtifactDescription{std::move(tree_id)};
+    return ArtifactDescription{Tree{std::move(tree_id)}};
+}
+
+auto ArtifactDescription::CreateTreeOverlay(
+    std::string tree_overlay_id) noexcept -> ArtifactDescription {
+    return ArtifactDescription{TreeOverlay{std::move(tree_overlay_id)}};
 }
 
 auto ArtifactDescription::FromJson(HashFunction::Type hash_type,
@@ -121,9 +132,12 @@ auto ArtifactDescription::FromJson(HashFunction::Type hash_type,
         if (*type == "TREE") {
             return CreateTreeArtifactDescription(*data);
         }
+        if (*type == "TREE_OVERLAY") {
+            return CreateTreeOverlayArtifactDescription(*data);
+        }
         Logger::Log(LogLevel::Error,
                     R"(artifact type must be one of "LOCAL", "KNOWN",
-                        "ACTION", or "TREE")");
+                        "ACTION", "TREE", or "TREE_OVERLAY")");
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "Failed to parse artifact description from JSON with "
@@ -147,7 +161,11 @@ auto ArtifactDescription::ToJson() const -> nlohmann::json {
         return DescribeActionArtifact(action_id, path);
     }
     if (std::holds_alternative<Tree>(data_)) {
-        return DescribeTreeArtifact(std::get<Tree>(data_));
+        return DescribeTreeArtifact(std::get<Tree>(data_).tree);
+    }
+    if (std::holds_alternative<TreeOverlay>(data_)) {
+        return DescribeTreeOverlayArtifact(
+            std::get<TreeOverlay>(data_).tree_overlay);
     }
     Logger::Log(LogLevel::Error, "Internal error, unknown artifact type");
     Ensures(false);  // unreachable
@@ -165,7 +183,8 @@ auto ArtifactDescription::ToArtifact() const noexcept -> Artifact {
             return Artifact::CreateKnownArtifact(id_, digest, file_type, repo);
         }
         if (std::holds_alternative<Action>(data_) or
-            std::holds_alternative<Tree>(data_)) {
+            std::holds_alternative<Tree>(data_) or
+            std::holds_alternative<TreeOverlay>(data_)) {
             return Artifact::CreateActionArtifact(id_);
         }
         Logger::Log(LogLevel::Error, "Internal error, unknown artifact type");
@@ -230,6 +249,11 @@ auto DescribeActionArtifact(std::string const& action_id,
 
 auto DescribeTreeArtifact(std::string const& tree_id) -> nlohmann::json {
     return {{"type", "TREE"}, {"data", {{"id", tree_id}}}};
+}
+
+auto DescribeTreeOverlayArtifact(std::string const& tree_overlay_id)
+    -> nlohmann::json {
+    return {{"type", "TREE_OVERLAY"}, {"data", {{"id", tree_overlay_id}}}};
 }
 
 auto CreateLocalArtifactDescription(nlohmann::json const& data)
@@ -330,6 +354,23 @@ auto CreateTreeArtifactDescription(nlohmann::json const& data)
 
     if (tree_id.has_value()) {
         return ArtifactDescription::CreateTree(std::move(*tree_id));
+    }
+    return std::nullopt;
+}
+
+auto CreateTreeOverlayArtifactDescription(nlohmann::json const& data)
+    -> std::optional<ArtifactDescription> {
+    auto tree_overlay_id =
+        ExtractValueAs<std::string>(data, "id", [](std::string const& error) {
+            Logger::Log(LogLevel::Error,
+                        "{}\ncan not retrieve value for \"id\" from "
+                        "TREE_OVERLAY artifact's data.",
+                        error);
+        });
+
+    if (tree_overlay_id.has_value()) {
+        return ArtifactDescription::CreateTreeOverlay(
+            std::move(*tree_overlay_id));
     }
     return std::nullopt;
 }
