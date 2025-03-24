@@ -2,6 +2,11 @@
 
 A feature release on top of `1.5.0`, backwards compatible.
 
+### New features
+
+- The expression language has been extended to contain new
+  built-in functions `"zip_with"`, `"zip_map"`.
+
 ### Fixes
 
 - `just execute` and `just serve` now create their pid and info
