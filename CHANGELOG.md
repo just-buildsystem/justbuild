@@ -4,6 +4,11 @@ A feature release on top of `1.5.0`, backwards compatible.
 
 ### New features
 
+- `just-mr` now supports logging of each invocation by setting
+  an appropriate configuration in the rc-file. Together with
+  the newly-added option `--profile` of `just` this can be used
+  to gather statistics on build times, cache hit rates, as well as
+  their evolution over time.
 - The expression language has been extended to contain new
   built-in functions `"zip_with"`, `"zip_map"`.
 
