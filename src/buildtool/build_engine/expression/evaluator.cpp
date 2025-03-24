@@ -1064,6 +1064,29 @@ auto ZipWithExpr(SubExprEvaluator&& eval,
     return ExpressionPtr{result};
 }
 
+auto ZipMapExpr(SubExprEvaluator&& eval,
+                ExpressionPtr const& expr,
+                Configuration const& env) -> ExpressionPtr {
+    auto range_key = eval(expr->Get("range_key", Expression::kEmptyList), env);
+    auto const& range_key_list = range_key->List();
+    if (range_key_list.empty()) {
+        return Expression::kEmptyMap;
+    }
+    auto range_val = eval(expr->Get("range_val", Expression::kEmptyList), env);
+    auto const& range_val_list = range_val->List();
+    if (range_val_list.empty()) {
+        return Expression::kEmptyMap;
+    }
+    auto result = Expression::map_t::underlying_map_t{};
+    for (auto it =
+             std::make_pair(range_key_list.begin(), range_val_list.begin());
+         it.first != range_key_list.end() and it.second != range_val_list.end();
+         ++it.first, ++it.second) {
+        result[(*it.first)->String()] = *it.second;
+    }
+    return ExpressionPtr{Expression::map_t{result}};
+}
+
 auto FoldLeftExpr(SubExprEvaluator&& eval,
                   ExpressionPtr const& expr,
                   Configuration const& env) -> ExpressionPtr {
@@ -1361,6 +1384,7 @@ auto const kBuiltInFunctions =
                           {"foreach", ForeachExpr},
                           {"foreach_map", ForeachMapExpr},
                           {"zip_with", ZipWithExpr},
+                          {"zip_map", ZipMapExpr},
                           {"foldl", FoldLeftExpr},
                           {"let*", LetExpr},
                           {"env", EnvExpr},
