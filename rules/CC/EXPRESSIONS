@@ -832,8 +832,7 @@
     , "defaults-transition"
     ]
   , "imports":
-    { "objects": "objects"
-    , "list_provider": ["./", "..", "field_list_provider"]
+    { "list_provider": ["./", "..", "field_list_provider"]
     , "runfiles_list": ["./", "..", "field_runfiles_list"]
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
