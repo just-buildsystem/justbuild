@@ -1215,7 +1215,7 @@ auto main(int argc, char* argv[]) -> int {
             }
 #ifndef BOOTSTRAP_BUILD_TOOL
             ReportTaintedness(*analyse_result);
-            auto [actions, blobs, trees] =
+            auto [actions, blobs, trees, tree_overlays] =
                 analyse_result->result_map.ToResult(&stats, &progress);
 
             // collect cache targets and artifacts for target-level caching
@@ -1242,6 +1242,7 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(actions),
                                         std::move(blobs),
                                         std::move(trees),
+                                        std::move(tree_overlays),
                                         std::move(cache_artifacts));
             dump_and_cleanup_thread.join();
             if (build_result) {

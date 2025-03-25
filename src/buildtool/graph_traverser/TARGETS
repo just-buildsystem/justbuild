@@ -12,6 +12,7 @@
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/common", "tree_overlay"]
     , ["src/buildtool/execution_engine/dag", "dag"]
     , ["src/buildtool/execution_engine/executor", "context"]
     , ["src/buildtool/logging", "logging"]

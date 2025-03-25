@@ -35,6 +35,7 @@
 #include "src/buildtool/common/cli.hpp"
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -81,6 +82,7 @@ class GraphTraverser {
         std::vector<ActionDescription::Ptr>&& action_descriptions,
         std::vector<std::string>&& blobs,
         std::vector<Tree::Ptr>&& trees,
+        std::vector<TreeOverlay::Ptr>&& tree_overlays,
         std::vector<ArtifactDescription>&& extra_artifacts = {}) const
         -> std::optional<BuildResult>;
 
@@ -104,9 +106,10 @@ class GraphTraverser {
     /// and the actions as a json object.
     [[nodiscard]] static auto ReadGraphDescription(
         std::filesystem::path const& graph_description,
-        Logger const* logger)
-        -> std::optional<
-            std::tuple<nlohmann::json, nlohmann::json, nlohmann::json>>;
+        Logger const* logger) -> std::optional<std::tuple<nlohmann::json,
+                                                          nlohmann::json,
+                                                          nlohmann::json,
+                                                          nlohmann::json>>;
 
     /// \brief Requires for the executor to upload blobs to CAS. In the case any
     /// of the uploads fails, execution is terminated
@@ -156,6 +159,7 @@ class GraphTraverser {
         std::map<std::string, ArtifactDescription> const& runfiles,
         std::vector<ActionDescription::Ptr>&& actions,
         std::vector<Tree::Ptr>&& trees,
+        std::vector<TreeOverlay::Ptr>&& tree_overlays,
         std::vector<std::string>&& blobs,
         std::vector<ArtifactDescription> const& extra_artifacts = {}) const
         -> std::optional<

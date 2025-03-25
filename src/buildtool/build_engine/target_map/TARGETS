@@ -27,6 +27,7 @@
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "statistics"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/common", "tree_overlay"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/multithreading", "task_system"]

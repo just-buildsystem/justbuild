@@ -54,8 +54,9 @@
     auto const [artifacts, runfiles] =
         ReadOutputArtifacts(analysis_result->target);
 
-    auto [actions, blobs, trees] = analysis_result->result_map.ToResult(
-        analyse_context->statistics, analyse_context->progress, logger);
+    auto [actions, blobs, trees, tree_overlays] =
+        analysis_result->result_map.ToResult(
+            analyse_context->statistics, analyse_context->progress, logger);
 
     auto const cache_targets = analysis_result->result_map.CacheTargets();
 
@@ -74,6 +75,7 @@
                                                 std::move(actions),
                                                 std::move(blobs),
                                                 std::move(trees),
+                                                std::move(tree_overlays),
                                                 std::move(extra_artifacts));
 
     if (not build_result) {

@@ -572,7 +572,7 @@ auto TargetService::ServeTarget(
             ReadOutputArtifacts(analyse_result->target);
 
         // get the analyse_result map outputs
-        auto [actions, blobs, trees] =
+        auto [actions, blobs, trees, tree_overlays] =
             analyse_result->result_map.ToResult(&stats, &progress, &logger);
 
         // collect cache targets and artifacts for target-level caching
@@ -591,6 +591,7 @@ auto TargetService::ServeTarget(
                                                     std::move(actions),
                                                     std::move(blobs),
                                                     std::move(trees),
+                                                    std::move(tree_overlays),
                                                     std::move(cache_artifacts));
 
         if (not build_result) {

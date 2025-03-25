@@ -44,6 +44,7 @@
 #include "src/buildtool/common/identifier.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
@@ -65,6 +66,7 @@ class ResultTargetMap {
         std::vector<ActionDescription::Ptr> actions;
         std::vector<std::string> blobs;
         std::vector<Tree::Ptr> trees;
+        std::vector<TreeOverlay::Ptr> tree_overlays;
     };
 
     explicit ResultTargetMap(std::size_t jobs) : width_{ComputeWidth(jobs)} {}
@@ -442,6 +444,7 @@ struct ResultTargetMap::ResultType</*kIncludeOrigins=*/true> {
     std::vector<ActionWithOrigin> actions;
     std::vector<std::string> blobs;
     std::vector<Tree::Ptr> trees;
+    std::vector<TreeOverlay::Ptr> tree_overlays;
 };
 
 }  // namespace BuildMaps::Target

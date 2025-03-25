@@ -60,6 +60,7 @@ auto GraphTraverser::BuildAndStage(
     std::vector<ActionDescription::Ptr>&& action_descriptions,
     std::vector<std::string>&& blobs,
     std::vector<Tree::Ptr>&& trees,
+    std::vector<TreeOverlay::Ptr>&& tree_overlays,
     std::vector<ArtifactDescription>&& extra_artifacts) const
     -> std::optional<BuildResult> {
     DependencyGraph graph;  // must outlive artifact_nodes
@@ -68,6 +69,7 @@ auto GraphTraverser::BuildAndStage(
                                     runfile_descriptions,
                                     std::move(action_descriptions),
                                     std::move(trees),
+                                    std::move(tree_overlays),
                                     std::move(blobs),
                                     extra_artifacts);
     if (not artifacts) {
@@ -150,7 +152,7 @@ auto GraphTraverser::BuildAndStage(
     if (not desc) {
         return std::nullopt;
     }
-    auto [blobs, tree_descs, actions] = *std::move(desc);
+    auto [blobs, tree_descs, actions, tree_overlay_descs] = *std::move(desc);
 
     HashFunction::Type const hash_type = context_.apis->local->GetHashType();
     std::vector<ActionDescription::Ptr> action_descriptions{};
@@ -172,6 +174,15 @@ auto GraphTraverser::BuildAndStage(
         trees.emplace_back(std::move(*tree));
     }
 
+    std::vector<TreeOverlay::Ptr> tree_overlays{};
+    for (auto const& [id, description] : tree_overlay_descs.items()) {
+        auto tree_overlay = TreeOverlay::FromJson(hash_type, id, description);
+        if (not tree_overlay) {
+            return std::nullopt;
+        }
+        tree_overlays.emplace_back(std::move(*tree_overlay));
+    }
+
     std::map<std::string, ArtifactDescription> artifact_descriptions{};
     for (auto const& [rel_path, description] : artifacts.items()) {
         auto artifact = ArtifactDescription::FromJson(hash_type, description);
@@ -185,14 +196,16 @@ auto GraphTraverser::BuildAndStage(
                          {},
                          std::move(action_descriptions),
                          std::move(blobs),
-                         std::move(trees));
+                         std::move(trees),
+                         std::move(tree_overlays));
 }
 
 auto GraphTraverser::ReadGraphDescription(
     std::filesystem::path const& graph_description,
-    Logger const* logger)
-    -> std::optional<
-        std::tuple<nlohmann::json, nlohmann::json, nlohmann::json>> {
+    Logger const* logger) -> std::optional<std::tuple<nlohmann::json,
+                                                      nlohmann::json,
+                                                      nlohmann::json,
+                                                      nlohmann::json>> {
     auto const graph_description_opt = Json::ReadFile(graph_description);
     if (not graph_description_opt.has_value()) {
         Logger::Log(logger,
@@ -225,11 +238,31 @@ auto GraphTraverser::ReadGraphDescription(
                         "graph description.",
                         s);
         });
-    if (not blobs_opt or not trees_opt or not actions_opt) {
+    std::optional<nlohmann::json> tree_overlays_opt;
+    if (graph_description_opt->contains("tree_overlays")) {
+        tree_overlays_opt = ExtractValueAs<nlohmann::json>(
+            *graph_description_opt,
+            "tree_overlays",
+            [logger](std::string const& s) {
+                Logger::Log(
+                    logger,
+                    LogLevel::Error,
+                    "{}\ncan not retrieve value for \"tree_overlays\" from "
+                    "graph description.",
+                    s);
+            });
+    }
+    else {
+        tree_overlays_opt = nlohmann::json::object();
+    }
+    if (not blobs_opt or not trees_opt or not actions_opt or
+        not tree_overlays_opt) {
         return std::nullopt;
     }
-    return std::make_tuple(
-        std::move(*blobs_opt), std::move(*trees_opt), std::move(*actions_opt));
+    return std::make_tuple(std::move(*blobs_opt),
+                           std::move(*trees_opt),
+                           std::move(*actions_opt),
+                           std::move(*tree_overlays_opt));
 }
 
 auto GraphTraverser::UploadBlobs(
@@ -404,6 +437,7 @@ auto GraphTraverser::BuildArtifacts(
     std::map<std::string, ArtifactDescription> const& runfiles,
     std::vector<ActionDescription::Ptr>&& actions,
     std::vector<Tree::Ptr>&& trees,
+    std::vector<TreeOverlay::Ptr>&& /*tree_overlays*/,
     std::vector<std::string>&& blobs,
     std::vector<ArtifactDescription> const& extra_artifacts) const
     -> std::optional<
