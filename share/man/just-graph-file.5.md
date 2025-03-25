@@ -16,7 +16,7 @@ same key are treated.
 Artifacts and their serialization
 ---------------------------------
 
-There are four different kind of artifacts. The serialization of the
+There are five different kind of artifacts. The serialization of the
 artifact is always a JSON object with two keys: *`"type"`* and
 *`"data"`*. The value for *`"type"`* is always on of the strings
 *`"LOCAL"`*, *`"KNOWN"`*, *`"ACTION"`*, or *`"TREE"`*. The value for
@@ -45,6 +45,10 @@ artifact is of.
  - *`"TREE"`* artifacts refer to trees defined in the action graph. The
    defining data are
     - the *`"id"`*, a string with the name of the tree.
+ - *`"TREE_OVERLAY"`* artifacts refer to trees defined as the result of
+   overlaying earlier trees. The defining data are
+    - the *`"id"`*, a string with the name of the tree overlay.
+
 
 Actions and their serialization
 -------------------------------
@@ -114,6 +118,16 @@ The action graph is given by a JSON object.
 
  - The value for the key *`"actions"`* is a JSON object, mapping names
    of actions to their respective definition (serialized as JSON).
+
+- The optional value (with default `{}`) for the key *`"tree_overlays"`*
+  is a JSON object mapping the names of tree overlay to their
+  definition. The definition is a JSON object with the following keys.
+  - For the key *`"trees"`* a JSON array of the artifacts to be
+    overlayed in the order they are to be overlayed (with latest-wins
+    semantics for each path).
+  - For the key *`"disjoint"`* a boolean indicating if it is to
+    be considered an error of a conflict arises on any path of the
+    trees to be overlayed.
 
 Additional keys
 ---------------
