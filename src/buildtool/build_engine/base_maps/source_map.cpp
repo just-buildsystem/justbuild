@@ -32,6 +32,7 @@
 #include "src/buildtool/build_engine/expression/target_result.hpp"
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 namespace BuildMaps::Base {
@@ -49,6 +50,7 @@ auto as_target(const BuildMaps::Base::EntityName& key,
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
+        std::vector<TreeOverlay::Ptr>{},
         std::unordered_set<std::string>{},
         std::set<std::string>{},
         std::set<std::string>{},

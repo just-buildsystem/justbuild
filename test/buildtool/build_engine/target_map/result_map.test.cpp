@@ -37,6 +37,7 @@
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
 
@@ -60,6 +61,7 @@ namespace {
         descs,
         blobs,
         std::vector<Tree::Ptr>(),
+        std::vector<TreeOverlay::Ptr>(),
         std::unordered_set<std::string>{},
         std::set<std::string>{},
         std::set<std::string>{},

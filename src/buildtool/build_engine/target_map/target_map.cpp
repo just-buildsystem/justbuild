@@ -61,6 +61,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -1043,6 +1044,7 @@ void withDependencies(
                                                std::move(actions),
                                                std::move(blobs),
                                                std::move(trees),
+                                               std::vector<TreeOverlay::Ptr>{},
                                                std::move(effective_vars),
                                                std::move(tainted),
                                                std::move(implied_export),
@@ -1575,6 +1577,7 @@ void withTargetNode(
                            {},
                            {},
                            {},
+                           {},
                            TargetGraphInformation::kSource}));
     }
     else {
@@ -1678,6 +1681,7 @@ void TreeTarget(
                     std::vector<ActionDescription::Ptr>{},
                     std::vector<std::string>{},
                     std::vector<Tree::Ptr>{},
+                    std::vector<TreeOverlay::Ptr>{},
                     std::unordered_set<std::string>{},
                     std::set<std::string>{},
                     std::set<std::string>{},
@@ -1766,6 +1770,7 @@ void TreeTarget(
                             std::vector<ActionDescription::Ptr>{},
                             std::vector<std::string>{},
                             std::vector<Tree::Ptr>{tree},
+                            std::vector<TreeOverlay::Ptr>{},
                             std::unordered_set<std::string>{},
                             std::set<std::string>{},
                             std::set<std::string>{},
@@ -1800,6 +1805,7 @@ void GlobResult(const std::vector<AnalysedTargetPtr const*>& values,
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
+        std::vector<TreeOverlay::Ptr>{},
         std::unordered_set<std::string>{},
         std::set<std::string>{},
         std::set<std::string>{},

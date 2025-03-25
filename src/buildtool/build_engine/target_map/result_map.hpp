@@ -99,6 +99,7 @@ class ResultTargetMap {
             num_actions_[part] += entry->second->Actions().size();
             num_blobs_[part] += entry->second->Blobs().size();
             num_trees_[part] += entry->second->Trees().size();
+            num_tree_overlays_[part] += entry->second->TreeOverlays().size();
         }
         return entry->second;
     }
@@ -189,14 +190,17 @@ class ResultTargetMap {
         std::size_t na = 0;
         std::size_t nb = 0;
         std::size_t nt = 0;
+        std::size_t nto = 0;
         for (std::size_t i = 0; i < width_; i++) {
             na += num_actions_[i];
             nb += num_blobs_[i];
             nt += num_trees_[i];
+            nto += num_tree_overlays_[i];
         }
         result.actions.reserve(na);
         result.blobs.reserve(nb);
         result.trees.reserve(nt);
+        result.tree_overlays.reserve(nto);
 
         auto& origin_map = progress->OriginMap();
         origin_map.clear();
@@ -268,10 +272,14 @@ class ResultTargetMap {
                 }
                 auto const& blobs = el.second->Blobs();
                 auto const& trees = el.second->Trees();
+                auto const& tree_overlays = el.second->TreeOverlays();
                 result.blobs.insert(
                     result.blobs.end(), blobs.begin(), blobs.end());
                 result.trees.insert(
                     result.trees.end(), trees.begin(), trees.end());
+                result.tree_overlays.insert(result.tree_overlays.end(),
+                                            tree_overlays.begin(),
+                                            tree_overlays.end());
             });
         }
 
@@ -288,6 +296,17 @@ class ResultTargetMap {
             result.trees.end(),
             [](auto left, auto right) { return left->Id() == right->Id(); });
         result.trees.erase(lasttree, result.trees.end());
+
+        std::sort(
+            result.tree_overlays.begin(),
+            result.tree_overlays.end(),
+            [](auto left, auto right) { return left->Id() < right->Id(); });
+        auto lasttree_overlay = std::unique(
+            result.tree_overlays.begin(),
+            result.tree_overlays.end(),
+            [](auto left, auto right) { return left->Id() == right->Id(); });
+        result.tree_overlays.erase(lasttree_overlay,
+                                   result.tree_overlays.end());
 
         std::sort(result.actions.begin(),
                   result.actions.end(),
@@ -344,12 +363,14 @@ class ResultTargetMap {
                         "Analysed {} non-known source trees",
                         trees_traversed);
         }
-        Logger::Log(logger,
-                    LogLevel::Info,
-                    "Discovered {} actions, {} trees, {} blobs",
-                    result.actions.size(),
-                    result.trees.size(),
-                    result.blobs.size());
+        Logger::Log(
+            logger,
+            LogLevel::Info,
+            "Discovered {} actions, {} tree overlays, {} trees, {} blobs",
+            result.actions.size(),
+            result.tree_overlays.size(),
+            result.trees.size(),
+            result.blobs.size());
 
         return result;
     }
@@ -362,6 +383,7 @@ class ResultTargetMap {
         auto const result = ToResult<kIncludeOrigins>(stats, progress, logger);
         auto actions = nlohmann::json::object();
         auto trees = nlohmann::json::object();
+        auto tree_overlays = nlohmann::json::object();
         std::for_each(result.actions.begin(),
                       result.actions.end(),
                       [&actions](auto const& action) {
@@ -379,8 +401,18 @@ class ResultTargetMap {
             result.trees.begin(),
             result.trees.end(),
             [&trees](auto const& tree) { trees[tree->Id()] = tree->ToJson(); });
-        return nlohmann::json{
+        std::for_each(result.tree_overlays.begin(),
+                      result.tree_overlays.end(),
+                      [&tree_overlays](auto const& tree_overlay) {
+                          tree_overlays[tree_overlay->Id()] =
+                              tree_overlay->ToJson();
+                      });
+        auto json = nlohmann::json{
             {"actions", actions}, {"blobs", result.blobs}, {"trees", trees}};
+        if (not tree_overlays.empty()) {
+            json["tree_overlays"] = tree_overlays;
+        }
+        return json;
     }
 
     template <bool kIncludeOrigins = true>
@@ -427,6 +459,8 @@ class ResultTargetMap {
     std::vector<std::size_t> num_actions_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_blobs_{std::vector<std::size_t>(width_)};
     std::vector<std::size_t> num_trees_{std::vector<std::size_t>(width_)};
+    std::vector<std::size_t> num_tree_overlays_{
+        std::vector<std::size_t>(width_)};
 
     constexpr static auto ComputeWidth(std::size_t jobs) -> std::size_t {
         if (jobs <= 0) {

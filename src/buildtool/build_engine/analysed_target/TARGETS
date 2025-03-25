@@ -9,6 +9,7 @@
     , ["src/buildtool/common", "action_description"]
     , ["src/buildtool/common", "artifact_description"]
     , ["src/buildtool/common", "tree"]
+    , ["src/buildtool/common", "tree_overlay"]
     ]
   , "stage": ["src", "buildtool", "build_engine", "analysed_target"]
   , "private-deps":

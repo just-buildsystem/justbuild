@@ -52,6 +52,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "src/utils/cpp/path.hpp"
@@ -301,6 +302,7 @@ void BlobGenRuleWithDeps(
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{data_val->String()},
         std::vector<Tree::Ptr>{},
+        std::vector<TreeOverlay::Ptr>{},
         std::move(vars_set),
         std::move(tainted),
         std::move(implied_export),
@@ -543,6 +545,7 @@ void TreeRuleWithDeps(
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::move(trees),
+        std::vector<TreeOverlay::Ptr>{},
         std::move(vars_set),
         std::move(tainted),
         std::move(implied_export),
@@ -802,6 +805,7 @@ void InstallRuleWithDeps(
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
+        std::vector<TreeOverlay::Ptr>{},
         std::move(effective_vars),
         std::move(tainted),
         std::move(implied_export),
@@ -1431,6 +1435,7 @@ void GenericRuleWithDeps(
         std::vector<ActionDescription::Ptr>{action},
         std::vector<std::string>{},
         std::move(trees),
+        std::vector<TreeOverlay::Ptr>{},
         std::move(effective_vars),
         std::move(tainted),
         std::move(implied_export),
@@ -1643,6 +1648,7 @@ void ConfigureRule(
                 std::vector<ActionDescription::Ptr>{},
                 std::vector<std::string>{},
                 std::vector<Tree::Ptr>{},
+                std::vector<TreeOverlay::Ptr>{},
                 std::move(vars_set),
                 tainted,
                 configured_target->ImpliedExport(),

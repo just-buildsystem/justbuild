@@ -111,6 +111,7 @@ namespace Target = BuildMaps::Target;
         std::vector<ActionDescription::Ptr>{action},
         target->Blobs(),
         target->Trees(),
+        target->TreeOverlays(),
         target->Vars(),
         target->Tainted(),
         target->ImpliedExport(),

@@ -29,6 +29,7 @@
 #include "src/buildtool/common/action_description.hpp"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 
 class AnalysedTarget {
   public:
@@ -36,6 +37,7 @@ class AnalysedTarget {
                             std::vector<ActionDescription::Ptr> actions,
                             std::vector<std::string> blobs,
                             std::vector<Tree::Ptr> trees,
+                            std::vector<TreeOverlay::Ptr> tree_overlays,
                             std::unordered_set<std::string> vars,
                             std::set<std::string> tainted,
                             std::set<std::string> implied_export_targets,
@@ -44,6 +46,7 @@ class AnalysedTarget {
           actions_{std::move(actions)},
           blobs_{std::move(blobs)},
           trees_{std::move(trees)},
+          tree_overlays_{std::move(tree_overlays)},
           vars_{std::move(vars)},
           tainted_{std::move(tainted)},
           implied_export_targets_{std::move(implied_export_targets)},
@@ -85,6 +88,14 @@ class AnalysedTarget {
     [[nodiscard]] auto Trees() const& noexcept
         -> std::vector<Tree::Ptr> const& {
         return trees_;
+    }
+    [[nodiscard]] auto TreeOverlays() && noexcept
+        -> std::vector<TreeOverlay::Ptr> {
+        return std::move(tree_overlays_);
+    }
+    [[nodiscard]] auto TreeOverlays() const& noexcept
+        -> std::vector<TreeOverlay::Ptr> const& {
+        return tree_overlays_;
     }
     [[nodiscard]] auto Blobs() && noexcept -> std::vector<std::string> {
         return std::move(blobs_);
@@ -133,6 +144,7 @@ class AnalysedTarget {
     std::vector<ActionDescription::Ptr> actions_;
     std::vector<std::string> blobs_;
     std::vector<Tree::Ptr> trees_;
+    std::vector<TreeOverlay::Ptr> tree_overlays_;
     std::unordered_set<std::string> vars_;
     std::set<std::string> tainted_;
     std::set<std::string> implied_export_targets_;

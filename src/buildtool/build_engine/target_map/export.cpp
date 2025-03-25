@@ -41,6 +41,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/progress_reporting/progress.hpp"
@@ -107,6 +108,7 @@ void FinalizeExport(
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::vector<Tree::Ptr>{},
+        std::vector<TreeOverlay::Ptr>{},
         std::move(vars_set),
         std::set<std::string>{},
         std::move(implied),
@@ -253,6 +255,7 @@ void ExportRule(
                     std::vector<ActionDescription::Ptr>{},
                     std::vector<std::string>{},
                     std::vector<Tree::Ptr>{},
+                    std::vector<TreeOverlay::Ptr>{},
                     std::unordered_set<std::string>{flexible_vars->begin(),
                                                     flexible_vars->end()},
                     std::set<std::string>{},
