@@ -94,7 +94,7 @@ CAS in topological order, in order to keep the tree invariant.
 In the defining expressions of rules, two additional constructors
 `TREE_OVERLAY` and `DISJOINT_TREE_OVERLAY` are added that (like
 `ACTION`, `BLOB`, and `TREE`) can be used to describe parts of the
-action graph. These constructors have one argument `"deps"` which
+action graph. These constructors have one argument `"$1"` which
 has to evaluate to a list of tree-conflict&mdash;free mappings
 of strings to artifacts, also called "stages". The result of this
 function is a single artifact, the tree defined to be the overlay
@@ -122,4 +122,5 @@ rules `"tree_overlay"` and `"disjoint_tree_overlay"`. They have a
 single field `"deps"` which expects a list of targets. Both, runfiles
 and artifacts of the `"tree_overlay"` target are the tree overlays
 or conflict-free tree overlay, respectively, of the artifacts of
-the specified `"deps"` targets in the specified order.
+the specified `"deps"` targets in the specified order staged at the
+value of the field `"name"` which has to evaluate to a single string.
