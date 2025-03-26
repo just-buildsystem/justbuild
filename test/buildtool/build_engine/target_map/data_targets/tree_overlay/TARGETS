@@ -1,0 +1,6 @@
+{ "empty": {"type": ["tree_overlay", "overlay"]}
+, "one stage": {"type": ["tree_overlay", "overlay"], "deps": ["x"]}
+, "disjoint empty": {"type": ["tree_overlay", "disjoint overlay"]}
+, "disjoint one stage":
+  {"type": ["tree_overlay", "disjoint overlay"], "deps": ["x"]}
+}

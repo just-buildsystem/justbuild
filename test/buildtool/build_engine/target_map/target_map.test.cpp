@@ -46,6 +46,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/common/tree.hpp"
+#include "src/buildtool/common/tree_overlay.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/api_bundle.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
@@ -1497,6 +1498,192 @@ TEST_CASE("trees", "[target_map]") {
         }
         CHECK(error);
         CHECK(error_msg != "NONE");
+    }
+}
+
+TEST_CASE("tree_overlays", "[target_map]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+
+    auto repo_config = SetupConfig();
+    auto directory_entries =
+        BuildMaps::Base::CreateDirectoryEntriesMap(&repo_config);
+    auto source = BuildMaps::Base::CreateSourceTargetMap(
+        &directory_entries,
+        &repo_config,
+        storage_config.Get().hash_function.GetType());
+    auto targets_file_map =
+        BuildMaps::Base::CreateTargetsFileMap(&repo_config, 0);
+    auto rule_file_map = BuildMaps::Base::CreateRuleFileMap(&repo_config, 0);
+    static auto expressions_file_map =
+        BuildMaps::Base::CreateExpressionFileMap(&repo_config, 0);
+    auto expr_map = BuildMaps::Base::CreateExpressionMap(&expressions_file_map,
+                                                         &repo_config);
+    auto rule_map =
+        BuildMaps::Base::CreateRuleMap(&rule_file_map, &expr_map, &repo_config);
+    BuildMaps::Target::ResultTargetMap result_map{0};
+    Statistics stats{};
+    Progress exports_progress{};
+
+    auto serve_config = TestServeConfig::ReadFromEnvironment();
+    REQUIRE(serve_config);
+
+    LocalExecutionConfig local_exec_config{};
+
+    // pack the local context instances to be passed to ApiBundle
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+
+    Auth auth{};
+    RetryConfig retry_config{};
+    RemoteExecutionConfig remote_exec_config{};
+
+    // pack the remote context instances to be passed to ApiBundle
+    RemoteContext const remote_context{.auth = &auth,
+                                       .retry_config = &retry_config,
+                                       .exec_config = &remote_exec_config};
+
+    auto const apis = ApiBundle::Create(&local_context,
+                                        &remote_context,
+                                        /*repo_config=*/nullptr);
+
+    auto serve =
+        ServeApi::Create(*serve_config, &local_context, &remote_context, &apis);
+
+    AnalyseContext ctx{.repo_config = &repo_config,
+                       .storage = &storage,
+                       .statistics = &stats,
+                       .progress = &exports_progress,
+                       .serve = serve ? &*serve : nullptr};
+
+    auto absent_target_variables_map =
+        BuildMaps::Target::CreateAbsentTargetVariablesMap(&ctx, 0);
+
+    auto absent_target_map = BuildMaps::Target::CreateAbsentTargetMap(
+        &ctx, &result_map, &absent_target_variables_map, 0);
+
+    auto target_map = BuildMaps::Target::CreateTargetMap(&ctx,
+                                                         &source,
+                                                         &targets_file_map,
+                                                         &rule_map,
+                                                         &directory_entries,
+                                                         &absent_target_map,
+                                                         &result_map);
+
+    AnalysedTargetPtr result;
+    bool error{false};
+    std::string error_msg;
+    auto empty_config = Configuration{Expression::FromJson(R"({})"_json)};
+
+    SECTION("empty") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree_overlay", "empty"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"] ==
+              nlohmann::json::array());
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == false);
+    }
+
+    SECTION("implicit tree") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree_overlay", "one stage"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Trees().size() == 1);
+        CHECK(result->Trees()[0]->ToJson()["x"]["type"] == "LOCAL");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"].size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"][0]["type"] ==
+              "TREE");
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == false);
+    }
+
+    SECTION("disjoint empty") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree_overlay", "disjoint empty"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"] ==
+              nlohmann::json::array());
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == true);
+    }
+
+    SECTION("disjoint implicit tree") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree_overlay", "disjoint one stage"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Trees().size() == 1);
+        CHECK(result->Trees()[0]->ToJson()["x"]["type"] == "LOCAL");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"].size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"][0]["type"] ==
+              "TREE");
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == true);
     }
 }
 

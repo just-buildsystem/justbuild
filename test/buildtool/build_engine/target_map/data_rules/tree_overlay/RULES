@@ -1,0 +1,55 @@
+{ "overlay":
+  { "target_fields": ["deps"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "deps"
+        , { "type": "foreach"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "_"}}
+          }
+        ]
+      , [ "overlay tree"
+        , {"type": "TREE_OVERLAY", "$1": {"type": "var", "name": "deps"}}
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "singleton_map"
+        , "key": "it"
+        , "value": {"type": "var", "name": "overlay tree"}
+        }
+      }
+    }
+  }
+, "disjoint overlay":
+  { "target_fields": ["deps"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "deps"
+        , { "type": "foreach"
+          , "range": {"type": "FIELD", "name": "deps"}
+          , "body":
+            {"type": "DEP_ARTIFACTS", "dep": {"type": "var", "name": "_"}}
+          }
+        ]
+      , [ "overlay tree"
+        , { "type": "DISJOINT_TREE_OVERLAY"
+          , "$1": {"type": "var", "name": "deps"}
+          }
+        ]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts":
+        { "type": "singleton_map"
+        , "key": "it"
+        , "value": {"type": "var", "name": "overlay tree"}
+        }
+      }
+    }
+  }
+}

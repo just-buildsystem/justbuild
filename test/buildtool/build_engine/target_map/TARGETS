@@ -70,6 +70,7 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/common", "statistics"]
     , ["@", "src", "src/buildtool/common", "tree"]
+    , ["@", "src", "src/buildtool/common", "tree_overlay"]
     , ["@", "src", "src/buildtool/common/remote", "remote_common"]
     , ["@", "src", "src/buildtool/common/remote", "retry_config"]
     , ["@", "src", "src/buildtool/crypto", "hash_function"]
@@ -117,39 +118,9 @@
 , "test_data":
   { "type": ["@", "rules", "data", "staged"]
   , "srcs":
-    [ "data_src/a/b/targets_here/c/d/foo"
-    , "data_src/file_reference/hello.txt"
-    , "data_src/foo"
-    , "data_src/simple_rules/implicit_script.sh"
-    , "data_src/simple_targets/bar.txt"
-    , "data_src/simple_targets/baz.txt"
-    , "data_src/simple_targets/foo.txt"
-    , "data_src/tree/foo.txt"
-    , "data_src/tree/tree/foo.txt"
-    , "data_src/x/foo"
-    , "data_src/x/x/foo"
-    , "data_src/x/x/x/foo"
-    , "data_src/x/x/x/x/foo"
-    , "data_src/x/x/x/x/x/foo"
-    , "data_targets/TARGETS"
-    , "data_targets/a/b/targets_here/TARGETS"
-    , "data_targets/bad_targets/TARGETS"
-    , "data_targets/config_targets/TARGETS"
-    , "data_targets/file_reference/TARGETS"
-    , "data_targets/result/TARGETS"
-    , "data_targets/simple_rules/TARGETS"
-    , "data_targets/simple_targets/TARGETS"
-    , "data_targets/symlink_reference/TARGETS"
-    , "data_targets/tree/TARGETS"
-    , "data_targets/x/TARGETS"
-    , "data_targets/x/x/TARGETS"
-    , "data_targets/x/x/x/TARGETS"
-    , "data_targets/x/x/x/x/TARGETS"
-    , "data_targets/x/x/x/x/x/TARGETS"
-    , "data_rules/result/RULES"
-    , "data_rules/rule/RULES"
-    , "data_rules/simple_rules/RULES"
-    , "data_rules/tree/RULES"
+    [ ["TREE", null, "data_src"]
+    , ["TREE", null, "data_targets"]
+    , ["TREE", null, "data_rules"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "target_map"]
   }
