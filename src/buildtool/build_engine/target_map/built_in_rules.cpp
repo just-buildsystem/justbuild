@@ -81,7 +81,6 @@ auto const kBlobGenRuleFields =
                                     "tainted",
                                     "type"};
 auto const kTreeRuleFields = std::unordered_set<std::string>{"arguments_config",
-                                                             "data",
                                                              "deps",
                                                              "name",
                                                              "tainted",
