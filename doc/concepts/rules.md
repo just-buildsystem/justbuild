@@ -149,6 +149,19 @@ has to be a map of artifacts. The result is a single tree artifact
 formed from the input map. It is an error if the map cannot be
 transformed into a tree (e.g., due to staging conflicts).
 
+### `TREE_OVERLAY` and `DISJOINT_TREE_OVERLAY`
+
+The `TREE_OVERLAY` and `DISJOINT_TREE_OVERLAY` functions take a
+single (evaluated) argument `$1` which has to be a list of maps
+of artifacts. Each entry in the list is transformed into a single
+tree artifact formed from that map and it is an error if the map
+cannot be transformed into a tree (e.g., due to a staging conflict).
+The result is a single tree artifact defined as the overlay of the
+specified trees in that order (latest wins on each path after build
+evaluation); in the case of `DISJOINT_TREE_OVERLAY` it is a build
+error if a non-trivial conflict arises when computing the overlay
+in the build phase.
+
 #### `ACTION`
 
 Actions are a way to define new artifacts from (zero or more)
