@@ -86,7 +86,6 @@ auto const kTreeRuleFields = std::unordered_set<std::string>{"arguments_config",
                                                              "name",
                                                              "tainted",
                                                              "type"};
-
 auto const kInstallRuleFields =
     std::unordered_set<std::string>{"arguments_config",
                                     "deps",
@@ -445,7 +444,8 @@ void TreeRuleWithDeps(
     const BuildMaps::Base::FieldReader::Ptr& desc,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
+    std::optional<bool> disjoint_overlay) {
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
         return;
@@ -497,45 +497,75 @@ void TreeRuleWithDeps(
         {},
         {}};
 
-    // Compute the stage
-    auto stage = ExpressionPtr{Expression::map_t{}};
-    for (auto const& dep : dependency_values) {
-        auto to_stage = ExpressionPtr{
-            Expression::map_t{(*dep)->RunFiles(), (*dep)->Artifacts()}};
-        auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
-        if (dup) {
-            std::unordered_map<BuildMaps::Base::EntityName, AnalysedTargetPtr>
-                deps_by_target;
-            deps_by_target.reserve(dependency_keys.size());
-            for (std::size_t i = 0; i < dependency_keys.size(); ++i) {
-                deps_by_target.emplace(dependency_keys[i].target,
-                                       *dependency_values[i]);
+    // Compute the resulting stage
+    auto result_stage = Expression::map_t::underlying_map_t{};
+    std::vector<Tree::Ptr> trees{};
+    std::vector<TreeOverlay::Ptr> tree_overlays{};
+
+    if (disjoint_overlay) {
+        TreeOverlay::to_overlay_t dep_trees{};
+        for (auto const& dep : dependency_values) {
+            std::unordered_map<std::string, ArtifactDescription> tree_content;
+            for (auto const& [input_path, artifact] :
+                 (*dep)->Artifacts()->Map()) {
+                auto norm_path =
+                    ToNormalPath(std::filesystem::path{input_path});
+                tree_content.emplace(std::move(norm_path),
+                                     artifact->Artifact());
             }
-            ReportStagingConflict(
-                dup->get(), stage, to_stage, deps_by_target, logger);
+            auto tree = std::make_shared<Tree>(std::move(tree_content));
+            auto tree_id = tree->Id();
+            trees.emplace_back(std::move(tree));
+            dep_trees.emplace_back(ArtifactDescription::CreateTree(tree_id));
+        }
+        auto overlay_tree = std::make_shared<TreeOverlay>(std::move(dep_trees),
+                                                          *disjoint_overlay);
+        auto overlay_tree_id = overlay_tree->Id();
+        tree_overlays.emplace_back(std::move(overlay_tree));
+        result_stage.emplace(
+            name, ArtifactDescription::CreateTreeOverlay(overlay_tree_id));
+    }
+    else {
+
+        auto stage = ExpressionPtr{Expression::map_t{}};
+        for (auto const& dep : dependency_values) {
+            auto to_stage = ExpressionPtr{
+                Expression::map_t{(*dep)->RunFiles(), (*dep)->Artifacts()}};
+            auto dup = stage->Map().FindConflictingDuplicate(to_stage->Map());
+            if (dup) {
+                std::unordered_map<BuildMaps::Base::EntityName,
+                                   AnalysedTargetPtr>
+                    deps_by_target;
+                deps_by_target.reserve(dependency_keys.size());
+                for (std::size_t i = 0; i < dependency_keys.size(); ++i) {
+                    deps_by_target.emplace(dependency_keys[i].target,
+                                           *dependency_values[i]);
+                }
+                ReportStagingConflict(
+                    dup->get(), stage, to_stage, deps_by_target, logger);
+                return;
+            }
+            stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
+        }
+
+        // Result is the associated tree, located at name
+        auto conflict = BuildMaps::Target::Utils::tree_conflict(stage);
+        if (conflict) {
+            (*logger)(fmt::format("TREE conflict on subtree {}", *conflict),
+                      true);
             return;
         }
-        stage = ExpressionPtr{Expression::map_t{stage, to_stage}};
+        std::unordered_map<std::string, ArtifactDescription> tree_content;
+        tree_content.reserve(stage->Map().size());
+        for (auto const& [input_path, artifact] : stage->Map()) {
+            auto norm_path = ToNormalPath(std::filesystem::path{input_path});
+            tree_content.emplace(std::move(norm_path), artifact->Artifact());
+        }
+        auto tree = std::make_shared<Tree>(std::move(tree_content));
+        auto tree_id = tree->Id();
+        trees.emplace_back(std::move(tree));
+        result_stage.emplace(name, ArtifactDescription::CreateTree(tree_id));
     }
-
-    // Result is the associated tree, located at name
-    auto conflict = BuildMaps::Target::Utils::tree_conflict(stage);
-    if (conflict) {
-        (*logger)(fmt::format("TREE conflict on subtree {}", *conflict), true);
-        return;
-    }
-    std::unordered_map<std::string, ArtifactDescription> tree_content;
-    tree_content.reserve(stage->Map().size());
-    for (auto const& [input_path, artifact] : stage->Map()) {
-        auto norm_path = ToNormalPath(std::filesystem::path{input_path});
-        tree_content.emplace(std::move(norm_path), artifact->Artifact());
-    }
-    auto tree = std::make_shared<Tree>(std::move(tree_content));
-    auto tree_id = tree->Id();
-    std::vector<Tree::Ptr> trees{};
-    trees.emplace_back(std::move(tree));
-    auto result_stage = Expression::map_t::underlying_map_t{};
-    result_stage.emplace(name, ArtifactDescription::CreateTree(tree_id));
     auto result = ExpressionPtr{Expression::map_t{result_stage}};
 
     auto analysis_result = std::make_shared<AnalysedTarget const>(
@@ -545,7 +575,7 @@ void TreeRuleWithDeps(
         std::vector<ActionDescription::Ptr>{},
         std::vector<std::string>{},
         std::move(trees),
-        std::vector<TreeOverlay::Ptr>{},
+        std::move(tree_overlays),
         std::move(vars_set),
         std::move(tainted),
         std::move(implied_export),
@@ -555,16 +585,25 @@ void TreeRuleWithDeps(
     (*setter)(std::move(analysis_result));
 }
 
-void TreeRule(
+void CommonTreeRule(
     const gsl::not_null<AnalyseContext*>& context,
     const nlohmann::json& desc_json,
     const BuildMaps::Target::ConfiguredTarget& key,
     const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
     const BuildMaps::Target::TargetMap::SetterPtr& setter,
     const BuildMaps::Target::TargetMap::LoggerPtr& logger,
-    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map,
+    std::optional<bool> disjoint_overlay) {
+    std::string rule_name;
+    if (disjoint_overlay) {
+        rule_name =
+            *disjoint_overlay ? "disjoint_tree_overlay" : "tree overlay";
+    }
+    else {
+        rule_name = "tree";
+    }
     auto desc = BuildMaps::Base::FieldReader::CreatePtr(
-        desc_json, key.target, "tree target", logger);
+        desc_json, key.target, fmt::format("{} target", rule_name), logger);
     desc->ExpectFields(kTreeRuleFields);
     auto param_vars = desc->ReadStringList("arguments_config");
     if (not param_vars) {
@@ -637,7 +676,8 @@ void TreeRule(
          setter,
          logger,
          key,
-         result_map](auto const& values) {
+         result_map,
+         disjoint_overlay](auto const& values) {
             TreeRuleWithDeps(values,
                              dependency_keys,
                              name,
@@ -645,9 +685,52 @@ void TreeRule(
                              desc,
                              setter,
                              logger,
-                             result_map);
+                             result_map,
+                             disjoint_overlay);
         },
         logger);
+}
+
+void TreeRule(
+    const gsl::not_null<AnalyseContext*>& context,
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    CommonTreeRule(context,
+                   desc_json,
+                   key,
+                   subcaller,
+                   setter,
+                   logger,
+                   result_map,
+                   std::nullopt);
+}
+
+void DisjointTreeOverlayRule(
+    const gsl::not_null<AnalyseContext*>& context,
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    CommonTreeRule(
+        context, desc_json, key, subcaller, setter, logger, result_map, true);
+}
+
+void TreeOverlayRule(
+    const gsl::not_null<AnalyseContext*>& context,
+    const nlohmann::json& desc_json,
+    const BuildMaps::Target::ConfiguredTarget& key,
+    const BuildMaps::Target::TargetMap::SubCallerPtr& subcaller,
+    const BuildMaps::Target::TargetMap::SetterPtr& setter,
+    const BuildMaps::Target::TargetMap::LoggerPtr& logger,
+    const gsl::not_null<BuildMaps::Target::ResultTargetMap*>& result_map) {
+    CommonTreeRule(
+        context, desc_json, key, subcaller, setter, logger, result_map, false);
 }
 
 void InstallRuleWithDeps(
@@ -1674,6 +1757,8 @@ auto const kBuiltIns = std::unordered_map<
     {"export", ExportRule},
     {"file_gen", FileGenRule},
     {"tree", TreeRule},
+    {"tree_overlay", TreeOverlayRule},
+    {"disjoint_tree_overlay", DisjointTreeOverlayRule},
     {"symlink", SymlinkRule},
     {"generic", GenericRule},
     {"install", InstallRule},

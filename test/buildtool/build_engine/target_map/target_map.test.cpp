@@ -1201,6 +1201,69 @@ TEST_CASE("built-in rules", "[target_map]") {
             baz_result->Artifacts()->ToJson()["foo.txt."]["data"]["id"] ==
             storage_config.Get().hash_function.HashBlobData("baz").HexString());
     }
+
+    SECTION("tree_overlay") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target =
+                        BuildMaps::Base::EntityName{
+                            "", "tree_overlay", "built-in, one stage"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Artifacts()->ToJson()["the_tree"]["type"] ==
+              "TREE_OVERLAY");
+        CHECK(result->Trees().size() == 1);
+        CHECK(result->Trees()[0]->ToJson()["x"]["type"] == "LOCAL");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"].size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"][0]["type"] ==
+              "TREE");
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == false);
+    }
+
+    SECTION("disjoint_tree_overlay") {
+        error = false;
+        error_msg = "NONE";
+        {
+            TaskSystem ts;
+            target_map.ConsumeAfterKeysReady(
+                &ts,
+                {BuildMaps::Target::ConfiguredTarget{
+                    .target = BuildMaps::Base::EntityName{"",
+                                                          "tree_overlay",
+                                                          "built-in, disjoint, "
+                                                          "one stage"},
+                    .config = empty_config}},
+                [&result](auto values) { result = *values[0]; },
+                [&error, &error_msg](std::string const& msg, bool /*unused*/) {
+                    error = true;
+                    error_msg = msg;
+                });
+        }
+        CHECK(not error);
+        CHECK(error_msg == "NONE");
+        CHECK(result->Artifacts()->ToJson()["the_tree"]["type"] ==
+              "TREE_OVERLAY");
+        CHECK(result->Trees().size() == 1);
+        CHECK(result->Trees()[0]->ToJson()["x"]["type"] == "LOCAL");
+        CHECK(result->TreeOverlays().size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"].size() == 1);
+        CHECK(result->TreeOverlays()[0]->ToJson()["trees"][0]["type"] ==
+              "TREE");
+        CHECK(result->TreeOverlays()[0]->ToJson()["disjoint"] == true);
+    }
 }
 
 TEST_CASE("target reference", "[target_map]") {

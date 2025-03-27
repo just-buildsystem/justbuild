@@ -3,4 +3,8 @@
 , "disjoint empty": {"type": ["tree_overlay", "disjoint overlay"]}
 , "disjoint one stage":
   {"type": ["tree_overlay", "disjoint overlay"], "deps": ["x"]}
+, "built-in, one stage":
+  {"type": "tree_overlay", "name": "the_tree", "deps": ["x"]}
+, "built-in, disjoint, one stage":
+  {"type": "disjoint_tree_overlay", "name": "the_tree", "deps": ["x"]}
 }
