@@ -1500,7 +1500,42 @@
     }
   }
 , "lib artifact":
-  { "vars":
+  { "doc": ["Provides the library artifact."]
+  , "vars":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "ENV"
+    , "DEBUG"
+    , "name"
+    , "pure C"
+    , "srcs"
+    , "hdrs"
+    , "private-hdrs"
+    , "stage"
+    , "compile-deps"
+    , "compile-args"
+    , "cflags-files"
+    , "defaults-transition"
+    ]
+  , "imports": {"lib action": "lib action"}
+  , "expression":
+    { "type": "lookup"
+    , "key": "library"
+    , "map": {"type": "CALL_EXPRESSION", "name": "lib action"}
+    , "default": {"type": "empty_map"}
+    }
+  }
+, "lib action":
+  { "doc":
+    [ "Run the action producing the library artifact and pass it together with"
+    , "related information to consumers."
+    ]
+  , "vars":
     [ "CC"
     , "CXX"
     , "CFLAGS"
@@ -1715,7 +1750,11 @@
           }
         ]
       ]
-    , "body": {"type": "var", "name": "lib"}
+    , "body":
+      { "type": "singleton_map"
+      , "key": "library"
+      , "value": {"type": "var", "name": "lib"}
+      }
     }
   }
 , "lib result":
@@ -1886,7 +1925,42 @@
     }
   }
 , "bin artifact":
-  { "doc": ["Produces the binary artifact."]
+  { "doc": ["Provides the linked binary."]
+  , "vars":
+    [ "CC"
+    , "CXX"
+    , "CFLAGS"
+    , "CXXFLAGS"
+    , "ADD_CFLAGS"
+    , "ADD_CXXFLAGS"
+    , "ENV"
+    , "DEBUG"
+    , "name"
+    , "pure C"
+    , "srcs"
+    , "private-hdrs"
+    , "stage"
+    , "compile-deps"
+    , "compile-args"
+    , "link-deps"
+    , "link-args"
+    , "cflags-files"
+    , "ldflags-files"
+    , "defaults-transition"
+    ]
+  , "imports": {"bin action": "bin action"}
+  , "expression":
+    { "type": "lookup"
+    , "key": "binary"
+    , "map": {"type": "CALL_EXPRESSION", "name": "bin action"}
+    , "default": {"type": "empty_map"}
+    }
+  }
+, "bin action":
+  { "doc":
+    [ "Run the action producing the binary artifact and pass it together with"
+    , "related information to consumers."
+    ]
   , "vars":
     [ "CC"
     , "CXX"
@@ -2106,7 +2180,11 @@
           }
         ]
       ]
-    , "body": {"type": "var", "name": "binary"}
+    , "body":
+      { "type": "singleton_map"
+      , "key": "binary"
+      , "value": {"type": "var", "name": "binary"}
+      }
     }
   }
 , "bin result":
