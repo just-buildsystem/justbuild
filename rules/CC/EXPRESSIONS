@@ -61,6 +61,27 @@
     , "body": {"type": "var", "name": "AR"}
     }
   }
+, "default-DWP":
+  { "vars": ["defaults-transition"]
+  , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "defaults"]
+      , ["provider", "DWP"]
+      , ["transition", {"type": "var", "name": "defaults-transition"}]
+      , ["DWP", {"type": "CALL_EXPRESSION", "name": "list_provider"}]
+      , [ "DWP"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "DWP"}
+          , "then": {"type": "var", "name": "DWP"}
+          , "else": ["dwp"]
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "DWP"}
+    }
+  }
 , "default-ARFLAGS":
   { "vars": ["defaults-transition"]
   , "imports": {"list_provider": ["./", "..", "field_list_provider"]}
@@ -815,6 +836,142 @@
         ]
       ]
     , "body": {"type": "var", "name": "flags"}
+    }
+  }
+, "dwarf package":
+  { "vars":
+    [ "DWP"
+    , "TOOLCHAIN"
+    , "TOOLCHAIN_DIR"
+    , "NON_SYSTEM_TOOLS"
+    , "ENV"
+    , "name"
+    , "dwarf objects"
+    , "dwarf deps"
+    , "stage"
+    ]
+  , "imports": {"default-DWP": "default-DWP"}
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "DWP"
+        , { "type": "var"
+          , "name": "DWP"
+          , "default":
+            { "type": "join"
+            , "$1":
+              { "type": "++"
+              , "$1":
+                [ { "type": "if"
+                  , "cond":
+                    { "type": "lookup"
+                    , "key": "DWP"
+                    , "map": {"type": "var", "name": "NON_SYSTEM_TOOLS"}
+                    }
+                  , "then":
+                    ["./", {"type": "var", "name": "TOOLCHAIN_DIR"}, "/"]
+                  }
+                , {"type": "CALL_EXPRESSION", "name": "default-DWP"}
+                ]
+              }
+            }
+          }
+        ]
+      , [ "pkgname"
+        , {"type": "join", "$1": [{"type": "var", "name": "name"}, ".dwp"]}
+        ]
+      , [ "pkgpath"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "stage"}
+          , "then":
+            { "type": "join"
+            , "separator": "/"
+            , "$1":
+              [ {"type": "var", "name": "stage"}
+              , {"type": "var", "name": "pkgname"}
+              ]
+            }
+          , "else": {"type": "var", "name": "pkgname"}
+          }
+        ]
+      , [ "objects"
+        , { "type": "var"
+          , "name": "dwarf objects"
+          , "default": {"type": "empty_map"}
+          }
+        ]
+      , [ "objects"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            [ {"type": "var", "name": "objects"}
+            , {"type": "var", "name": "dwarf deps"}
+            ]
+          }
+        ]
+      , [ "dwarf pkg"
+        , { "type": "if"
+          , "cond": {"type": "var", "name": "objects"}
+          , "else": {"type": "empty_map"}
+          , "then":
+            { "type": "let*"
+            , "bindings":
+              [ [ "staged objects"
+                , { "type": "to_subdir"
+                  , "subdir": "work"
+                  , "$1": {"type": "var", "name": "objects"}
+                  }
+                ]
+              , [ "staged pkgpath"
+                , { "type": "join"
+                  , "$1": ["work/", {"type": "var", "name": "pkgpath"}]
+                  }
+                ]
+              , [ "staged pkg"
+                , { "type": "ACTION"
+                  , "outs": [{"type": "var", "name": "staged pkgpath"}]
+                  , "inputs":
+                    { "type": "map_union"
+                    , "$1":
+                      [ {"type": "var", "name": "TOOLCHAIN"}
+                      , {"type": "var", "name": "staged objects"}
+                      ]
+                    }
+                  , "env":
+                    { "type": "var"
+                    , "name": "ENV"
+                    , "default": {"type": "empty_map"}
+                    }
+                  , "cmd":
+                    { "type": "++"
+                    , "$1":
+                      [ [ {"type": "var", "name": "DWP", "default": "dwp"}
+                        , "-o"
+                        , {"type": "var", "name": "staged pkgpath"}
+                        ]
+                      , { "type": "keys"
+                        , "$1": {"type": "var", "name": "staged objects"}
+                        }
+                      ]
+                    }
+                  }
+                ]
+              , [ "pkg artifact"
+                , { "type": "lookup"
+                  , "map": {"type": "var", "name": "staged pkg"}
+                  , "key": {"type": "var", "name": "staged pkgpath"}
+                  }
+                ]
+              ]
+            , "body":
+              { "type": "singleton_map"
+              , "key": {"type": "var", "name": "pkgpath"}
+              , "value": {"type": "var", "name": "pkg artifact"}
+              }
+            }
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "dwarf pkg"}
     }
   }
 , "objects":
