@@ -37,6 +37,9 @@
 #include "src/utils/cpp/file_locking.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
+#ifndef NDEBUG
+#include "src/utils/cpp/gsl.hpp"
+#endif
 
 extern "C" {
 #include <git2.h>
