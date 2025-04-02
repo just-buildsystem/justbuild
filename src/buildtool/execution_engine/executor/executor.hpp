@@ -111,7 +111,7 @@ class ExecutorImpl {
 
         auto const root_digest = CreateRootDigest(api, inputs);
         if (not root_digest) {
-            Logger::Log(LogLevel::Error,
+            logger.Emit(LogLevel::Error,
                         "failed to create root digest for input artifacts.");
             return nullptr;
         }
@@ -145,7 +145,7 @@ class ExecutorImpl {
                     *alternative_api,
                     /* jobs= */ 1,
                     /* use_blob_splitting= */ true)) {
-                Logger::Log(LogLevel::Error,
+                logger.Emit(LogLevel::Error,
                             "Failed to sync tree {} to dispatch endpoint",
                             root_digest->hash());
                 return nullptr;
@@ -189,7 +189,7 @@ class ExecutorImpl {
                     object_infos.emplace_back(info);
                 }
                 if (not alternative_api->RetrieveToCas(object_infos, api)) {
-                    Logger::Log(LogLevel::Warning,
+                    logger.Emit(LogLevel::Warning,
                                 "Failed to retrieve back artifacts from "
                                 "dispatch endpoint");
                 }
@@ -216,7 +216,7 @@ class ExecutorImpl {
         // processed: it means its definition is ill-formed or that it is the
         // output of an action, in which case it shouldn't have reached here
         if (not object_info_opt and not file_path_opt) {
-            Logger::Log(LogLevel::Error,
+            logger.Emit(LogLevel::Error,
                         "artifact {} can not be processed.",
                         ToHexString(artifact->Content().Id()));
             return false;
@@ -241,11 +241,12 @@ class ExecutorImpl {
                 }
 
                 if (not VerifyOrUploadKnownArtifact(
+                        logger,
                         *apis.remote,
                         artifact->Content().Repository(),
                         repo_config,
                         *object_info_opt)) {
-                    Logger::Log(
+                    logger.Emit(
                         LogLevel::Error,
                         "artifact {} should be present in CAS but is missing.",
                         ToHexString(artifact->Content().Id()));
@@ -271,7 +272,7 @@ class ExecutorImpl {
         auto new_info =
             UploadFile(*apis.remote, repo, repo_config, *file_path_opt);
         if (not new_info) {
-            Logger::Log(LogLevel::Error,
+            logger.Emit(LogLevel::Error,
                         "artifact in {} could not be uploaded to CAS.",
                         file_path_opt->string());
             return false;
@@ -290,7 +291,8 @@ class ExecutorImpl {
     /// \param[in] api      The remote execution API of the CAS.
     /// \param[in] tree     The git tree to be uploaded.
     /// \returns True if the upload was successful, False in case of any error.
-    [[nodiscard]] static auto VerifyOrUploadTree(IExecutionApi const& api,
+    [[nodiscard]] static auto VerifyOrUploadTree(Logger const& logger,
+                                                 IExecutionApi const& api,
                                                  GitTree const& tree) noexcept
         -> bool {
         // create list of digests for batch check of CAS availability
@@ -307,7 +309,7 @@ class ExecutorImpl {
             return false;
         }
 
-        Logger::Log(LogLevel::Trace, [&tree]() {
+        logger.Emit(LogLevel::Trace, [&tree]() {
             std::ostringstream oss{};
             oss << "upload directory content of " << tree.FileRootHash()
                 << std::endl;
@@ -328,7 +330,7 @@ class ExecutorImpl {
             auto const entry = value->second;
             if (entry->IsTree()) {
                 auto const& tree = entry->Tree();
-                if (not tree or not VerifyOrUploadTree(api, *tree)) {
+                if (not tree or not VerifyOrUploadTree(logger, api, *tree)) {
                     return false;
                 }
             }
@@ -372,6 +374,7 @@ class ExecutorImpl {
     /// \param hash         The git-sha1 hash of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadGitArtifact(
+        Logger const& logger,
         IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
@@ -382,12 +385,12 @@ class ExecutorImpl {
             // if known tree is not available, recursively upload its content
             auto tree = ReadGitTree(repo, repo_config, hash);
             if (not tree) {
-                Logger::Log(
+                logger.Emit(
                     LogLevel::Error, "failed to read git tree {}", hash);
                 return false;
             }
-            if (not VerifyOrUploadTree(api, *tree)) {
-                Logger::Log(LogLevel::Error,
+            if (not VerifyOrUploadTree(logger, api, *tree)) {
+                logger.Emit(LogLevel::Error,
                             "failed to verifyorupload git tree {} [{}]",
                             tree->FileRootHash(),
                             hash);
@@ -400,14 +403,14 @@ class ExecutorImpl {
             content = ReadGitBlob(repo, repo_config, hash);
         }
         if (not content) {
-            Logger::Log(LogLevel::Error, "failed to get content");
+            logger.Emit(LogLevel::Error, "failed to get content");
             return false;
         }
 
         auto blob = ArtifactBlob::FromMemory(
             HashFunction{api.GetHashType()}, info.type, *std::move(content));
         if (not blob.has_value()) {
-            Logger::Log(LogLevel::Error, "failed to create ArtifactBlob");
+            logger.Emit(LogLevel::Error, "failed to create ArtifactBlob");
             return false;
         }
 
@@ -454,6 +457,7 @@ class ExecutorImpl {
     /// \param info         The info of the object
     /// \returns true on success
     [[nodiscard]] static auto VerifyOrUploadKnownArtifact(
+        Logger const& logger,
         IExecutionApi const& api,
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
@@ -464,12 +468,12 @@ class ExecutorImpl {
             if (opt) {
                 auto const& [git_sha1_hash, comp_repo] = *opt;
                 return VerifyOrUploadGitArtifact(
-                    api, comp_repo, repo_config, info, git_sha1_hash);
+                    logger, api, comp_repo, repo_config, info, git_sha1_hash);
             }
             return false;
         }
         return VerifyOrUploadGitArtifact(
-            api, repo, repo_config, info, info.digest.hash());
+            logger, api, repo, repo_config, info, info.digest.hash());
     }
 
     /// \brief Lookup file via path in local workspace root and upload.
