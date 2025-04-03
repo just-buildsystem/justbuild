@@ -90,6 +90,13 @@
   , "test": ["request-action-input.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "tree-ops":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tree-ops"]
+  , "test": ["tree-ops.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/graph.json", "out/artifacts.json"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["DROP_IO_HEAVY_TESTS"]
@@ -101,6 +108,7 @@
         , "equality-timeout"
         , "equality-properties"
         , "trees"
+        , "tree-ops"
         , "conflicts"
         , "incomplete-retry"
         , "error-reporting"
