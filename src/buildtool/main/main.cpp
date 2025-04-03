@@ -26,6 +26,7 @@
 #include <optional>
 #include <set>
 #include <string>
+#include <thread>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -1182,26 +1183,31 @@ auto main(int argc, char* argv[]) -> int {
                     not_eligible);
             }
 
-            analyse_result->result_map.ToFile(
-                arguments.analysis.graph_file, &stats, &progress);
-            analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
-                arguments.analysis.graph_file_plain, &stats, &progress);
-            auto const [artifacts, runfiles] =
+            auto const artifacts_runfiles =
                 ReadOutputArtifacts(analyse_result->target);
-            if (arguments.analysis.artifacts_to_build_file) {
-                DumpArtifactsToBuild(
-                    artifacts,
-                    runfiles,
-                    *arguments.analysis.artifacts_to_build_file);
-            }
-            if (arguments.cmd == SubCommand::kAnalyse) {
-                DiagnoseResults(*analyse_result, arguments.diagnose);
-                ReportTaintedness(*analyse_result);
+
+            auto const& [artifacts, runfiles] = artifacts_runfiles;
+            auto dump_and_cleanup = [&]() {
+                analyse_result->result_map.ToFile(
+                    arguments.analysis.graph_file, &stats, &progress);
+                analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
+                    arguments.analysis.graph_file_plain, &stats, &progress);
+                if (arguments.analysis.artifacts_to_build_file) {
+                    DumpArtifactsToBuild(
+                        artifacts_runfiles.first,
+                        artifacts_runfiles.second,
+                        *arguments.analysis.artifacts_to_build_file);
+                }
                 // Clean up in parallel
                 {
                     TaskSystem ts{arguments.common.jobs};
                     analyse_result->result_map.Clear(&ts);
                 }
+            };
+            if (arguments.cmd == SubCommand::kAnalyse) {
+                DiagnoseResults(*analyse_result, arguments.diagnose);
+                dump_and_cleanup();
+                ReportTaintedness(*analyse_result);
                 if (profile) {
                     (*profile)->Write(kExitSuccess);
                 }
@@ -1217,11 +1223,7 @@ auto main(int argc, char* argv[]) -> int {
                 analyse_result->result_map.CacheTargets();
             auto cache_artifacts = CollectNonKnownArtifacts(cache_targets);
 
-            // Clean up analyse_result map, now that it is no longer needed
-            {
-                TaskSystem ts{arguments.common.jobs};
-                analyse_result->result_map.Clear(&ts);
-            }
+            std::thread dump_and_cleanup_thread(dump_and_cleanup);
 
             Logger::Log(
                 LogLevel::Info,
@@ -1241,6 +1243,7 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(blobs),
                                         std::move(trees),
                                         std::move(cache_artifacts));
+            dump_and_cleanup_thread.join();
             if (build_result) {
                 WriteTargetCacheEntries(
                     cache_targets,
