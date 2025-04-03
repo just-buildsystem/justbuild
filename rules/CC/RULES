@@ -104,7 +104,23 @@
     , "HOST_ARCH":
       ["The architecture on which the build actions are carried out."]
     , "TARGET_ARCH": ["The architecture for which to build."]
-    , "DEBUG": ["Compute the debug-stage, needed for local debugging."]
+    , "DEBUG":
+      [ "Map configuring the debug-stage, needed for local debugging."
+      , "If non-empty, debug mode is enabled."
+      , ""
+      , "The key \"USE_DEBUG_FISSION\" expects a flag which enables the debug"
+      , "fission mode, but does not add any flags. Explicitly setting it to a"
+      , "false value is needed to enable regular debug mode."
+      , "The key \"FISSION_CONFIG\" expects a map configuring debug fission."
+      , " - subkey \"USE_SPLIT_DWARF\" expects a flag that, if true, adds the"
+      , "-gsplit-dwarf compile flag."
+      , " - subkey \"DWARF_VERSION\" expects a string that adds the"
+      , "-gdwarf-<value> compile flag."
+      , " - subkey \"USE_GDB_INDEX\" expects a flag that, if true, adds the"
+      , "-Wl,--gdb-index linker flag."
+      , " - subkey \"USE_DEBUG_TYPES_SECTION\" expects a flag that, if true,"
+      , "adds the -fdebug-types-section compile flag."
+      ]
     }
   , "imports":
     { "base-provides": "defaults-base-provides"
@@ -553,7 +569,22 @@
       ]
     , "ENV": ["The environment for any action generated."]
     , "DEBUG":
-      [ "Compute the debug-stage, needed for local debugging."
+      [ "Map configuring the debug-stage, needed for local debugging."
+      , "If non-empty, debug mode is enabled."
+      , ""
+      , "The key \"USE_DEBUG_FISSION\" expects a flag which enables the debug"
+      , "fission mode, but does not add any flags. Explicitly setting it to a"
+      , "false value is needed to enable regular debug mode."
+      , "The key \"FISSION_CONFIG\" expects a map configuring debug fission."
+      , " - subkey \"USE_SPLIT_DWARF\" expects a flag that, if true, adds the"
+      , "-gsplit-dwarf compile flag."
+      , " - subkey \"DWARF_VERSION\" expects a string that adds the"
+      , "-gdwarf-<value> compile flag."
+      , " - subkey \"USE_GDB_INDEX\" expects a flag that, if true, adds the"
+      , "-Wl,--gdb-index linker flag."
+      , " - subkey \"USE_DEBUG_TYPES_SECTION\" expects a flag that, if true,"
+      , "adds the -fdebug-types-section compile flag."
+      , ""
       , "If no compile flags are otherwise configured, [\"-g\"] will be taken."
       ]
     , "LINT":
@@ -756,7 +787,22 @@
       ]
     , "ENV": ["The environment for any action generated."]
     , "DEBUG":
-      [ "Compute the debug-stage, needed for local debugging."
+      [ "Map configuring the debug-stage, needed for local debugging."
+      , "If non-empty, debug mode is enabled."
+      , ""
+      , "The key \"USE_DEBUG_FISSION\" expects a flag which enables the debug"
+      , "fission mode, but does not add any flags. Explicitly setting it to a"
+      , "false value is needed to enable regular debug mode."
+      , "The key \"FISSION_CONFIG\" expects a map configuring debug fission."
+      , " - subkey \"USE_SPLIT_DWARF\" expects a flag that, if true, adds the"
+      , "-gsplit-dwarf compile flag."
+      , " - subkey \"DWARF_VERSION\" expects a string that adds the"
+      , "-gdwarf-<value> compile flag."
+      , " - subkey \"USE_GDB_INDEX\" expects a flag that, if true, adds the"
+      , "-Wl,--gdb-index linker flag."
+      , " - subkey \"USE_DEBUG_TYPES_SECTION\" expects a flag that, if true,"
+      , "adds the -fdebug-types-section compile flag."
+      , ""
       , "If no compile flags are otherwise configured, [\"-g\"] will be taken."
       ]
     , "LINT":

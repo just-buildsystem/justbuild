@@ -682,6 +682,141 @@
       }
     }
   }
+, "add-fission-compile-flags":
+  { "doc": ["Add debug fission flags, if enabled, to existing compile flags."]
+  , "vars": ["COMPILE_FLAGS", "DEBUG"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "fission-config"
+        , { "type": "if"
+          , "cond":
+            { "type": "lookup"
+            , "key": "USE_DEBUG_FISSION"
+            , "map":
+              { "type": "var"
+              , "name": "DEBUG"
+              , "default": {"type": "empty_map"}
+              }
+            }
+          , "then":
+            { "type": "assert_non_empty"
+            , "msg":
+              [ "Debug fission requires non-empty debug map FISSION_CONFIG field"
+              ]
+            , "$1":
+              { "type": "lookup"
+              , "key": "FISSION_CONFIG"
+              , "map":
+                { "type": "var"
+                , "name": "DEBUG"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "flags"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "COMPILE_FLAGS"}
+            , { "type": "if"
+              , "cond":
+                { "type": "lookup"
+                , "key": "USE_SPLIT_DWARF"
+                , "map": {"type": "var", "name": "fission-config"}
+                }
+              , "then": ["-gsplit-dwarf"]
+              }
+            , { "type": "let*"
+              , "bindings":
+                [ [ "version"
+                  , { "type": "lookup"
+                    , "key": "DWARF_VERSION"
+                    , "map": {"type": "var", "name": "fission-config"}
+                    }
+                  ]
+                ]
+              , "body":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "version"}
+                , "then":
+                  [ { "type": "join"
+                    , "$1": ["-gdwarf-", {"type": "var", "name": "version"}]
+                    }
+                  ]
+                }
+              }
+            , { "type": "if"
+              , "cond":
+                { "type": "lookup"
+                , "key": "USE_DEBUG_TYPES_SECTION"
+                , "map": {"type": "var", "name": "fission-config"}
+                }
+              , "then": ["-fdebug-types-section"]
+              }
+            ]
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "flags"}
+    }
+  }
+, "add-fission-link-flags":
+  { "doc": ["Add debug fission flags, if enabled, to existing link flags."]
+  , "vars": ["LDFLAGS", "DEBUG"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ [ "fission-config"
+        , { "type": "if"
+          , "cond":
+            { "type": "lookup"
+            , "key": "USE_DEBUG_FISSION"
+            , "map":
+              { "type": "var"
+              , "name": "DEBUG"
+              , "default": {"type": "empty_map"}
+              }
+            }
+          , "then":
+            { "type": "assert_non_empty"
+            , "msg":
+              [ "Debug fission requires non-empty debug map FISSION_CONFIG field"
+              ]
+            , "$1":
+              { "type": "lookup"
+              , "key": "FISSION_CONFIG"
+              , "map":
+                { "type": "var"
+                , "name": "DEBUG"
+                , "default": {"type": "empty_map"}
+                }
+              }
+            }
+          , "else": {"type": "empty_map"}
+          }
+        ]
+      , [ "flags"
+        , { "type": "++"
+          , "$1":
+            [ {"type": "var", "name": "LDFLAGS"}
+            , { "type": "if"
+              , "cond":
+                { "type": "lookup"
+                , "key": "USE_GDB_INDEX"
+                , "map": {"type": "var", "name": "fission-config"}
+                }
+              , "then": ["-Wl,--gdb-index"]
+              }
+            ]
+          }
+        ]
+      ]
+    , "body": {"type": "var", "name": "flags"}
+    }
+  }
 , "objects":
   { "vars":
     [ "COMPILER"
@@ -694,6 +829,7 @@
     , "compile-deps"
     , "cflags-files"
     ]
+  , "imports": {"add-fission-compile-flags": "add-fission-compile-flags"}
   , "expression":
     { "type": "let*"
     , "bindings":
@@ -720,6 +856,9 @@
               }
             ]
           }
+        ]
+      , [ "compile flags"
+        , {"type": "CALL_EXPRESSION", "name": "add-fission-compile-flags"}
         ]
       ]
     , "body":
@@ -782,7 +921,7 @@
                   { "type": "++"
                   , "$1":
                     [ [{"type": "var", "name": "COMPILER"}]
-                    , {"type": "var", "name": "COMPILE_FLAGS"}
+                    , {"type": "var", "name": "compile flags"}
                     , ["-I", "work", "-isystem", "include"]
                     , ["-c", {"type": "var", "name": "work src_name"}]
                     , ["-o", {"type": "var", "name": "work out"}]
@@ -839,6 +978,7 @@
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
     , "compiler": "compiler"
     , "flags": "flags"
+    , "add-fission-compile-flags": "add-fission-compile-flags"
     }
   , "expression":
     { "type": "let*"
@@ -862,6 +1002,9 @@
             , {"type": "var", "name": "compile-args"}
             ]
           }
+        ]
+      , [ "compile flags"
+        , {"type": "CALL_EXPRESSION", "name": "add-fission-compile-flags"}
         ]
       , [ "include tree"
         , { "type": "singleton_map"
@@ -959,7 +1102,7 @@
                     , { "type": "++"
                       , "$1":
                         [ [{"type": "var", "name": "COMPILER"}]
-                        , {"type": "var", "name": "COMPILE_FLAGS"}
+                        , {"type": "var", "name": "compile flags"}
                         , [ "-I"
                           , "work"
                           , "-isystem"
@@ -1029,7 +1172,7 @@
                 , { "type": "++"
                   , "$1":
                     [ [{"type": "var", "name": "COMPILER"}]
-                    , {"type": "var", "name": "COMPILE_FLAGS"}
+                    , {"type": "var", "name": "compile flags"}
                     , ["-I", "work", "-isystem", "include"]
                     , ["-c", {"type": "var", "name": "work src_name"}]
                     , ["-o", {"type": "var", "name": "work out"}]
@@ -1632,6 +1775,8 @@
     , "default-LDFLAGS": "default-LDFLAGS"
     , "default-TOOLCHAIN": "default-TOOLCHAIN"
     , "default-NON_SYSTEM_TOOLS": "default-NON_SYSTEM_TOOLS"
+    , "add-fission-compile-flags": "add-fission-compile-flags"
+    , "add-fission-link-flags": "add-fission-link-flags"
     }
   , "expression":
     { "type": "let*"
@@ -1697,6 +1842,12 @@
         ]
       , ["hdrs", {"type": "empty_map"}]
       , ["objects", {"type": "CALL_EXPRESSION", "name": "objects"}]
+      , [ "compile flags"
+        , {"type": "CALL_EXPRESSION", "name": "add-fission-compile-flags"}
+        ]
+      , [ "ld flags"
+        , {"type": "CALL_EXPRESSION", "name": "add-fission-link-flags"}
+        ]
       , [ "link-args"
         , { "type": "nub_right"
           , "$1":
@@ -1758,9 +1909,9 @@
               , "-o"
               , {"type": "var", "name": "binpath"}
               ]
-            , {"type": "var", "name": "COMPILE_FLAGS"}
+            , {"type": "var", "name": "compile flags"}
             , {"type": "var", "name": "link-args"}
-            , {"type": "var", "name": "LDFLAGS"}
+            , {"type": "var", "name": "ld flags"}
             ]
           }
         ]
