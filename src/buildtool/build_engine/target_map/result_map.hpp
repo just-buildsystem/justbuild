@@ -354,9 +354,10 @@ class ResultTargetMap {
 
     template <bool kIncludeOrigins = false>
     [[nodiscard]] auto ToJson(gsl::not_null<Statistics const*> const& stats,
-                              gsl::not_null<Progress*> const& progress) const
+                              gsl::not_null<Progress*> const& progress,
+                              Logger const* logger = nullptr) const
         -> nlohmann::json {
-        auto const result = ToResult<kIncludeOrigins>(stats, progress);
+        auto const result = ToResult<kIncludeOrigins>(stats, progress, logger);
         auto actions = nlohmann::json::object();
         auto trees = nlohmann::json::object();
         std::for_each(result.actions.begin(),
@@ -385,9 +386,12 @@ class ResultTargetMap {
                 gsl::not_null<Statistics const*> const& stats,
                 gsl::not_null<Progress*> const& progress,
                 int indent = 2) const -> void {
+        auto logger = Logger("result-dumping");
+        logger.SetLogLimit(LogLevel::Error);
         if (not destinations.empty()) {
             // As serialization is expensive, compute the string only once
-            auto data = ToJson<kIncludeOrigins>(stats, progress).dump(indent);
+            auto data =
+                ToJson<kIncludeOrigins>(stats, progress, &logger).dump(indent);
             for (auto const& graph_file : destinations) {
                 Logger::Log(LogLevel::Info,
                             "Dumping action graph to file {}.",
