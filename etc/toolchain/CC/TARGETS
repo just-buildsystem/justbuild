@@ -54,6 +54,7 @@
   , "CC": ["cc"]
   , "CXX": ["c++"]
   , "AR": ["ar"]
+  , "DWP": ["dwp"]
   , "PATH": ["/bin", "/sbin", "/usr/bin", "/usr/sbin"]
   }
 , "gcc":
