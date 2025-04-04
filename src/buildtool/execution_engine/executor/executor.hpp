@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <compare>
 #include <exception>
 #include <filesystem>
 #include <functional>
@@ -59,6 +60,7 @@
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
+#include "src/buildtool/execution_engine/tree_operations/tree_operations_utils.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/git_tree.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -77,6 +79,54 @@
 /// \brief Implementations for executing actions and uploading artifacts.
 class ExecutorImpl {
   public:
+    /// \brief Computes the result of a tree-overlay action.
+    /// \returns std::nullopt on success, nullptr on error.
+    [[nodiscard]] static auto ExecuteTreeOverlayAction(
+        Logger const& logger,
+        gsl::not_null<DependencyGraph::ActionNode const*> const& action,
+        IExecutionApi const& api) -> std::optional<IExecutionResponse::Ptr> {
+        std::vector<DependencyGraph::NamedArtifactNodePtr> inputs =
+            action->Dependencies();
+        std::sort(inputs.begin(), inputs.end(), [](auto a, auto b) {
+            return a.path < b.path;
+        });
+        logger.Emit(LogLevel::Debug, [&]() {
+            std::ostringstream oss{};
+            oss << "Requested tree-overlay action is " << action->Content().Id()
+                << "\n";
+            oss << "Trees to overlay:";
+            for (auto const& input : inputs) {
+                oss << "\n - " << input.node->Content().Info()->digest.hash()
+                    << ":" << input.node->Content().Info()->digest.size() << ":"
+                    << ToChar(input.node->Content().Info()->type);
+            }
+            return oss.str();
+        });
+        auto tree = *inputs[0].node->Content().Info();
+        for (auto const& overlay : inputs) {
+            auto computed_overlay = TreeOperationsUtils::ComputeTreeOverlay(
+                api,
+                tree,
+                *overlay.node->Content().Info(),
+                action->Content().IsOverlayDisjoint());
+            if (not computed_overlay) {
+                logger.Emit(LogLevel::Error,
+                            "Tree-overlay computation failed: {}",
+                            computed_overlay.error());
+                return nullptr;
+            }
+            tree = computed_overlay.value();
+        }
+        auto const& tree_artifact = action->OutputDirs()[0].node->Content();
+        bool failed_inputs = false;
+        for (auto const& [local_path, artifact] : inputs) {
+            failed_inputs |= artifact->Content().Info()->failed;
+        }
+        tree_artifact.SetObjectInfo(
+            tree.digest, ObjectType::Tree, failed_inputs);
+        return std::nullopt;
+    }
+
     /// \brief Execute action and obtain response.
     /// \returns std::nullopt for actions without response (e.g., tree actions).
     /// \returns nullptr on error.
@@ -91,6 +141,9 @@ class ExecutorImpl {
         gsl::not_null<Statistics*> const& stats,
         gsl::not_null<Progress*> const& progress)
         -> std::optional<IExecutionResponse::Ptr> {
+        if (action->Content().IsTreeOverlayAction()) {
+            return ExecuteTreeOverlayAction(logger, action, api);
+        }
         auto const& inputs = action->Dependencies();
         auto const tree_action = action->Content().IsTreeAction();
 
