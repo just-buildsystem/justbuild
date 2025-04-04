@@ -2738,6 +2738,18 @@
                       }
                     }
                   ]
+                , [ "dwarf-pkg"
+                  , { "type": "if"
+                    , "cond": {"type": "var", "name": "skip-debug-stage"}
+                    , "then": {"type": "empty_map"}
+                    , "else":
+                      { "type": "DEP_PROVIDES"
+                      , "dep": {"type": "var", "name": "target"}
+                      , "provider": "dwarf-pkg"
+                      , "default": {"type": "empty_map"}
+                      }
+                    }
+                  ]
                 ]
               , "body":
                 { "type": "if"
@@ -2747,9 +2759,14 @@
                   { "type": "let*"
                   , "bindings":
                     [ [ "artifacts"
-                      , { "type": "DEP_ARTIFACTS"
-                        , "dep": {"type": "var", "name": "target"}
-                        , "default": {"type": "empty_map"}
+                      , { "type": "map_union"
+                        , "$1":
+                          [ { "type": "DEP_ARTIFACTS"
+                            , "dep": {"type": "var", "name": "target"}
+                            , "default": {"type": "empty_map"}
+                            }
+                          , {"type": "var", "name": "dwarf-pkg"}
+                          ]
                         }
                       ]
                     , [ "link-deps"
