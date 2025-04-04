@@ -22,9 +22,19 @@ auto DependencyGraph::CreateOutputArtifactNodes(
     std::string const& action_id,
     std::vector<std::string> const& file_paths,
     std::vector<std::string> const& dir_paths,
-    bool is_tree_action)
+    bool is_tree_action,
+    bool is_tree_overlay_action)
     -> std::pair<std::vector<DependencyGraph::NamedArtifactNodePtr>,
                  std::vector<DependencyGraph::NamedArtifactNodePtr>> {
+    if (is_tree_overlay_action) {  // create tree-overlay artifact
+        auto artifact =
+            ArtifactDescription::CreateTreeOverlay(action_id).ToArtifact();
+        auto const node_id = AddArtifact(std::move(artifact));
+        return std::make_pair(std::vector<NamedArtifactNodePtr>{},
+                              std::vector<NamedArtifactNodePtr>{
+                                  {{}, &(*artifact_nodes_[node_id])}});
+    }
+
     if (is_tree_action) {  // create tree artifact
         auto artifact = ArtifactDescription::CreateTree(action_id).ToArtifact();
         auto const node_id = AddArtifact(std::move(artifact));
@@ -71,7 +81,8 @@ auto DependencyGraph::CreateInputArtifactNodes(
 
 auto DependencyGraph::CreateActionNode(Action const& action) noexcept
     -> DependencyGraph::ActionNode* {
-    if (action.IsTreeAction() or not action.Command().empty()) {
+    if (action.IsTreeAction() or action.IsTreeOverlayAction() or
+        not action.Command().empty()) {
         auto const node_id = AddAction(action);
         return &(*action_nodes_[node_id]);
     }
@@ -133,14 +144,14 @@ auto DependencyGraph::AddArtifact(ArtifactDescription const& description)
 }
 
 auto DependencyGraph::AddAction(ActionDescription const& description) -> bool {
-    auto output_nodes =
-        CreateOutputArtifactNodes(description.Id(),
-                                  description.OutputFiles(),
-                                  description.OutputDirs(),
-                                  description.GraphAction().IsTreeAction());
+    auto output_nodes = CreateOutputArtifactNodes(
+        description.Id(),
+        description.OutputFiles(),
+        description.OutputDirs(),
+        description.GraphAction().IsTreeAction(),
+        description.GraphAction().IsTreeOverlayAction());
     auto* action_node = CreateActionNode(description.GraphAction());
     auto input_nodes = CreateInputArtifactNodes(description.Inputs());
-
     if (action_node == nullptr or not input_nodes.has_value() or
         (output_nodes.first.empty() and output_nodes.second.empty())) {
         return false;

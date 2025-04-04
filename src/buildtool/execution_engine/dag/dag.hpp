@@ -508,7 +508,8 @@ class DependencyGraph : DirectedAcyclicGraph {
         std::string const& action_id,
         std::vector<std::string> const& file_paths,
         std::vector<std::string> const& dir_paths,
-        bool is_tree_action)
+        bool is_tree_action,
+        bool is_tree_overlay_action)
         -> std::pair<std::vector<DependencyGraph::NamedArtifactNodePtr>,
                      std::vector<DependencyGraph::NamedArtifactNodePtr>>;
 
