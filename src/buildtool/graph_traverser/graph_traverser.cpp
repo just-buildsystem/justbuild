@@ -437,7 +437,7 @@ auto GraphTraverser::BuildArtifacts(
     std::map<std::string, ArtifactDescription> const& runfiles,
     std::vector<ActionDescription::Ptr>&& actions,
     std::vector<Tree::Ptr>&& trees,
-    std::vector<TreeOverlay::Ptr>&& /*tree_overlays*/,
+    std::vector<TreeOverlay::Ptr>&& tree_overlays,
     std::vector<std::string>&& blobs,
     std::vector<ArtifactDescription> const& extra_artifacts) const
     -> std::optional<
@@ -461,8 +461,11 @@ auto GraphTraverser::BuildArtifacts(
     }
 
     std::vector<ActionDescription> tree_actions{};
-    tree_actions.reserve(trees.size());
+    tree_actions.reserve(trees.size() + tree_overlays.size());
     for (auto const& tree : trees) {
+        tree_actions.emplace_back(tree->Action());
+    }
+    for (auto const& tree : tree_overlays) {
         tree_actions.emplace_back(tree->Action());
     }
 
