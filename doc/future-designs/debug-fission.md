@@ -92,16 +92,23 @@ The following supported keys are proposed:
    fission and otherwise signals regular debug mode, and
 
  - a `"FISSION_CONFIG"` map, which can configure in more detail how debug
-   fission behaves. If missing, defaults to empty. If debug fission is not
-   enabled, this field is ignored.
+   fission behaves. Existence is enforced if debug fission is enabled.
+   Otherwise, this field is ignored.
+
+The `"USE_DEBUG_FISSION"` flag only enables the corresponding rules logic, but
+does not change any compile and/or link flags. In particular, instructing the
+compiler to generated any DWARF files to begin with must be done through an
+appropriate `"FISSION_CONFIG"` map.
 
 The `"FISSION_CONFIG"` map should accept the following keys:
 
- - `"USE_DWARF_SPLIT"`: If evaluated to `true`, appends the `-gsplit-dwarf`
-   flag to the compile flags.
+ - `"USE_SPLIT_DWARF"`: If evaluated to `true`, appends the `-gsplit-dwarf`
+   flag to the compile flags. This is currently the only flag that actually
+   instructs the compiler to generate .dwo files and as such it should be
+   provided in case debug fission is enabled.
 
- - `"DWARF_VERSION"`: Expects a number defining the DWARF format version. If
-   provided, appends the `-gdwarf-<version>` flag to the compile flag.
+ - `"DWARF_VERSION"`: Expects a string defining the DWARF format version. If
+   provided, appends the `-gdwarf-<value>` flag to the compile flag.
 
    Each toolchain comes with a default in terms of which version of the DWARF
    format is used. Basically all reasonably modern toolchains (GCC >=4.8.1,
@@ -112,7 +119,7 @@ The `"FISSION_CONFIG"` map should accept the following keys:
    various compilers and tools differs, so it is recommended to use version 4.
 
  - `"USE_GDB_INDEX"`: If evaluated to `true`, appends the `-Wl,--gdb-index` flag
-   to the linker flags. Defaults to `false`.
+   to the compile flags. Defaults to `false`.
 
    This option enables, in linkers that support it, an optimization which
    bundles certain debug symbols sections together into a single `.gdb_index`
@@ -156,7 +163,8 @@ flags are being handled.
 
 The toolchain flags will be treated as before, with the addition that in debug
 mode, if the final compile flags list is empty, `["-g"]` will be used by
-default.
+default. To this resulting flags list any debug fission flags configured via the
+`"FISSION_CONFIG"` map will be added if debug fission is enabled.
 
 The `"USE_DEBUG_FISSION"` flag of `"DEBUG"` will inform these rules on whether
 the debug fission logic should be used or not. In this way, only the combination
@@ -165,28 +173,30 @@ debug fission, while all other combinations of toolchains and rules will perform
 as before.
 
 All consumers of the internal `"objects"` expression (i.e., static/dynamic
-libraries and binaries) should provide a new field `"debug-info"`, defaulting to
+libraries and binaries) should provide a new field `"dwarf-pkg"`, defaulting to
 the empty map. If debug fission is enabled, this field will contain the
 corresponding DWARF package file, constructed via a new expression
-`"dwarf artifact"`, which, based on given `"dwarf-objects"`, `"link-deps"` and a
-`stage`, uses the given DWARF objects, as well as the staged DWARF package files
-provided in the `debug-info` of the given link dependencies, as inputs to an
-`ACTION` generating a resulting DWARF package file, appropriately staged. Each
-such consumer will pass the appropriate inputs to the new `"dwarf artifact"`
-expression considering that `.dwo` files need to be gathered the same as `.o`
-files and `.dwp` files need to be gathered the same as libraries/binaries.
+`"dwarf package"`, which, based on given `"dwarf objects"`, `"dwarf deps"` and a
+`stage`, uses the given DWARF objects and DWARF package files (provided by the
+`"dwarf deps"`) as inputs to an `ACTION` generating a resulting DWARF package
+file, appropriately staged. Each such consumer will pass the appropriate inputs
+to the new `"dwarf package"` expression considering that `.dwo` files need to be
+gathered the same as `.o` files and `.dwp` files need to be gathered the same as
+libraries/binaries. In particular, the `"dwarf deps"` shall contain only the
+DWARF package files of any link dependencies that are considered for generating
+the regular artifact (library/binary).
 
-The output of the compile `ACTION` in the `"objects"` expression should be
-extended, if debug fission is enabled, by an additional path corresponding to
-the expected `.dwo` DWARF file, staged next to the usual `.o` file. This path
-needs to be passed to any consumers of `"objects"`. For this purpose, the
-`"objects"` expression should be refactored to provide a map result instead of a
-single variable.
+As an auxiliary required change, the output of the compile `ACTION` in the
+`"objects"` expression should be extended, if debug fission is enabled, by an
+additional path corresponding to the expected `.dwo` DWARF file, staged next to
+the usual `.o` file. This path needs to be passed to any consumers of
+`"objects"`. For this purpose, the expression should be refactored to return a
+map result instead of a single variable.
 
 ### Extend the `"install-with-deps"` rule to stage DWARF files
 
-The `"install-with-deps"` rule should stage also any `"debug-info"` entries from
-providers when in debug mode, int he same locations as it does regular
+The `"install-with-deps"` rule should stage also any `"debug-pkg"` entries from
+providers when in debug mode, in the same locations as it does regular
 artifacts. As paths are handled by each library/binary accordingly, the DWARF
 package files should always end up next to their corresponding build artifact,
 i.e., where `gdb(1)` expects them.
