@@ -423,6 +423,8 @@ def bootstrap() -> None:
             dirs.remove('computed_roots')
         if 'tree_structure' in dirs:
             dirs.remove('tree_structure')
+        if 'tree_operations' in dirs:
+            dirs.remove('tree_operations')
         for f in files:
             if f.endswith(".cpp"):
                 cpp_files.append(os.path.join(root, f))
