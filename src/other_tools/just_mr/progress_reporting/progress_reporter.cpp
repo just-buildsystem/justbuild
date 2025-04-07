@@ -35,7 +35,7 @@ auto JustMRProgressReporter::Reporter(
         auto const run = stats->ExecutedCounter();
         auto const active = progress->TaskTracker().Active();
         auto const sample = progress->TaskTracker().Sample();
-        auto msg = fmt::format("{} comptued, {} local, {} cached, {} done",
+        auto msg = fmt::format("{} computed, {} local, {} cached, {} done",
                                computed,
                                local,
                                cached,
