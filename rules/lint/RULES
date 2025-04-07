@@ -58,10 +58,13 @@
       , "  by the field \"config\", and"
       , "- OUT pointing to a directory to which files with the lint result"
       , "  can be written."
-      , "- META pointing to a json file contaning"
+      , "- META pointing to a json file containing"
       , "  - at key \"direct deps artifact names\" a list of all input"
       , "    artifacts that come from the target itself or are runfiles of a"
       , "    direct dependency."
+      , "  - at key \"extra outs\" a list of extra output artifacts that the"
+      , "    command might produce, such as DWARF objects if debug fission is"
+      , "    enabled."
       , "- TMPDIR pointing to a directory location that can be used to"
       , "  create additional temporary files."
       , "It is supposed to indicate by the exit code whether the file to lint"
@@ -163,6 +166,12 @@
                   , "provider": "direct deps artifact names"
                   }
                 ]
+              , [ "extra outs"
+                , { "type": "DEP_PROVIDES"
+                  , "dep": {"type": "var", "name": "_"}
+                  , "provider": "extra outs"
+                  }
+                ]
               ]
             , "body":
               { "type": "TREE"
@@ -189,7 +198,8 @@
                           { "type": "json_encode"
                           , "$1":
                             { "type": "env"
-                            , "vars": ["direct deps artifact names"]
+                            , "vars":
+                              ["direct deps artifact names", "extra outs"]
                             }
                           }
                         }

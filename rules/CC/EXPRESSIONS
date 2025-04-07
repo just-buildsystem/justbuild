@@ -1217,10 +1217,12 @@
                         ]
                       }
                     ]
+                  , ["extra outs", []]
                   ]
                 , "body":
                   { "type": "env"
-                  , "vars": ["cmd", "src", "direct deps artifact names"]
+                  , "vars":
+                    ["cmd", "src", "direct deps artifact names", "extra outs"]
                   }
                 }
               }
@@ -1272,6 +1274,33 @@
                   , "$1": ["work", {"type": "var", "name": "out"}]
                   }
                 ]
+              , [ "dwarf out"
+                , { "type": "change_ending"
+                  , "$1": {"type": "var", "name": "src_name"}
+                  , "ending": ".dwo"
+                  }
+                ]
+              , [ "work dwarf out"
+                , { "type": "join"
+                  , "separator": "/"
+                  , "$1": ["work", {"type": "var", "name": "dwarf out"}]
+                  }
+                ]
+              , [ "extra outs"
+                , { "type": "if"
+                  , "cond":
+                    { "type": "lookup"
+                    , "key": "USE_DEBUG_FISSION"
+                    , "map":
+                      { "type": "var"
+                      , "name": "DEBUG"
+                      , "default": {"type": "empty_map"}
+                      }
+                    }
+                  , "then": [{"type": "var", "name": "work dwarf out"}]
+                  , "else": []
+                  }
+                ]
               , [ "cmd"
                 , { "type": "++"
                   , "$1":
@@ -1295,7 +1324,12 @@
                     [["src", {"type": "var", "name": "work src_name"}]]
                   , "body":
                     { "type": "env"
-                    , "vars": ["cmd", "src", "direct deps artifact names"]
+                    , "vars":
+                      [ "cmd"
+                      , "src"
+                      , "direct deps artifact names"
+                      , "extra outs"
+                      ]
                     }
                   }
                 }
