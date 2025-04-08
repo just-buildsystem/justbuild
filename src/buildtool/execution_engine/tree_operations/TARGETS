@@ -11,6 +11,7 @@
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
+    , ["@", "json", "", "json"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "bazel_types"]

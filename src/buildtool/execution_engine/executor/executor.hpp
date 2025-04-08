@@ -111,7 +111,7 @@ class ExecutorImpl {
                 action->Content().IsOverlayDisjoint());
             if (not computed_overlay) {
                 logger.Emit(LogLevel::Error,
-                            "Tree-overlay computation failed: {}",
+                            "Tree-overlay computation failed:\n{}",
                             computed_overlay.error());
                 return nullptr;
             }

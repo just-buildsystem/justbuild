@@ -25,6 +25,7 @@
 #include "fmt/core.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "gsl/gsl"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -322,11 +323,11 @@ auto TreeOperationsUtils::ComputeTreeOverlay(
         // If both objects are not trees, actual conflict detected.
         if (disjoint) {
             return unexpected{
-                fmt::format("Conflict detected in tree overlay computation {} "
-                            "vs {}: '{}' points to different objects: {} vs {}",
+                fmt::format("Conflict detected in tree-overlay computation {} "
+                            "vs {}:\n{} points to different objects: {} vs {}",
                             base_tree_info.ToString(),
                             other_tree_info.ToString(),
-                            base_name,
+                            nlohmann::json(base_name).dump(),
                             base_entry.info.ToString(),
                             it->second.info.ToString())};
         }
