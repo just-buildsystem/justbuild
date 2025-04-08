@@ -673,6 +673,11 @@
   , "deps": [["@", "absl", "absl/log", "initialize"], ["", "libprotobuf"]]
   }
 , "protoc":
+  { "type": "configure"
+  , "target": "protoc (unconfigured)"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
+, "protoc (unconfigured)":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["protoc"]
   , "private-deps": [["", "libprotoc"]]
