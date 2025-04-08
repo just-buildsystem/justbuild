@@ -51,6 +51,11 @@
     ]
   }
 , "grpc_cpp_plugin":
+  { "type": "configure"
+  , "target": "grpc_cpp_plugin (unconfigured)"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
+, "grpc_cpp_plugin (unconfigured)":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["grpc_cpp_plugin"]
   , "srcs": ["cpp_plugin.cc"]
