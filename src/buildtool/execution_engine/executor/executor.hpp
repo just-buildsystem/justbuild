@@ -85,7 +85,6 @@ class ExecutorImpl {
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         IExecutionApi const& api,
-
         gsl::not_null<Progress*> const& progress)
         -> std::optional<IExecutionResponse::Ptr> {
         progress->TaskTracker().Start(action->Content().Id());
@@ -805,6 +804,19 @@ class ExecutorImpl {
                     Evaluator::GetExpressionLogLimit());
                 msg << "#";
                 msg << origin.second;
+            }
+        }
+        if (action->Content().IsTreeOverlayAction()) {
+            msg << "\ninputs were";
+            std::vector<DependencyGraph::NamedArtifactNodePtr> inputs =
+                action->Dependencies();
+            std::sort(inputs.begin(), inputs.end(), [](auto a, auto b) {
+                return a.path < b.path;
+            });
+            for (auto const& input : inputs) {
+                msg << "\n - " << input.node->Content().Info()->digest.hash()
+                    << ":" << input.node->Content().Info()->digest.size() << ":"
+                    << ToChar(input.node->Content().Info()->type);
             }
         }
         logger.Emit(LogLevel::Error, "{}", msg.str());
