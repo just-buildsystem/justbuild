@@ -95,6 +95,11 @@
   , "private-hdrs": ["bzlib_private.h"]
   }
 , "bzip2internal":
+  { "type": "configure"
+  , "target": "bzip2internal (unconfigured)"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
+, "bzip2internal (unconfigured)":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["bzip2"]
   , "pure C": ["YES"]
@@ -102,6 +107,11 @@
   , "deps": ["libbz2"]
   }
 , "bzip2recoverinternal":
+  { "type": "configure"
+  , "target": "bzip2recoverinternal (unconfigured)"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
+, "bzip2recoverinternal (unconfigured)":
   { "type": ["@", "rules", "CC", "binary"]
   , "name": ["bzip2recover"]
   , "pure C": ["YES"]
