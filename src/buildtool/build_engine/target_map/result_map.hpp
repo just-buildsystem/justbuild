@@ -204,7 +204,7 @@ class ResultTargetMap {
 
         auto& origin_map = progress->OriginMap();
         origin_map.clear();
-        origin_map.reserve(na);
+        origin_map.reserve(na + nto);
         for (const auto& target : targets_) {
             std::for_each(target.begin(), target.end(), [&](auto const& el) {
                 auto const& actions = el.second->Actions();
@@ -216,6 +216,23 @@ class ResultTargetMap {
                         std::pair<ConfiguredTarget, std::size_t> origin{
                             el.first, pos++};
                         auto id = action->Id();
+                        if (origin_map.contains(id)) {
+                            origin_map[id].push_back(origin);
+                        }
+                        else {
+                            origin_map[id] = std::vector<
+                                std::pair<ConfiguredTarget, std::size_t>>{
+                                origin};
+                        }
+                    });
+                auto const& tree_overlays = el.second->TreeOverlays();
+                std::for_each(
+                    tree_overlays.begin(),
+                    tree_overlays.end(),
+                    [&origin_map, &pos, &el](auto const& overlay) {
+                        std::pair<ConfiguredTarget, std::size_t> origin{
+                            el.first, pos++};
+                        auto id = overlay->Id();
                         if (origin_map.contains(id)) {
                             origin_map[id].push_back(origin);
                         }
