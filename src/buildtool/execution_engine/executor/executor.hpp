@@ -84,7 +84,11 @@ class ExecutorImpl {
     [[nodiscard]] static auto ExecuteTreeOverlayAction(
         Logger const& logger,
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
-        IExecutionApi const& api) -> std::optional<IExecutionResponse::Ptr> {
+        IExecutionApi const& api,
+
+        gsl::not_null<Progress*> const& progress)
+        -> std::optional<IExecutionResponse::Ptr> {
+        progress->TaskTracker().Start(action->Content().Id());
         std::vector<DependencyGraph::NamedArtifactNodePtr> inputs =
             action->Dependencies();
         std::sort(inputs.begin(), inputs.end(), [](auto a, auto b) {
@@ -124,6 +128,7 @@ class ExecutorImpl {
         }
         tree_artifact.SetObjectInfo(
             tree.digest, ObjectType::Tree, failed_inputs);
+        progress->TaskTracker().Stop(action->Content().Id());
         return std::nullopt;
     }
 
@@ -142,7 +147,7 @@ class ExecutorImpl {
         gsl::not_null<Progress*> const& progress)
         -> std::optional<IExecutionResponse::Ptr> {
         if (action->Content().IsTreeOverlayAction()) {
-            return ExecuteTreeOverlayAction(logger, action, api);
+            return ExecuteTreeOverlayAction(logger, action, api, progress);
         }
         auto const& inputs = action->Dependencies();
         auto const tree_action = action->Content().IsTreeAction();
