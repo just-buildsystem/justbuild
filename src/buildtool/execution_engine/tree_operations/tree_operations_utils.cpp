@@ -263,7 +263,9 @@ auto TreeOperationsUtils::ComputeTreeOverlay(
     IExecutionApi const& api,
     Artifact::ObjectInfo const& base_tree_info,
     Artifact::ObjectInfo const& other_tree_info,
-    bool disjoint) noexcept -> expected<Artifact::ObjectInfo, std::string> {
+    bool disjoint,
+    std::filesystem::path const& where) noexcept
+    -> expected<Artifact::ObjectInfo, std::string> {
     // Ensure that both objects are actually trees.
     Ensures(IsTreeObject(base_tree_info.type) and
             IsTreeObject(other_tree_info.type));
@@ -311,8 +313,11 @@ auto TreeOperationsUtils::ComputeTreeOverlay(
         if (IsTreeObject(base_entry.info.type) and
             IsTreeObject(it->second.info.type)) {
             // If both objects are trees, recursively compute tree overlay.
-            auto tree_info = ComputeTreeOverlay(
-                api, base_entry.info, it->second.info, disjoint);
+            auto tree_info = ComputeTreeOverlay(api,
+                                                base_entry.info,
+                                                it->second.info,
+                                                disjoint,
+                                                where / base_name);
             if (not tree_info) {
                 return unexpected{tree_info.error()};
             }
@@ -323,11 +328,8 @@ auto TreeOperationsUtils::ComputeTreeOverlay(
         // If both objects are not trees, actual conflict detected.
         if (disjoint) {
             return unexpected{
-                fmt::format("Conflict detected in tree-overlay computation {} "
-                            "vs {}:\n{} points to different objects: {} vs {}",
-                            base_tree_info.ToString(),
-                            other_tree_info.ToString(),
-                            nlohmann::json(base_name).dump(),
+                fmt::format("Conflict at path {}:\ndifferent objects {} vs {}",
+                            nlohmann::json((where / base_name).string()).dump(),
                             base_entry.info.ToString(),
                             it->second.info.ToString())};
         }

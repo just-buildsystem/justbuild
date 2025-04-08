@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TREE_OPERATIONS_TREE_OPERATIONS_UTILS_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TREE_OPERATIONS_TREE_OPERATIONS_UTILS_HPP
 
+#include <filesystem>
 #include <string>
 
 #include "src/buildtool/common/artifact.hpp"
@@ -39,7 +40,9 @@ class TreeOperationsUtils final {
         IExecutionApi const& api,
         Artifact::ObjectInfo const& base_tree_info,
         Artifact::ObjectInfo const& other_tree_info,
-        bool disjoint) noexcept -> expected<Artifact::ObjectInfo, std::string>;
+        bool disjoint,
+        std::filesystem::path const& where = std::filesystem::path{}) noexcept
+        -> expected<Artifact::ObjectInfo, std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TREE_OPERATIONS_TREE_OPERATIONS_UTILS_HPP
