@@ -46,11 +46,12 @@ cat > TARGETS <<'EOF'
   , "name": "merge"
   , "deps": ["foo", "good bar"]
   }
-, "real conflict":
+, "TheOffendingTarget":
   { "type": "disjoint_tree_overlay"
   , "name": "merge"
   , "deps": ["foo", "bad bar"]
   }
+, "real conflict": {"type": "install", "dirs": [["TheOffendingTarget", "."]]}
 }
 EOF
 
@@ -77,6 +78,8 @@ OVERLAY_ID=$(jq -r '.merge.data.id' "${OUT}/artifacts.json")
           -L '["env", "PATH='"${PATH}"'"]' 'real conflict' 2>&1 && exit 1 || :
 echo
 grep 'foobar' "${OUT}/log" # The location of the conflict should be mentioned
+grep 'TheOffendingTarget' "${OUT}/log" # The actual origin of that tree-overlay
+                                       # should be reported as well
 
 echo
 echo OK
