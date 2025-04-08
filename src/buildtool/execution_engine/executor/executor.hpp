@@ -776,10 +776,20 @@ class ExecutorImpl {
         gsl::not_null<DependencyGraph::ActionNode const*> const& action,
         gsl::not_null<Progress*> const& progress) noexcept {
         std::ostringstream msg{};
-        msg << "Failed to execute command ";
-        msg << nlohmann::json(action->Command()).dump();
-        msg << " in environment ";
-        msg << nlohmann::json(action->Env()).dump();
+        if (action->Content().IsTreeOverlayAction() or
+            action->Content().IsTreeAction()) {
+            msg << "Failed to execute tree";
+            if (action->Content().IsTreeOverlayAction()) {
+                msg << "-overlay";
+            }
+            msg << " action.";
+        }
+        else {
+            msg << "Failed to execute command ";
+            msg << nlohmann::json(action->Command()).dump();
+            msg << " in environment ";
+            msg << nlohmann::json(action->Env()).dump();
+        }
         auto const& origin_map = progress->OriginMap();
         auto origins = origin_map.find(action->Content().Id());
         if (origins != origin_map.end() and not origins->second.empty()) {
