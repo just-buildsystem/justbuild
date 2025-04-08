@@ -381,7 +381,7 @@ auto BazelCasClient::GetTree(std::string const& instance_name,
 
     auto status = stream->Finish();
     if (not status.ok()) {
-        LogStatus(&logger_, LogLevel::Error, status);
+        LogStatus(&logger_, LogLevel::Warning, status);
     }
 
     return result;
