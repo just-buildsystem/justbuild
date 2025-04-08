@@ -97,6 +97,13 @@
   , "deps": [["", "tool-under-test"]]
   , "keep": ["out/graph.json", "out/artifacts.json"]
   }
+, "tree-conflicts":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tree-conflcits"]
+  , "test": ["tree-conflicts.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["out/graph.json", "out/artifacts.json", "out/log"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["DROP_IO_HEAVY_TESTS"]
@@ -109,6 +116,7 @@
         , "equality-properties"
         , "trees"
         , "tree-ops"
+        , "tree-conflicts"
         , "conflicts"
         , "incomplete-retry"
         , "error-reporting"
