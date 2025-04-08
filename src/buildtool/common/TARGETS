@@ -153,6 +153,7 @@
     [ "action_description"
     , "artifact_description"
     , "common"
+    , ["@", "fmt", "", "fmt"]
     , ["@", "json", "", "json"]
     , ["src/buildtool/crypto", "hash_function"]
     ]

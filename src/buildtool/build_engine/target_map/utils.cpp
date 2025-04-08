@@ -262,6 +262,7 @@ auto BuildMaps::Target::Utils::createAction(
     HashFunction hash_function{HashFunction::Type::PlainSHA256};
     auto hasher = hash_function.MakeHasher();
 
+    hasher.Update("ACTION:");
     hasher.Update(hash_vector(hash_function, output_files));
     hasher.Update(hash_vector(hash_function, output_dirs));
     hasher.Update(hash_vector(hash_function, command));

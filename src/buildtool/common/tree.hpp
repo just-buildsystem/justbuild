@@ -22,6 +22,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "fmt/core.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"
@@ -91,7 +92,9 @@ class Tree {
         // The type of HashFunction is irrelevant here. It is used for
         // identification of trees. SHA256 is used.
         HashFunction const hash_function{HashFunction::Type::PlainSHA256};
-        return hash_function.PlainHashData(ComputeDescription(inputs).dump())
+        return hash_function
+            .PlainHashData(
+                fmt::format("TREE:{}", ComputeDescription(inputs).dump()))
             .HexString();
     }
 };
