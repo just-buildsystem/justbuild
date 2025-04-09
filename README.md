@@ -54,5 +54,6 @@ dependencies locally (neither as source nor as binary).
 - [Target-Level Caching as a Service](doc/concepts/service-target-cache.md)
 - [Garbage Collection](doc/concepts/garbage.md)
 - [Symbolic links](doc/concepts/symlinks.md)
+- [Tree overlays](doc/concepts/tree-overlay.md)
 - [Execution properties](doc/concepts/execution-properties.md)
 - [Computed roots](doc/concepts/computed-roots.md)
