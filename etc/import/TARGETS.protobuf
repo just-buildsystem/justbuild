@@ -91,9 +91,15 @@
   }
 , "installed protoc":
   {"type": ["@", "rules", "CC", "install-with-deps"], "targets": ["protoc"]}
+, "installed protoc (no debug)":
+  { "type": "configure"
+  , "target": "installed protoc"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
 , "toolchain_headers": {"type": "install", "deps": ["libprotobuf"]}
 , "toolchain":
   { "type": "install"
-  , "dirs": [["installed protoc", "."], ["toolchain_headers", "include"]]
+  , "dirs":
+    [["installed protoc (no debug)", "."], ["toolchain_headers", "include"]]
   }
 }

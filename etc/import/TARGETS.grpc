@@ -3721,8 +3721,13 @@
     , "PKG_CONFIG_ARGS"
     ]
   }
+, "grpc_cpp_plugin (no debug)":
+  { "type": "configure"
+  , "target": "grpc_cpp_plugin"
+  , "config": {"type": "'", "$1": {"DEBUG": null}}
+  }
 , "toolchain":
   { "type": ["@", "rules", "CC", "install-with-deps"]
-  , "targets": ["grpc_cpp_plugin"]
+  , "targets": ["grpc_cpp_plugin (no debug)"]
   }
 }
