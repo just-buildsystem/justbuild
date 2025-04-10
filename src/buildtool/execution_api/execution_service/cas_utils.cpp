@@ -145,9 +145,10 @@ auto CASUtils::SplitBlobIdentity(ArtifactDigest const& blob_digest,
     if (blob_digest.IsTree()) {
         auto tree_data = FileSystemManager::ReadFile(*path);
         if (not tree_data) {
-            return unexpected{grpc::Status{
-                grpc::StatusCode::INTERNAL,
-                fmt::format("could read tree data {}", blob_digest.hash())}};
+            return unexpected{
+                grpc::Status{grpc::StatusCode::INTERNAL,
+                             fmt::format("could not read tree data {}",
+                                         blob_digest.hash())}};
         }
         auto digest = storage.CAS().StoreBlob(*tree_data, false);
         if (not digest) {
