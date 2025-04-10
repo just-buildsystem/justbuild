@@ -191,11 +191,8 @@ auto BazelApi::CreateAction(
         else {
             if (IsTreeObject(info.type)) {
                 // read object infos from sub tree and call retrieve recursively
-                auto request_remote_tree = alternative != nullptr
-                                               ? std::make_optional(info.digest)
-                                               : std::nullopt;
-                auto reader = TreeReader<BazelNetworkReader>{
-                    network_->CreateReader(), std::move(request_remote_tree)};
+                auto reader =
+                    TreeReader<BazelNetworkReader>{network_->CreateReader()};
                 auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not result or

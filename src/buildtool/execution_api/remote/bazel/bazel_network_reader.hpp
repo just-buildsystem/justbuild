@@ -19,7 +19,6 @@
 #include <functional>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -41,10 +40,6 @@ class BazelNetworkReader final {
     explicit BazelNetworkReader(std::string instance_name,
                                 gsl::not_null<BazelCasClient const*> const& cas,
                                 HashFunction hash_function) noexcept;
-
-    BazelNetworkReader(
-        BazelNetworkReader&& other,
-        std::optional<ArtifactDigest> request_remote_tree) noexcept;
 
     [[nodiscard]] auto ReadDirectory(ArtifactDigest const& digest)
         const noexcept -> std::optional<bazel_re::Directory>;
@@ -79,17 +74,9 @@ class BazelNetworkReader final {
         const noexcept -> std::vector<ArtifactBlob>;
 
   private:
-    using DirectoryMap =
-        std::unordered_map<ArtifactDigest, bazel_re::Directory>;
-
     std::string const instance_name_;
     BazelCasClient const& cas_;
     HashFunction hash_function_;
-    std::optional<DirectoryMap> auxiliary_map_;
-
-    [[nodiscard]] auto MakeAuxiliaryMap(
-        std::vector<bazel_re::Directory>&& full_tree) const noexcept
-        -> std::optional<DirectoryMap>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_TREE_READER_HPP

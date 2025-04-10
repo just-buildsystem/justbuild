@@ -21,11 +21,8 @@
 #include <unordered_set>
 #include <utility>
 
-#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
-#include "src/buildtool/execution_api/common/message_limits.hpp"
-#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/back_map.hpp"
@@ -40,32 +37,8 @@ BazelNetworkReader::BazelNetworkReader(
       cas_{*cas},
       hash_function_{hash_function} {}
 
-BazelNetworkReader::BazelNetworkReader(
-    BazelNetworkReader&& other,
-    std::optional<ArtifactDigest> request_remote_tree) noexcept
-    : instance_name_{other.instance_name_},
-      cas_{other.cas_},
-      hash_function_{other.hash_function_} {
-    if (not IsNativeProtocol() and request_remote_tree) {
-        // Query full tree from remote CAS. Note that this is currently not
-        // supported by Buildbarn revision c3c06bbe2a.
-        auto full_tree =
-            cas_.GetTree(instance_name_,
-                         ArtifactDigestFactory::ToBazel(*request_remote_tree),
-                         MessageLimits::kMaxGrpcLength);
-        auxiliary_map_ = MakeAuxiliaryMap(std::move(full_tree));
-    }
-}
-
 auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
     const noexcept -> std::optional<bazel_re::Directory> {
-    if (auxiliary_map_) {
-        auto it = auxiliary_map_->find(digest);
-        if (it != auxiliary_map_->end()) {
-            return it->second;
-        }
-    }
-
     if (auto blob = ReadSingleBlob(digest)) {
         if (auto const content = blob->ReadContent()) {
             return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
@@ -150,25 +123,6 @@ auto BazelNetworkReader::DumpBlob(Artifact::ObjectInfo const& info,
 
 auto BazelNetworkReader::IsNativeProtocol() const noexcept -> bool {
     return ProtocolTraits::IsNative(hash_function_.GetType());
-}
-
-auto BazelNetworkReader::MakeAuxiliaryMap(
-    std::vector<bazel_re::Directory>&& full_tree) const noexcept
-    -> std::optional<DirectoryMap> {
-    ExpectsAudit(not IsNativeProtocol());
-
-    DirectoryMap result;
-    result.reserve(full_tree.size());
-    for (auto& dir : full_tree) {
-        try {
-            result.emplace(ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                               hash_function_, dir.SerializeAsString()),
-                           std::move(dir));
-        } catch (...) {
-            return std::nullopt;
-        }
-    }
-    return result;
 }
 
 auto BazelNetworkReader::ReadSingleBlob(ArtifactDigest const& digest)
