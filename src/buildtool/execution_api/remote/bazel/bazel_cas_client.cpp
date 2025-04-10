@@ -351,42 +351,6 @@ auto BazelCasClient::BatchReadBlobs(
     return result;
 }
 
-auto BazelCasClient::GetTree(std::string const& instance_name,
-                             bazel_re::Digest const& root_digest,
-                             std::int32_t page_size,
-                             std::string const& page_token) const noexcept
-    -> std::vector<bazel_re::Directory> {
-    auto request =
-        CreateGetTreeRequest(instance_name, root_digest, page_size, page_token);
-
-    grpc::ClientContext context;
-    bazel_re::GetTreeResponse response;
-    auto stream = stub_->GetTree(&context, request);
-
-    std::vector<bazel_re::Directory> result;
-    while (stream->Read(&response)) {
-        std::move(response.mutable_directories()->begin(),
-                  response.mutable_directories()->end(),
-                  std::back_inserter(result));
-        auto const& next_page_token = response.next_page_token();
-        if (not next_page_token.empty()) {
-            // recursively call this function with token for next page
-            auto next_result =
-                GetTree(instance_name, root_digest, page_size, next_page_token);
-            std::move(next_result.begin(),
-                      next_result.end(),
-                      std::back_inserter(result));
-        }
-    }
-
-    auto status = stream->Finish();
-    if (not status.ok()) {
-        LogStatus(&logger_, LogLevel::Warning, status);
-    }
-
-    return result;
-}
-
 auto BazelCasClient::UpdateSingleBlob(std::string const& instance_name,
                                       ArtifactBlob const& blob) const noexcept
     -> bool {

@@ -16,7 +16,6 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CAS_CLIENT_HPP
 
 #include <cstddef>
-#include <cstdint>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -79,12 +78,6 @@ class BazelCasClient {
         std::string const& instance_name,
         std::unordered_set<ArtifactDigest> const& blobs) const noexcept
         -> std::unordered_set<ArtifactBlob>;
-
-    [[nodiscard]] auto GetTree(std::string const& instance_name,
-                               bazel_re::Digest const& root_digest,
-                               std::int32_t page_size,
-                               std::string const& page_token = "")
-        const noexcept -> std::vector<bazel_re::Directory>;
 
     /// \brief Upload single blob via bytestream
     /// \param[in] instance_name Name of the CAS instance
