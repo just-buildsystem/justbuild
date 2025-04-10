@@ -687,7 +687,7 @@ class FileSystemManager {
         -> std::optional<std::string> {
         auto const type = Type(file);
         if (not type) {
-            Logger::Log(LogLevel::Debug,
+            Logger::Log(LogLevel::Trace,
                         "{} can not be read because it is not a file.",
                         file.string());
             return std::nullopt;
@@ -699,7 +699,7 @@ class FileSystemManager {
                                        ObjectType type) noexcept
         -> std::optional<std::string> {
         if (not IsFileObject(type)) {
-            Logger::Log(LogLevel::Debug,
+            Logger::Log(LogLevel::Trace,
                         "{} can not be read because it is not a file.",
                         file.string());
             return std::nullopt;
@@ -707,7 +707,7 @@ class FileSystemManager {
 
         auto const to_read = IncrementalReader::FromFile(kChunkSize, file);
         if (not to_read.has_value()) {
-            Logger::Log(LogLevel::Debug,
+            Logger::Log(LogLevel::Trace,
                         "FileSystemManager: failed to create reader for {}\n{}",
                         file.string(),
                         to_read.error());
