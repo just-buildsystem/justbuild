@@ -569,7 +569,6 @@ void GraphTraverser::PrintOutputs(
     std::vector<std::filesystem::path> const& paths,
     std::vector<DependencyGraph::ArtifactNode const*> const& artifact_nodes,
     std::map<std::string, ArtifactDescription> const& runfiles) const {
-    std::string msg_dbg{"Artifact ids:"};
     std::string msg_failed{"Failed artifacts:"};
     bool failed{false};
     nlohmann::json json{};
@@ -601,7 +600,6 @@ void GraphTraverser::PrintOutputs(
                             id);
             }
         }
-        msg_dbg += fmt::format("\n  {}: {}", path, id);
     }
 
     if (not clargs_.build.show_runfiles and not runfiles.empty()) {
@@ -609,7 +607,6 @@ void GraphTraverser::PrintOutputs(
     }
 
     Logger::Log(logger_, LogLevel::Info, "{}", message);
-    Logger::Log(logger_, LogLevel::Debug, "{}", msg_dbg);
     if (failed) {
         Logger::Log(logger_, LogLevel::Info, "{}", msg_failed);
     }
