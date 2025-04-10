@@ -62,7 +62,7 @@ auto BazelAcClient::GetActionResult(
     if (not ok) {
         if (status.error_code() == grpc::StatusCode::NOT_FOUND) {
             logger_.Emit(
-                LogLevel::Debug, "cache miss '{}'", status.error_message());
+                LogLevel::Trace, "cache miss '{}'", status.error_message());
         }
         else {
             LogStatus(&logger_, LogLevel::Error, status);
