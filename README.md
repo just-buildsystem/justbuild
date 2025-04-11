@@ -57,3 +57,4 @@ dependencies locally (neither as source nor as binary).
 - [Tree overlays](doc/concepts/tree-overlay.md)
 - [Execution properties](doc/concepts/execution-properties.md)
 - [Computed roots](doc/concepts/computed-roots.md)
+- [Profiling and Invocation Logging](doc/concepts/profiling.md)
