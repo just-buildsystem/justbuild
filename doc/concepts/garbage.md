@@ -113,6 +113,7 @@ The entries in the large-objects CAS are keyed by hash of the
 large object and the value of an entry is the concatenation of the
 hashes of the chunks the large object is composed of. An entry in
 a large-object CAS promises
+
 - that the chunks the large object is composed of are in the main
   CAS, more precisely `casf` in the same generation,
 - the concatenation of the specified chunks indeed gives the
@@ -129,6 +130,7 @@ can be replaced by a large-object entry themselves.
 
 Whenever an object is not found in the main CAS, the large-objects
 CAS is inspected. If found there, then, in this order,
+
 - if the entry is not already in the youngest generation, the chunks
   are promoted to the youngest generation,
 - the object itself is spliced on disk in a temproary file,
@@ -172,6 +174,7 @@ During garbage collection, while already holding the exclusive
 garbage-collection lock, the following compactification steps are
 performed on the youngest generation before doing the generation
 rotation.
+
 - For every entry in the large-objects CAS the corresponding entries
   in the main CAS are removed (for an entry in `cas-large-f` the
   entries in both, `casf` and `casx` are removed, as files and
@@ -181,6 +184,7 @@ rotation.
   added to the main CAS, the list of chunks the object is composed
   of is added to the large-objects CAS, and finally the object is
   removed from the main CAS.
+
 It should be noted that these steps do not modify the objects
 that can be obtained from that CAS generation. In particular, all
 invariants are kept.

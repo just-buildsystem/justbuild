@@ -96,6 +96,7 @@ to the stages.
 
 The reason we require stages to be passed to these constructors
 rather than artifacts that happen to be trees is twofold.
+
 - We want to find malformed expressions already analysis time;
   therefore, we need to ensure not only that the arguments to the
   `"tree_overlays"` entry in the action graph are artifacts, but, in

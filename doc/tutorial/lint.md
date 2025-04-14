@@ -149,8 +149,10 @@ know the correct defines to be used.
 Of course, those abstract nodes are just an implementation detail
 and there is a rule to define linting for the collected sources.
 It takes two programs (targets consisting of a single artifact),
+
 - the `linter` for running the lint task on a single file, and
 - the `summarizer` for summarizing the lint results;
+
 additionally, arbitrary `config` data can be given to have config
 files available, but also to use a linter built from source.
 

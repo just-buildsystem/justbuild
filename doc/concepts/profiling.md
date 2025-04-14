@@ -97,6 +97,7 @@ information about that attempt. This also happens if no build was
 attempted despite being requested, e.g., due to failure in analysis.
 The file contains a single JSON object, with the following key (and
 more keys possibly added in the future).
+
  - The key `"exit code"` contains the exit value of the `just`
    process; this allows easy filtering on the build and test results.
  - The key `"target"` contains the target in full-qualified form.
@@ -150,6 +151,7 @@ The configuration file for `just-mr` has an entry `"invocation
 log"`. This entry, if given, is a JSON object; rc-file merging is
 done on the individual entries of the `"invocation log"` object.
 It supports the following keys.
+
  - `"directory"` A single location object specifying the directory
    under which the invocation logging will happen. If not given, no
    invocation logging will happen and the other keys are ignored.
@@ -165,6 +167,7 @@ It supports the following keys.
 
 If invocation logging is requested, `just-mr` will create for each invocation
 a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
+
  - `<prefix>` is the directory specified by the `"directory"`
    location object.
  - `<project-id>` is the value specified by the `"project id"`
@@ -178,6 +181,7 @@ a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
    unique id for that invocation (following RFC9562). The reason we
    prefix the UUID with a time stamp is allow a simple time-based
    collection and clean up of the log data.
+
 Inside this directory the requested files with the specified file
 names will be created, in the case of `"--profile"`, `"--dump-graph"`,
 and `"--dump-plain-graph"` by passing the appropriate options to
@@ -185,6 +189,7 @@ the invocation of `just`.
 
 The meta-data will be written just by `just-mr` itself, just before
 doing the `exec` call. The file contains a JSON object with keys
+
  - `"time"` The time stamp in seconds since the epoch as floating-point
    number, possibly rounded down to the nearest integer.
  - `"cmdline"` The command line, as vector of strings, that `just-mr`

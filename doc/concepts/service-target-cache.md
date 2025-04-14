@@ -210,7 +210,7 @@ tree in the CAS of the associated remote-execution endpoint.
 For archives we typically require the `git` blob identifier to be
 given, thus the tree identifier corresponding to a distdir (i.e.,
 a list of distfiles) can always be computed without fetching the
-actual archives. 
+actual archives.
 
 In order to allow `just-mr` to set up a repository description that
 can build against an _absent_ distdir repository root, `just serve`

@@ -65,7 +65,7 @@ symbolic links, e.g., shared libraries pointing to the specific version
 detours through `/etc/alternatives`.
 
 Bootstrapping "shopping list" option
----------------------------------------------------------
+------------------------------------
 
 In order to more easily support building the tool itself against
 pre-installed dependencies with the respective directories containing
@@ -77,7 +77,7 @@ clean directory serving as root; during this copying, symlinks are
 followed.
 
 Our treatment of symbolic links
-------------------------------------
+-------------------------------
 
 ### "Ignore-special" roots
 

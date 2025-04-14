@@ -136,9 +136,11 @@ of a `"computed"` repository is just forwarded as computed root.
 
 Due to the presence of `just serve`, roots can be absent. This
 affects computed roots in two ways,
+
  - roots, in particular the target roots, of the repository referred
    to can be absent, and
  - a computed root can be absent itself.
+
 The latter has to be supported, as dependencies that should be
 delegated to `just serve` might contain computed roots themselves.
 In this case, we consider it acceptable to have one round of talking
@@ -172,12 +174,14 @@ true}]` is the same computed root considered absent.
 
 If a computed root is absent then, in native mode, regardless of whether
 the base repository is absent or not,
+
  - serve will be asked for the result, and
  - from the result the tree identifier of the root will be computed
    in memory and the root set to that value, as absent.
 
 If a concrete computed root refers to a base repository with absent
 target root,
+
  - the client will ask serve about the flexible variables of the
    specified target, and
  - with this information will compute locally the cache key and
