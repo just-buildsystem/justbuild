@@ -40,6 +40,7 @@ dependencies locally (neither as source nor as binary).
   - [How to create a single-node remote execution service](doc/tutorial/just-execute.org)
   - [Computed roots](doc/tutorial/computed.md)
   - [More build delegation through a serve endpoint](doc/tutorial/build-delegation.md)
+  - [Invocation logging and profiling](doc/tutorial/invocation-logging.md)
 
 ## Documentation
 
