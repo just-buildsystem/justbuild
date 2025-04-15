@@ -917,6 +917,7 @@ auto main(int argc, char* argv[]) -> int {
         Profile profile_data(arguments.analysis.profile);
         if (arguments.analysis.profile) {
             profile = &profile_data;
+            (*profile)->SetCLI(arguments);
         }
 
         // If no execution endpoint was given, the client should default to the

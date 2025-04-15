@@ -34,6 +34,11 @@ Profile file
 
 The profile file contains the following information.
 
+- For the key *`"subcommand"`* the subcommand that was executed.
+
+- For the key *`"subcommand args"`* the positional arguments that were
+  provided for that subcommand.
+
 - For the key *`"target"`* the target that was analysed/built/installed, as
   full qualified name.
 

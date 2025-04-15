@@ -6,9 +6,11 @@
   , "deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/main", "cli"]
     ]
   , "private-deps":
     [ ["@", "gsl", "", "gsl"]
+    , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/utils/cpp", "expected"]
     ]

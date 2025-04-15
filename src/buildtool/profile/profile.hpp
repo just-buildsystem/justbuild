@@ -24,6 +24,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/main/cli.hpp"
 
 class Profile {
   public:
@@ -33,6 +34,7 @@ class Profile {
     }
 
     void Write(int exit_code);
+    void SetCLI(CommandLineArguments const& cli);
     void SetTarget(nlohmann::json target);
     void SetConfiguration(nlohmann::json configuration);
     void NoteActionCompleted(std::string const& id,
