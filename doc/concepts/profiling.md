@@ -91,7 +91,8 @@ necessary set up and let `just` strictly follow instructions.
 
 The build tool `just` has an option `--profile` with one file name
 as parameter. This option is accepted by all `just` subcommands
-that do at least analysis. After completing the attempt for the
+that depend on analysis-related options (including `"describe"`).
+After completing the attempt for the
 requested task, it writes to the specified file name a file containing
 information about that attempt. This also happens if no build was
 attempted despite being requested, e.g., due to failure in analysis.
