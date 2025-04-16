@@ -5,6 +5,13 @@
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep-dirs": ["log"]
   }
+, "failing build":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["failing"]
+  , "test": ["failing.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "keep-dirs": ["log"]
+  }
 , "time":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["time"]
@@ -22,6 +29,6 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["profile"]
-  , "deps": ["basic", "time", "time, remote"]
+  , "deps": ["basic", "failing build", "time", "time, remote"]
   }
 }
