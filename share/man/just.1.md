@@ -437,7 +437,7 @@ Supported by: build|install|rebuild|traverse.
 **`--profile`** *`PATH`*  
 Write a profile to the specified path. See **`just-profile`**(5) for
 details on the format.  
-Supported by: analyse|build|install|rebuild|traverse.
+Supported by: analyse|build|install|rebuild|describe.
 
 **`--dump-graph`** *`PATH`*  
 File path for writing the action graph description to. See
