@@ -53,6 +53,8 @@ The profile file contains the following information.
 
   - For the key *`"time"`* for non-cached actions the build time in seconds.
 
+  - For the key *`"exit code"`* the exit code of the action, if not 0.
+
   - For the key *`"artifacts"`* an object with keys the output paths and values
     the hashes of the corresponding artifacts as hex-encoded strings.
 

@@ -33,6 +33,9 @@ void Profile::Write(int exit_code) {
             if (not v.cached) {
                 entry["duration"] = v.duration;
             }
+            if (v.exit_code != 0) {
+                entry["exit code"] = v.exit_code;
+            }
             entry["artifacts"] = v.artifacts;
             if (v.out) {
                 entry["stdout"] = *v.out;
@@ -81,6 +84,7 @@ void Profile::NoteActionCompleted(std::string const& id,
         actions_[id] = ActionData{
             .cached = response->IsCached(),
             .duration = response->ExecutionDuration(),
+            .exit_code = response->ExitCode(),
             .out = out,
             .err = err,
             .artifacts = std::unordered_map<std::string, std::string>()};
@@ -89,6 +93,7 @@ void Profile::NoteActionCompleted(std::string const& id,
         actions_[id] = ActionData{
             .cached = response->IsCached(),
             .duration = response->ExecutionDuration(),
+            .exit_code = response->ExitCode(),
             .out = out,
             .err = err,
             .artifacts = std::unordered_map<std::string, std::string>(
