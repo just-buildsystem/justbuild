@@ -743,7 +743,7 @@ TEST_CASE("CopyDirectoryImpl", "[file_system]") {
     CHECK(FileSystemManager::WriteFile("boo", "a/bb.txt"));
 
     // Test copy
-    CHECK(FileSystemManager::CopyDirectoryImpl("a", to, true));
+    CHECK(FileSystemManager::CopyDirectoryImpl("a", to));
 
     // Result should be in tmp-dir now
     CHECK(FileSystemManager::IsDirectory(to));

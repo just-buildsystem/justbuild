@@ -412,8 +412,8 @@ auto CreateFilePathGitMap(
                 return;
             }
             // copy folder content to tmp dir
-            if (not FileSystemManager::CopyDirectoryImpl(
-                    key.fpath, tmp_dir->GetPath(), /*recursively=*/true)) {
+            if (not FileSystemManager::CopyDirectoryImpl(key.fpath,
+                                                         tmp_dir->GetPath())) {
                 (*logger)(
                     fmt::format("Failed to copy content from directory {}",
                                 key.fpath.string()),

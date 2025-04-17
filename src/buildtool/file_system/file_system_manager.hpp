@@ -408,10 +408,10 @@ class FileSystemManager {
         return false;
     }
 
+    /// \brief Copy directory recursively
     [[nodiscard]] static auto CopyDirectoryImpl(
         std::filesystem::path const& src,
-        std::filesystem::path const& dst,
-        bool recursively = false) noexcept -> bool {
+        std::filesystem::path const& dst) noexcept -> bool {
         try {
             // also checks existence
             if (not IsDirectory(src)) {
@@ -428,11 +428,10 @@ class FileSystemManager {
                             dst.string());
                 return false;
             }
-            auto const opts =
+            static constexpr auto kOptions =
                 std::filesystem::copy_options::copy_symlinks |
-                (recursively ? std::filesystem::copy_options::recursive
-                             : std::filesystem::copy_options::none);
-            std::filesystem::copy(src, dst, opts);
+                std::filesystem::copy_options::recursive;
+            std::filesystem::copy(src, dst, kOptions);
             return true;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
