@@ -28,13 +28,13 @@
 
 class Profile {
   public:
-    explicit Profile(std::optional<std::string> output_file)
+    explicit Profile(std::string output_file, CommandLineArguments const& cli)
         : output_file_{std::move(output_file)} {
         profile_ = nlohmann::json::object();
+        SetCLI(cli);
     }
 
     void Write(int exit_code);
-    void SetCLI(CommandLineArguments const& cli);
     void SetTarget(nlohmann::json target);
     void SetConfiguration(nlohmann::json configuration);
     void NoteActionCompleted(std::string const& id,
@@ -54,6 +54,8 @@ class Profile {
     nlohmann::json profile_;
     std::unordered_map<std::string, ActionData> actions_;
     std::mutex mutex_;
+
+    void SetCLI(CommandLineArguments const& cli);
 };
 
 #endif

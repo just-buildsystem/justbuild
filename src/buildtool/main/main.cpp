@@ -722,7 +722,7 @@ void DumpArtifactsToBuild(
 }  // namespace
 
 auto main(int argc, char* argv[]) -> int {
-    std::optional<gsl::not_null<Profile*>> profile{};
+    std::unique_ptr<Profile> profile;
     SetupDefaultLogging();
     try {
         auto arguments = ParseCommandLineArguments(argc, argv);
@@ -914,10 +914,9 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         // Setup profile logging, if requested
-        Profile profile_data(arguments.analysis.profile);
         if (arguments.analysis.profile) {
-            profile = &profile_data;
-            (*profile)->SetCLI(arguments);
+            profile = std::make_unique<Profile>(*arguments.analysis.profile,
+                                                arguments);
         }
 
         // If no execution endpoint was given, the client should default to the
@@ -937,8 +936,8 @@ auto main(int argc, char* argv[]) -> int {
         auto remote_exec_config =
             CreateRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
         if (not remote_exec_config) {
-            if (profile) {
-                (*profile)->Write(kExitFailure);
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -959,8 +958,8 @@ auto main(int argc, char* argv[]) -> int {
             arguments.endpoint, arguments.protocol.hash_type);
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
-            if (profile) {
-                (*profile)->Write(kExitFailure);
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -997,12 +996,14 @@ auto main(int argc, char* argv[]) -> int {
 
         auto const main_apis =
             ApiBundle::Create(&local_context, &remote_context, &repo_config);
-        ExecutionContext const exec_context{.repo_config = &repo_config,
-                                            .apis = &main_apis,
-                                            .remote_context = &remote_context,
-                                            .statistics = &stats,
-                                            .progress = &progress,
-                                            .profile = profile};
+        ExecutionContext const exec_context{
+            .repo_config = &repo_config,
+            .apis = &main_apis,
+            .remote_context = &remote_context,
+            .statistics = &stats,
+            .progress = &progress,
+            .profile = profile != nullptr ? std::make_optional(profile.get())
+                                          : std::nullopt};
         const GraphTraverser::CommandLineArguments traverse_args{
             jobs,
             std::move(arguments.build),
@@ -1048,8 +1049,8 @@ auto main(int argc, char* argv[]) -> int {
                                          traverse_args,
                                          &exec_context,
                                          eval_root_jobs)) {
-            if (profile) {
-                (*profile)->Write(kExitFailure);
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -1060,8 +1061,8 @@ auto main(int argc, char* argv[]) -> int {
 #ifndef BOOTSTRAP_BUILD_TOOL
         auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {
-            if (profile) {
-                (*profile)->Write(kExitFailure);
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -1107,13 +1108,13 @@ auto main(int argc, char* argv[]) -> int {
                                          main_apis,
                                          arguments.common.jobs,
                                          arguments.describe.print_json);
-                if (profile) {
-                    (*profile)->Write(result);
+                if (profile != nullptr) {
+                    profile->Write(result);
                 }
                 return result;
             }
-            if (profile) {
-                (*profile)->Write(kExitFailure);
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
             }
             return kExitFailure;
         }
@@ -1121,9 +1122,9 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
         auto id = ReadConfiguredTarget(
             main_repo, main_ws_root, &repo_config, arguments.analysis);
-        if (profile) {
-            (*profile)->SetTarget(id.target.ToJson());
-            (*profile)->SetConfiguration(id.config.ToJson());
+        if (profile != nullptr) {
+            profile->SetTarget(id.target.ToJson());
+            profile->SetConfiguration(id.config.ToJson());
         }
         auto serve_errors = nlohmann::json::array();
         std::mutex serve_errors_access{};
@@ -1209,8 +1210,8 @@ auto main(int argc, char* argv[]) -> int {
                 DiagnoseResults(*analyse_result, arguments.diagnose);
                 dump_and_cleanup();
                 ReportTaintedness(*analyse_result);
-                if (profile) {
-                    (*profile)->Write(kExitSuccess);
+                if (profile != nullptr) {
+                    profile->Write(kExitSuccess);
                 }
                 return kExitSuccess;
             }
@@ -1268,8 +1269,8 @@ auto main(int argc, char* argv[]) -> int {
                 auto result = build_result->failed_artifacts
                                   ? kExitSuccessFailedArtifacts
                                   : kExitSuccess;
-                if (profile) {
-                    (*profile)->Write(result);
+                if (profile != nullptr) {
+                    profile->Write(result);
                 }
                 return result;
             }
@@ -1279,8 +1280,8 @@ auto main(int argc, char* argv[]) -> int {
         Logger::Log(
             LogLevel::Error, "Caught exception with message: {}", ex.what());
     }
-    if (profile) {
-        (*profile)->Write(kExitFailure);
+    if (profile != nullptr) {
+        profile->Write(kExitFailure);
     }
     return kExitFailure;
 }

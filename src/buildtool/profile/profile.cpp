@@ -22,10 +22,6 @@
 #include "src/utils/cpp/expected.hpp"
 
 void Profile::Write(int exit_code) {
-    if (not output_file_) {
-        return;
-    }
-
     if (not actions_.empty()) {
         auto actions = nlohmann::json::object();
         for (auto const& [k, v] : actions_) {
