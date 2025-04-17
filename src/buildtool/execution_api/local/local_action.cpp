@@ -55,7 +55,7 @@ class BuildCleanupAnchor {
     auto operator=(BuildCleanupAnchor const&) -> BuildCleanupAnchor& = delete;
     auto operator=(BuildCleanupAnchor&&) -> BuildCleanupAnchor& = delete;
     ~BuildCleanupAnchor() {
-        if (not FileSystemManager::RemoveDirectory(build_path_, true)) {
+        if (not FileSystemManager::RemoveDirectory(build_path_)) {
             Logger::Log(LogLevel::Error,
                         "Could not cleanup build directory {}",
                         build_path_.string());
@@ -347,7 +347,7 @@ auto LocalAction::StageInputs(
 auto LocalAction::CreateDirectoryStructure(
     std::filesystem::path const& exec_path) const noexcept -> bool {
     // clean execution directory
-    if (not FileSystemManager::RemoveDirectory(exec_path, true)) {
+    if (not FileSystemManager::RemoveDirectory(exec_path)) {
         logger_.Emit(LogLevel::Error, "failed to clean exec_path");
         return false;
     }

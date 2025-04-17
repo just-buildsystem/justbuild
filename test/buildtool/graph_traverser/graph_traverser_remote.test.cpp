@@ -35,7 +35,7 @@
 [[nodiscard]] static auto CreateStorageConfig(
     RemoteExecutionConfig const& remote_config) -> StorageConfig {
     auto cache_dir = FileSystemManager::GetCurrentDirectory() / "cache";
-    if (not FileSystemManager::RemoveDirectory(cache_dir, true) or
+    if (not FileSystemManager::RemoveDirectory(cache_dir) or
         not FileSystemManager::CreateDirectoryExclusive(cache_dir)) {
         Logger::Log(LogLevel::Error,
                     "failed to create a test-local cache dir {}",

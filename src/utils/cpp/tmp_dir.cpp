@@ -93,5 +93,5 @@ auto TmpDir::CreateImpl(TmpDir::Ptr parent,
 
 TmpDir::~TmpDir() noexcept {
     // try to remove the tmp dir and all its content
-    std::ignore = FileSystemManager::RemoveDirectory(tmp_dir_, true);
+    std::ignore = FileSystemManager::RemoveDirectory(tmp_dir_);
 }

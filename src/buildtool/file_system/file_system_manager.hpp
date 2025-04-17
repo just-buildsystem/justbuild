@@ -44,6 +44,7 @@
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <tuple>
 #include <unordered_set>
 #include <utility>
 #include <variant>
@@ -510,9 +511,9 @@ class FileSystemManager {
         }
     }
 
-    [[nodiscard]] static auto RemoveDirectory(std::filesystem::path const& dir,
-                                              bool recursively = false) noexcept
-        -> bool {
+    /// \brief Remove directory recursively.
+    [[nodiscard]] static auto RemoveDirectory(
+        std::filesystem::path const& dir) noexcept -> bool {
         try {
             auto status = std::filesystem::symlink_status(dir);
             if (not std::filesystem::exists(status)) {
@@ -521,11 +522,9 @@ class FileSystemManager {
             if (not std::filesystem::is_directory(status)) {
                 return false;
             }
-            if (recursively) {
-                return (std::filesystem::remove_all(dir) !=
-                        static_cast<uintmax_t>(-1));
-            }
-            return std::filesystem::remove(dir);
+            // If it doesn't throw, it succeeds:
+            std::ignore = std::filesystem::remove_all(dir);
+            return true;
         } catch (std::exception const& e) {
             Logger::Log(LogLevel::Error,
                         "removing directory {}:\n{}",

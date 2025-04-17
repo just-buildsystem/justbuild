@@ -163,8 +163,7 @@ template <ObjectType kType>
     std::string const d_name = directory.filename();
     if (d_name.size() != FileStorageData::kDirectoryNameLength or
         not FromHexString(d_name)) {
-        static constexpr bool kRecursively = true;
-        if (FileSystemManager::RemoveDirectory(directory, kRecursively)) {
+        if (FileSystemManager::RemoveDirectory(directory)) {
             return true;
         }
 

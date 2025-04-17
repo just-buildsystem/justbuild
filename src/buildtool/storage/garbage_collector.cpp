@@ -39,8 +39,7 @@ auto RemoveDirs(const std::vector<std::filesystem::path>& directories) -> bool {
     bool success = true;
     for (auto const& d : directories) {
         if (FileSystemManager::IsDirectory(d)) {
-            if (not FileSystemManager::RemoveDirectory(d,
-                                                       /*recursively=*/true)) {
+            if (not FileSystemManager::RemoveDirectory(d)) {
                 Logger::Log(LogLevel::Warning,
                             "Failed to remove directory {}",
                             d.string());

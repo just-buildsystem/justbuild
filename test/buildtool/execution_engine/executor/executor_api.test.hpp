@@ -479,7 +479,7 @@ static inline void TestUploadAndDownloadTrees(
         CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
         CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b") == "bar");
-        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
+        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir));
     }
 
     SECTION("Subdir in tree path") {
@@ -496,7 +496,7 @@ static inline void TestUploadAndDownloadTrees(
         CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
         CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
-        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
+        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir));
     }
 
     SECTION("Nested trees") {
@@ -517,7 +517,7 @@ static inline void TestUploadAndDownloadTrees(
         CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
         CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
-        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
+        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir));
     }
 
     SECTION("Dot-path tree as action input") {
@@ -550,7 +550,7 @@ static inline void TestUploadAndDownloadTrees(
         CHECK(FileSystemManager::IsNonUpwardsSymlink(tmpdir / "b" / "a"));
         CHECK(*FileSystemManager::ReadFile(tmpdir / "a") == "foo");
         CHECK(*FileSystemManager::ReadSymlink(tmpdir / "b" / "a") == "bar");
-        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir, true));
+        REQUIRE(FileSystemManager::RemoveDirectory(tmpdir));
     }
 
     SECTION("Dot-path non-tree as action input") {

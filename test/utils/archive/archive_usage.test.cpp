@@ -339,8 +339,7 @@ TEST_CASE("Read-write archives", "[archive_read_write]") {
     auto const& scenario = kTestScenarios[test_index];
 
     // perform the test
-    REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir,
-                                               /*recursively=*/true));
+    REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir));
     REQUIRE(FileSystemManager::CreateDirectory(scenario.test_dir));
     auto anchor = FileSystemManager::ChangeDirectory(scenario.test_dir);
 
@@ -395,8 +394,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
     std::optional<std::string> res{std::nullopt};
 
     SECTION(std::string("Write ") + scenario.test_name) {
-        REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir,
-                                                   /*recursively=*/true));
+        REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir));
         REQUIRE(FileSystemManager::CreateDirectory(scenario.test_dir));
 
         create_files(scenario.test_dir);
@@ -408,8 +406,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
         }
 
         SECTION(std::string("Extract ") + scenario.test_name + " to disk") {
-            REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir,
-                                                       /*recursively=*/true));
+            REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir));
             REQUIRE(FileSystemManager::CreateDirectory(scenario.test_dir));
             res = ArchiveOps::ExtractArchive(
                 scenario.type, scenario.filename, ".");
@@ -430,9 +427,7 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                 path = std::string{env_path} + ":" + path;
             }
             SECTION("Extract via system tools") {
-                REQUIRE(
-                    FileSystemManager::RemoveDirectory(scenario.test_dir,
-                                                       /*recursively=*/true));
+                REQUIRE(FileSystemManager::RemoveDirectory(scenario.test_dir));
                 REQUIRE(FileSystemManager::CreateDirectory(scenario.test_dir));
                 REQUIRE(system(("export PATH=" + path + " && " + scenario.cmd +
                                 " " + scenario.filename)
