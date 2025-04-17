@@ -10,8 +10,11 @@
     , ["@", "src", "src/buildtool/file_system", "object_type"]
     , ["@", "src", "src/buildtool/logging", "log_level"]
     , ["@", "src", "src/buildtool/logging", "logging"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/system", "system"]
+    , ["@", "src", "src/utils/cpp", "tmp_dir"]
     , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }

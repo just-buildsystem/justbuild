@@ -20,6 +20,7 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
@@ -33,7 +34,10 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/system/system.hpp"
+#include "src/utils/cpp/tmp_dir.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 class CopyFileFixture {
   public:
@@ -365,6 +369,30 @@ TEST_CASE_METHOD(CopyFileFixture, "CopyFile", "[file_system]") {
     SECTION("fd_less") {
         run_test(true);
     }
+}
+
+TEST_CASE("CopyFile equivalent", "[file_system]") {
+    auto storage_config = TestStorageConfig::Create();
+
+    auto temp_dir = storage_config.Get().CreateTypedTmpDir("test");
+    REQUIRE(temp_dir);
+
+    auto const nested = temp_dir->GetPath() / "dir";
+    auto const source = nested / "copy-self";
+    auto const target = nested / "../dir/copy-self";
+
+    REQUIRE(FileSystemManager::CreateDirectory(nested));
+    REQUIRE(FileSystemManager::CreateFile(source));
+    REQUIRE(FileSystemManager::IsFile(source));
+    REQUIRE(FileSystemManager::IsFile(target));
+
+    // Paths are different, but equivalent:
+    REQUIRE(source != target);
+    REQUIRE(std::filesystem::equivalent(source, target));
+
+    CHECK(FileSystemManager::CopyFile(source, target));
+    CHECK(FileSystemManager::IsFile(source));
+    CHECK(FileSystemManager::IsFile(target));
 }
 
 TEST_CASE_METHOD(CopyFileFixture, "CopyFileAs", "[file_system]") {

@@ -1065,6 +1065,12 @@ class FileSystemManager {
             if (std::filesystem::is_symlink(src)) {
                 return false;
             }
+            // Check that src and dst point to different filesystem entities:
+            if (std::filesystem::weakly_canonical(src) ==
+                std::filesystem::weakly_canonical(dst)) {
+                return true;
+            }
+
             if (not RemoveFile(dst)) {
                 Logger::Log(
                     LogLevel::Error, "cannot remove file {}", dst.string());
