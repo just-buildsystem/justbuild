@@ -212,27 +212,26 @@ auto BazelExecutionClient::ExtractContents(
         // Error was already logged in ReadExecution()
         return {ExecutionResponse::MakeEmptyFailed(), std::nullopt};
     }
-    auto op = *operation;
     ExecutionResponse response;
-    response.execution_handle = op.name();
-    if (not op.done()) {
+    response.execution_handle = operation->name();
+    if (not operation->done()) {
         response.state = ExecutionResponse::State::Ongoing;
         return {response, std::nullopt};
     }
-    if (op.has_error()) {
-        LogStatus(&logger_, LogLevel::Debug, op.error());
-        if (op.error().code() == grpc::StatusCode::UNAVAILABLE) {
+    if (operation->has_error()) {
+        LogStatus(&logger_, LogLevel::Debug, operation->error());
+        if (operation->error().code() == grpc::StatusCode::UNAVAILABLE) {
             response.state = ExecutionResponse::State::Retry;
         }
         else {
             response.state = ExecutionResponse::State::Failed;
         }
-        return {response, op.error().ShortDebugString()};
+        return {response, operation->error().ShortDebugString()};
     }
 
     // Get execution response Unpacked from Protobufs Any type to the actual
     // type in our case
-    auto const& raw_response = op.response();
+    auto const& raw_response = operation->response();
     if (not raw_response.Is<bazel_re::ExecuteResponse>()) {
         // Fatal error, the type should be correct
         logger_.Emit(LogLevel::Error, "Corrupted ExecuteResponse");
