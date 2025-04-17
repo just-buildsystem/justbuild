@@ -33,6 +33,7 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -771,8 +772,9 @@ auto BazelMsgFactory::CreateDirectoryDigestFromLocalTree(
                        &root,
                        &store_file,
                        &store_dir,
-                       &store_symlink](auto name, auto type) {
-        const auto full_name = root / name;
+                       &store_symlink](std::filesystem::path const& name,
+                                       ObjectType type) {
+        const auto& full_name = root / name;
         if (IsTreeObject(type)) {
             // create and store sub directory
             auto digest = CreateDirectoryDigestFromLocalTree(
@@ -845,7 +847,8 @@ auto BazelMsgFactory::CreateGitTreeDigestFromLocalTree(
                        &root,
                        &store_file,
                        &store_tree,
-                       &store_symlink](auto name, auto type) {
+                       &store_symlink](std::filesystem::path const& name,
+                                       ObjectType type) {
         const auto full_name = root / name;
         if (IsTreeObject(type)) {
             // create and store sub directory
