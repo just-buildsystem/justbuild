@@ -88,8 +88,7 @@ auto add_to_archive(archive* archive,
                                        ? kExecutablePerm
                                        : kFilePerm);
             archive_write_header(archive, entry.get());
-            auto data = *payload;
-            archive_write_data(archive, data.c_str(), data.size());
+            archive_write_data(archive, payload->c_str(), payload->size());
         } break;
         case ObjectType::Symlink: {
             std::unique_ptr<archive_entry, decltype(&archive_entry_cleanup)>
@@ -101,8 +100,7 @@ auto add_to_archive(archive* archive,
             archive_entry_set_symlink(entry.get(), payload->c_str());
             archive_entry_set_perm(entry.get(), kDefaultPerm);
             archive_write_header(archive, entry.get());
-            auto data = *payload;
-            archive_write_data(archive, data.c_str(), data.size());
+            archive_write_data(archive, payload->c_str(), payload->size());
         } break;
         case ObjectType::Tree: {
             // avoid creating empty unnamed folder for the initial call
