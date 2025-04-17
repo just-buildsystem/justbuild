@@ -46,7 +46,7 @@ using AbsentTargetMap = AsyncMapConsumer<ConfiguredTarget, AnalysedTargetPtr>;
 using AbsentTargetVariablesMap =
     AsyncMapConsumer<AbsentTargetDescription, std::vector<std::string>>;
 using ServeFailureLogReporter =
-    std::function<void(ConfiguredTarget, std::string)>;
+    std::function<void(ConfiguredTarget const&, std::string const&)>;
 
 auto CreateAbsentTargetVariablesMap(
     const gsl::not_null<AnalyseContext*>& context,

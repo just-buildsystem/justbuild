@@ -1129,7 +1129,9 @@ auto main(int argc, char* argv[]) -> int {
         auto serve_errors = nlohmann::json::array();
         std::mutex serve_errors_access{};
         BuildMaps::Target::ServeFailureLogReporter collect_serve_errors =
-            [&serve_errors, &serve_errors_access](auto target, auto blob) {
+            [&serve_errors, &serve_errors_access](
+                BuildMaps::Target::ConfiguredTarget const& target,
+                std::string const& blob) {
                 std::unique_lock lock(serve_errors_access);
                 auto target_desc = nlohmann::json::array();
                 target_desc.push_back(target.target.ToJson());
