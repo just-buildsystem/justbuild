@@ -20,6 +20,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/utils/cpp/expected.hpp"
+#include "src/utils/cpp/path_rebase.hpp"
 
 void Profile::Write(int exit_code) {
     if (not actions_.empty()) {
@@ -96,7 +97,8 @@ void Profile::SetCLI(CommandLineArguments const& cli) {
 }
 
 void Profile::NoteActionCompleted(std::string const& id,
-                                  IExecutionResponse::Ptr const& response) {
+                                  IExecutionResponse::Ptr const& response,
+                                  std::string const& cwd) {
     std::unique_lock lock{mutex_};
     auto artifacts = response->Artifacts();
     std::optional<std::string> out = std::nullopt;
@@ -131,8 +133,17 @@ void Profile::NoteActionCompleted(std::string const& id,
             .err = err,
             .artifacts = std::unordered_map<std::string, std::string>(
                 (*artifacts)->size())};
-        for (auto const& [k, v] : **artifacts) {
-            actions_[id].artifacts.emplace(k, v.digest.hash());
+        if (cwd.empty()) {
+            // the typical case of empty cwd, avoid unnecessary calls
+            for (auto const& [k, v] : **artifacts) {
+                actions_[id].artifacts.emplace(k, v.digest.hash());
+            }
+        }
+        else {
+            for (auto const& [k, v] : **artifacts) {
+                actions_[id].artifacts.emplace(
+                    RebasePathStringRelativeTo(cwd, k), v.digest.hash());
+            }
         }
     }
 }

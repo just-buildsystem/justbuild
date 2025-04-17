@@ -928,7 +928,9 @@ class Executor {
                                               context_.progress);
             if (context_.profile) {
                 (*context_.profile)
-                    ->NoteActionCompleted(action->Content().Id(), *response);
+                    ->NoteActionCompleted(action->Content().Id(),
+                                          *response,
+                                          action->Content().Cwd());
             }
             return result;
         }
@@ -956,7 +958,8 @@ class Executor {
             logger, *response, action, context_.statistics, context_.progress);
         if (context_.profile) {
             (*context_.profile)
-                ->NoteActionCompleted(action->Content().Id(), *response);
+                ->NoteActionCompleted(
+                    action->Content().Id(), *response, action->Content().Cwd());
         }
         return result;
     }

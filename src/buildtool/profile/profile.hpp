@@ -38,7 +38,8 @@ class Profile {
     void SetTarget(nlohmann::json target);
     void SetConfiguration(nlohmann::json configuration);
     void NoteActionCompleted(std::string const& id,
-                             IExecutionResponse::Ptr const& response);
+                             IExecutionResponse::Ptr const& response,
+                             std::string const& cwd);
 
   private:
     struct ActionData {
