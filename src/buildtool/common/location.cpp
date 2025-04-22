@@ -48,8 +48,6 @@ auto ReadLocationObject(nlohmann::json const& location,
         root_path = FileSystemManager::GetCurrentDirectory().root_path();
     }
     return std::optional<location_res_t>{
-        std::make_pair(std::filesystem::weakly_canonical(
-                           std::filesystem::absolute(root_path / path)),
-                       std::filesystem::weakly_canonical(
-                           std::filesystem::absolute(root_path / base)))};
+        std::make_pair(std::filesystem::weakly_canonical(root_path / path),
+                       std::filesystem::weakly_canonical(root_path / base))};
 }

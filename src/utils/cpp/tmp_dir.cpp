@@ -49,8 +49,8 @@ auto TmpDir::CreateFile(TmpDir::Ptr const& parent,
     }
 
     try {
-        auto file_path = std::filesystem::weakly_canonical(
-            std::filesystem::absolute(temp_dir->GetPath() / file_name));
+        auto file_path =
+            std::filesystem::weakly_canonical(temp_dir->GetPath() / file_name);
         if (not FileSystemManager::CreateFile(file_path)) {
             return nullptr;
         }
@@ -75,8 +75,7 @@ auto TmpDir::CreateImpl(TmpDir::Ptr parent,
 
     std::string file_path;
     try {
-        file_path = std::filesystem::weakly_canonical(
-            std::filesystem::absolute(path / kDirTemplate));
+        file_path = std::filesystem::weakly_canonical(path / kDirTemplate);
         // Create a temporary directory:
         if (mkdtemp(file_path.data()) == nullptr) {
             return nullptr;

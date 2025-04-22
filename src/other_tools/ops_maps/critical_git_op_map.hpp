@@ -74,8 +74,8 @@ class CriticalGitOpGuard {
         std::scoped_lock<std::mutex> const lock(critical_key_mutex_);
         // try emplace a new value
 
-        auto const canonical_path = std::filesystem::weakly_canonical(
-            std::filesystem::absolute(new_key.params.target_path));
+        auto const canonical_path =
+            std::filesystem::weakly_canonical(new_key.params.target_path);
         auto result = curr_critical_key_.try_emplace(canonical_path, new_key);
         // If the insertion happens, there are no keys to wait for. std::nullopt
         // is returned.

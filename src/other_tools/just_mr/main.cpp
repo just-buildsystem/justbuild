@@ -285,15 +285,14 @@ auto main(int argc, char* argv[]) -> int {
         if (not arguments.common.just_mr_paths->root) {
             forward_build_root = false;
             arguments.common.just_mr_paths->root =
-                std::filesystem::weakly_canonical(
-                    std::filesystem::absolute(kDefaultBuildRoot));
+                std::filesystem::weakly_canonical(kDefaultBuildRoot);
         }
         if (not arguments.common.checkout_locations_file and
             FileSystemManager::IsFile(std::filesystem::weakly_canonical(
-                std::filesystem::absolute(kDefaultCheckoutLocationsFile)))) {
+                kDefaultCheckoutLocationsFile))) {
             arguments.common.checkout_locations_file =
                 std::filesystem::weakly_canonical(
-                    std::filesystem::absolute(kDefaultCheckoutLocationsFile));
+                    kDefaultCheckoutLocationsFile);
         }
         if (arguments.common.just_mr_paths->distdirs.empty()) {
             arguments.common.just_mr_paths->distdirs.emplace_back(

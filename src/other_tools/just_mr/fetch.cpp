@@ -86,8 +86,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
     if (not fetch_dir) {
         for (auto const& d : common_args.just_mr_paths->distdirs) {
             if (FileSystemManager::IsDirectory(d)) {
-                fetch_dir = std::filesystem::weakly_canonical(
-                    std::filesystem::absolute(d));
+                fetch_dir = std::filesystem::weakly_canonical(d);
                 break;
             }
         }
@@ -147,9 +146,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                     std::filesystem::path(repo_path->String());
                 if (not repo_path_as_path.is_absolute()) {
                     repo_path_as_path = std::filesystem::weakly_canonical(
-                        std::filesystem::absolute(
-                            common_args.just_mr_paths->setup_root /
-                            repo_path_as_path));
+                        common_args.just_mr_paths->setup_root /
+                        repo_path_as_path);
                 }
                 // only warn if repo workspace differs to invocation workspace
                 if (not is_subpath(

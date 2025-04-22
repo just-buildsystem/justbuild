@@ -103,8 +103,7 @@ namespace {
     // set default if rcpath not given
     if (not clargs->common.norc) {
         if (not rc_path) {
-            rc_path = std::filesystem::weakly_canonical(
-                std::filesystem::absolute(kDefaultRCPath));
+            rc_path = std::filesystem::weakly_canonical(kDefaultRCPath);
         }
         else {
             if (not FileSystemManager::IsFile(*rc_path)) {

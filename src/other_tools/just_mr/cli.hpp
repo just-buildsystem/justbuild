@@ -152,8 +152,8 @@ static inline void SetupMultiRepoCommonArguments(
     app->add_option_function<std::string>(
            "-C, --repository-config",
            [clargs](auto const& repository_config_raw) {
-               clargs->repository_config = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(repository_config_raw));
+               clargs->repository_config =
+                   std::filesystem::weakly_canonical(repository_config_raw);
            },
            "Repository-description file to use.")
         ->type_name("FILE");
@@ -161,8 +161,7 @@ static inline void SetupMultiRepoCommonArguments(
            "--absent",
            [clargs](auto const& file_raw) {
                clargs->absent_repository_file =
-                   std::filesystem::weakly_canonical(
-                       std::filesystem::absolute(file_raw));
+                   std::filesystem::weakly_canonical(file_raw);
            },
            "File specifying the repositories to consider absent (overrides the "
            "pragma in the config file).")
@@ -170,8 +169,8 @@ static inline void SetupMultiRepoCommonArguments(
     app->add_option_function<std::string>(
            "--local-build-root",
            [clargs](auto const& local_build_root_raw) {
-               clargs->just_mr_paths->root = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(local_build_root_raw));
+               clargs->just_mr_paths->root =
+                   std::filesystem::weakly_canonical(local_build_root_raw);
            },
            "Root for CAS, repository space, etc.")
         ->type_name("PATH");
@@ -179,8 +178,7 @@ static inline void SetupMultiRepoCommonArguments(
            "--checkout-locations",
            [clargs](auto const& checkout_locations_raw) {
                clargs->checkout_locations_file =
-                   std::filesystem::weakly_canonical(
-                       std::filesystem::absolute(checkout_locations_raw));
+                   std::filesystem::weakly_canonical(checkout_locations_raw);
            },
            "Specification file for checkout locations.")
         ->type_name("CHECKOUT_LOCATIONS");
@@ -198,8 +196,7 @@ static inline void SetupMultiRepoCommonArguments(
            "--distdir",
            [clargs](auto const& distdir_raw) {
                clargs->explicit_distdirs.emplace_back(
-                   std::filesystem::weakly_canonical(std::filesystem::absolute(
-                       std::filesystem::path(distdir_raw))));
+                   std::filesystem::weakly_canonical(distdir_raw));
            },
            "Directory to look for distfiles before fetching.")
         ->type_name("PATH")
@@ -212,8 +209,8 @@ static inline void SetupMultiRepoCommonArguments(
     app->add_option_function<std::string>(
            "--fetch-cacert",
            [clargs](auto const& cacert_raw) {
-               clargs->ca_info->ca_bundle = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(cacert_raw));
+               clargs->ca_info->ca_bundle =
+                   std::filesystem::weakly_canonical(cacert_raw);
            },
            "CA certificate bundle to use for SSL verification when fetching "
            "archives from remote.")
@@ -230,8 +227,7 @@ static inline void SetupMultiRepoCommonArguments(
     app->add_option_function<std::string>(
            "--rc",
            [clargs](auto const& rc_path_raw) {
-               clargs->rc_path = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(rc_path_raw));
+               clargs->rc_path = std::filesystem::weakly_canonical(rc_path_raw);
            },
            "Use just-mrrc file from custom path.")
         ->type_name("RCFILE");
@@ -335,8 +331,8 @@ static inline void SetupMultiRepoFetchArguments(
     app->add_option_function<std::string>(
            "-o",
            [clargs](auto const& fetch_dir_raw) {
-               clargs->fetch_dir = std::filesystem::weakly_canonical(
-                   std::filesystem::absolute(fetch_dir_raw));
+               clargs->fetch_dir =
+                   std::filesystem::weakly_canonical(fetch_dir_raw);
            },
            "Directory to write distfiles when fetching.")
         ->type_name("PATH");
