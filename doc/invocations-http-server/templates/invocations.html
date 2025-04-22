@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block heading %}
+Recent Invocations
+{% endblock %}
+
+{% block content %}
+<h1>Recent Invocations</h1>
+{% if invocations %}
+<ul>
+  {% for invocation in invocations %}
+  <li> <a href="/invocations/{{invocation.name |e}}">{{ invocation.name | e }}</a>
+    {% if invocation.subcommand %}
+    {{ invocation.subcommand | e }}
+    {% endif %}
+    {% if invocation.target %}
+    <tt>{{ invocation.target | e}}@{{ invocation.config | e}}</tt>
+    {% endif %}
+    {% if invocation.exit_code != 0 %}
+    <b>
+      {% if invocation.exit_code == 1 %}
+      build failed
+      {% elif invocation.exit_code == 2 %}
+      failed
+      {% else %}
+      exit code {{ invocation.exit_code | e }}
+      {% endif %}
+    </b>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<i>(none)</i>
+{% endif %}
+{% endblock %}

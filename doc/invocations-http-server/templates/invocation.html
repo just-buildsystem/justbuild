@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block heading %}
+Inocations {{invocation | e}}
+{% endblock %}
+
+{% macro show_action(action) %}
+<li>
+  <details>
+    <summary>
+      {{ action["name_prefix"] | e }} <tt>{{ action["name"] | e}}</tt>
+      {% if action["may_fail"] %}
+      {% if action["exit_code"] != 0 %}
+      failure: <b>{{ action["may_fail"] }}</b>
+      {% else %}
+      tainted (<tt>{{ action["may_fail"] }}</tt>)
+      {% endif %}
+      {% elif action["primary_output"] %}
+      {% if action["exit_code"] != 0 %}
+      failed to build: <b>{{ action["primary_output"] | e }}</b>
+      {% else %}
+      build: <tt>{{ action["primary_output"] | e }}</tt>
+      {% endif %}
+      {% endif %}
+    </summary>
+    <ul>
+      {% if action["stdout"] %}
+      <li> stdout: <a href="/blob/{{ action["stdout"] | e }}">{{action["stdout"] | e }}</a></li>
+      {% endif %}
+      {% if action["stderr"] %}
+      <li> stderr: <a href="/blob/{{ action["stderr"] | e }}">{{action["stderr"] | e }}</a></li>
+      {% endif %}
+      {% if action["origins"] %}
+      <li> origins
+        <ul>
+          {% for origin in action["origins"] %}
+          <li> <tt>{{ origin | e }}</tt></li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endif %}
+      {% if action["exit_code"] != 0 %}
+      <li> exit code: {{ action["exit_code"] }}</li>
+      {% endif %}
+      {% if action["output"] %}
+      <li> output
+        <ul>
+          {% for out in action["output"] %}
+          {% if action["artifacts"].get(out) %}
+          <li> <a href="/blob/{{ action["artifacts"].get(out) | e}}"><tt>{{ out | e }}</tt></a></li>
+          {% else %}
+          <li> <tt>{{ out | e }}</tt></li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+      {% endif %}
+      {% if action["output_dirs"] %}
+      <li> output directories
+        <ul>
+          {% for out in action["output_dirs"] %}
+          {% if action["artifacts"].get(out) %}
+          <li> <a href="/tree/{{ action["artifacts"].get(out) | e}}"><tt>{{ out | e }}</tt></a></li>
+          {% else %}
+          <li> <tt>{{ out | e }}</tt></li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+      {% endif %}
+    </ul>
+  </details>
+</li>
+{% endmacro %}
+
+{% block content %}
+<h1>Invocation {{invocation | e}}</h1>
+
+<h2>Overview</h2>
+<ul>
+  {% if cmd %}
+  <li> Subcommand and positional arguments: <tt>{{ cmd | e }}</tt></li>
+  {% endif %}
+  {% if cmdline %}
+  <li> Full command line: <tt>{{ cmdline | e }}</tt></li>
+  {% endif %}
+  {% if repo_config %}
+  <li> Repository configuration:
+    <a href="/blob/{{ repo_config | e }}">{{ repo_config | e}}</a></li>
+  {% endif %}
+  {% if target %}
+  <li> Target: <tt>{{ target | e }}</tt></li>
+  {% endif %}
+  {% if config %}
+  <li> Target configuration: <tt>{{ config | e }}</tt></li>
+  {% endif %}
+  {% if exit_code != None %}
+  <li> exit code: {{ exit_code | e }}</li>
+  {% endif %}
+</ul>
+
+<h2>Failed actions</h2>
+{% if failed_actions %}
+<ul>
+  {% for action in failed_actions %}
+  {{ show_action(action) }}
+  {% endfor %}
+</ul>
+{% else %}
+<i>(none)</i>
+{% endif %}
+
+
+<h2>Remaining non-cached actions</h2>
+{% if non_cached %}
+In order of decreasing run time.
+<ul>
+  {% for action in non_cached %}
+  {{ show_action(action) }}
+  {% endfor %}
+  {% if more_non_cached %}
+  <li> &hellip; and {{ more_non_cached | e }} actions</li>
+  {% endif %}
+</ul>
+{% else %}
+<i>(none)</i>
+{% endif %}
+
+
+
+{% endblock %}

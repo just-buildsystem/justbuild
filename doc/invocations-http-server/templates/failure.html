@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block heading %}
+Failure calling an external process
+{% endblock %}
+
+{% block content %}
+<h1>Failure calling an external process</h1>
+
+<ul>
+  {% if failure_kind %}
+  <li> <b>{{ failure_kind | e }}</b></li>
+  {% endif %}
+  <li> Command: <tt>{{ cmd|e }}</tt></li>
+  <li> exit code: <tt>{{ exit_code|e }}</tt></li>
+  {% if stdout %}
+  <li> stdout:
+    <pre>{{ stdout | e }}</pre></li>
+  {% endif %}
+  {% if stderr %}
+  <li> stderr:
+    <pre>{{ stderr | e }}</pre></li>
+  {% endif %}
+</ul>
+{% endblock %}

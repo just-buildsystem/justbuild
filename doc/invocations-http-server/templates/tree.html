@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block heading %}
+Tree {{ name | e }}
+{% endblock %}
+
+{% block content %}
+<h1>Tree {{ name | e }}</h1>
+
+<ul>
+  {% for entry in entries %}
+  <li><a href="/{{ entry["type"] | e}}/{{ entry["hash"] | e}}">{{ entry["path"] | e}}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
