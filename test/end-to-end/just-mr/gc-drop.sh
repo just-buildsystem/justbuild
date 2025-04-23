@@ -106,13 +106,13 @@ EOF
 cat repos.json
 
 # archive a
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" --main a \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" --main a \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 # ... sanity check
 grep VALUES "${OUT}/out.txt"
 
 # archive b
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" --main b \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" --main b \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 # ... sanity check
 grep 42 "${OUT}/out.txt"
@@ -120,11 +120,11 @@ grep 42 "${OUT}/out.txt"
 # Rotate, and use a again
 # =======================
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
 
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" --main a \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" --main a \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 grep VALUES "${OUT}/out.txt"
 
@@ -137,15 +137,15 @@ grep VALUES "${OUT}/out.txt"
 # clean up b, which should result in reduced disk usage.
 
 # get rid of CAS/cahe
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
 
 # measure disk usage
 PRE_DROP_DISK=$(du -sb "${LBR}" | cut -f 1)
 echo "Pre drop, disk usage is ${PRE_DROP_DISK}"
 
 # drop
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo --drop-only 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo --drop-only 2>&1
 
 
 # measure disk usage
@@ -157,21 +157,21 @@ echo "Post drop, disk usage is ${POST_DROP_DISK}"
 
 # Verify that a is still in the youngest generation: even after one more
 # rotation, we should be able to build a.
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" --main a \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" --main a \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 grep VALUES "${OUT}/out.txt"
 
 # Finally demonstrate that the root was not taken from anything but the cache
 # ===========================================================================
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" --main a \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" --main a \
           -L '["env", "PATH='"${PATH}"'"]' build 2>&1 && exit 1 || :
 
 echo OK

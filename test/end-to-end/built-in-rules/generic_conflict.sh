@@ -59,13 +59,13 @@ EOF
 echo
 echo local file should analyse fine
 echo
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBRDIR}" \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBRDIR}" \
              analyse data 2>&1
 
 echo
 echo The default target should detect a staging conflict
 echo
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBRDIR}" \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBRDIR}" \
              analyse -f log --dump-actions - 2>&1 && exit 1 || :
 
 echo

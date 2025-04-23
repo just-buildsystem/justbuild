@@ -160,7 +160,7 @@ cat repos.json
 
 
 # Set up repos. This should get everything in the local build root.
-"${JUST_MR}" --local-build-root "${LBR}" --git "${BIN}/mock-git" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --git "${BIN}/mock-git" \
              --distdir "${DISTDIR}" -L '["env", "PATH='"${PATH}"'"]' \
    setup  > "${OUT}/conf-file-name" 2> "${LOG}/log-1"
 cat "${LOG}/log-1"
@@ -199,7 +199,7 @@ rm -f "${BIN}/mock-foreign-vcs"
 "${JUST}" gc --local-build-root "${LBR}" 2>&1
 
 # Rotate repo cache
-"${JUST_MR}" --local-build-root "${LBR}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" gc-repo 2>&1
 
 ## Verify the mirrored locations are gone
 [ -e "${GIT_LOCATION}" ] && exit 1 || :
@@ -208,7 +208,7 @@ rm -f "${BIN}/mock-foreign-vcs"
 [ -e "${GIT_TREE_LOCATION}" ] && exit 1 || :
 
 # Setup repos again
-"${JUST_MR}" --local-build-root "${LBR}" -L '["env", "PATH='"${PATH}"'"]' \
+"${JUST_MR}" --norc --local-build-root "${LBR}" -L '["env", "PATH='"${PATH}"'"]' \
     setup  > "${OUT}/conf-file-name" 2> "${LOG}/log-2"
 cat "${LOG}/log-2"
 echo

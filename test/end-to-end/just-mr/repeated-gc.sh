@@ -84,18 +84,18 @@ grep VALUES "${OUT}/out.txt"
 
 # Before rotation the git root should still exist
 [ -e "${GIT_ROOT}" ]
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
 # After gc rotation, the original git root should no longer exist
 [ -e "${GIT_ROOT}" ] && exit 1 || :
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
 
 
 # Building should nevertheless succeed, due to the old repo generation
 # =====================================================================
 
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" \
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 # sanity check
 grep VALUES "${OUT}/out.txt"
@@ -113,12 +113,12 @@ GIT_ROOT=$(jq -r '.repositories.""."workspace_root" | .[2]' "${CONF}")
 echo "Git root is ${GIT_ROOT}"
 
 [ -e "${GIT_ROOT}" ]
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
 [ -e "${GIT_ROOT}" ] && exit 1 || :
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
-"${JUST_MR}" --just "${JUST}" --local-build-root "${LBR}" \
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc 2>&1
+"${JUST_MR}" --norc --just "${JUST}" --local-build-root "${LBR}" \
           -L '["env", "PATH='"${PATH}"'"]' install -o "${OUT}" 2>&1
 grep VALUES "${OUT}/out.txt"
 rm -f "${OUT}/out.txt"
@@ -128,8 +128,8 @@ done
 # Finally demonstrate that the root was not taken from anything but the cache
 # ===========================================================================
 
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
-"${JUST_MR}" --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
+"${JUST_MR}" --norc --local-build-root "${LBR}" --just "${JUST}" gc-repo 2>&1
 
 # after full rotation of the repository, the root should be lost
 "${JUST_MR}" --norc --local-build-root "${LBR}" -f "${OUT}/log" \
