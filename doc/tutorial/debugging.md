@@ -75,19 +75,15 @@ need to add a new target, configured in debug mode.
 , "helloworld-debug":
   { "type": "configure"
   , "target": "helloworld"
-  , "config":
-    { "type": "let*"
-    , "bindings": [["DEBUG", true]]
-    , "body": {"type": "env", "vars": ["DEBUG"]}
-    }
+  , "config": {"type": "'", "$1": {"DEBUG": {"USE_DEBUG_FISSION": false}}}
   }
 ...
 ```
 
 This describes the debug version of *hello-world*, configured by setting the
-`"DEBUG"` flag, which in turn will instruct the updated toolchain defaults,
-which now honor the `"DEBUG"` argument, to compile all actions with the `"-g"`
-flag.
+`"DEBUG"` map to enable regular (non-fission) debug mode, which in turn will
+instruct the updated toolchain defaults, which honor the `"DEBUG"` argument, to
+compile all actions with the `"-g"` flag.
 
 To actually collect the artifacts needed to run the debugger, we use the
 `["CC", "install-with-deps"]` rule, contained in the `rules-cc` repository.

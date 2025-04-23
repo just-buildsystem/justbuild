@@ -560,11 +560,7 @@ in the chapter on [*Debugging*](./hello-world.md)).
 , "list_people debug":
   { "type": "configure"
   , "target": "list_people"
-  , "config":
-    { "type": "let*"
-    , "bindings": [["DEBUG", true]]
-    , "body": {"type": "env", "vars": ["DEBUG"]}
-    }
+  , "config": {"type": "'", "$1": {"DEBUG": {"USE_DEBUG_FISSION": false}}}
   }
 , "list_people debug staged":
   { "type": ["@", "rules", "CC", "install-with-deps"]
