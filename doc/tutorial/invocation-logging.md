@@ -66,3 +66,11 @@ would look as follows.
   }
 }
 ```
+
+Of course, the main motivation for invocation logging is doing
+statistical analysis later. However, it can also be useful to browse
+through the most recent invocations, looking, e.g., at failed actions
+and their output, or actions that took particularly long. In the
+`justbuild` source tree, under `doc/invocations-http-server` there
+is a simple application serving one directory of invocation logs,
+i.e., the logs for one particular project id.
