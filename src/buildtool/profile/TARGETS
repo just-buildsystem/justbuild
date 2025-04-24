@@ -13,7 +13,6 @@
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
     , ["src/utils/cpp", "expected"]
-    , ["src/utils/cpp", "path_rebase"]
     ]
   , "stage": ["src", "buildtool", "profile"]
   }

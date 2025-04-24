@@ -14,13 +14,13 @@
 
 #include "src/buildtool/profile/profile.hpp"
 
+#include <filesystem>
 #include <fstream>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
 #include "src/utils/cpp/expected.hpp"
-#include "src/utils/cpp/path_rebase.hpp"
 
 void Profile::Write(int exit_code) {
     if (not actions_.empty()) {
@@ -140,9 +140,10 @@ void Profile::NoteActionCompleted(std::string const& id,
             }
         }
         else {
+            std::filesystem::path base{cwd};
             for (auto const& [k, v] : **artifacts) {
                 actions_[id].artifacts.emplace(
-                    RebasePathStringRelativeTo(cwd, k), v.digest.hash());
+                    (base / k).lexically_normal().string(), v.digest.hash());
             }
         }
     }
