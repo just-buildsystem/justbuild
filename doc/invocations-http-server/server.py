@@ -36,6 +36,9 @@ class HashIdentifierConverter(werkzeug.routing.BaseConverter):
 class InvocationIdentifierConverter(werkzeug.routing.BaseConverter):
     regex = '[-:_a-zA-Z0-9]{1,200}'
 
+class FileIdentifierConverter(werkzeug.routing.BaseConverter):
+    regex = '[-:_.a-zA-Z0-9]{3,200}'
+
 class InvocationServer:
     def __init__(self, logsdir, *,
                  just_mr = None,
@@ -59,6 +62,9 @@ class InvocationServer:
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
+            rule("/blob/<hashidentifier:blob>/<fileidentifier:name>",
+                 methods=("GET",),
+                 endpoint="get_blob_as"),
             rule("/tree/<hashidentifier:tree>",
                  methods=("GET",),
                  endpoint="get_tree"),
@@ -68,6 +74,7 @@ class InvocationServer:
         ], converters=dict(
             invocationidentifier=InvocationIdentifierConverter,
             hashidentifier=HashIdentifierConverter,
+            fileidentifier=FileIdentifierConverter,
         ))
 
     @Request.application
@@ -132,7 +139,7 @@ class InvocationServer:
             pass
         return self.render("failure.html", params)
 
-    def do_get_blob(self, blob):
+    def do_get_blob(self, blob, *, download_as=None):
         cmd = self.just_mr + ["install-cas", "--remember", blob]
         blob_data = subprocess.run(cmd,
                                    stdout=subprocess.PIPE,
@@ -142,16 +149,21 @@ class InvocationServer:
         try:
             blob_content = blob_data.stdout.decode('utf-8')
         except:
-            # Not utf-8, so return as binary file
+            # Not utf-8, so return as binary file to download separately
+            download_as = download_as or blob
+        if download_as:
             response = Response()
             response.content_type = "application/octet-stream"
             response.data = blob_data.stdout
             response.headers['Content-Disposition'] = \
-                "attachement; filename=%s" %(blob,)
+                "attachement; filename=%s" %(download_as,)
             return response
         return self.render("blob.html",
                            {"name": blob,
                             "data": blob_content})
+
+    def do_get_blob_as(self, blob, name):
+        return self.do_get_blob(blob, download_as=name)
 
     def do_get_tree(self, tree):
         cmd = self.just_mr + ["install-cas", "%s::t" % (tree,)]
