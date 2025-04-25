@@ -29,17 +29,7 @@ flags) for our example project. This can be done by extending the existing
   , "arguments_config": ["DEBUG"]
   , "CC": ["cc"]
   , "CXX": ["c++"]
-  , "CFLAGS":
-    { "type": "++"
-    , "$1":
-      [ ["-O2", "-Wall"]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "DEBUG"}
-        , "then": ["-g"]
-        }
-      ]
-    }
-  , "CXXFLAGS":
+  , "ADD_COMPILE_FLAGS":
     { "type": "++"
     , "$1":
       [ ["-O2", "-Wall"]
