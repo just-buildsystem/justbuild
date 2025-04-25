@@ -199,7 +199,7 @@ void ComputeAndFill(
     root_build_args.rebuild = std::nullopt;
     root_build_args.build.print_to_stdout = std::nullopt;
     root_build_args.build.print_unique = false;
-    root_build_args.build.dump_artifacts = std::nullopt;
+    root_build_args.build.dump_artifacts = std::vector<std::filesystem::path>{};
     root_build_args.build.show_runfiles = false;
     auto root_exec_context = ExecutionContext{context->repo_config,
                                               context->apis,

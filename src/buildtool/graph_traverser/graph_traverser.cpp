@@ -589,7 +589,7 @@ void GraphTraverser::PrintOutputs(
                         fmt::format("\n  {} {}", path, info->ToString());
                     failed = true;
                 }
-                if (clargs_.build.dump_artifacts) {
+                if (not clargs_.build.dump_artifacts.empty()) {
                     json[path] = info->ToJson();
                 }
             }
@@ -611,12 +611,12 @@ void GraphTraverser::PrintOutputs(
         Logger::Log(logger_, LogLevel::Info, "{}", msg_failed);
     }
 
-    if (clargs_.build.dump_artifacts) {
-        if (*clargs_.build.dump_artifacts == "-") {
+    for (auto const& location : clargs_.build.dump_artifacts) {
+        if (location == "-") {
             std::cout << std::setw(2) << json << std::endl;
         }
         else {
-            std::ofstream os(*clargs_.build.dump_artifacts);
+            std::ofstream os(location);
             os << std::setw(2) << json << std::endl;
         }
     }

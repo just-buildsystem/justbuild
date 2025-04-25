@@ -114,7 +114,7 @@ struct BuildArguments {
     std::optional<std::vector<std::string>> local_launcher{std::nullopt};
     std::chrono::milliseconds timeout{kDefaultTimeout};
     std::size_t build_jobs{};
-    std::optional<std::string> dump_artifacts{std::nullopt};
+    std::vector<std::filesystem::path> dump_artifacts{};
     std::optional<std::string> print_to_stdout{std::nullopt};
     bool print_unique{false};
     bool show_runfiles{false};
@@ -535,10 +535,14 @@ static inline auto SetupExtendedBuildArguments(
     gsl::not_null<CLI::App*> const& app,
     gsl::not_null<BuildArguments*> const& clargs) {
 
-    app->add_option("--dump-artifacts",
-                    clargs->dump_artifacts,
-                    "Dump artifacts to file (use - for stdout).")
-        ->type_name("PATH");
+    app->add_option_function<std::string>(
+           "--dump-artifacts",
+           [clargs](auto const& file_) {
+               clargs->dump_artifacts.emplace_back(file_);
+           },
+           "Dump artifacts to file (use - for stdout).")
+        ->type_name("PATH")
+        ->trigger_on_parse();
 
     app->add_flag("-s,--show-runfiles",
                   clargs->show_runfiles,
