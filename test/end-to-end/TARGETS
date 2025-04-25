@@ -35,6 +35,7 @@
           [ ["./", "serve-service", "TESTS"]
           , ["./", "computed-roots", "TESTS"]
           , ["./", "tree-structure", "TESTS"]
+          , ["./", "symlinks", "TESTS"]
           ]
         }
       ]
@@ -118,7 +119,6 @@
       , ["./", "build-fails", "TESTS"]
       , ["./", "execution-service", "TESTS"]
       , ["./", "generated-binary", "TESTS"]
-      , ["./", "symlinks", "TESTS"]
       , ["./", "target-tests", "TESTS"]
       , ["./", "user-errors", "TESTS"]
       ]
