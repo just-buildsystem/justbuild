@@ -96,6 +96,22 @@ Inocations {{invocation | e}}
   {% if exit_code != None %}
   <li> exit code: {{ exit_code | e }}</li>
   {% endif %}
+  {% if artifacts %}
+  <li>
+    <details>
+      <summary>artifacts</summary>
+      <ul>
+        {% for entry in artifacts %}
+        <li>
+          <a href="/{{ entry["type"] | e}}/{{ entry["hash"] | e}}">{{ entry["path"] | e}}</a>
+          {% if entry["type"] == "blob" %}
+          <a href="/blob/{{ entry["hash"] | e}}/{{ entry["basename"] | e}}">[&darr;]</a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+  {% endif %}
 </ul>
 
 {% if have_profile %}

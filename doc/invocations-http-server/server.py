@@ -43,6 +43,7 @@ class InvocationServer:
     def __init__(self, logsdir, *,
                  just_mr = None,
                  graph = "graph.json",
+                 artifacts = "artifacts.json",
                  profile = "profile.json",
                  meta = "meta.json"):
         self.logsdir = logsdir
@@ -52,6 +53,7 @@ class InvocationServer:
             self.just_mr = just_mr
         self.profile = profile
         self.graph = graph
+        self.artifacts = artifacts
         self.meta = meta
         self.templatepath = os.path.join(os.path.dirname(__file__), "templates")
         self.jinjaenv = jinja2.Environment(
@@ -214,6 +216,13 @@ class InvocationServer:
         except:
             graph = {}
 
+        try:
+            with open(os.path.join(
+                    self.logsdir, invocation, self.artifacts)) as f:
+                artifacts = json.load(f)
+        except:
+            artifacts = {}
+
         params["repo_config"] = meta.get('configuration')
         params["exit_code"] = profile.get('exit code')
         # For complex conditional data fill with None as default
@@ -230,6 +239,16 @@ class InvocationServer:
         if profile.get('configuration') is not None:
             params["config"] = json.dumps(core_config(
                 profile.get('configuration')))
+
+        output_artifacts = []
+        for k, v in artifacts.items():
+            output_artifacts.append({
+                "path": k,
+                "basename": os.path.basename(k),
+                "hash": v["id"],
+                "type": "tree" if v["file_type"] == "t" else "blob",
+            })
+        params["artifacts"] = output_artifacts
 
         def action_data(name, profile_value):
             data = { "name_prefix": "",
@@ -297,6 +316,8 @@ if __name__ == '__main__':
                         help="Name of the logged metadata file")
     parser.add_argument("--graph", dest="graph", default="graph.json",
                         help="Name of the logged action-graph file")
+    parser.add_argument("--artifacts", dest="artifacts", default="artifacts.json",
+                        help="Name of the logged artifacts file")
     parser.add_argument("--profile", dest="profile", default="profile.json",
                         help="Name of the logged profile file")
     parser.add_argument(
@@ -318,6 +339,7 @@ if __name__ == '__main__':
     app = InvocationServer(args.DIR,
                            just_mr=just_mr,
                            graph=args.graph,
+                           artifacts=args.artifacts,
                            meta=args.meta,
                            profile=args.profile)
     make_server(args.interface, args.port, app).serve_forever()
