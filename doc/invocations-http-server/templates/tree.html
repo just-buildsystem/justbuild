@@ -8,7 +8,12 @@ Tree {{ name | e }}
 
 <ul>
   {% for entry in entries %}
-  <li><a href="/{{ entry["type"] | e}}/{{ entry["hash"] | e}}">{{ entry["path"] | e}}</a></li>
+  <li>
+    <a href="/{{ entry["type"] | e}}/{{ entry["hash"] | e}}">{{ entry["path"] | e}}</a>
+    {% if entry["type"] == "blob" %}
+    <a href="/blob/{{ entry["hash"] | e}}/{{ entry["path"] | e}}">[&darr;]</a>
+    {% endif %}
+  </li>
   {% endfor %}
 </ul>
 {% endblock %}
