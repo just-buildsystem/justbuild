@@ -324,6 +324,17 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back("--dump-plain-graph");
             cmd.emplace_back(*log_dir / *invocation_log.graph_file_plain);
         }
+        if (invocation_log.dump_artifacts) {
+            if (not IsValidFileName(*invocation_log.dump_artifacts)) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Invalid file name for option --dump-artifacts: {}",
+                    nlohmann::json(*invocation_log.dump_artifacts).dump());
+                std::exit(kExitClargsError);
+            }
+            cmd.emplace_back("--dump-artifacts");
+            cmd.emplace_back(*log_dir / *invocation_log.dump_artifacts);
+        }
         if (invocation_log.profile) {
             if (not IsValidFileName(*invocation_log.profile)) {
                 Logger::Log(LogLevel::Error,

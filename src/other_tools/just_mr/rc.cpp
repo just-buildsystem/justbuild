@@ -619,6 +619,12 @@ namespace {
             if (graph_file_plain->IsString()) {
                 clargs->invocation_log.graph_file = graph_file_plain->String();
             }
+            auto dump_artifacts =
+                invocation_log->Get("--dump-artifacts", Expression::none_t{});
+            if (dump_artifacts->IsString()) {
+                clargs->invocation_log.dump_artifacts =
+                    dump_artifacts->String();
+            }
             auto profile =
                 invocation_log->Get("--profile", Expression::none_t{});
             if (profile->IsString()) {

@@ -97,6 +97,7 @@ struct InvocationLogArguments {
     std::optional<std::string> metadata{std::nullopt};
     std::optional<std::string> graph_file{std::nullopt};
     std::optional<std::string> graph_file_plain{std::nullopt};
+    std::optional<std::string> dump_artifacts{std::nullopt};
     std::optional<std::string> profile{std::nullopt};
 };
 
