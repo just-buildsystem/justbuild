@@ -211,6 +211,7 @@ from. In our case, we don't use any base.
   , "CXX": ["c++"]
   , "ADD_COMPILE_FLAGS": ["-O2", "-Wall"]
   , "AR": ["ar"]
+  , "DWP": ["dwp"]
   , "PATH": ["/bin", "/usr/bin"]
   }
 }

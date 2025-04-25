@@ -26,28 +26,21 @@ flags) for our example project. This can be done by extending the existing
 ``` {.jsonc srcname="tutorial-defaults/CC/TARGETS"}
 { "defaults":
   { "type": ["CC", "defaults"]
-  , "arguments_config": ["DEBUG"]
   , "CC": ["cc"]
   , "CXX": ["c++"]
-  , "ADD_COMPILE_FLAGS":
-    { "type": "++"
-    , "$1":
-      [ ["-O2", "-Wall"]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "DEBUG"}
-        , "then": ["-g"]
-        }
-      ]
-    }
+  , "ADD_COMPILE_FLAGS": ["-O2", "-Wall"]
+  , "ADD_DEBUGFLAGS": ["-O2", "-Wall", "-g"]
   , "AR": ["ar"]
+  , "DWP": ["dwp"]
   , "PATH": ["/bin", "/usr/bin"]
   }
 }
 ```
 
-This states that when the `DEBUG` configuration argument is set, the C/C++ flags
-should contain `-g` to generate debug information for `gdb(1)`. As this updated
-`TARGETS` file is under version control, we need to commit the changes:
+This states that when in debug mode a different set of C/C++ flags should be
+used, in this case the ones from release mode plus the `-g` flag to generate
+debug information for `gdb(1)`. As this updated `TARGETS` file is under version
+control, we need to commit the changes:
 
 ``` sh
 $ git add tutorial-defaults

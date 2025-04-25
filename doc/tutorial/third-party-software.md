@@ -111,7 +111,15 @@ The top-level `TARGETS` file contains the following content:
 { "fmt":
   { "type": "export"
   , "target": ["src", "fmt"]
-  , "flexible_config": ["CXX", "CXXFLAGS", "ADD_CXXFLAGS", "AR", "ENV", "DEBUG"]
+  , "flexible_config":
+    [ "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
+    , "AR"
+    , "DWP"
+    , "ENV"
+    , "DEBUG"
+    ]
   }
 }
 ```
