@@ -285,6 +285,12 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             "{:%Y-%m-%d-%H:%M}-{}", fmt::gmtime(invocation_time), uuid);
         dir = dir / invocation_id;
         if (FileSystemManager::CreateDirectoryExclusive(dir)) {
+            if (invocation_log.invocation_msg) {
+                Logger::Log(LogLevel::Info,
+                            "{}{}",
+                            *invocation_log.invocation_msg,
+                            invocation_id);
+            }
             Logger::Log(
                 LogLevel::Info, "Invocation logged at {}", dir.string());
             log_dir = dir;

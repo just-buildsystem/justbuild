@@ -624,6 +624,11 @@ namespace {
             if (profile->IsString()) {
                 clargs->invocation_log.profile = profile->String();
             }
+            auto msg =
+                invocation_log->Get("invocation message", Expression::none_t{});
+            if (msg->IsString()) {
+                clargs->invocation_log.invocation_msg = msg->String();
+            }
         }
     }
     // read config lookup order
