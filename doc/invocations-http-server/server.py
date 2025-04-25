@@ -189,12 +189,14 @@ class InvocationServer:
                                          "entries": entries})
 
     def do_get_invocation(self, invocation):
-        params = {"invocation": invocation}
+        params = {"invocation": invocation,
+                  "have_profile": False}
 
         try:
             with open(os.path.join(
                     self.logsdir, invocation, self.profile)) as f:
                 profile = json.load(f)
+                params["have_profile"] = True
         except:
             profile = {}
 

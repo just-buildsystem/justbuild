@@ -98,6 +98,7 @@ Inocations {{invocation | e}}
   {% endif %}
 </ul>
 
+{% if have_profile %}
 <h2>Failed actions</h2>
 {% if failed_actions %}
 <ul>
@@ -124,7 +125,9 @@ In order of decreasing run time.
 {% else %}
 <i>(none)</i>
 {% endif %}
-
+{% else %}
+<b>No profiling data available; invocation data is not (yet) complete.</b>
+{% endif %}
 
 
 {% endblock %}
