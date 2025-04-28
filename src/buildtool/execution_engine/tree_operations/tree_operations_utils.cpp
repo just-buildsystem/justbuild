@@ -176,7 +176,8 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     bazel_re::Directory bazel_directory{};
     for (auto const& [name, entry] : tree_entries) {
         switch (entry.info.type) {
-            case ObjectType::File: {
+            case ObjectType::File:
+            case ObjectType::Executable: {
                 auto* file = bazel_directory.add_files();
                 file->set_name(name);
                 file->mutable_digest()->CopyFrom(
