@@ -1,0 +1,32 @@
+{ "tree_operations_utils":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["tree_operations_utils"]
+  , "srcs": ["tree_operations_utils.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , ["@", "src", "src/buildtool/execution_api/common", "common"]
+    , ["@", "src", "src/buildtool/execution_api/local", "context"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local_api"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_engine/tree_operations"
+      , "tree_operations_utils"
+      ]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "expected"]
+    , ["", "catch-main"]
+    , ["buildtool/execution_api/common", "api_test"]
+    , ["utils", "test_storage_config"]
+    ]
+  , "stage": ["test", "buildtool", "execution_engine", "tree_operations"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["tree_operations"]
+  , "deps": ["tree_operations_utils"]
+  }
+}

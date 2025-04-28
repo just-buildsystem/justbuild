@@ -5,6 +5,7 @@
     [ ["./", "dag", "TESTS"]
     , ["./", "executor", "TESTS"]
     , ["./", "traverser", "TESTS"]
+    , ["./", "tree_operations", "TESTS"]
     ]
   }
 }
