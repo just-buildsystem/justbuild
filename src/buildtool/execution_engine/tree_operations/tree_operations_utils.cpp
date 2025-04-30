@@ -180,8 +180,8 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
             case ObjectType::Executable: {
                 auto* file = bazel_directory.add_files();
                 file->set_name(name);
-                file->mutable_digest()->CopyFrom(
-                    ArtifactDigestFactory::ToBazel(entry.info.digest));
+                *file->mutable_digest() =
+                    ArtifactDigestFactory::ToBazel(entry.info.digest);
                 file->set_is_executable(entry.info.type ==
                                         ObjectType::Executable);
                 break;
@@ -195,8 +195,8 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
             case ObjectType::Tree: {
                 auto* dir = bazel_directory.add_directories();
                 dir->set_name(name);
-                dir->mutable_digest()->CopyFrom(
-                    ArtifactDigestFactory::ToBazel(entry.info.digest));
+                *dir->mutable_digest() =
+                    ArtifactDigestFactory::ToBazel(entry.info.digest);
                 break;
             }
             default: {
