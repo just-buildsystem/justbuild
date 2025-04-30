@@ -16,15 +16,26 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TREE_OPERATIONS_TREE_OPERATIONS_UTILS_HPP
 
 #include <filesystem>
+#include <optional>
 #include <string>
+#include <unordered_map>
 
 #include "src/buildtool/common/artifact.hpp"
+#include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 /// \brief Utility functions for tree operations.
 class TreeOperationsUtils final {
   public:
+    struct TreeEntry {
+        Artifact::ObjectInfo info{};
+        std::optional<std::string> symlink_target{};
+    };
+
+    using TreeEntries = std::unordered_map<std::string, TreeEntry>;
+
     /// \brief Computes a new tree from two existing ones by overlaying
     /// their contents.
     /// \param api              The execution API to be used.
@@ -43,6 +54,32 @@ class TreeOperationsUtils final {
         bool disjoint,
         std::filesystem::path const& where = std::filesystem::path{}) noexcept
         -> expected<Artifact::ObjectInfo, std::string>;
+
+    [[nodiscard]] static auto ReadTree(
+        IExecutionApi const& api,
+        Artifact::ObjectInfo const& tree_info) noexcept
+        -> expected<TreeEntries, std::string>;
+
+    [[nodiscard]] static auto WriteTree(
+        IExecutionApi const& api,
+        TreeEntries const& tree_entries) noexcept
+        -> expected<ArtifactDigest, std::string>;
+
+  private:
+    [[nodiscard]] static auto ParseBazelDirectory(
+        std::string const& tree_data,
+        HashFunction::Type hash_type) noexcept -> std::optional<TreeEntries>;
+
+    [[nodiscard]] static auto ParseGitTree(
+        std::string const& tree_data,
+        ArtifactDigest const& tree_digest,
+        HashFunction::Type hash_type) noexcept -> std::optional<TreeEntries>;
+
+    [[nodiscard]] static auto SerializeBazelDirectory(
+        TreeEntries const& tree_entries) noexcept -> std::optional<std::string>;
+
+    [[nodiscard]] static auto SerializeGitTree(
+        TreeEntries const& tree_entries) noexcept -> std::optional<std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_ENGINE_TREE_OPERATIONS_TREE_OPERATIONS_UTILS_HPP

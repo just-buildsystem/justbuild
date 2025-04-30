@@ -5,6 +5,7 @@
   , "srcs": ["tree_operations_utils.cpp"]
   , "deps":
     [ ["src/buildtool/common", "common"]
+    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "common"]
     , ["src/utils/cpp", "expected"]
     ]
@@ -16,7 +17,6 @@
     , ["src/buildtool/common", "artifact_blob"]
     , ["src/buildtool/common", "bazel_types"]
     , ["src/buildtool/common", "protocol_traits"]
-    , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/buildtool/logging", "log_level"]

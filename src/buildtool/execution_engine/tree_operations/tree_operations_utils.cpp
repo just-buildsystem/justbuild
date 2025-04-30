@@ -16,8 +16,6 @@
 
 #include <cstddef>
 #include <functional>
-#include <optional>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
@@ -27,28 +25,18 @@
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_blob.hpp"
-#include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
-namespace {
-struct TreeEntry {
-    Artifact::ObjectInfo info{};
-    std::optional<std::string> symlink_target{};
-};
-
-using TreeEntries = std::unordered_map<std::string, TreeEntry>;
-
-[[nodiscard]] auto ParseBazelDirectory(std::string const& tree_data,
-                                       HashFunction::Type hash_type) noexcept
-    -> std::optional<TreeEntries> {
+auto TreeOperationsUtils::ParseBazelDirectory(
+    std::string const& tree_data,
+    HashFunction::Type hash_type) noexcept -> std::optional<TreeEntries> {
     bazel_re::Directory bazel_directory{};
     if (not bazel_directory.ParseFromString(tree_data)) {
         return std::nullopt;
@@ -104,9 +92,9 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     return tree_entries;
 }
 
-[[nodiscard]] auto ParseGitTree(std::string const& tree_data,
-                                ArtifactDigest const& tree_digest,
-                                HashFunction::Type hash_type) noexcept
+auto TreeOperationsUtils::ParseGitTree(std::string const& tree_data,
+                                       ArtifactDigest const& tree_digest,
+                                       HashFunction::Type hash_type) noexcept
     -> std::optional<TreeEntries> {
     // For a tree-overlay computation, the actual target of a symbolic
     // link is not relevant. Symbolic links are just considered as
@@ -148,8 +136,9 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     return tree_entries;
 }
 
-[[nodiscard]] auto ReadTree(IExecutionApi const& api,
-                            Artifact::ObjectInfo const& tree_info) noexcept
+auto TreeOperationsUtils::ReadTree(
+    IExecutionApi const& api,
+    Artifact::ObjectInfo const& tree_info) noexcept
     -> expected<TreeEntries, std::string> {
     // Fetch tree data.
     auto tree_data = api.RetrieveToMemory(tree_info);
@@ -170,7 +159,7 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     return *tree_entries;
 }
 
-[[nodiscard]] auto SerializeBazelDirectory(
+auto TreeOperationsUtils::SerializeBazelDirectory(
     TreeEntries const& tree_entries) noexcept -> std::optional<std::string> {
     // Convert tree entries to bazel directory.
     bazel_re::Directory bazel_directory{};
@@ -209,8 +198,8 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     return bazel_directory.SerializeAsString();
 }
 
-[[nodiscard]] auto SerializeGitTree(TreeEntries const& tree_entries) noexcept
-    -> std::optional<std::string> {
+auto TreeOperationsUtils::SerializeGitTree(
+    TreeEntries const& tree_entries) noexcept -> std::optional<std::string> {
     // Convert tree entries to git entries.
     GitRepo::tree_entries_t git_entries{};
     git_entries.reserve(tree_entries.size());
@@ -234,8 +223,8 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     return git_tree->second;
 }
 
-[[nodiscard]] auto WriteTree(IExecutionApi const& api,
-                             TreeEntries const& tree_entries) noexcept
+auto TreeOperationsUtils::WriteTree(IExecutionApi const& api,
+                                    TreeEntries const& tree_entries) noexcept
     -> expected<ArtifactDigest, std::string> {
     // Serialize tree entries.
     auto tree_data = ProtocolTraits::IsNative(api.GetHashType())
@@ -257,8 +246,6 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
     }
     return unexpected{fmt::format("Failed to upload tree blob")};
 }
-
-}  // namespace
 
 auto TreeOperationsUtils::ComputeTreeOverlay(
     IExecutionApi const& api,
