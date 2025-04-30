@@ -225,7 +225,7 @@ auto TreeOperationsUtils::SerializeGitTree(
 
 auto TreeOperationsUtils::WriteTree(IExecutionApi const& api,
                                     TreeEntries const& tree_entries) noexcept
-    -> expected<ArtifactDigest, std::string> {
+    -> expected<Artifact::ObjectInfo, std::string> {
     // Serialize tree entries.
     auto tree_data = ProtocolTraits::IsNative(api.GetHashType())
                          ? SerializeGitTree(tree_entries)
@@ -242,7 +242,8 @@ auto TreeOperationsUtils::WriteTree(IExecutionApi const& api,
         return unexpected{fmt::format("Failed to create tree blob")};
     }
     if (api.Upload(std::unordered_set{*tree_blob})) {
-        return tree_blob->GetDigest();
+        return Artifact::ObjectInfo{.digest = tree_blob->GetDigest(),
+                                    .type = ObjectType::Tree};
     }
     return unexpected{fmt::format("Failed to upload tree blob")};
 }
@@ -326,11 +327,12 @@ auto TreeOperationsUtils::ComputeTreeOverlay(
     }
 
     // Write tree overlay.
-    auto digest = WriteTree(api, overlay_tree);
-    auto overlay_tree_info = Artifact::ObjectInfo{.digest = *std::move(digest),
-                                                  .type = ObjectType::Tree};
+    auto overlay_tree_info = WriteTree(api, overlay_tree);
+    if (not overlay_tree_info) {
+        return unexpected{overlay_tree_info.error()};
+    }
     Logger::Log(LogLevel::Trace,
                 "Tree overlay result: {}",
-                overlay_tree_info.ToString());
+                overlay_tree_info->ToString());
     return overlay_tree_info;
 }

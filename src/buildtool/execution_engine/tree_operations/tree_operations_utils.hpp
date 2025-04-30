@@ -63,7 +63,7 @@ class TreeOperationsUtils final {
     [[nodiscard]] static auto WriteTree(
         IExecutionApi const& api,
         TreeEntries const& tree_entries) noexcept
-        -> expected<ArtifactDigest, std::string>;
+        -> expected<Artifact::ObjectInfo, std::string>;
 
   private:
     [[nodiscard]] static auto ParseBazelDirectory(
