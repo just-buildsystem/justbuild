@@ -108,7 +108,7 @@ using TreeEntries = std::unordered_map<std::string, TreeEntry>;
                                 ArtifactDigest const& tree_digest,
                                 HashFunction::Type hash_type) noexcept
     -> std::optional<TreeEntries> {
-    // For a tree overlay computation, the actual target of a symbolic
+    // For a tree-overlay computation, the actual target of a symbolic
     // link is not relevant. Symbolic links are just considered as
     // regular blobs.
     auto git_entries = GitRepo::ReadTreeData(
