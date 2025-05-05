@@ -47,6 +47,9 @@ void Profile::Write(int exit_code) {
     }
 
     profile_["exit code"] = exit_code;
+    if (not analysis_errors_.empty()) {
+        profile_["analysis errors"] = analysis_errors_;
+    }
 
     std::ofstream os(*output_file_);
     os << profile_.dump(2) << std::endl;
@@ -147,4 +150,9 @@ void Profile::NoteActionCompleted(std::string const& id,
             }
         }
     }
+}
+
+void Profile::NoteAnalysisError(std::string const& error_message) {
+    std::unique_lock lock{mutex_};
+    analysis_errors_.emplace_back(error_message);
 }

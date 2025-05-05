@@ -47,6 +47,9 @@ The profile file contains the following information.
 
 - For the key *`"exit code"`* the exit code of the **`just`**(1) process.
 
+- For the key *`"analysis errors"`*, if present, a list of error messages
+  describing each an error that occurred during analysis.
+
 - For the key *`"actions"`* an object. For each action that was looked at
   in the build phase there is an entry, with the key being the action
   identifier; the identifier is the same as in the **`just-graph-file`**(5)

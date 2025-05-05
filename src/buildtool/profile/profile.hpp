@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
@@ -40,6 +41,7 @@ class Profile {
     void NoteActionCompleted(std::string const& id,
                              IExecutionResponse::Ptr const& response,
                              std::string const& cwd);
+    void NoteAnalysisError(std::string const& error_message);
 
   private:
     struct ActionData {
@@ -54,6 +56,7 @@ class Profile {
     std::optional<std::string> output_file_;
     nlohmann::json profile_;
     std::unordered_map<std::string, ActionData> actions_;
+    std::vector<std::string> analysis_errors_;
     std::mutex mutex_;
 
     void SetCLI(CommandLineArguments const& cli);
