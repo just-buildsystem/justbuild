@@ -259,14 +259,14 @@ auto DescribeUserDefinedRule(
             });
     }
     if (failed) {
-        return kExitFailure;
+        return kExitAnalysisFailure;
     }
     auto ruledesc_it = rules_file.find(rule_name.GetNamedTarget().name);
     if (ruledesc_it == rules_file.end()) {
         Logger::Log(LogLevel::Error,
                     "Rule definition of {} is missing",
                     rule_name.ToString());
-        return kExitFailure;
+        return kExitAnalysisFailure;
     }
     if (print_json) {
         PrintRuleAsOrderedJson(*ruledesc_it, rule_name.ToJson());
@@ -291,7 +291,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                                     "endpoint was configured. Please provide "
                                     "--remote-serve-address and retry.",
                                     id.target.ToJson().dump()));
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
         // check that just serve and the client use same remote execution
         // endpoint; it might make sense in the future to remove or avoid this
@@ -300,7 +300,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
             Logger::Log(LogLevel::Error,
                         "Inconsistent remote execution endpoint and serve "
                         "endpoint configuration detected.");
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
         // ask serve endpoint to provide the description
         auto const& repo_name = id.target.ToModule().repository;
@@ -311,7 +311,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                 LogLevel::Error,
                 "Failed to get the target root id for repository \"{}\"",
                 repo_name);
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
         if (auto dgst = serve->ServeTargetDescription(
                 *target_root_id,
@@ -332,7 +332,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     Logger::Log(LogLevel::Error,
                                 "Failed to retrieve blob {} from remote CAS",
                                 desc_info.ToString());
-                    return kExitFailure;
+                    return kExitBuildEnvironment;
                 }
             }
             auto const desc_str = apis.local->RetrieveToMemory(desc_info);
@@ -340,7 +340,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                 Logger::Log(LogLevel::Error,
                             "Could not load in memory blob {}",
                             desc_info.ToString());
-                return kExitFailure;
+                return kExitBuildEnvironment;
             }
             // parse blob into JSON object
             nlohmann::json desc;
@@ -351,7 +351,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     LogLevel::Error,
                     "Parsing served target description failed with:\n{}",
                     ex.what());
-                return kExitFailure;
+                return kExitBuildEnvironment;
             }
             // serve endpoint already checked that this target is of
             // "type": "export", so we can just print the description
@@ -380,7 +380,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                     "Serve endpoint could not provide description of target {} "
                     "with absent root.",
                     id.target.ToJson().dump());
-        return kExitFailure;
+        return kExitBuildEnvironment;
     }
 
     // process with a present target root
@@ -401,7 +401,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
             });
     }
     if (failed) {
-        return kExitFailure;
+        return kExitAnalysisFailure;
     }
     auto desc_it = targets_file.find(id.target.GetNamedTarget().name);
     if (desc_it == targets_file.end()) {
@@ -415,7 +415,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
         Logger::Log(LogLevel::Error,
                     "{} is a target without specified type.",
                     id.ToString());
-        return kExitFailure;
+        return kExitAnalysisFailure;
     }
     if (BuildMaps::Target::IsBuiltInRule(*rule_it)) {
         if (print_json) {
@@ -470,7 +470,7 @@ auto DescribeTarget(BuildMaps::Target::ConfiguredTarget const& id,
                         parse_err);
         });
     if (not rule_name) {
-        return kExitFailure;
+        return kExitAnalysisFailure;
     }
     if (not print_json) {
         std::cout << id.ToString() << " is defined by user-defined rule "

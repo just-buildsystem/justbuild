@@ -765,25 +765,25 @@ auto main(int argc, char* argv[]) -> int {
             auto const storage_config = CreateStorageConfig(
                 arguments.endpoint, arguments.protocol.hash_type);
             if (not storage_config) {
-                return kExitFailure;
+                return kExitBuildEnvironment;
             }
 
             if (GarbageCollector::TriggerGarbageCollection(
                     *storage_config, arguments.gc.no_rotate)) {
                 return kExitSuccess;
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         auto local_exec_config = CreateLocalExecutionConfig(arguments.build);
         if (not local_exec_config) {
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         auto auth_config =
             CreateAuthConfig(arguments.auth, arguments.cauth, arguments.sauth);
         if (not auth_config) {
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         if (arguments.cmd == SubCommand::kExecute) {
@@ -803,7 +803,7 @@ auto main(int argc, char* argv[]) -> int {
                 auto const storage_config = CreateStorageConfig(
                     arguments.endpoint, arguments.protocol.hash_type);
                 if (not storage_config) {
-                    return kExitFailure;
+                    return kExitBuildEnvironment;
                 }
                 auto const storage = Storage::Create(&*storage_config);
 
@@ -830,20 +830,20 @@ auto main(int argc, char* argv[]) -> int {
                            ? kExitSuccess
                            : kExitFailure;
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         auto serve_config = CreateServeConfig(
             arguments.serve, arguments.common, arguments.build, arguments.tc);
         if (not serve_config) {
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         // Set up the retry arguments, needed only for the client-side logic of
         // remote execution, i.e., just serve and the regular just client.
         auto retry_config = CreateRetryConfig(arguments.retry);
         if (not retry_config) {
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         if (arguments.cmd == SubCommand::kServe) {
@@ -859,7 +859,7 @@ auto main(int argc, char* argv[]) -> int {
                 auto remote_exec_config = CreateRemoteExecutionConfig(
                     arguments.endpoint, arguments.rebuild);
                 if (not remote_exec_config) {
-                    return kExitFailure;
+                    return kExitBuildEnvironment;
                 }
 
                 // Set up storage for serve operation.
@@ -870,7 +870,7 @@ auto main(int argc, char* argv[]) -> int {
                                         remote_exec_config->platform_properties,
                                         remote_exec_config->dispatch);
                 if (not storage_config) {
-                    return kExitFailure;
+                    return kExitBuildEnvironment;
                 }
                 auto const storage = Storage::Create(&*storage_config);
 
@@ -910,7 +910,7 @@ auto main(int argc, char* argv[]) -> int {
                            ? kExitSuccess
                            : kExitFailure;
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         // Setup profile logging, if requested
@@ -937,9 +937,9 @@ auto main(int argc, char* argv[]) -> int {
             CreateRemoteExecutionConfig(arguments.endpoint, arguments.rebuild);
         if (not remote_exec_config) {
             if (profile != nullptr) {
-                profile->Write(kExitFailure);
+                profile->Write(kExitBuildEnvironment);
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         // Set up storage for client-side operation. This needs to have all the
@@ -959,9 +959,9 @@ auto main(int argc, char* argv[]) -> int {
 #endif  // BOOTSTRAP_BUILD_TOOL
         if (not storage_config) {
             if (profile != nullptr) {
-                profile->Write(kExitFailure);
+                profile->Write(kExitBuildEnvironment);
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
         auto const storage = Storage::Create(&*storage_config);
 
@@ -1025,12 +1025,12 @@ auto main(int argc, char* argv[]) -> int {
             return FetchAndInstallArtifacts(
                        main_apis, arguments.fetch, remote_context)
                        ? kExitSuccess
-                       : kExitFailure;
+                       : kExitBuildEnvironment;
         }
         if (arguments.cmd == SubCommand::kAddToCas) {
             return AddArtifactsToCas(arguments.to_add, storage, main_apis)
                        ? kExitSuccess
-                       : kExitFailure;
+                       : kExitBuildEnvironment;
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
 
@@ -1050,9 +1050,9 @@ auto main(int argc, char* argv[]) -> int {
                                          &exec_context,
                                          eval_root_jobs)) {
             if (profile != nullptr) {
-                profile->Write(kExitFailure);
+                profile->Write(kExitAnalysisFailure);
             }
-            return kExitFailure;
+            return kExitAnalysisFailure;
         }
 #else
         std::optional<ServeApi> serve;
@@ -1062,9 +1062,9 @@ auto main(int argc, char* argv[]) -> int {
         auto lock = GarbageCollector::SharedLock(*storage_config);
         if (not lock) {
             if (profile != nullptr) {
-                profile->Write(kExitFailure);
+                profile->Write(kExitBuildEnvironment);
             }
-            return kExitFailure;
+            return kExitBuildEnvironment;
         }
 
         if (arguments.cmd == SubCommand::kTraverse) {
@@ -1076,7 +1076,7 @@ auto main(int argc, char* argv[]) -> int {
                                 "together.",
                                 "--git-cas",
                                 "--compatible");
-                    return kExitFailure;
+                    return kExitSyntaxError;
                 }
                 if (not repo_config.SetGitCAS(*arguments.graph.git_cas,
                                               LogLevel::Debug)) {
@@ -1114,9 +1114,9 @@ auto main(int argc, char* argv[]) -> int {
                 return result;
             }
             if (profile != nullptr) {
-                profile->Write(kExitFailure);
+                profile->Write(kExitAnalysisFailure);
             }
-            return kExitFailure;
+            return kExitAnalysisFailure;
         }
 
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1276,14 +1276,24 @@ auto main(int argc, char* argv[]) -> int {
                 }
                 return result;
             }
+            if (profile != nullptr) {
+                profile->Write(kExitFailure);
+            }
+            return kExitFailure;
 #endif  // BOOTSTRAP_BUILD_TOOL
+        }
+        else {
+            if (profile != nullptr) {
+                profile->Write(kExitAnalysisFailure);
+            }
+            return kExitAnalysisFailure;
         }
     } catch (std::exception const& ex) {
         Logger::Log(
             LogLevel::Error, "Caught exception with message: {}", ex.what());
     }
     if (profile != nullptr) {
-        profile->Write(kExitFailure);
+        profile->Write(kExitBuildEnvironment);
     }
-    return kExitFailure;
+    return kExitBuildEnvironment;
 }

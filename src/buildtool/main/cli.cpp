@@ -225,10 +225,11 @@ auto ParseCommandLineArguments(int argc, char const* const* argv)
     try {
         app.parse(argc, argv);
     } catch (CLI::Error& e) {
-        std::exit(app.exit(e));
+        auto exit_code = app.exit(e);
+        std::exit(exit_code == 0 ? kExitSuccess : kExitSyntaxError);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error, "Command line parse error: {}", ex.what());
-        std::exit(kExitFailure);
+        std::exit(kExitSyntaxError);
     }
 
     if (*cmd_version) {

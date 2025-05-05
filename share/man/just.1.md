@@ -843,11 +843,18 @@ EXIT STATUS
 The exit status of **`just`** is one of the following values:
 
  - 0: the command completed successfully
- - 1: the command could not complete due to some errors (e.g.,
-   compilation errors, missing arguments, syntax errors, etc.)
+ - 1: the command failed due to a failing build action
  - 2: the command successfully parsed all the needed files (e.g.,
    *`TARGETS`*), successfully compiled the eventually required objects,
    but the generation of some artifacts failed (e.g., a test failed).
+ - 8: the command failed due to an error during analysis (e.g., missing or
+   malformed *`TARGETS`* files, assertion errors during analysis, cyclic
+   dependencies)
+ - 16: the command failed due to some problems related to the build environment
+   (e.g., local build root inaccessible, credentials for remote endpoint not
+   accessible)
+ - 32: the tool was invoked in a syntactically malformed way (e.g., failure
+   parsing the command line)
 
 See also
 ========

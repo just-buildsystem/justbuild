@@ -14,6 +14,12 @@ A feature release on top of `1.5.0`, backwards compatible.
 - The expression language has been extended to contain new
   built-in functions `"zip_with"`, `"zip_map"`.
 
+### Other changes
+
+- The exit code 1 now strictly refers to build failure due to a
+  failing build action. Syntactical errors invoking the tool, as
+  well as errors during analysis now return separate exit codes.
+
 ### Fixes
 
 - `just execute` and `just serve` now create their pid and info

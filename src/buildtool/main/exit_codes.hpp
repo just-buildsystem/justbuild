@@ -20,7 +20,10 @@
 enum ExitCodes : std::uint8_t {
     kExitSuccess = 0,
     kExitFailure = 1,
-    kExitSuccessFailedArtifacts = 2
+    kExitSuccessFailedArtifacts = 2,
+    kExitAnalysisFailure = 8,
+    kExitBuildEnvironment = 16,
+    kExitSyntaxError = 32
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_MAIN_EXIT_CODES_HPP
