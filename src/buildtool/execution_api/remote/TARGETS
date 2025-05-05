@@ -42,6 +42,7 @@
     ]
   , "proto":
     [ ["@", "bazel_remote_apis", "", "remote_execution_proto"]
+    , ["@", "bazel_remote_apis", "", "semver_proto"]
     , ["@", "googleapis", "", "google_bytestream_proto"]
     , ["@", "googleapis", "", "google_longrunning_operations_proto"]
     , ["@", "googleapis", "", "google_rpc_status_proto"]

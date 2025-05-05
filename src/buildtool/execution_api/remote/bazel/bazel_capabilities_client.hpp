@@ -16,7 +16,9 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_CAPABILITIES_CLIENT_HPP
 
 #include <cstddef>
+#include <cstdint>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <shared_mutex>
 #include <string>
@@ -34,8 +36,24 @@ namespace bazel_re = build::bazel::remote::execution::v2;
 
 struct Capabilities final {
     using Ptr = gsl::not_null<std::shared_ptr<Capabilities>>;
+    struct Version {
+        std::int32_t major{};
+        std::int32_t minor{};
+        std::int32_t patch{};
+
+        [[nodiscard]] auto operator<=>(Version const& other) const noexcept =
+            default;
+    };
+
+    static constexpr Version kMinVersion{.major = 0, .minor = 0, .patch = 0};
+    static constexpr Version kMaxVersion{
+        .major = std::numeric_limits<std::int32_t>::max(),
+        .minor = std::numeric_limits<std::int32_t>::max(),
+        .patch = std::numeric_limits<std::int32_t>::max()};
 
     std::size_t const MaxBatchTransferSize = MessageLimits::kMaxGrpcLength;
+    Version const low_api_version = kMinVersion;
+    Version const high_api_version = kMaxVersion;
 };
 
 class BazelCapabilitiesClient final {

@@ -97,6 +97,10 @@ class BazelNetwork {
         std::vector<std::string> const& output_files) const noexcept
         -> std::optional<bazel_re::ActionResult>;
 
+    [[nodiscard]] auto GetCapabilities() const noexcept -> Capabilities::Ptr {
+        return capabilities_->GetCapabilities(instance_name_);
+    }
+
   private:
     std::string const instance_name_;
     std::unique_ptr<BazelCapabilitiesClient> capabilities_;

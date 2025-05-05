@@ -21,6 +21,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "build/bazel/semver/semver.pb.h"
 #include "fmt/core.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
@@ -28,6 +29,14 @@
 #include "src/buildtool/logging/log_level.hpp"
 
 namespace {
+
+[[nodiscard]] auto ParseSemVer(build::bazel::semver::SemVer const&
+                                   version) noexcept -> Capabilities::Version {
+    return Capabilities::Version{.major = version.major(),
+                                 .minor = version.minor(),
+                                 .patch = version.patch()};
+}
+
 [[nodiscard]] auto Parse(std::optional<bazel_re::ServerCapabilities>
                              response) noexcept -> Capabilities {
     if (not response.has_value()) {
@@ -50,8 +59,16 @@ namespace {
     }
     return Capabilities{
         .MaxBatchTransferSize = max_batch,
-    };
+        .low_api_version = response->has_deprecated_api_version()
+                               ? ParseSemVer(response->deprecated_api_version())
+                               : (response->has_low_api_version()  // NOLINT
+                                      ? ParseSemVer(response->low_api_version())
+                                      : Capabilities::kMinVersion),
+        .high_api_version = response->has_high_api_version()
+                                ? ParseSemVer(response->high_api_version())
+                                : Capabilities::kMaxVersion};
 }
+
 }  // namespace
 
 BazelCapabilitiesClient::BazelCapabilitiesClient(
