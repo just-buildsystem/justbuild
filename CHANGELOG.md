@@ -2,6 +2,11 @@
 
 Bug fixes on top of `1.5.1`.
 
+### Fixes
+
+- The "generic" rule now properly detects staging conflicts, taking
+  the full inputs into account (and not only the runfiles).
+
 ## Release `1.5.1` (2025-04-01)
 
 Bug fixes on top of `1.5.0`.
