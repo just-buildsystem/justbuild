@@ -16,13 +16,13 @@
 
 #include <cstddef>
 #include <functional>
+#include <memory>
+#include <type_traits>  // for remove_reference
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "fmt/core.h"
 #include "google/protobuf/repeated_ptr_field.h"
-#include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -32,6 +32,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/multithreading/task_system.hpp"
 #include "src/utils/cpp/hex_string.hpp"
 
 auto TreeOperationsUtils::ParseBazelDirectory(
@@ -248,91 +249,170 @@ auto TreeOperationsUtils::WriteTree(IExecutionApi const& api,
     return unexpected{fmt::format("Failed to upload tree blob")};
 }
 
+auto TreeOperationsUtils::CreateTreeOverlayMap(IExecutionApi const& api,
+                                               bool disjoint) noexcept
+    -> AsyncMapConsumer<TreePair, Artifact::ObjectInfo> {
+    auto value_creator = [&api, disjoint](auto /*unused*/,
+                                          auto const& setter,
+                                          auto const& logger,
+                                          auto const& subcaller,
+                                          auto const& key) {
+        auto const& base_tree_info = key.trees.first;
+        auto const& other_tree_info = key.trees.second;
+
+        Logger::Log(LogLevel::Trace,
+                    "Compute tree overlay:\n  - {}\n  - {}",
+                    base_tree_info.ToString(),
+                    other_tree_info.ToString());
+
+        // Wrap logger for this tree-overlay computation.
+        auto new_logger = std::make_shared<AsyncMapConsumerLogger>(
+            [logger, base_tree_info, other_tree_info](auto const& msg,
+                                                      auto fatal) {
+                (*logger)(fmt::format("While merging the trees:\n  - {}\n  "
+                                      "- {}\n{}",
+                                      base_tree_info.ToString(),
+                                      other_tree_info.ToString(),
+                                      msg),
+                          fatal);
+            });
+
+        // Ensure that both objects are actually trees.
+        if (not IsTreeObject(base_tree_info.type) or
+            not IsTreeObject(other_tree_info.type)) {
+            (*new_logger)(fmt::format("Both objects have to be trees."),
+                          /*fatal=*/true);
+            return;
+        }
+
+        // Early return if both trees are the same.
+        if (base_tree_info == other_tree_info) {
+            (*setter)(Artifact::ObjectInfo{base_tree_info});
+            return;
+        }
+
+        // Read base tree.
+        auto base_tree = ReadTree(api, base_tree_info);
+        if (not base_tree) {
+            (*new_logger)(base_tree.error(), /*fatal=*/true);
+            return;
+        }
+
+        // Read other tree.
+        auto other_tree = ReadTree(api, other_tree_info);
+        if (not other_tree) {
+            (*new_logger)(other_tree.error(), /*fatal=*/true);
+            return;
+        }
+
+        // Compute tree overlay. If two trees conflict, collect them and
+        // process them in the subcaller.
+        TreeEntries overlay_tree{*other_tree};  // Make a copy of other tree.
+        std::vector<TreePair> keys{};
+        std::vector<std::string> base_names{};
+        auto min_size = std::min(base_tree->size(), other_tree->size());
+        keys.reserve(min_size);
+        base_names.reserve(min_size);
+        for (auto& [base_name, base_entry] : *base_tree) {
+            auto it = overlay_tree.find(base_name);
+            if (it == overlay_tree.end()) {
+                // No naming conflict detected, add entry to the other
+                // tree.
+                overlay_tree[std::move(base_name)] = std::move(base_entry);
+                continue;
+            }
+
+            if (it->second.info == base_entry.info) {
+                // Naming conflict detected, but names point to the same
+                // object, no conflict.
+                continue;
+            }
+
+            // Naming conflict detected and names point to different
+            // objects.
+            if (IsTreeObject(base_entry.info.type) and
+                IsTreeObject(it->second.info.type)) {
+                // If both objects are trees, compute tree overlay in
+                // the subcaller.
+                keys.emplace_back(std::make_pair(std::move(base_entry.info),
+                                                 std::move(it->second.info)));
+                base_names.emplace_back(std::move(base_name));
+                continue;
+            }
+
+            // If both objects are not trees, actual conflict detected.
+            if (disjoint) {
+                (*new_logger)(fmt::format("Naming conflict detected at path "
+                                          "{}:\n  - {}\n  - {}",
+                                          nlohmann::json(base_name).dump(),
+                                          base_entry.info.ToString(),
+                                          it->second.info.ToString()),
+                              /*fatal=*/true);
+                return;
+            }
+
+            // Ignore conflict, keep entry from other tree.
+        }
+
+        (*subcaller)(
+            keys,
+            [setter,
+             new_logger,
+             &api,
+             base_names = std::move(base_names),
+             partial_overlay_tree =
+                 std::move(overlay_tree)](auto const& values) {
+                // Insert computed tree overlays into tree-overlay
+                // entries.
+                TreeEntries overlay_tree{partial_overlay_tree};
+                for (size_t i = 0; i < values.size(); ++i) {
+                    // Create copy of the value.
+                    overlay_tree[base_names[i]] =
+                        TreeEntry{.info = *(values[i])};
+                }
+
+                // Write tree overlay.
+                auto overlay_tree_info = WriteTree(api, overlay_tree);
+                if (not overlay_tree_info) {
+                    (*new_logger)(overlay_tree_info.error(), /*fatal=*/true);
+                    return;
+                }
+
+                Logger::Log(LogLevel::Trace,
+                            "Tree-overlay result: {}",
+                            overlay_tree_info->ToString());
+
+                (*setter)(*std::move(overlay_tree_info));
+            },
+            new_logger);
+    };
+
+    return AsyncMapConsumer<TreePair, Artifact::ObjectInfo>{value_creator};
+}
+
 auto TreeOperationsUtils::ComputeTreeOverlay(
     IExecutionApi const& api,
     Artifact::ObjectInfo const& base_tree_info,
     Artifact::ObjectInfo const& other_tree_info,
-    bool disjoint,
-    std::filesystem::path const& where) noexcept
-    -> expected<Artifact::ObjectInfo, std::string> {
-    // Ensure that both objects are actually trees.
-    Ensures(IsTreeObject(base_tree_info.type) and
-            IsTreeObject(other_tree_info.type));
+    bool disjoint) noexcept -> expected<Artifact::ObjectInfo, std::string> {
 
-    Logger::Log(LogLevel::Trace,
-                "Tree overlay {} vs {}",
-                base_tree_info.ToString(),
-                other_tree_info.ToString());
-
-    // Early return if both trees are the same.
-    if (base_tree_info == other_tree_info) {
-        return base_tree_info;
+    auto tree_overlay_map = CreateTreeOverlayMap(api, disjoint);
+    Artifact::ObjectInfo result{};
+    std::string failed_msg{};
+    bool failed{false};
+    {
+        TaskSystem ts{1};
+        tree_overlay_map.ConsumeAfterKeysReady(
+            &ts,
+            {TreePair{std::make_pair(base_tree_info, other_tree_info)}},
+            [&result](auto const& values) { result = *values[0]; },
+            [&failed_msg, &failed](auto const& msg, auto fatal) {
+                failed_msg = msg;
+                failed = fatal;
+            });
     }
-
-    // Read base tree.
-    auto base_tree = ReadTree(api, base_tree_info);
-    if (not base_tree) {
-        return unexpected{base_tree.error()};
+    if (failed) {
+        return unexpected{failed_msg};
     }
-
-    // Read other tree.
-    auto other_tree = ReadTree(api, other_tree_info);
-    if (not other_tree) {
-        return unexpected{other_tree.error()};
-    }
-
-    // Compute tree overlay.
-    TreeEntries overlay_tree{*other_tree};  // Make a copy of other tree.
-    for (auto const& [base_name, base_entry] : *base_tree) {
-        auto it = overlay_tree.find(base_name);
-        if (it == overlay_tree.end()) {
-            // No naming conflict detected, add entry to the other tree.
-            overlay_tree.insert({base_name, base_entry});
-            continue;
-        }
-
-        if (it->second.info == base_entry.info) {
-            // Naming conflict detected, but names point to the same
-            // object, no conflict.
-            continue;
-        }
-
-        // Naming conflict detected and names point to different
-        // objects.
-        if (IsTreeObject(base_entry.info.type) and
-            IsTreeObject(it->second.info.type)) {
-            // If both objects are trees, recursively compute tree overlay.
-            auto tree_info = ComputeTreeOverlay(api,
-                                                base_entry.info,
-                                                it->second.info,
-                                                disjoint,
-                                                where / base_name);
-            if (not tree_info) {
-                return unexpected{tree_info.error()};
-            }
-            overlay_tree[base_name] = TreeEntry{.info = *std::move(tree_info)};
-            continue;
-        }
-
-        // If both objects are not trees, actual conflict detected.
-        if (disjoint) {
-            return unexpected{
-                fmt::format("Conflict at path {}:\ndifferent objects {} vs {}",
-                            nlohmann::json((where / base_name).string()).dump(),
-                            base_entry.info.ToString(),
-                            it->second.info.ToString())};
-        }
-
-        // Ignore conflict, keep entry from other tree.
-    }
-
-    // Write tree overlay.
-    auto overlay_tree_info = WriteTree(api, overlay_tree);
-    if (not overlay_tree_info) {
-        return unexpected{overlay_tree_info.error()};
-    }
-    Logger::Log(LogLevel::Trace,
-                "Tree overlay result: {}",
-                overlay_tree_info->ToString());
-    return overlay_tree_info;
+    return result;
 }

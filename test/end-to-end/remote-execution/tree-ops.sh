@@ -106,7 +106,7 @@ OVERLAY_ID=$(jq -r '.overlay.data.id' "${OUT}/artifacts.json")
 # Building the tree conflict should fail with a reasonable error message
 "${JUST_MR}" --rc "${RC}" build \
              -f "${OUT}/log" conflict 2>&1 && exit 1 || :
-grep 'mixed/data1..txt' "${OUT}/log"
+grep 'data1..txt' "${OUT}/log"
 grep 'TheOffendingTarget' "${OUT}/log"
 
 echo OK
