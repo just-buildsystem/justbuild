@@ -1455,10 +1455,10 @@ void GenericRuleWithDeps(
     for (auto const& dep : dependency_values) {
         inputs = ExpressionPtr{Expression::map_t{inputs, (*dep)->RunFiles()}};
     }
-    auto inputs_conflict = BuildMaps::Target::Utils::tree_conflict(inputs);
     for (auto const& dep : dependency_values) {
         inputs = ExpressionPtr{Expression::map_t{inputs, (*dep)->Artifacts()}};
     }
+    auto inputs_conflict = BuildMaps::Target::Utils::tree_conflict(inputs);
     // While syntactical conflicts are resolved in a latest wins (with artifacts
     // after runfiles), semantic path conclicts are an error.
     if (inputs_conflict) {

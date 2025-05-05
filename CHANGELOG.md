@@ -24,6 +24,8 @@ A feature release on top of `1.5.0`, backwards compatible.
   and through its local CAS; this fixes a performance issue.
 - `just-mr` now also consideres computed roots (as no-op) when
   reporting progress.
+- The "generic" rule now properly detects staging conflicts, taking
+  the full inputs into account (and not only the runfiles).
 
 ## Release `1.5.0` (2025-03-06)
 
