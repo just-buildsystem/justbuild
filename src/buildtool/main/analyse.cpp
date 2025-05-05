@@ -126,8 +126,8 @@ namespace Target = BuildMaps::Target;
     std::size_t jobs,
     std::optional<std::string> const& request_action_input,
     Logger const* logger,
-    BuildMaps::Target::ServeFailureLogReporter* serve_log)
-    -> std::optional<AnalysisResult> {
+    BuildMaps::Target::ServeFailureLogReporter* serve_log,
+    Profile* profile) -> std::optional<AnalysisResult> {
     // create async maps
     auto directory_entries =
         Base::CreateDirectoryEntriesMap(context->repo_config, jobs);
@@ -181,12 +181,15 @@ namespace Target = BuildMaps::Target;
             &ts,
             {id},
             [&target](auto values) { target = *values[0]; },
-            [&failed, logger](auto const& msg, bool fatal) {
+            [&failed, logger, profile](auto const& msg, bool fatal) {
                 Logger::Log(logger,
                             fatal ? LogLevel::Error : LogLevel::Warning,
                             "While processing targets:\n{}",
                             msg);
                 failed = failed or fatal;
+                if (fatal and (profile != nullptr)) {
+                    profile->NoteAnalysisError(msg);
+                }
             });
     }
 

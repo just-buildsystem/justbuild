@@ -1156,7 +1156,8 @@ auto main(int argc, char* argv[]) -> int {
                           arguments.common.jobs,
                           arguments.analysis.request_action_input,
                           /*logger=*/nullptr,
-                          &collect_serve_errors);
+                          &collect_serve_errors,
+                          profile.get());
         if (arguments.analysis.serve_errors_file) {
             Logger::Log(serve_errors.empty() ? LogLevel::Debug : LogLevel::Info,
                         "Dumping serve-error information to {}",

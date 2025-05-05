@@ -219,6 +219,7 @@
     , ["src/buildtool/build_engine/target_map", "configured_target"]
     , ["src/buildtool/build_engine/target_map", "result_map"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/profile", "profile"]
     ]
   , "stage": ["src", "buildtool", "main"]
   , "private-deps":
