@@ -123,7 +123,7 @@ Inocations {{invocation | e}}
   {% endfor %}
 </ul>
 {% else %}
-{% if exit_code == 1 or exit_code == 2 %}
+{% if exit_code == 0 or exit_code == 1 or exit_code == 2 %}
 <h2>Failed actions</h2>
 {% if failed_actions %}
 <ul>
