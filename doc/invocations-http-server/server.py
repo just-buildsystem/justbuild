@@ -289,10 +289,17 @@ class InvocationServer:
 
         # longest running non-cached non-failed actions
         candidates = []
+        action_count = 0
+        action_count_cached = 0
         for k, v in profile.get('actions', {}).items():
+            action_count += 1
             if not v.get('cached'):
                 if v.get('exit code', 0) == 0:
                     candidates.append((v.get('duration', 0.0), k, v))
+            else:
+                action_count_cached += 1
+        params["action_count"] = action_count
+        params["action_count_cached"] = action_count_cached
         candidates.sort(reverse=True)
         non_cached = []
         params["more_noncached"] = None

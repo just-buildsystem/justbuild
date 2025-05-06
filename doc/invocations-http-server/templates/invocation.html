@@ -124,7 +124,13 @@ Inocations {{invocation | e}}
 </ul>
 {% else %}
 {% if exit_code == 0 or exit_code == 1 or exit_code == 2 %}
-<h2>Failed actions</h2>
+<h2>Actions</h2>
+<ul>
+  <li> processed: {{ action_count | e }}
+  <li> cached: {{ action_count_cached | e }}
+</ul>
+
+<h3>Failed actions</h3>
 {% if failed_actions %}
 <ul>
   {% for action in failed_actions %}
@@ -136,7 +142,7 @@ Inocations {{invocation | e}}
 {% endif %}
 
 
-<h2>Remaining non-cached actions</h2>
+<h3>Remaining non-cached actions</h3>
 {% if non_cached %}
 In order of decreasing run time.
 <ul>
