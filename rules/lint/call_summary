@@ -19,6 +19,7 @@ touch report
 RESULT=UNKNOWN
 echo "${RESULT}" > result
 
+mkdir -p out
 export OUT="$(pwd)/out"
 
 cd work

@@ -20,6 +20,7 @@ touch stderr
 RESULT=UNKNOWN
 echo "${RESULT}" > result
 
+mkdir -p out
 export OUT="$(pwd)/out"
 mkdir -p config
 export CONFIG="$(pwd)/config"
