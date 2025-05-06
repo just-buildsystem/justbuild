@@ -87,6 +87,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
     bool supports_remote_properties{false};
     bool supports_serve{false};
     bool supports_dispatch{false};
+    bool does_build{false};
     std::optional<std::pair<std::filesystem::path, std::string>> mr_config_pair{
         std::nullopt};
 
@@ -135,6 +136,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             kKnownJustSubcommands.at(*subcommand).remote_props;
         supports_serve = kKnownJustSubcommands.at(*subcommand).serve;
         supports_dispatch = kKnownJustSubcommands.at(*subcommand).dispatch;
+        does_build = kKnownJustSubcommands.at(*subcommand).does_build;
     }
     // build just command
     std::vector<std::string> cmd = {common_args.just_path->string()};
@@ -324,7 +326,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back("--dump-plain-graph");
             cmd.emplace_back(*log_dir / *invocation_log.graph_file_plain);
         }
-        if (invocation_log.dump_artifacts) {
+        if (does_build and invocation_log.dump_artifacts) {
             if (not IsValidFileName(*invocation_log.dump_artifacts)) {
                 Logger::Log(
                     LogLevel::Error,
