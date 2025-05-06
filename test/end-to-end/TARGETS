@@ -59,23 +59,26 @@
   , "stage": ["using-remote"]
   , "deps": ["remote tests, compatible", "remote tests, native"]
   }
-, "TESTS":
+, "just-mr tests (unconfigured)":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "stage": ["end-to-end"]
+  , "stage":
+    [ { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
+      , "then": "bootstrap-script"
+      , "else": "native"
+      }
+    ]
   , "deps":
     { "type": "`"
     , "$1":
       [ "remote tests"
-      , ["./", "actions", "TESTS"]
-      , ["./", "build-fails", "TESTS"]
       , ["./", "built-in-rules", "TESTS"]
       , ["./", "cli", "TESTS"]
-      , ["./", "execution-service", "TESTS"]
-      , ["./", "gc", "TESTS"]
-      , ["./", "generated-binary", "TESTS"]
-      , ["./", "git-import", "TESTS"]
       , ["./", "just-lock", "TESTS"]
+      , ["./", "target-cache", "TESTS"]
+      , ["./", "gc", "TESTS"]
+      , ["./", "git-import", "TESTS"]
       , { "type": ",@"
         , "$1":
           { "type": "if"
@@ -83,8 +86,39 @@
           , "else": [["./", "profile", "TESTS"]]
           }
         }
+      ]
+    }
+  }
+, "just-mr tests, bootstrap-script":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "just-mr tests (unconfigured)"
+  , "config": {"type": "'", "$1": {"TEST_BOOTSTRAP_JUST_MR": true}}
+  }
+, "just-mr tests, native":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "just-mr tests (unconfigured)"
+  , "config": {"type": "'", "$1": {"TEST_BOOTSTRAP_JUST_MR": false}}
+  }
+, "just-mr tests":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["with-just-mr"]
+  , "deps": ["just-mr tests, bootstrap-script", "just-mr tests, native"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
+  , "stage": ["end-to-end"]
+  , "deps":
+    { "type": "`"
+    , "$1":
+      [ "just-mr tests"
+      , ["./", "actions", "TESTS"]
+      , ["./", "build-fails", "TESTS"]
+      , ["./", "execution-service", "TESTS"]
+      , ["./", "generated-binary", "TESTS"]
       , ["./", "symlinks", "TESTS"]
-      , ["./", "target-cache", "TESTS"]
       , ["./", "target-tests", "TESTS"]
       , ["./", "user-errors", "TESTS"]
       ]
