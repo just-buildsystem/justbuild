@@ -115,6 +115,15 @@ Inocations {{invocation | e}}
 </ul>
 
 {% if have_profile %}
+{% if analysis_errors %}
+<h2>Analysis errors</h2>
+<ul>
+  {% for error in analysis_errors %}
+  <li> <pre>{{ error | e}}</pre></li>
+  {% endfor %}
+</ul>
+{% else %}
+{% if exit_code == 1 or exit_code == 2 %}
 <h2>Failed actions</h2>
 {% if failed_actions %}
 <ul>
@@ -140,6 +149,8 @@ In order of decreasing run time.
 </ul>
 {% else %}
 <i>(none)</i>
+{% endif %}
+{% endif %}
 {% endif %}
 {% else %}
 <b>No profiling data available; invocation data is not (yet) complete.</b>

@@ -225,6 +225,7 @@ class InvocationServer:
 
         params["repo_config"] = meta.get('configuration')
         params["exit_code"] = profile.get('exit code')
+        params["analysis_errors"] = profile.get('analysis errors', [])
         # For complex conditional data fill with None as default
         for k in ["cmdline", "cmd", "target", "config"]:
             params[k] = None

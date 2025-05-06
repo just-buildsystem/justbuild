@@ -21,6 +21,12 @@ Recent Invocations
       build failed
       {% elif invocation.exit_code == 2 %}
       failed
+      {% elif invocation.exit_code == 8 %}
+      analysis failure
+      {% elif invocation.exit_code == 16 %}
+      build-environment failure
+      {% elif invocation.exit_code == 32 %}
+      syntax/invocation error
       {% else %}
       exit code {{ invocation.exit_code | e }}
       {% endif %}
