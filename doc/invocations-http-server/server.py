@@ -250,6 +250,7 @@ class InvocationServer:
                 "type": "tree" if v["file_type"] == "t" else "blob",
             })
         params["artifacts"] = output_artifacts
+        params["artifacts_count"] = len(output_artifacts)
 
         def action_data(name, profile_value):
             data = { "name_prefix": "",

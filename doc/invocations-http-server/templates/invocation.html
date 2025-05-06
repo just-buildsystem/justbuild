@@ -99,7 +99,7 @@ Inocations {{invocation | e}}
   {% if artifacts %}
   <li>
     <details>
-      <summary>artifacts</summary>
+      <summary>{{ artifacts_count | e }} artifacts</summary>
       <ul>
         {% for entry in artifacts %}
         <li>
