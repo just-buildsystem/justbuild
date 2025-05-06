@@ -643,7 +643,8 @@ class ExecutorImpl {
         return api.UploadTree(artifacts);
     }
     /// \brief Check that all outputs expected from the action description
-    /// are present in the artifacts map
+    /// are present in the artifacts map and of the expected type
+    template <bool kIsTree = false>
     [[nodiscard]] static auto CheckOutputsExist(
         IExecutionResponse::ArtifactInfos const& artifacts,
         std::vector<Action::LocalPath> const& outputs,
@@ -652,8 +653,18 @@ class ExecutorImpl {
             outputs.begin(),
             outputs.end(),
             [&artifacts, &base](Action::LocalPath const& output) {
-                return artifacts.contains(
-                    RebasePathStringRelativeTo(base, output));
+                auto it =
+                    artifacts.find(RebasePathStringRelativeTo(base, output));
+                if (it != artifacts.end()) {
+                    auto const& type = it->second.type;
+                    if constexpr (kIsTree) {
+                        return IsTreeObject(type) or IsSymlinkObject(type);
+                    }
+                    else {
+                        return IsFileObject(type) or IsSymlinkObject(type);
+                    }
+                }
+                return false;
             });
     }
 
@@ -715,9 +726,9 @@ class ExecutorImpl {
         std::sort(output_dirs.begin(), output_dirs.end());
 
         if (artifacts.value()->empty() or
-            not CheckOutputsExist(
+            not CheckOutputsExist</*kIsTree=*/false>(
                 *artifacts.value(), output_files, action->Content().Cwd()) or
-            not CheckOutputsExist(
+            not CheckOutputsExist</*kIsTree=*/true>(
                 *artifacts.value(), output_dirs, action->Content().Cwd())) {
             logger.Emit(LogLevel::Error, [&]() {
                 std::ostringstream message{};
