@@ -21,7 +21,10 @@ mkdir -p lcl-build
 
 cat <<EOF > TARGETS
 { "gen_out_dirs":
-  {"type": "generic", "cmds": ["echo foo > out/foo.txt"], "out_dirs": ["out"]}
+  { "type": "generic"
+  , "cmds": ["mkdir -p out", "echo foo > out/foo.txt"]
+  , "out_dirs": ["out"]
+  }
 , "read_out_dirs":
   { "type": "generic"
   , "cmds": ["cat out/foo.txt > bar.txt"]
@@ -29,7 +32,7 @@ cat <<EOF > TARGETS
   , "deps": ["gen_out_dirs"]
   }
 , "missing_outs_and_out_dirs":
-  {"type": "generic", "cmds": ["echo foo > out/foo.txt"]}
+  {"type": "generic", "cmds": ["mkdir -p out", "echo foo > out/foo.txt"]}
 , "out_dirs_contains_a_file":
   {"type": "generic", "cmds": ["echo foo > foo.txt"], "out_dirs": ["foo.txt"]}
 , "outs_contains_a_dir":

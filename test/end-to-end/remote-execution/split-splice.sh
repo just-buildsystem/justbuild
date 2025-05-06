@@ -106,7 +106,8 @@ cat > TARGETS <<'EOF'
   { "type": "generic"
   , "out_dirs": ["tree"]
   , "cmds":
-    [ "for i in $(seq 21846); do echo foo > tree/$(printf '%0192d' $i).txt; done"
+    [ "mkdir -p tree"
+    , "for i in $(seq 21846); do echo foo > tree/$(printf '%0192d' $i).txt; done"
     , "echo foo > tree/magic_word.txt"
     ]
   }

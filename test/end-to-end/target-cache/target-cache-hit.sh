@@ -42,7 +42,7 @@ cat > TARGETS <<EOF
 { "main": {"type": "export", "target": ["./", "main-target"]}
 , "main-target":
   { "type": "generic"
-  , "cmds": ["echo $RND | tee foo.txt out/bar.txt"]
+  , "cmds": ["mkdir -p out", "echo $RND | tee foo.txt out/bar.txt"]
   , "outs": ["foo.txt"]
   , "out_dirs": ["out"]
   }

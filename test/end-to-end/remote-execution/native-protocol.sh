@@ -59,7 +59,7 @@ EOF
 cat > TARGETS <<EOF
 { "test":
   { "type": "generic"
-  , "cmds": ["cp -r ${DIRNAME} ${OUT_DIRNAME}"]
+  , "cmds": ["mkdir -p ${OUT_DIRNAME}", "cp -r ${DIRNAME} ${OUT_DIRNAME}"]
   , "deps": [["TREE", null, "${DIRNAME}"]]
   , "out_dirs": ["${OUT_DIRNAME}"]
   }

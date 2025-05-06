@@ -654,16 +654,18 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
 
     auto output_path = std::filesystem::path{"foo/bar/baz"};
 
-    auto action = api->CreateAction(
-        *api->UploadTree({}),
-        {"/bin/sh",
-         "-c",
-         fmt::format("set -e\n [ -d {} ]", output_path.string())},
-        "",
-        {},
-        {output_path},
-        {},
-        props);
+    auto action =
+        api->CreateAction(*api->UploadTree({}),
+                          {"/bin/sh",
+                           "-c",
+                           fmt::format("set -e\n [ -d {} ]\n mkdir -p {}",
+                                       output_path.parent_path().string(),
+                                       output_path.string())},
+                          "",
+                          {},
+                          {output_path},
+                          {},
+                          props);
 
     SECTION("Cache execution result in action cache") {
         action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);
