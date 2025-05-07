@@ -113,7 +113,7 @@ class InvocationServer:
                 profile_data = {}
             count += 1
             target = profile_data.get("target")
-            config = profile_data.get("config", {})
+            config = profile_data.get("configuration", {})
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
