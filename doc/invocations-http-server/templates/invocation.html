@@ -93,6 +93,15 @@ Inocations {{invocation | e}}
   {% if config %}
   <li> Target configuration: <tt>{{ config | e }}</tt></li>
   {% endif %}
+  {% if remote_address %}
+  <li> remote
+    <ul>
+      <li> address: <tt>{{ remote_address | e }}</tt>
+      <li> properties: <tt>{{ remote_props | e}}</tt>
+      <li> dispatch: <tt>{{ remote_dispatch | e }}</tt>
+    </ul>
+  </li>
+  {% endif %}
   {% if exit_code != None %}
   <li> exit code: {{ exit_code | e }}</li>
   {% endif %}

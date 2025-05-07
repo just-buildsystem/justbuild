@@ -120,6 +120,9 @@ class InvocationServer:
                 "target": json.dumps(target) if target else None,
                 "config": json.dumps(core_config(config)),
                 "exit_code": profile_data.get('exit code', 0),
+                "remote_address": profile_data.get('remote', {}).get('address'),
+                "remote_props": json.dumps(
+                    profile_data.get('remote', {}).get('properties', {})),
             }
             invocations.append(invocation)
             if count >= 50:
@@ -226,6 +229,11 @@ class InvocationServer:
         params["repo_config"] = meta.get('configuration')
         params["exit_code"] = profile.get('exit code')
         params["analysis_errors"] = profile.get('analysis errors', [])
+        params["remote_address"] = profile.get('remote', {}).get('address')
+        params["remote_props"] = json.dumps(
+            profile.get('remote', {}).get('properties', {}))
+        params["remote_dispatch"] = json.dumps(
+            profile.get('remote', {}).get('dispatch', []))
         # For complex conditional data fill with None as default
         for k in ["cmdline", "cmd", "target", "config"]:
             params[k] = None
