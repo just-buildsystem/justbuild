@@ -941,6 +941,9 @@ auto main(int argc, char* argv[]) -> int {
             }
             return kExitBuildEnvironment;
         }
+        if (profile != nullptr) {
+            profile->SetRemoteExecutionConfig(*remote_exec_config);
+        }
 
         // Set up storage for client-side operation. This needs to have all the
         // correct remote endpoint info in order to instantiate the

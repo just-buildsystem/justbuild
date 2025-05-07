@@ -109,6 +109,13 @@ more keys possibly added in the future).
    is a value derived not only from the command line but also from
    the context of a file (given via `-c`) possibly local on the
    machine `just` was run.
+ - The key `"remote"` describes the remote-exeuction endpoint,
+   including the used properties and dispatch list. This allow
+   distinguishing builds in different environments (possibly using
+   different hardware); this can be relevant both for performance
+   as well as failure statistics for tests. Again, the reason for
+   including it in the profile is that local files are read (for
+   the dispatch list).
  - The key `"actions"` contains a JSON object with the keys being
    precisely the key identifiers of the actions attempted to run.
    The action identifiers are the same as in the `--dump-graph` or

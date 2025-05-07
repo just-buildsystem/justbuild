@@ -6,12 +6,14 @@
   , "deps":
     [ ["@", "json", "", "json"]
     , ["src/buildtool/execution_api/common", "common"]
+    , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/main", "cli"]
     ]
   , "private-deps":
     [ ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "cli"]
     , ["src/buildtool/common", "common"]
+    , ["src/buildtool/common/remote", "remote_common"]
     , ["src/utils/cpp", "expected"]
     ]
   , "stage": ["src", "buildtool", "profile"]

@@ -25,6 +25,7 @@
 
 #include "nlohmann/json.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
+#include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/main/cli.hpp"
 
 class Profile {
@@ -36,6 +37,7 @@ class Profile {
     }
 
     void Write(int exit_code);
+    void SetRemoteExecutionConfig(RemoteExecutionConfig const&);
     void SetTarget(nlohmann::json target);
     void SetConfiguration(nlohmann::json configuration);
     void NoteActionCompleted(std::string const& id,

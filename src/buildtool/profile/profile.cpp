@@ -20,6 +20,7 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/cli.hpp"
+#include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 void Profile::Write(int exit_code) {
@@ -155,4 +156,21 @@ void Profile::NoteActionCompleted(std::string const& id,
 void Profile::NoteAnalysisError(std::string const& error_message) {
     std::unique_lock lock{mutex_};
     analysis_errors_.emplace_back(error_message);
+}
+
+void Profile::SetRemoteExecutionConfig(RemoteExecutionConfig const& config) {
+    auto remote = nlohmann::json::object();
+    if (config.remote_address) {
+        remote["address"] = config.remote_address->ToJson();
+    }
+    remote["properties"] = config.platform_properties;
+    auto dispatch = nlohmann::json::array();
+    for (auto const& dispatch_entry : config.dispatch) {
+        auto entry = nlohmann::json::array();
+        entry.emplace_back(dispatch_entry.first);
+        entry.emplace_back(dispatch_entry.second.ToJson());
+        dispatch.emplace_back(entry);
+    }
+    remote["dispatch"] = dispatch;
+    profile_["remote"] = remote;
 }

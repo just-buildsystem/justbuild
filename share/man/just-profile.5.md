@@ -45,6 +45,19 @@ The profile file contains the following information.
 - For the key *`"configuration"`* the build configuration in which the
   target was analysed/built/installed.
 
+- For the key *`"remote"`* an object describing the remote-execution
+  configuration. The following keys are used.
+
+  - If a remote-execution endpoint is used, for the key *`"address"`*,
+    a string of the form `address:port` is given.
+
+  - For the key *`"properties"`* the remote-execution properties are
+    specified (naturally as an object).
+
+  - For the key *`"dispatch"`* the dispatch list is given as an array
+    of pairs (arrays of length two) of a property map and an enpoint
+    as `address:port` string.
+
 - For the key *`"exit code"`* the exit code of the **`just`**(1) process.
 
 - For the key *`"analysis errors"`*, if present, a list of error messages
