@@ -45,21 +45,68 @@
     ]
   , "stage": ["test"]
   }
+, "unit tests with compatibility (unconfigured)":
+  { "type": ["@", "rules", "test", "suite"]
+  , "arguments_config": ["TEST_COMPATIBLE_REMOTE"]
+  , "stage":
+    [ { "type": "if"
+      , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
+      , "then": "compatible"
+      , "else": "native"
+      }
+    ]
+  , "deps": [["./", "buildtool", "TESTS"]]
+  }
+, "unit tests with compatibility, compatible":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "unit tests with compatibility (unconfigured)"
+  , "config": {"type": "'", "$1": {"TEST_COMPATIBLE_REMOTE": true}}
+  }
+, "unit tests with compatibility, native":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "unit tests with compatibility (unconfigured)"
+  , "config": {"type": "'", "$1": {"TEST_COMPATIBLE_REMOTE": false}}
+  }
+, "unit tests with compatibility":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["using-remote"]
+  , "deps":
+    [ "unit tests with compatibility, compatible"
+    , "unit tests with compatibility, native"
+    ]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
-  , "arguments_config": ["DROP_LARGE_TESTS"]
+  , "arguments_config": ["DROP_LARGE_TESTS", "DROP_END_TO_END_TESTS"]
   , "deps":
-    { "type": "++"
+    { "type": "`"
     , "$1":
-      [ [ ["./", "buildtool", "TESTS"]
-        , ["./", "utils", "TESTS"]
-        , ["./", "end-to-end", "TESTS"]
-        , ["./", "other_tools", "TESTS"]
-        ]
-      , { "type": "if"
-        , "cond": {"type": "var", "name": "DROP_LARGE_TESTS"}
-        , "then": []
-        , "else": ["bootstrap-test"]
+      [ "unit tests with compatibility"
+      , ["./", "utils", "TESTS"]
+      , ["./", "other_tools", "TESTS"]
+      , { "type": ",@"
+        , "$1":
+          { "type": "if"
+          , "cond": {"type": "var", "name": "DROP_END_TO_END_TESTS"}
+          , "then": []
+          , "else": [["./", "end-to-end", "TESTS"]]
+          }
+        }
+      , { "type": ",@"
+        , "$1":
+          { "type": "if"
+          , "cond":
+            { "type": "or"
+            , "$1":
+              [ {"type": "var", "name": "DROP_END_TO_END_TESTS"}
+              , {"type": "var", "name": "DROP_LARGE_TESTS"}
+              ]
+            }
+          , "then": []
+          , "else": ["bootstrap-test"]
+          }
         }
       ]
     }
@@ -90,6 +137,12 @@
     , "body":
       {"type": "env", "vars": ["OS", "ARCH", "HOST_ARCH", "TARGET_ARCH"]}
     }
+  }
+, "UNIT_TESTS":
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "ALL"
+  , "config": {"type": "'", "$1": {"DROP_END_TO_END_TESTS": true}}
   }
 , "bootstrap-test":
   { "type": "configure"
