@@ -262,7 +262,7 @@ void ComputeAndFill(
         if (storage_config->hash_function.GetType() !=
             HashFunction::Type::GitSHA1) {
             Logger::Log(LogLevel::Performance,
-                        "Computing root {} locally as rehahing would have to "
+                        "Computing root {} locally as rehashing would have to "
                         "be done locally",
                         key.ToString());
         }

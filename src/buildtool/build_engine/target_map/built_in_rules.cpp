@@ -754,7 +754,7 @@ void InstallRuleWithDeps(
                                *dependency_values[i]);
     }
 
-    // Compute the effective dependecy on config variables
+    // Compute the effective dependency on config variables
     std::unordered_set<std::string> effective_vars;
     auto param_vars = desc->ReadStringList("arguments_config");
     effective_vars.insert(param_vars->begin(), param_vars->end());
@@ -857,7 +857,7 @@ void InstallRuleWithDeps(
         auto dir_path = std::filesystem::path{subdir.second};
         auto target = deps_by_target.at(subdir.first);
         // within a target, artifacts and runfiles may overlap, but artifacts
-        // take perference
+        // take preference
         for (auto const& [path, artifact] : target->Artifacts()->Map()) {
             subdir_stage.emplace(ToNormalPath(dir_path / path).string(),
                                  artifact);
@@ -1320,7 +1320,7 @@ void GenericRuleWithDeps(
         return;
     }
     if (not PathIsNonUpwards(cwd_value->String())) {
-        (*logger)(fmt::format("cwd has to evalute to a non-upwards relative "
+        (*logger)(fmt::format("cwd has to evaluate to a non-upwards relative "
                               "path, but found {}",
                               cwd_value->ToString()),
                   true);
@@ -1460,7 +1460,7 @@ void GenericRuleWithDeps(
     }
     auto inputs_conflict = BuildMaps::Target::Utils::tree_conflict(inputs);
     // While syntactical conflicts are resolved in a latest wins (with artifacts
-    // after runfiles), semantic path conclicts are an error.
+    // after runfiles), semantic path conflicts are an error.
     if (inputs_conflict) {
         (*logger)(fmt::format("Input artifacts have staging conflict on {}",
                               nlohmann::json(*inputs_conflict).dump()),
