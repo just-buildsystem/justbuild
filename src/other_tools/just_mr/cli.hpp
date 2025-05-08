@@ -93,6 +93,7 @@ struct MultiRepoGcArguments {
 struct InvocationLogArguments {
     std::optional<std::filesystem::path> directory{std::nullopt};
     std::optional<std::string> invocation_msg{std::nullopt};
+    std::vector<std::string> context_vars{};
     std::optional<std::string> project_id{std::nullopt};
     std::optional<std::string> metadata{std::nullopt};
     std::optional<std::string> graph_file{std::nullopt};

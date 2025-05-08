@@ -635,6 +635,16 @@ namespace {
             if (msg->IsString()) {
                 clargs->invocation_log.invocation_msg = msg->String();
             }
+            auto context_vars =
+                invocation_log->Get("context variables", Expression::none_t{});
+            if (context_vars->IsList()) {
+                for (auto const& env_var : context_vars->List()) {
+                    if (env_var->IsString()) {
+                        clargs->invocation_log.context_vars.emplace_back(
+                            env_var->String());
+                    }
+                }
+            }
         }
     }
     // read config lookup order

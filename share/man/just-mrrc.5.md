@@ -183,6 +183,12 @@ The just-mrrc is given by a JSON object.
      directory the metadata file should be stored. If not given,
      no metadata file will be written. See **`just-profile`**(5) for
      details of the format.
+   - *`"context variables"`* An optional list of environment variables,
+     which are captured at invocation time and stored as key-value pairs
+     in the metadata file. These variables do not affect the build in
+     any way. Instead, they are supposed to provide useful context
+     information about the invocation like username, merge-request ID or
+     source branch.
    - *`"--dump-graph"`* A file name specifying the file in
      the invocation-log directory for an invocation-specific
      `--dump-graph` option.

@@ -29,6 +29,11 @@ The metadata file contains the following information.
 - For the key *`"time"`* the time of the invocation in seconds since
   the epoch.
 
+- For the key *`"context"`* a map of the environment variables requested
+  to be included in the metadata file with the variable name as key and
+  the value of the variable as value (see *`"context variables"`* field
+  of the *`"invocation log"`* key in the **`just-mrrc`**(5) file).
+
 Profile file
 ------------
 

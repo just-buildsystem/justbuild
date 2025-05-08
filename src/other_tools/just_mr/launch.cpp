@@ -371,6 +371,15 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             meta["configuration"] = mr_config_pair->second;
         }
         meta["cmdline"] = cmd;
+        if (not invocation_log.context_vars.empty()) {
+            auto context = nlohmann::json::object();
+            for (auto const& env_var : invocation_log.context_vars) {
+                auto* env_value = std::getenv(env_var.c_str());
+                context[env_var] =
+                    env_value != nullptr ? env_value : nlohmann::json{};
+            }
+            meta["context"] = context;
+        }
         // "configuration" -- the blob-identifier of the multi-repo
         // configuration
         auto file_name = *log_dir / *invocation_log.metadata;
