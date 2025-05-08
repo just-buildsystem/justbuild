@@ -389,6 +389,7 @@ void ComputeAndFill(
             (*logger)(
                 fmt::format("Failed to ensure {} is known to serve", *result),
                 /*fatal=*/true);
+            return;
         }
     }
     {
