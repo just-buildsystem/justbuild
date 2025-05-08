@@ -96,9 +96,21 @@ Inocations {{invocation | e}}
   {% if remote_address %}
   <li> remote
     <ul>
-      <li> address: <tt>{{ remote_address | e }}</tt>
-      <li> properties: <tt>{{ remote_props | e}}</tt>
-      <li> dispatch: <tt>{{ remote_dispatch | e }}</tt>
+      <li> address: <tt>{{ remote_address | e }}</tt></li>
+      {% if remote_props %}
+      <li> properties:
+        <ul>
+          {% for prop in remote_props %}
+          <li> <tt>{{ prop["key"] | e }}</tt> :
+            <a href="/filterinvocations/remote/prop/{{ prop["key_hex"] | e }}/{{ prop["value_hex"] }}"><tt>{{ prop["value"] | e }}</tt></a>
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% else %}
+      <li> properties: <i>(none)</i>
+      {% endif %}
+      <li> dispatch: <tt>{{ remote_dispatch | e }}</tt></li>
     </ul>
   </li>
   {% endif %}

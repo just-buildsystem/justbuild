@@ -30,6 +30,9 @@ def core_config(conf):
             new_conf[k] = v
     return new_conf
 
+class HexIdentifierConverter(werkzeug.routing.BaseConverter):
+    regex = '[a-zA-Z0-9]{2,300}'
+
 class HashIdentifierConverter(werkzeug.routing.BaseConverter):
     regex = '[a-zA-Z0-9]{40,51}'
 
@@ -61,6 +64,8 @@ class InvocationServer:
         rule = werkzeug.routing.Rule
         self.routingmap = werkzeug.routing.Map([
             rule("/", methods=("GET",), endpoint="list_invocations"),
+            rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
+                 endpoint="filter_remote_prop"),
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
@@ -76,6 +81,7 @@ class InvocationServer:
         ], converters=dict(
             invocationidentifier=InvocationIdentifierConverter,
             hashidentifier=HashIdentifierConverter,
+            hexidentifier=HexIdentifierConverter,
             fileidentifier=FileIdentifierConverter,
         ))
 
@@ -95,7 +101,9 @@ class InvocationServer:
         response.data = template.render(params).encode("utf8")
         return response
 
-    def do_list_invocations(self):
+    def do_list_invocations(self, *,
+                            filter_info="",
+                            profile_filter = lambda p : True):
         invocations = []
         count = 0
         entries = sorted(os.listdir(self.logsdir), reverse=True)
@@ -111,6 +119,8 @@ class InvocationServer:
                     profile_data = json.load(f)
             except:
                 profile_data = {}
+            if not profile_filter(profile_data):
+                continue
             count += 1
             target = profile_data.get("target")
             config = profile_data.get("configuration", {})
@@ -128,7 +138,28 @@ class InvocationServer:
             if count >= 50:
                 break
         return self.render("invocations.html",
-                           {"invocations": invocations})
+                           {"invocations": invocations,
+                            "filter_info": filter_info})
+
+    def do_filter_remote_prop(self, key, value):
+        filter_info = "remote-execution property"
+        try:
+            key_string = bytes.fromhex(key).decode('utf-8')
+            value_string = bytes.fromhex(value).decode('utf-8')
+            filter_info += " " + json.dumps({key_string: value_string})
+        except:
+            pass
+
+        def check_prop(p):
+            for k, v in p.get('remote', {}).get('properties', {}).items():
+                if (k.encode().hex() == key) and (v.encode().hex() == value):
+                    return True
+            return False
+
+        return self.do_list_invocations(
+            filter_info = filter_info,
+            profile_filter = check_prop,
+        )
 
     def process_failure(self, cmd, procobj, *, failure_kind=None):
         params = {"stdout": None, "stderr": None, "failure_kind": failure_kind}
@@ -230,8 +261,15 @@ class InvocationServer:
         params["exit_code"] = profile.get('exit code')
         params["analysis_errors"] = profile.get('analysis errors', [])
         params["remote_address"] = profile.get('remote', {}).get('address')
-        params["remote_props"] = json.dumps(
-            profile.get('remote', {}).get('properties', {}))
+        remote_props = []
+        for k, v in profile.get('remote', {}).get('properties', {}).items():
+            remote_props.append({
+                "key": k,
+                "key_hex": k.encode().hex(),
+                "value": v,
+                "value_hex": v.encode().hex(),
+            })
+        params["remote_props"] = remote_props
         params["remote_dispatch"] = json.dumps(
             profile.get('remote', {}).get('dispatch', []))
         # For complex conditional data fill with None as default

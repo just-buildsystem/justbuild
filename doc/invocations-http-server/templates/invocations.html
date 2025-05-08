@@ -4,7 +4,11 @@ Recent Invocations
 {% endblock %}
 
 {% block content %}
+{% if filter_info %}
+<h1>Invocations filtered by {{ filter_info | e }}</h1>
+{% else %}
 <h1>Recent Invocations</h1>
+{% endif %}
 {% if invocations %}
 <ul>
   {% for invocation in invocations %}
