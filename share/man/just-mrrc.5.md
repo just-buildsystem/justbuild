@@ -178,7 +178,7 @@ The just-mrrc is given by a JSON object.
      a separate subkey, in order to allow workspace-specific rc
      files that are merged in to set this value.
    - *`"invocation message"`* An additional info message to be shown,
-     followed by the base name of the invocation logggin directory.
+     followed by the base name of the invocation logging directory.
    - *`"metadata"`* A file name specifying where in the invocation-log
      directory the metadata file should be stored. If not given,
      no metadata file will be written. See **`just-profile`**(5) for

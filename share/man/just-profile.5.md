@@ -8,9 +8,9 @@ just-profile - The format of profile files written by **`just-mr`**(1) and **`ju
 DESCRIPTION
 ===========
 
-If profiling is enabled through the *`"invocation log`* key in in
+If profiling is enabled through the *`"invocation log"`* key in
 the **`just-mrrc`**(5) file, **`just-mr`**(1) can be told to write
-a metadata file, and the lauchned **`just`**(1) process to write a
+a metadata file, and the launched **`just`**(1) process to write a
 profile file. Both files contain a single JSON object.
 
 Metadata file
@@ -55,7 +55,7 @@ The profile file contains the following information.
     specified (naturally as an object).
 
   - For the key *`"dispatch"`* the dispatch list is given as an array
-    of pairs (arrays of length two) of a property map and an enpoint
+    of pairs (arrays of length two) of a property map and an endpoint
     as `address:port` string.
 
 - For the key *`"exit code"`* the exit code of the **`just`**(1) process.
@@ -69,7 +69,7 @@ The profile file contains the following information.
   that is written as a result of the `--dump-graph` option. The value is
   an object with the following entries.
 
-  - For the key *`"cached"`* a boolean indicatinng if the action was taken
+  - For the key *`"cached"`* a boolean indicating if the action was taken
     from cache.
 
   - For the key *`"time"`* for non-cached actions the build time in seconds.
