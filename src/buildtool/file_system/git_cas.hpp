@@ -68,7 +68,7 @@ class GitCAS {
     /// \param log_failure Log level at which to log failures accessing the
     /// object.
     [[nodiscard]] auto ReadObject(std::string const& id,
-                                  bool is_hex_id = false,
+                                  bool is_hex_id,
                                   LogLevel log_failure = LogLevel::Warning)
         const noexcept -> std::optional<std::string>;
 
@@ -79,7 +79,7 @@ class GitCAS {
     //    Note that most backends do not support reading only the header of an
     //    object, so the whole object will be read and then the header will be
     //    returned.
-    [[nodiscard]] auto ReadHeader(std::string const& id, bool is_hex_id = false)
+    [[nodiscard]] auto ReadHeader(std::string const& id, bool is_hex_id)
         const noexcept -> std::optional<std::pair<std::size_t, ObjectType>>;
 
   private:

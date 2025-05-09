@@ -137,7 +137,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     return std::all_of(entries.begin(), entries.end(), [cas](auto entry) {
         auto const& [id, nodes] = entry;
         // if CAS given, check that the entry is in the object database
-        if (cas != nullptr and not cas->ReadHeader(id)) {
+        if (cas != nullptr and not cas->ReadHeader(id, /*is_hex_id=*/false)) {
             return false;
         }
         // for a given raw id, either all entries are trees or none of them

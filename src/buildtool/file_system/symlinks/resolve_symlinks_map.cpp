@@ -154,7 +154,8 @@ void ResolveKnownEntry(GitObjectToResolve const& obj,
                     obj.pragma_special != PragmaSpecial::Ignore) {
                     // children info is known, so pass this forward
                     if (IsSymlinkObject(e.type)) {
-                        if (auto target = obj.source_cas->ReadObject(raw_id)) {
+                        if (auto target = obj.source_cas->ReadObject(
+                                raw_id, /*is_hex_id=*/false)) {
                             children_info.emplace_back(
                                 obj.root_tree_id,
                                 obj.rel_path / e.name,

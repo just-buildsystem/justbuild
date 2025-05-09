@@ -124,21 +124,21 @@ auto GitTree::LookupEntryByPath(
 }
 
 auto GitTree::Size() const noexcept -> std::optional<std::size_t> {
-    if (auto header = cas_->ReadHeader(raw_id_)) {
+    if (auto header = cas_->ReadHeader(raw_id_, /*is_hex_id=*/false)) {
         return header->first;
     }
     return std::nullopt;
 }
 
 auto GitTree::RawData() const noexcept -> std::optional<std::string> {
-    return cas_->ReadObject(raw_id_);
+    return cas_->ReadObject(raw_id_, /*is_hex_id=*/false);
 }
 
 auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
     if (not IsBlob()) {
         return std::nullopt;
     }
-    return cas_->ReadObject(raw_id_);
+    return cas_->ReadObject(raw_id_, /*is_hex_id=*/false);
 }
 
 auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
@@ -164,12 +164,12 @@ auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
 }
 
 auto GitTreeEntry::Size() const noexcept -> std::optional<std::size_t> {
-    if (auto header = cas_->ReadHeader(raw_id_)) {
+    if (auto header = cas_->ReadHeader(raw_id_, /*is_hex_id=*/false)) {
         return header->first;
     }
     return std::nullopt;
 }
 
 auto GitTreeEntry::RawData() const noexcept -> std::optional<std::string> {
-    return cas_->ReadObject(raw_id_);
+    return cas_->ReadObject(raw_id_, /*is_hex_id=*/false);
 }
