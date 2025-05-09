@@ -64,10 +64,10 @@ class InvocationServer:
         rule = werkzeug.routing.Rule
         self.routingmap = werkzeug.routing.Map([
             rule("/", methods=("GET",), endpoint="list_invocations"),
-            rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
-                 endpoint="filter_remote_prop"),
             rule("/filterinvocations/context/<hexidentifier:key>/<hexidentifier:value>",
-                 endpoint="filter_context"),
+                 methods=("GET",), endpoint="filter_context"),
+            rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
+                 methods=("GET",), endpoint="filter_remote_prop"),
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
