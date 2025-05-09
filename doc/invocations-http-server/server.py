@@ -148,7 +148,7 @@ class InvocationServer:
                     profile_data.get('remote', {}).get('properties', {})),
             }
             invocations.append(invocation)
-            if count >= 50:
+            if count >= 100:
                 break
         return self.render("invocations.html",
                            {"invocations": invocations,
