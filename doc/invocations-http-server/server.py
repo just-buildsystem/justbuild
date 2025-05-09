@@ -144,15 +144,15 @@ class InvocationServer:
     def do_filter_remote_prop(self, key, value):
         filter_info = "remote-execution property"
         try:
-            key_string = bytes.fromhex(key).decode('utf-8')
-            value_string = bytes.fromhex(value).decode('utf-8')
+            key_string = json.loads(bytes.fromhex(key).decode('utf-8'))
+            value_string = json.loads(bytes.fromhex(value).decode('utf-8'))
             filter_info += " " + json.dumps({key_string: value_string})
         except:
             pass
 
         def check_prop(p):
             for k, v in p.get('remote', {}).get('properties', {}).items():
-                if (k.encode().hex() == key) and (v.encode().hex() == value):
+                if (json.dumps(k).encode().hex() == key) and (json.dumps(v).encode().hex() == value):
                     return True
             return False
 
@@ -263,11 +263,13 @@ class InvocationServer:
         params["remote_address"] = profile.get('remote', {}).get('address')
         remote_props = []
         for k, v in profile.get('remote', {}).get('properties', {}).items():
+            key = json.dumps(k)
+            value = json.dumps(v)
             remote_props.append({
-                "key": k,
-                "key_hex": k.encode().hex(),
-                "value": v,
-                "value_hex": v.encode().hex(),
+                "key": key,
+                "key_hex": key.encode().hex(),
+                "value": value,
+                "value_hex": value.encode().hex(),
             })
         params["remote_props"] = remote_props
         params["remote_dispatch"] = json.dumps(
