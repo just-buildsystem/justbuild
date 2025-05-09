@@ -112,6 +112,15 @@ class InvocationServer:
         invocations = []
         count = 0
         entries = sorted(os.listdir(self.logsdir), reverse=True)
+        context_filters = {}
+        remote_props_filters = {}
+        def add_filter(data, filters):
+            for k, v in data.items():
+                key = json.dumps(k)
+                value = json.dumps(v)
+                if key not in filters:
+                    filters[key] = set()
+                filters[key].add(value)
         for e in entries:
             profile = os.path.join(self.logsdir, e, self.profile)
             if not os.path.exists(profile):
@@ -137,7 +146,10 @@ class InvocationServer:
             count += 1
             target = profile_data.get("target")
             config = core_config(profile_data.get("configuration", {}))
-            context = meta_data.get("context")
+            context = meta_data.get("context", {})
+            remote_props = profile_data.get('remote', {}).get('properties', {})
+            add_filter(context, context_filters)
+            add_filter(remote_props, remote_props_filters)
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
@@ -146,15 +158,25 @@ class InvocationServer:
                 "context": json.dumps(context) if context else None,
                 "exit_code": profile_data.get('exit code', 0),
                 "remote_address": profile_data.get('remote', {}).get('address'),
-                "remote_props": json.dumps(
-                    profile_data.get('remote', {}).get('properties', {})),
+                "remote_props": json.dumps(remote_props) if remote_props else None,
             }
             invocations.append(invocation)
             if count >= 100:
                 break
+        def convert_filters(filters):
+            return [{
+                "key": key,
+                "key_hex": key.encode().hex(),
+                "values": [{
+                    "value": v,
+                    "value_hex": v.encode().hex(),
+                } for v in values]
+            } for key, values in filters.items() if len(values) > 1]
         return self.render("invocations.html",
                            {"invocations": invocations,
-                            "filter_info": filter_info})
+                            "filter_info": filter_info,
+                            "context_filters": convert_filters(context_filters),
+                            "remote_props_filters": convert_filters(remote_props_filters)})
 
     def do_filter_remote_prop(self, key, value):
         filter_info = "remote-execution property"
