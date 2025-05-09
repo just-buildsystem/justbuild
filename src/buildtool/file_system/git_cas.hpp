@@ -65,10 +65,13 @@ class GitCAS {
     /// \brief Read object from CAS.
     /// \param id          The object id.
     /// \param is_hex_id   Specify whether `id` is hex string or raw.
+    /// \param as_valid_symlink Specify whether to treat any read blob as a
+    ///                         valid symlink and check for non-upwardness.
     /// \param log_failure Log level at which to log failures accessing the
     /// object.
     [[nodiscard]] auto ReadObject(std::string const& id,
                                   bool is_hex_id,
+                                  bool as_valid_symlink = false,
                                   LogLevel log_failure = LogLevel::Warning)
         const noexcept -> std::optional<std::string>;
 

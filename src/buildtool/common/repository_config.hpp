@@ -86,8 +86,10 @@ class RepositoryConfig {
         std::string const& hex_id,
         LogLevel log_failure = LogLevel::Warning) const noexcept
         -> std::optional<std::string> {
-        return git_cas_ ? git_cas_->ReadObject(
-                              hex_id, /*is_hex_id=*/true, log_failure)
+        return git_cas_ ? git_cas_->ReadObject(hex_id,
+                                               /*is_hex_id=*/true,
+                                               /*validate=*/false,
+                                               log_failure)
                         : std::nullopt;
     }
 

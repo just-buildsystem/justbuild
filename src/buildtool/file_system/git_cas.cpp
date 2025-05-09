@@ -136,6 +136,7 @@ auto GitCAS::CreateEmpty() noexcept -> GitCASPtr {
 
 auto GitCAS::ReadObject(std::string const& id,
                         bool is_hex_id,
+                        bool as_valid_symlink,
                         LogLevel log_failure) const noexcept
     -> std::optional<std::string> {
 #ifdef BOOTSTRAP_BUILD_TOOL
@@ -161,7 +162,20 @@ auto GitCAS::ReadObject(std::string const& id,
 
     std::string data(static_cast<char const*>(git_odb_object_data(obj)),
                      git_odb_object_size(obj));
+    auto obj_type = GitTypeToObjectType(git_odb_object_type(obj));
     git_odb_object_free(obj);
+
+    if (as_valid_symlink) {
+        if (not obj_type) {
+            return std::nullopt;
+        }
+        if (not IsTreeObject(*obj_type) and not PathIsNonUpwards(data)) {
+            Logger::Log(log_failure,
+                        "invalid git object {}: upwards symlink",
+                        is_hex_id ? id : ToHexString(id));
+            return std::nullopt;
+        }
+    }
 
     return data;
 #endif
