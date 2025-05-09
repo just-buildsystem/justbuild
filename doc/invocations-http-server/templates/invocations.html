@@ -14,7 +14,7 @@ Recent Invocations
   {% for invocation in invocations %}
   <li> <a href="/invocations/{{invocation.name |e}}"><tt>{{ invocation.name | e }}</tt></a>
     {% if invocation.subcommand %}
-    {{ invocation.subcommand | e }}
+    <tt>{{ invocation.subcommand | e }}</tt>
     {% endif %}
     {% if invocation.remote_address %}
     (on <tt>{{ invocation.remote_address | e }}@{{ invocation.remote_props | e }}</tt>)

@@ -85,7 +85,7 @@ Inocations {{invocation | e}}
   {% endif %}
   {% if repo_config %}
   <li> Repository configuration:
-    <a href="/blob/{{ repo_config | e }}">{{ repo_config | e}}</a></li>
+    <a href="/blob/{{ repo_config | e }}"><tt>{{ repo_config | e}}</tt></a></li>
   {% endif %}
   {% if target %}
   <li> Target: <tt>{{ target | e }}</tt></li>
@@ -94,11 +94,11 @@ Inocations {{invocation | e}}
   <li> Target configuration: <tt>{{ config | e }}</tt></li>
   {% endif %}
   {% if remote_address %}
-  <li> remote
+  <li> Remote:
     <ul>
-      <li> address: <tt>{{ remote_address | e }}</tt></li>
+      <li> Address: <tt>{{ remote_address | e }}</tt></li>
       {% if remote_props %}
-      <li> properties:
+      <li> Properties:
         <ul>
           {% for prop in remote_props %}
           <li> <tt>{{ prop["key"] | e }}</tt> :
@@ -108,14 +108,14 @@ Inocations {{invocation | e}}
         </ul>
       </li>
       {% else %}
-      <li> properties: <i>(none)</i>
+      <li> Properties: <i>(none)</i>
       {% endif %}
-      <li> dispatch: <tt>{{ remote_dispatch | e }}</tt></li>
+      <li> Dispatch: <tt>{{ remote_dispatch | e }}</tt></li>
     </ul>
   </li>
   {% endif %}
   {% if exit_code != None %}
-  <li> exit code: {{ exit_code | e }}</li>
+  <li> Exit code: <tt>{{ exit_code | e }}</tt></li>
   {% endif %}
   {% if artifacts %}
   <li>
@@ -147,8 +147,8 @@ Inocations {{invocation | e}}
 {% if exit_code == 0 or exit_code == 1 or exit_code == 2 %}
 <h2>Actions</h2>
 <ul>
-  <li> processed: {{ action_count | e }}
-  <li> cached: {{ action_count_cached | e }}
+  <li> Processed: <tt>{{ action_count | e }}</tt>
+  <li> Cached: <tt>{{ action_count_cached | e }}</tt>
 </ul>
 
 <h3>Failed actions</h3>
