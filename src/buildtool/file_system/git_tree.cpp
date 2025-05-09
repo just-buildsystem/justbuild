@@ -21,7 +21,6 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/path.hpp"
 
 namespace {
 
@@ -61,8 +60,11 @@ class SymlinksChecker final {
         std::vector<ArtifactDigest> const& ids) const noexcept -> bool {
         return std::all_of(
             ids.begin(), ids.end(), [&cas = cas_](ArtifactDigest const& id) {
-                auto content = cas.ReadObject(id.hash(), /*is_hex_id=*/true);
-                return content.has_value() and PathIsNonUpwards(*content);
+                return cas
+                    .ReadObject(id.hash(),
+                                /*is_hex_id=*/true,
+                                /*as_valid_symlink=*/true)
+                    .has_value();
             });
     };
 
@@ -138,7 +140,10 @@ auto GitTreeEntry::Blob() const noexcept -> std::optional<std::string> {
     if (not IsBlob()) {
         return std::nullopt;
     }
-    return cas_->ReadObject(raw_id_, /*is_hex_id=*/false);
+    // return only valid blobs
+    return cas_->ReadObject(raw_id_,
+                            /*is_hex_id=*/false,
+                            /*as_valid_symlink=*/IsSymlinkObject(type_));
 }
 
 auto GitTreeEntry::Tree(bool ignore_special) const& noexcept

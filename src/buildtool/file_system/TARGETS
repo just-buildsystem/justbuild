@@ -103,7 +103,6 @@
     [ ["src/buildtool/common", "common"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
-    , ["src/utils/cpp", "path"]
     ]
   }
 , "git_context":

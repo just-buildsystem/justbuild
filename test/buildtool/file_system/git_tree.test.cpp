@@ -38,7 +38,6 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/atomic.hpp"
 #include "src/utils/cpp/hex_string.hpp"
-#include "src/utils/cpp/path.hpp"
 #include "test/utils/container_matchers.hpp"
 #include "test/utils/shell_quoting.hpp"
 
@@ -116,8 +115,11 @@ class SymlinksChecker final {
         std::vector<ArtifactDigest> const& ids) const noexcept -> bool {
         return std::all_of(
             ids.begin(), ids.end(), [&cas = cas_](ArtifactDigest const& id) {
-                auto content = cas.ReadObject(id.hash(), /*is_hex_id=*/true);
-                return content.has_value() and PathIsNonUpwards(*content);
+                return cas
+                    .ReadObject(id.hash(),
+                                /*is_hex_id=*/true,
+                                /*as_valid_symlink=*/true)
+                    .has_value();
             });
     };
 
