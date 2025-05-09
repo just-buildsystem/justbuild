@@ -66,6 +66,8 @@ class InvocationServer:
             rule("/", methods=("GET",), endpoint="list_invocations"),
             rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
                  endpoint="filter_remote_prop"),
+            rule("/filterinvocations/context/<hexidentifier:key>/<hexidentifier:value>",
+                 endpoint="filter_context"),
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
@@ -103,7 +105,8 @@ class InvocationServer:
 
     def do_list_invocations(self, *,
                             filter_info="",
-                            profile_filter = lambda p : True):
+                            profile_filter = lambda p : True,
+                            metadata_filter = lambda p : True):
         invocations = []
         count = 0
         entries = sorted(os.listdir(self.logsdir), reverse=True)
@@ -119,16 +122,26 @@ class InvocationServer:
                     profile_data = json.load(f)
             except:
                 profile_data = {}
-            if not profile_filter(profile_data):
+
+            meta = os.path.join(self.logsdir, e, self.meta)
+            try:
+                with open(meta) as f:
+                    meta_data = json.load(f)
+            except:
+                meta_data = {}
+
+            if (not profile_filter(profile_data)) or (not metadata_filter(meta_data)):
                 continue
             count += 1
             target = profile_data.get("target")
             config = core_config(profile_data.get("configuration", {}))
+            context = meta_data.get("context")
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
                 "target": json.dumps(target) if target else None,
                 "config": json.dumps(config) if config else None,
+                "context": json.dumps(context) if context else None,
                 "exit_code": profile_data.get('exit code', 0),
                 "remote_address": profile_data.get('remote', {}).get('address'),
                 "remote_props": json.dumps(
@@ -159,6 +172,26 @@ class InvocationServer:
         return self.do_list_invocations(
             filter_info = filter_info,
             profile_filter = check_prop,
+        )
+
+    def do_filter_context(self, key, value):
+        filter_info = "context variable"
+        try:
+            key_string = json.loads(bytes.fromhex(key).decode('utf-8'))
+            value_string = json.loads(bytes.fromhex(value).decode('utf-8'))
+            filter_info += " " + json.dumps({key_string: value_string})
+        except:
+            pass
+
+        def check_prop(p):
+            for k, v in p.get('context', {}).items():
+                if (json.dumps(k).encode().hex() == key) and (json.dumps(v).encode().hex() == value):
+                    return True
+            return False
+
+        return self.do_list_invocations(
+            filter_info = filter_info,
+            metadata_filter = check_prop,
         )
 
     def process_failure(self, cmd, procobj, *, failure_kind=None):
@@ -280,6 +313,17 @@ class InvocationServer:
         # Fill this data, if available
         if meta.get('cmdline'):
             params["cmdline"] = json.dumps(meta.get('cmdline'))
+        context = []
+        for k, v in meta.get('context', {}).items():
+            key = json.dumps(k)
+            value = json.dumps(v)
+            context.append({
+                "key": key,
+                "key_hex": key.encode().hex(),
+                "value": value,
+                "value_hex": value.encode().hex(),
+            })
+        params["context"] = context
         if profile.get('subcommand'):
             params["cmd"] = json.dumps(
                 [profile.get('subcommand')] + profile.get('subcommand args', []))

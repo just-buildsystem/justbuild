@@ -114,6 +114,19 @@ Inocations {{invocation | e}}
     </ul>
   </li>
   {% endif %}
+  {% if context %}
+  <li> Context:
+    <ul>
+      {% for entry in context %}
+      <li> <tt>{{ entry["key"] | e }}</tt> :
+        <a href="/filterinvocations/context/{{ entry["key_hex"] | e }}/{{ entry["value_hex"] }}"><tt>{{ entry["value"] | e }}</tt></a>
+      </li>
+      {% endfor %}
+    </ul>
+  </li>
+  {% else %}
+  <li> Context: <i>(none)</i>
+  {% endif %}
   {% if exit_code != None %}
   <li> Exit code: <tt>{{ exit_code | e }}</tt></li>
   {% endif %}

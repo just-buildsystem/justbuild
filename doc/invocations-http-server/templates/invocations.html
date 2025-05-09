@@ -47,6 +47,11 @@ Recent Invocations
         Configuration: <tt>{{ invocation.config | e}}</tt>
       </li>
       {% endif %}
+      {% if invocation.context %}
+      <li>
+        Context: <tt>{{ invocation.context | e }}</tt>
+      </li>
+      {% endif %}
     </ul>
   </li>
   {% endfor %}
