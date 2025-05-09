@@ -27,9 +27,49 @@
     ]
   , "stage": ["test", "buildtool", "execution_api", "execution_service"]
   }
+, "execution_server":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["execution_server"]
+  , "srcs": ["execution_server.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "fmt", "", "fmt"]
+    , ["@", "grpc", "", "grpc++"]
+    , ["@", "gsl", "", "gsl"]
+    , ["@", "protoc", "", "libprotobuf"]
+    , ["@", "src", "src/buildtool/common", "bazel_digest_factory"]
+    , ["@", "src", "src/buildtool/common", "bazel_types"]
+    , ["@", "src", "src/buildtool/common", "common"]
+    , ["@", "src", "src/buildtool/common", "protocol_traits"]
+    , ["@", "src", "src/buildtool/crypto", "hash_function"]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/execution_service"
+      , "cas_server"
+      ]
+    , [ "@"
+      , "src"
+      , "src/buildtool/execution_api/execution_service"
+      , "execution_server"
+      ]
+    , ["@", "src", "src/buildtool/execution_api/local", "config"]
+    , ["@", "src", "src/buildtool/execution_api/local", "context"]
+    , ["@", "src", "src/buildtool/execution_api/local", "local_api"]
+    , ["@", "src", "src/buildtool/execution_api/remote", "bazel_network"]
+    , ["@", "src", "src/buildtool/file_system", "git_repo"]
+    , ["@", "src", "src/buildtool/file_system", "object_type"]
+    , ["@", "src", "src/buildtool/storage", "config"]
+    , ["@", "src", "src/buildtool/storage", "storage"]
+    , ["@", "src", "src/utils/cpp", "expected"]
+    , ["", "catch-main"]
+    , ["utils", "test_hash_function_type"]
+    , ["utils", "test_storage_config"]
+    ]
+  , "stage": ["test", "buildtool", "execution_api", "execution_service"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["execution_service"]
-  , "deps": ["cas_server"]
+  , "deps": ["cas_server", "execution_server"]
   }
 }
