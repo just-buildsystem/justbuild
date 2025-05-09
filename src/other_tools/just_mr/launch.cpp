@@ -284,7 +284,7 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         }
         std::string uuid = CreateUUID();
         auto invocation_id = fmt::format(
-            "{:%Y-%m-%d-%H:%M}-{}", fmt::gmtime(invocation_time), uuid);
+            "{:%Y-%m-%d-%H:%M:%S}-{}", fmt::gmtime(invocation_time), uuid);
         dir = dir / invocation_id;
         if (FileSystemManager::CreateDirectoryExclusive(dir)) {
             if (invocation_log.invocation_msg) {

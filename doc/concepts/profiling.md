@@ -184,8 +184,8 @@ a directory `<prefix>/<project-id>/<YYYY-mm-DD-HH:MM>-<uuid>` where
    the committed code base (via rc-file merging) whereas the
    general logging location can be specified in a user-specific or
    machine-specific way.
- - `<YYYY-mm-DD-HH:MM>` is the UTC timestamp (year, moth, day,
-   hours, minutes) of the invocation and `<uuid>` is a universally
+ - `<YYYY-mm-DD-HH:MM:SS>` is the UTC timestamp (year, moth, day,
+   hours, minutes, seconds) of the invocation and `<uuid>` is a universally
    unique id for that invocation (following RFC9562). The reason we
    prefix the UUID with a time stamp is allow a simple time-based
    collection and clean up of the log data.
