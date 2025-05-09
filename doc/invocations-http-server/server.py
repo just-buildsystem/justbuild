@@ -123,12 +123,12 @@ class InvocationServer:
                 continue
             count += 1
             target = profile_data.get("target")
-            config = profile_data.get("configuration", {})
+            config = core_config(profile_data.get("configuration", {}))
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
                 "target": json.dumps(target) if target else None,
-                "config": json.dumps(core_config(config)),
+                "config": json.dumps(config) if config else None,
                 "exit_code": profile_data.get('exit code', 0),
                 "remote_address": profile_data.get('remote', {}).get('address'),
                 "remote_props": json.dumps(
