@@ -725,4 +725,36 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
     }
 }
 
+[[nodiscard]] static inline auto TestSymlinkCollection(
+    ApiFactory const& api_factory,
+    ExecProps const& props) {
+    auto api = api_factory();
+
+    auto action = api->CreateAction(
+        *api->UploadTree({}),
+        {"/bin/sh", "-c", "set -e; ln -s none foo; rm -rf bar; ln -s none bar"},
+        "",
+        {"foo"},
+        {"bar"},
+        {},
+        props);
+
+    // run execution
+    auto const response = action->Execute();
+    REQUIRE(response);
+
+    // verify result
+    auto const artifacts = response->Artifacts();
+    REQUIRE(artifacts.has_value());
+    REQUIRE(artifacts.value()->contains("foo"));
+    CHECK(IsSymlinkObject(artifacts.value()->at("foo").type));
+    REQUIRE(artifacts.value()->contains("bar"));
+    CHECK(IsSymlinkObject(artifacts.value()->at("bar").type));
+
+    // check if bar was correctly detected as directory symlink
+    auto dir_symlinks = response->DirectorySymlinks();
+    REQUIRE(dir_symlinks);
+    CHECK((*dir_symlinks)->contains("bar"));
+}
+
 #endif  // INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
