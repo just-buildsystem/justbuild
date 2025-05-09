@@ -66,6 +66,8 @@ class InvocationServer:
             rule("/", methods=("GET",), endpoint="list_invocations"),
             rule("/filterinvocations/context/<hexidentifier:key>/<hexidentifier:value>",
                  methods=("GET",), endpoint="filter_context"),
+            rule("/filterinvocations/noncached",
+                 methods=("GET",), endpoint="filter_noncached"),
             rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
                  methods=("GET",), endpoint="filter_remote_prop"),
             rule("/blob/<hashidentifier:blob>",
@@ -192,6 +194,17 @@ class InvocationServer:
         return self.do_list_invocations(
             filter_info = filter_info,
             metadata_filter = check_prop,
+        )
+
+    def do_filter_noncached(self):
+        def check_noncached(p):
+            for v in p.get('actions', {}).values():
+                if not v.get('cached'):
+                    return True
+            return False
+        return self.do_list_invocations(
+            filter_info = "not fully cached",
+            profile_filter = check_noncached,
         )
 
     def process_failure(self, cmd, procobj, *, failure_kind=None):
