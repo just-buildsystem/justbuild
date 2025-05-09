@@ -16,6 +16,7 @@
 
 #include <initializer_list>
 
+#include "src/buildtool/file_system/git_tree_utils.hpp"
 #include "src/utils/automata/dfa_minimizer.hpp"
 
 auto RepositoryConfig::RepositoryInfo::BaseContentDescription() const
@@ -171,4 +172,13 @@ void RepositoryConfig::SetPrecomputedRoot(PrecomputedRoot const& root,
             SetInfo(name, std::move(new_info));
         }
     }
+}
+
+auto RepositoryConfig::ReadTreeFromGitCAS(
+    std::string const& hex_id) const noexcept -> std::optional<GitTree> {
+    if (git_cas_ == nullptr or storage_config_ == nullptr) {
+        return std::nullopt;
+    }
+    return GitTreeUtils::ReadValidGitCASTree(
+        *storage_config_, hex_id, git_cas_);
 }

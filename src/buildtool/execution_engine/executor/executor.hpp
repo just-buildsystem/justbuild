@@ -486,7 +486,7 @@ class ExecutorImpl {
         }
         if (not blob) {
             // try to obtain blob from global Git CAS, if any
-            blob = repo_config->ReadBlobFromGitCAS(hash);
+            blob = repo_config->ReadBlobFromGitCAS(hash, /*is_symlink=*/false);
         }
         return blob;
     }

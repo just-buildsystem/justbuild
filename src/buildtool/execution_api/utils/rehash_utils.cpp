@@ -285,10 +285,10 @@ auto RehashGitDigest(std::vector<Artifact::ObjectInfo> const& digests,
                      StorageConfig const& target_config,
                      RepositoryConfig const& repo_config)
     -> expected<std::vector<Artifact::ObjectInfo>, std::string> {
-    auto read = [&repo_config](
-                    ArtifactDigest const& digest,
-                    ObjectType /*type*/) -> std::optional<std::string> {
-        return repo_config.ReadBlobFromGitCAS(digest.hash());
+    auto read = [&repo_config](ArtifactDigest const& digest,
+                               ObjectType type) -> std::optional<std::string> {
+        return repo_config.ReadBlobFromGitCAS(
+            digest.hash(), /*is_symlink=*/IsSymlinkObject(type));
     };
     return RehashDigestImpl(digests,
                             source_config,

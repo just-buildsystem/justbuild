@@ -226,6 +226,7 @@
   , "private-deps":
     [ "file_system_manager"
     , "object_type"
+    , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/storage", "fs_utils"]
     ]
   , "stage": ["src", "buildtool", "file_system"]

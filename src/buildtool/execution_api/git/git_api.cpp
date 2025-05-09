@@ -81,7 +81,8 @@ auto GitApi::RetrieveToPaths(
             }
         }
         else {
-            auto blob = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
+            auto blob = repo_config_.ReadBlobFromGitCAS(
+                info.digest.hash(), /*is_symlink=*/IsSymlinkObject(info.type));
             if (not blob) {
                 return false;
             }
@@ -141,7 +142,8 @@ auto GitApi::RetrieveToFds(
             }
         }
         else {
-            auto blob = repo_config_.ReadBlobFromGitCAS(info.digest.hash());
+            auto blob = repo_config_.ReadBlobFromGitCAS(
+                info.digest.hash(), /*is_symlink=*/IsSymlinkObject(info.type));
             if (not blob) {
                 Logger::Log(LogLevel::Debug,
                             "Blob {} not known to git",
@@ -217,7 +219,9 @@ auto GitApi::RetrieveToCas(
             content = tree->RawData();
         }
         else {
-            content = repo_config_.ReadBlobFromGitCAS(info->digest.hash());
+            content = repo_config_.ReadBlobFromGitCAS(
+                info->digest.hash(),
+                /*is_symlink=*/IsSymlinkObject(info->type));
         }
         if (not content) {
             return false;
@@ -248,10 +252,14 @@ auto GitApi::RetrieveToCas(
 
 auto GitApi::RetrieveToMemory(Artifact::ObjectInfo const& artifact_info)
     const noexcept -> std::optional<std::string> {
-    return repo_config_.ReadBlobFromGitCAS(artifact_info.digest.hash());
+    return repo_config_.ReadBlobFromGitCAS(
+        artifact_info.digest.hash(),
+        /*is_symlink=*/IsSymlinkObject(artifact_info.type));
 }
 
 auto GitApi::IsAvailable(ArtifactDigest const& digest) const noexcept -> bool {
-    return repo_config_.ReadBlobFromGitCAS(digest.hash(), LogLevel::Trace)
-        .has_value();
+    return repo_config_
+        .ReadBlobFromGitCAS(
+            digest.hash(), /*is_symlink=*/false, LogLevel::Trace)
+        .has_value();  // allow invalid symlink if just to check existence
 }

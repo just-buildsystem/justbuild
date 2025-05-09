@@ -87,19 +87,18 @@ class RepositoryConfig {
 
     [[nodiscard]] auto ReadBlobFromGitCAS(
         std::string const& hex_id,
+        bool is_symlink,
         LogLevel log_failure = LogLevel::Warning) const noexcept
         -> std::optional<std::string> {
         return git_cas_ ? git_cas_->ReadObject(hex_id,
                                                /*is_hex_id=*/true,
-                                               /*validate=*/false,
+                                               /*as_valid_symlink=*/is_symlink,
                                                log_failure)
                         : std::nullopt;
     }
 
     [[nodiscard]] auto ReadTreeFromGitCAS(
-        std::string const& hex_id) const noexcept -> std::optional<GitTree> {
-        return git_cas_ ? GitTree::Read(git_cas_, hex_id) : std::nullopt;
-    }
+        std::string const& hex_id) const noexcept -> std::optional<GitTree>;
 
     [[nodiscard]] auto WorkspaceRoot(std::string const& repo) const noexcept
         -> FileRoot const* {

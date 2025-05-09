@@ -15,7 +15,12 @@
 #include "src/buildtool/file_system/git_tree_utils.hpp"
 
 #include <cstddef>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <unordered_map>
 
+#include "gsl/gsl"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/storage/fs_utils.hpp"
