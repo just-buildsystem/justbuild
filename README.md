@@ -41,6 +41,7 @@ dependencies locally (neither as source nor as binary).
   - [Computed roots](doc/tutorial/computed.md)
   - [More build delegation through a serve endpoint](doc/tutorial/build-delegation.md)
   - [Invocation logging and profiling](doc/tutorial/invocation-logging.md)
+  - [Tree overlays](doc/tutorial/tree-overlay.md)
 
 ## Documentation
 
