@@ -146,3 +146,16 @@ TEST_CASE("LocalAPI: Create directory prior to execution", "[execution_api]") {
 
     TestCreateDirPriorToExecution(api_factory, {}, /*is_hermetic=*/true);
 }
+
+TEST_CASE("LocalAPI: Collect file and directory symlinks", "[execution_api]") {
+    auto const storage_config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&storage_config.Get());
+    auto const local_exec_config = CreateLocalExecConfig();
+    // pack the local context instances to be passed to LocalApi
+    LocalContext const local_context{.exec_config = &local_exec_config,
+                                     .storage_config = &storage_config.Get(),
+                                     .storage = &storage};
+    FactoryApi api_factory(&local_context);
+
+    TestSymlinkCollection(api_factory, {});
+}

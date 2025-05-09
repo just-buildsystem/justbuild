@@ -530,7 +530,7 @@ auto LocalAction::CollectAndStoreOutputs(
                              " - symlink {}: {}",
                              path,
                              out_symlink.target());
-                result->mutable_output_file_symlinks()->Add(
+                result->mutable_output_directory_symlinks()->Add(
                     std::move(out_symlink));
             }
             else {

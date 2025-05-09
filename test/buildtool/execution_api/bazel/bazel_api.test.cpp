@@ -208,3 +208,20 @@ TEST_CASE("BazelAPI: Create directory prior to execution", "[execution_api]") {
     TestCreateDirPriorToExecution(api_factory,
                                   remote_config->platform_properties);
 }
+
+TEST_CASE("BazelAPI: Collect file and directory symlinks", "[execution_api]") {
+    auto storage_config = TestStorageConfig::Create();
+    auto remote_config = TestRemoteConfig::ReadFromEnvironment();
+
+    REQUIRE(remote_config);
+    REQUIRE(remote_config->remote_address);
+    auto auth = TestAuthConfig::ReadFromEnvironment();
+    REQUIRE(auth);
+
+    FactoryApi api_factory{
+        &*remote_config->remote_address,
+        &*auth,
+        storage_config.Get().hash_function,
+        storage_config.Get().CreateTypedTmpDir("test_space")};
+    TestSymlinkCollection(api_factory, remote_config->platform_properties);
+}
