@@ -16,11 +16,8 @@ Recent Invocations
     {% if invocation.subcommand %}
     <tt>{{ invocation.subcommand | e }}</tt>
     {% endif %}
-    {% if invocation.remote_address %}
-    (on <tt>{{ invocation.remote_address | e }}@{{ invocation.remote_props | e }}</tt>)
-    {% endif %}
     {% if invocation.target %}
-    <tt>{{ invocation.target | e}}@{{ invocation.config | e}}</tt>
+    <tt>{{ invocation.target | e}}</tt>
     {% endif %}
     {% if invocation.exit_code != 0 %}
     <b>
@@ -39,6 +36,18 @@ Recent Invocations
       {% endif %}
     </b>
     {% endif %}
+    <ul>
+      {% if invocation.remote_address %}
+      <li>
+        Remote: <tt>{{ invocation.remote_address | e }}@{{ invocation.remote_props | e }}</tt>
+      </li>
+      {% endif %}
+      {% if invocation.config %}
+      <li>
+        Configuration: <tt>{{ invocation.config | e}}</tt>
+      </li>
+      {% endif %}
+    </ul>
   </li>
   {% endfor %}
 </ul>
