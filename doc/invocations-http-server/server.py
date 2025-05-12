@@ -22,6 +22,7 @@ import werkzeug.routing
 import werkzeug.utils
 
 from werkzeug.wrappers import Request, Response
+from werkzeug.middleware.shared_data import SharedDataMiddleware
 
 def core_config(conf):
     new_conf = {}
@@ -442,6 +443,13 @@ class InvocationServer:
 
         return self.render("invocation.html", params)
 
+def create_app(logsdir, **kwargs):
+    app = InvocationServer(logsdir, **kwargs)
+    app = SharedDataMiddleware(app, {
+      '/static': os.path.join(os.path.dirname(__file__), 'static')
+    })
+    return app
+
 if __name__ == '__main__':
     import sys
     from argparse import ArgumentParser
@@ -472,10 +480,10 @@ if __name__ == '__main__':
         print("just-mr argument should be valid json, but %r is not: %s"
               % (args.just_mr, e), file=sys.stderr)
         sys.exit(1)
-    app = InvocationServer(args.DIR,
-                           just_mr=just_mr,
-                           graph=args.graph,
-                           artifacts=args.artifacts,
-                           meta=args.meta,
-                           profile=args.profile)
+    app = create_app(args.DIR,
+                     just_mr=just_mr,
+                     graph=args.graph,
+                     artifacts=args.artifacts,
+                     meta=args.meta,
+                     profile=args.profile)
     make_server(args.interface, args.port, app).serve_forever()
