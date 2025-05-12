@@ -1,0 +1,60 @@
+{ "matrix":
+  { "vars": ["TEST_MATRIX"]
+  , "expression":
+    { "type": "foldl"
+    , "var": "VAR"
+    , "accum_var": "so far"
+    , "range":
+      { "type": "keys"
+      , "$1":
+        { "type": "var"
+        , "name": "TEST_MATRIX"
+        , "default": {"type": "empty_map"}
+        }
+      }
+    , "start": [{"type": "'", "$1": {"": {"TEST_MATRIX": null}}}]
+    , "body":
+      { "type": "++"
+      , "$1":
+        { "type": "foreach_map"
+        , "var_key": "stage"
+        , "var_val": "VALUE"
+        , "range":
+          { "type": "lookup"
+          , "key": {"type": "var", "name": "VAR"}
+          , "map": {"type": "var", "name": "TEST_MATRIX"}
+          }
+        , "body":
+          { "type": "++"
+          , "$1":
+            { "type": "foreach"
+            , "range": {"type": "var", "name": "so far"}
+            , "body":
+              { "type": "foreach_map"
+              , "range":
+                { "type": "to_subdir"
+                , "subdir": {"type": "var", "name": "stage"}
+                , "$1": {"type": "var", "name": "_"}
+                }
+              , "body":
+                { "type": "singleton_map"
+                , "key": {"type": "var", "name": "_"}
+                , "value":
+                  { "type": "map_union"
+                  , "$1":
+                    [ {"type": "var", "name": "$_"}
+                    , { "type": "singleton_map"
+                      , "key": {"type": "var", "name": "VAR"}
+                      , "value": {"type": "var", "name": "VALUE"}
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -54,4 +54,129 @@
       }
     }
   }
+, "matrix":
+  { "doc":
+    [ "Given a group of tests, build them in a variety of configurations."
+    , ""
+    , "The configuration variable TEST_MATRIX is expected to be a map with"
+    , "each value being a map itself. Sequentially for each key, all possible"
+    , "values of the associated map are tried and staged to the appropriate"
+    , "key. Thus, the tests in \"deps\" are built in an exponential number of"
+    , "configurations."
+    , ""
+    , "If TEST_MATRIX is unset, {} will be assumed, i.e., all the \"deps\" will"
+    , "be built precisely once, in the current configuration. In this way,"
+    , "the \"matrix\" rule can be used instead of the \"suite\" rule to allow"
+    , "user-defined configuration matrices, dispatching over parameters for"
+    , "dependencies (e.g., the toolchain)."
+    ]
+  , "tainted": ["test"]
+  , "config_vars": ["TEST_MATRIX"]
+  , "target_fields": ["deps"]
+  , "string_fields": ["stage"]
+  , "field_doc":
+    { "deps": ["The targets that suite is composed of."]
+    , "stage":
+      [ "The logical location this test suite is to be placed."
+      , "Individual entries will be joined with \"/\"."
+      ]
+    }
+  , "config_doc":
+    { "TEST_MATRIX":
+      [ "Map describing the dimensions of the matrix to run the tests for."
+      , ""
+      , "Keys are config variables. The value for each key has to be a map"
+      , "mapping the stage name to the corresponding value for that config"
+      , "variable."
+      ]
+    }
+  , "artifacts_doc":
+    [ "The disjoint union of the runfiles of the \"deps\" targets,"
+    , "evaluated and staged as requested by TEST_MATRIX and finally"
+    , "staged to the location given by \"stage\"."
+    ]
+  , "runfiles_doc": ["Same as artifacts."]
+  , "imports":
+    { "runfiles": ["", "field_runfiles"]
+    , "list_provider": ["", "field_list_provider"]
+    , "matrix": "matrix"
+    }
+  , "config_transitions":
+    { "deps":
+      { "type": "++"
+      , "$1":
+        { "type": "foreach"
+        , "range": {"type": "CALL_EXPRESSION", "name": "matrix"}
+        , "body": {"type": "values", "$1": {"type": "var", "name": "_"}}
+        }
+      }
+    }
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["matrix", {"type": "CALL_EXPRESSION", "name": "matrix"}]
+      , ["fieldname", "deps"]
+      , [ "staged runfiles list"
+        , { "type": "foreach"
+          , "range": {"type": "var", "name": "matrix"}
+          , "body":
+            { "type": "foreach_map"
+            , "range": {"type": "var", "name": "_"}
+            , "var_val": "transition"
+            , "body":
+              { "type": "to_subdir"
+              , "subdir": {"type": "var", "name": "_"}
+              , "$1": {"type": "CALL_EXPRESSION", "name": "runfiles"}
+              }
+            }
+          }
+        ]
+      , [ "staged matrix runfiles"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "++"
+            , "$1": {"type": "var", "name": "staged runfiles list"}
+            }
+          }
+        ]
+      , [ "stage"
+        , { "type": "join"
+          , "separator": "/"
+          , "$1": {"type": "FIELD", "name": "stage"}
+          }
+        ]
+      , [ "staged results"
+        , { "type": "to_subdir"
+          , "subdir": {"type": "var", "name": "stage"}
+          , "$1": {"type": "var", "name": "staged matrix runfiles"}
+          }
+        ]
+      , ["provider", "lint"]
+      , [ "lint"
+        , { "type": "++"
+          , "$1":
+            { "type": "++"
+            , "$1":
+              { "type": "foreach"
+              , "range": {"type": "var", "name": "matrix"}
+              , "body":
+                { "type": "foreach_map"
+                , "range": {"type": "var", "name": "_"}
+                , "var_val": "transition"
+                , "body": {"type": "CALL_EXPRESSION", "name": "list_provider"}
+                }
+              }
+            }
+          }
+        ]
+      , ["lint", {"type": "nub_right", "$1": {"type": "var", "name": "lint"}}]
+      ]
+    , "body":
+      { "type": "RESULT"
+      , "artifacts": {"type": "var", "name": "staged results"}
+      , "runfiles": {"type": "var", "name": "staged results"}
+      , "provides": {"type": "env", "vars": ["lint"]}
+      }
+    }
+  }
 }
