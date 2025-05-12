@@ -14,9 +14,12 @@
 
 #include "src/buildtool/execution_engine/tree_operations/tree_operations_utils.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <memory>
+#include <set>
 #include <type_traits>  // for remove_reference
 #include <unordered_set>
 #include <vector>
@@ -162,9 +165,16 @@ auto TreeOperationsUtils::ReadTree(
 
 auto TreeOperationsUtils::SerializeBazelDirectory(
     TreeEntries const& tree_entries) noexcept -> std::optional<std::string> {
+    // Sort tree entry names, so we can process them in the correct order.
+    auto sorted = std::set<std::string>{};
+    std::transform(tree_entries.begin(),
+                   tree_entries.end(),
+                   std::inserter(sorted, sorted.end()),
+                   [](auto const& name_entry) { return name_entry.first; });
     // Convert tree entries to bazel directory.
     bazel_re::Directory bazel_directory{};
-    for (auto const& [name, entry] : tree_entries) {
+    for (auto const& name : sorted) {
+        auto const& entry = tree_entries.at(name);
         switch (entry.info.type) {
             case ObjectType::File:
             case ObjectType::Executable: {
