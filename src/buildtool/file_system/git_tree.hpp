@@ -78,7 +78,7 @@ class GitTree {
                                : std::make_optional(ToHexString(raw_id_));
     }
 
-    // Getter of the raw root tree id with no fast lookup flag check. As such,
+    // Getter of the hex root tree id with no fast lookup flag check. As such,
     // the caller MUST NOT assume that there is a one-to-one correspondence
     // between this returned tree id and the values stored in entries_.
     [[nodiscard]] auto FileRootHash() const noexcept {
