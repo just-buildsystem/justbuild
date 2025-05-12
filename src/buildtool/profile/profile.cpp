@@ -103,6 +103,9 @@ void Profile::SetCLI(CommandLineArguments const& cli) {
 void Profile::NoteActionCompleted(std::string const& id,
                                   IExecutionResponse::Ptr const& response,
                                   std::string const& cwd) {
+    if (not response) {
+        return;
+    }
     std::unique_lock lock{mutex_};
     auto artifacts = response->Artifacts();
     std::optional<std::string> out = std::nullopt;
