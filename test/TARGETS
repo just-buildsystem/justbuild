@@ -59,15 +59,66 @@
   }
 , "unit tests with compatibility, compatible":
   { "type": "configure"
+  , "arguments_config": ["TEST_ENV"]
   , "tainted": ["test"]
   , "target": "unit tests with compatibility (unconfigured)"
-  , "config": {"type": "'", "$1": {"TEST_COMPATIBLE_REMOTE": true}}
+  , "config":
+    { "type": "`"
+    , "$1":
+      { "TEST_COMPATIBLE_REMOTE": true
+      , "TEST_ENV":
+        { "type": ","
+        , "$1":
+          { "type": "map_union"
+          , "$1":
+            [ { "type": "var"
+              , "name": "TEST_ENV"
+              , "default": {"type": "empty_map"}
+              }
+            , {"type": "'", "$1": {"COMPATIBLE": "YES"}}
+            ]
+          }
+        }
+      }
+    }
   }
 , "unit tests with compatibility, native":
   { "type": "configure"
+  , "arguments_config": ["TEST_ENV"]
   , "tainted": ["test"]
   , "target": "unit tests with compatibility (unconfigured)"
-  , "config": {"type": "'", "$1": {"TEST_COMPATIBLE_REMOTE": false}}
+  , "config":
+    { "type": "`"
+    , "$1":
+      { "TEST_COMPATIBLE_REMOTE": false
+      , "TEST_ENV":
+        { "type": ","
+        , "$1":
+          { "type": "map_union"
+          , "$1":
+            { "type": "foreach_map"
+            , "var_key": "name"
+            , "var_val": "value"
+            , "range":
+              { "type": "var"
+              , "name": "TEST_ENV"
+              , "default": {"type": "empty_map"}
+              }
+            , "body":
+              { "type": "case"
+              , "expr": {"type": "var", "name": "name"}
+              , "case": {"COMPATIBLE": {"type": "empty_map"}}
+              , "default":
+                { "type": "singleton_map"
+                , "key": {"type": "var", "name": "name"}
+                , "value": {"type": "var", "name": "value"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 , "unit tests with compatibility":
   { "type": ["@", "rules", "test", "suite"]
