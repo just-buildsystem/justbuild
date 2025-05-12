@@ -127,7 +127,7 @@ cat > TARGETS <<'EOI'
 EOI
 
 do_test() {
-  echo === Enumeration refres to targets ===
+  echo === Enumeration refers to targets ===
 
   ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/enum enumeration 2>&1
 
@@ -139,7 +139,7 @@ do_test() {
   [ "$(cat ${OUTDIR}/enum/keys.txt)" = "a.txt b-new.txt c.txt" ]
   [ "$(cat ${OUTDIR}/enum/content.txt)" = "AfromtargetC" ]
 
-  echo === Glob always refres to files and directories are ignored ===
+  echo === Glob always refers to files and directories are ignored ===
 
   ${TOOL} install -L '["env", "PATH='"${PATH}"'"]' -C ${CONF} --local-build-root ${BUILDROOT} -o ${OUTDIR}/glob glob 2>&1
 
