@@ -35,7 +35,7 @@ class HexIdentifierConverter(werkzeug.routing.BaseConverter):
     regex = '[a-zA-Z0-9]{2,300}'
 
 class HashIdentifierConverter(werkzeug.routing.BaseConverter):
-    regex = '[a-zA-Z0-9]{40,51}'
+    regex = '[a-zA-Z0-9]{40,64}'
 
 class InvocationIdentifierConverter(werkzeug.routing.BaseConverter):
     regex = '[-:_a-zA-Z0-9]{1,200}'
