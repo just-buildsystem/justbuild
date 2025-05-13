@@ -129,7 +129,7 @@
     ]
   }
 , "TESTS":
-  { "type": ["@", "rules", "test", "suite"]
+  { "type": ["@", "rules", "test", "matrix"]
   , "arguments_config": ["DROP_LARGE_TESTS", "DROP_END_TO_END_TESTS"]
   , "deps":
     { "type": "`"
