@@ -158,7 +158,14 @@ Inocations {{invocation | e}}
 <h2>Analysis errors</h2>
 <ul>
   {% for error in analysis_errors %}
-  <li> <pre>{{ error | e}}</pre></li>
+  <li> <pre>{{ error["msg"] | e}}</pre>
+    {% if error["blobs"] %}
+    Blobs:
+    {% for blob in error["blobs"] %}
+    <a href="/blob/{{ blob | e }}"><tt>{{ blob | e }}</tt></a>
+    {% endfor %}
+    {% endif %}
+  </li>
   {% endfor %}
 </ul>
 {% else %}

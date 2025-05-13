@@ -15,6 +15,7 @@
 
 import jinja2
 import json
+import re
 import os
 import subprocess
 import werkzeug.exceptions
@@ -328,7 +329,14 @@ class InvocationServer:
 
         params["repo_config"] = meta.get('configuration')
         params["exit_code"] = profile.get('exit code')
-        params["analysis_errors"] = profile.get('analysis errors', [])
+        analysis_errors = []
+        blob_pattern = re.compile(r'blob ([0-9A-Za-z]{40,64})')
+        for s in profile.get('analysis errors', []):
+            analysis_errors.append({
+                "msg": s,
+                "blobs": blob_pattern.findall(s),
+            })
+        params["analysis_errors"] = analysis_errors
         params["remote_address"] = profile.get('remote', {}).get('address')
         remote_props = []
         for k, v in profile.get('remote', {}).get('properties', {}).items():
