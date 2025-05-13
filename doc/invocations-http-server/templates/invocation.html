@@ -38,6 +38,12 @@ Inocations {{invocation | e}}
         </ul>
       </li>
       {% endif %}
+      {% if action["duration"] %}
+      <li> duration: {{ action["duration"] | e  }}</li>
+      {% endif %}
+      {% if action["cached"] %}
+      <li> cached: {{ action["cached"] | e }}</li>
+      {% endif %}
       {% if action["exit_code"] != 0 %}
       <li> exit code: {{ action["exit_code"] }}</li>
       {% endif %}
@@ -180,6 +186,17 @@ Inocations {{invocation | e}}
 {% if failed_actions %}
 <ul>
   {% for action in failed_actions %}
+  {{ show_action(action) }}
+  {% endfor %}
+</ul>
+{% else %}
+<i>(none)</i>
+{% endif %}
+
+<h3>Other actions with console output</h3>
+{% if output_actions %}
+<ul>
+  {% for action in output_actions %}
   {{ show_action(action) }}
   {% endfor %}
 </ul>

@@ -391,7 +391,10 @@ class InvocationServer:
         def action_data(name, profile_value):
             data = { "name_prefix": "",
                      "name": name,
+                     "cached": profile_value.get('cached'),
                      "exit_code": profile_value.get('exit code', 0)}
+            duration = profile_value.get('duration', 0.0)
+            data["duration"] = '%0.3fs' % (duration,) if duration > 0 else None
             desc = graph.get('actions', {}).get(name, {})
             data["may_fail"] = desc.get("may_fail")
             data["stdout"] = profile_value.get('stdout')
@@ -414,24 +417,35 @@ class InvocationServer:
             data["origins"] = origins
             return data
 
+        actions_considered = set()
         failed_build_actions = []
         failed_test_actions = []
         for k, v in profile.get('actions', {}).items():
             if v.get('exit code', 0) != 0:
+                actions_considered.add(k)
                 if graph.get('actions', {}).get(k, {}).get('may_fail') != None:
                     failed_test_actions.append(action_data(k, v))
                 else:
                     failed_build_actions.append(action_data(k, v))
         params["failed_actions"] = failed_build_actions + failed_test_actions
 
-        # longest running non-cached non-failed actions
+        # non-failed actions with output
+        output_actions = []
+        for k, v in profile.get('actions', {}).items():
+            if k not in actions_considered:
+               if v.get('stdout') or v.get('stderr'):
+                   actions_considered.add(k)
+                   output_actions.append(action_data(k,v))
+        params["output_actions"] = output_actions
+
+        # longest running non-cached non-failed actions without output
         candidates = []
         action_count = 0
         action_count_cached = 0
         for k, v in profile.get('actions', {}).items():
             action_count += 1
             if not v.get('cached'):
-                if v.get('exit code', 0) == 0:
+                if k not in actions_considered:
                     candidates.append((v.get('duration', 0.0), k, v))
             else:
                 action_count_cached += 1
