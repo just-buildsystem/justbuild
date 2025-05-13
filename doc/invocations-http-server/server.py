@@ -45,6 +45,9 @@ class FileIdentifierConverter(werkzeug.routing.BaseConverter):
     regex = '[-:_.a-zA-Z0-9]{3,200}'
 
 class InvocationServer:
+    MAX_FULL_INVOCATIONS = 50
+    MAX_REDUCED_INVOCATIONS = 450
+
     def __init__(self, logsdir, *,
                  just_mr = None,
                  graph = "graph.json",
@@ -111,8 +114,6 @@ class InvocationServer:
                             filter_info="",
                             profile_filter = lambda p : True,
                             metadata_filter = lambda p : True):
-        invocations = []
-        count = 0
         entries = sorted(os.listdir(self.logsdir), reverse=True)
         context_filters = {}
         remote_props_filters = {}
@@ -123,7 +124,14 @@ class InvocationServer:
                 if key not in filters:
                     filters[key] = set()
                 filters[key].add(value)
-        for e in entries:
+
+        # Load full invocation data (profile data + metadata).
+        index = 0
+        full_invocations = []
+        full_invocations_count = 0
+        while index < len(entries):
+            e = entries[index]
+            index += 1
             profile = os.path.join(self.logsdir, e, self.profile)
             if not os.path.exists(profile):
                 # only consider invocations that provide a profile; unfinished
@@ -145,7 +153,7 @@ class InvocationServer:
 
             if (not profile_filter(profile_data)) or (not metadata_filter(meta_data)):
                 continue
-            count += 1
+            full_invocations_count += 1
             target = profile_data.get("target")
             config = core_config(profile_data.get("configuration", {}))
             context = meta_data.get("context", {})
@@ -162,9 +170,40 @@ class InvocationServer:
                 "remote_address": profile_data.get('remote', {}).get('address'),
                 "remote_props": json.dumps(remote_props) if remote_props else None,
             }
-            invocations.append(invocation)
-            if count >= 100:
+            full_invocations.append(invocation)
+            if full_invocations_count >= InvocationServer.MAX_FULL_INVOCATIONS:
                 break
+
+        # Load reduced invocation data (metadata only).
+        reduced_invocations = []
+        reduced_invocations_count = 0
+        if not filter_info:
+            while index < len(entries):
+                e = entries[index]
+                index += 1
+                profile = os.path.join(self.logsdir, e, self.profile)
+                if not os.path.exists(profile):
+                    # only consider invocations that provide a profile; unfinished
+                    # invocations as well as not build related ones (like
+                    # install-cas) are not relevant.
+                    continue
+                meta = os.path.join(self.logsdir, e, self.meta)
+                try:
+                    with open(meta) as f:
+                        meta_data = json.load(f)
+                except:
+                    meta_data = {}
+                reduced_invocations_count += 1
+                context = meta_data.get("context", {})
+                add_filter(context, context_filters)
+                invocation = {
+                    "name": e,
+                    "context": json.dumps(context) if context else None,
+                }
+                reduced_invocations.append(invocation)
+                if reduced_invocations_count >= InvocationServer.MAX_REDUCED_INVOCATIONS:
+                    break
+
         def convert_filters(filters):
             return [{
                 "key": key,
@@ -175,7 +214,10 @@ class InvocationServer:
                 } for v in values], key=lambda x: x["value"])
             } for key, values in filters.items() if len(values) > 1]
         return self.render("invocations.html",
-                           {"invocations": invocations,
+                           {"full_invocations": full_invocations,
+                            "full_invocations_count": full_invocations_count,
+                            "reduced_invocations": reduced_invocations,
+                            "reduced_invocations_count": reduced_invocations_count,
                             "filter_info": filter_info,
                             "context_filters": convert_filters(context_filters),
                             "remote_props_filters": convert_filters(remote_props_filters)})

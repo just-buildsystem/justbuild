@@ -39,10 +39,10 @@ Filter by:
   </details>
   {% endif %}
 {% endif %}
-{% if invocations %}
+{% if full_invocations %}
 <div id="invocation-list">
 <ul>
-  {% for invocation in invocations %}
+  {% for invocation in full_invocations %}
   <li> <a href="/invocations/{{invocation.name |e}}"><tt>{{ invocation.name | e }}</tt></a>
     {% if invocation.subcommand %}
     <span id="invocation-verb"><tt>{{ invocation.subcommand | e }}</tt></span>
@@ -86,6 +86,23 @@ Filter by:
     </ul>
   </li>
   {% endfor %}
+  {% if reduced_invocations %}
+  <li>
+    <details>
+      <summary>{{ reduced_invocations_count | e }} more</summary>
+      <ul>
+        {% for invocation in reduced_invocations %}
+        <li>
+          <a href="/invocations/{{invocation.name |e}}"><tt>{{ invocation.name | e }}</tt></a>
+          {% if invocation.context %}
+          Context: <tt>{{ invocation.context | e }}</tt>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </details>
+  </li>
+  {% endif %}
 </ul>
 </div>
 {% else %}
