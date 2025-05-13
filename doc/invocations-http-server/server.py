@@ -396,6 +396,8 @@ class InvocationServer:
             duration = profile_value.get('duration', 0.0)
             data["duration"] = '%0.3fs' % (duration,) if duration > 0 else None
             desc = graph.get('actions', {}).get(name, {})
+            cmd = desc.get('command', [])
+            data["cmd"] = json.dumps(cmd) if cmd else None
             data["may_fail"] = desc.get("may_fail")
             data["stdout"] = profile_value.get('stdout')
             data["stderr"] = profile_value.get('stderr')

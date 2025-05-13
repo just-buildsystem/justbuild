@@ -29,6 +29,14 @@ Inocations {{invocation | e}}
       {% if action["stderr"] %}
       <li> stderr: <a href="/blob/{{ action["stderr"] | e }}">{{action["stderr"] | e }}</a></li>
       {% endif %}
+      {% if action["cmd"] %}
+      <li>
+        <details>
+          <summary>command</summary>
+          <tt>{{ action["cmd"] | e }}</tt>
+        </details>
+      </li>
+      {% endif %}
       {% if action["origins"] %}
       <li> origins
         <ul>
