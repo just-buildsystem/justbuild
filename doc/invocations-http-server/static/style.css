@@ -3,11 +3,24 @@ body {
   font-family: "Helvetica";
   font-size: large;
 }
-a {
-  color: #11557c;
-}
 h1,
 h2,
 h3 {
   color: #11557c;
+}
+#invocation-list > ul > li {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #b2bec3;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  padding: 3px 7px;
+}
+#invocation-verb {
+  font-weight: 700;
+}
+#invocation-target {
+  background-color: #ced6d9;
+}
+#invocation-failure {
+  color: #d63031;
 }

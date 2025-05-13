@@ -95,7 +95,7 @@ Inocations {{invocation | e}}
 <h2>Overview</h2>
 <ul>
   {% if cmd %}
-  <li> Subcommand and positional arguments: <tt>{{ cmd | e }}</tt></li>
+  <li> Subcommand and positional arguments: <span id="invocation-target"><tt>{{ cmd | e }}</tt></span></li>
   {% endif %}
   {% if cmdline %}
   <li> Full command line: <tt>{{ cmdline | e }}</tt></li>

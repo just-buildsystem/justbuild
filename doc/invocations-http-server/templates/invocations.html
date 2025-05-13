@@ -40,17 +40,18 @@ Filter by:
   {% endif %}
 {% endif %}
 {% if invocations %}
+<div id="invocation-list">
 <ul>
   {% for invocation in invocations %}
   <li> <a href="/invocations/{{invocation.name |e}}"><tt>{{ invocation.name | e }}</tt></a>
     {% if invocation.subcommand %}
-    <tt>{{ invocation.subcommand | e }}</tt>
+    <span id="invocation-verb"><tt>{{ invocation.subcommand | e }}</tt></span>
     {% endif %}
     {% if invocation.target %}
-    <tt>{{ invocation.target | e}}</tt>
+    <span id="invocation-target"><tt>{{ invocation.target | e}}</tt></span>
     {% endif %}
     {% if invocation.exit_code != 0 %}
-    <b>
+    <span id="invocation-failure"><b>
       {% if invocation.exit_code == 1 %}
       build failed
       {% elif invocation.exit_code == 2 %}
@@ -64,7 +65,7 @@ Filter by:
       {% else %}
       exit code {{ invocation.exit_code | e }}
       {% endif %}
-    </b>
+    </b></span>
     {% endif %}
     <ul>
       {% if invocation.remote_address %}
@@ -86,6 +87,7 @@ Filter by:
   </li>
   {% endfor %}
 </ul>
+</div>
 {% else %}
 <i>(none)</i>
 {% endif %}
