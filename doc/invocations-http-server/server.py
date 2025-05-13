@@ -169,10 +169,10 @@ class InvocationServer:
             return [{
                 "key": key,
                 "key_hex": key.encode().hex(),
-                "values": [{
+                "values": sorted([{
                     "value": v,
                     "value_hex": v.encode().hex(),
-                } for v in values]
+                } for v in values], key=lambda x: x["value"])
             } for key, values in filters.items() if len(values) > 1]
         return self.render("invocations.html",
                            {"invocations": invocations,
