@@ -391,8 +391,8 @@ class InvocationServer:
                 "value_hex": value.encode().hex(),
             })
         params["remote_props"] = remote_props
-        params["remote_dispatch"] = json.dumps(
-            profile.get('remote', {}).get('dispatch', []))
+        remote_dispatch = profile.get('remote', {}).get('dispatch', [])
+        params["remote_dispatch"] = json.dumps(remote_dispatch) if remote_dispatch else None
         # For complex conditional data fill with None as default
         for k in ["cmdline", "cmd", "target", "config"]:
             params[k] = None

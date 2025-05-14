@@ -137,7 +137,9 @@ Inocations {{invocation | e}}
       {% else %}
       <li> Properties: <i>(none)</i></li>
       {% endif %}
+      {% if remote_dispatch %}
       <li> Dispatch: <tt>{{ remote_dispatch | e }}</tt></li>
+      {% endif %}
     </ul>
   </li>
   {% endif %}
