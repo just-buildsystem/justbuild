@@ -109,6 +109,33 @@ seen via `just describe`.
 
 ``` sh
 $ just-mr describe tests greet
+INFO: Performing repositories setup
+INFO: Found 3 repositories involved
+INFO: Setup finished, exec ["just","describe","-C","...","tests","greet"]
+[["@","tutorial","tests","greet"],{}] is defined by user-defined rule ["@","rules-cc","CC/test","test"].
+
+ | A test written in C++
+ String fields
+ - "name"
+   | The name of the test
+...
+ - implict dependency
+   | The C/C++ toolchain to use
+   - ["@","rules-cc","CC","defaults"]
+ - implict dependency
+   | The test runner which starts the actual test binary after providing
+   | the respective environment. The runner also takes care of capturing
+   | stdout/stderr and timing information.
+   - ["@","rules-cc","CC/test","runner"]
+ - implict dependency
+   | The shell toolchain to use PATH from for calling the summary action
+   - ["@","rules-cc","shell","defaults"]
+ - implict dependency
+   | Tool to aggregate the results of individual test runs (for flakyness
+   | detection) to an overall test result. If more fields than the result
+   | itself is needed, those can be specified using the "summarizer" rule.
+   - ["@","rules-cc","shell/test","summarizer"]
+...
 ```
 
 However, in our case, we want to use the default runner and therefore it
@@ -144,21 +171,21 @@ Now we can run the test (i.e., build the test result):
 ``` sh
 $ just-mr build tests greet
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
+INFO: Found 3 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Discovered 5 actions, 0 tree overlays, 3 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","greet"],{}].
 INFO: Processed 5 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
-        pwd [7cbf5be8541d3e99ae5f427d2633c9c13889d0db:313:f]
+        pwd [22b121af0c81943f8174754055d169f69d95789c:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
         stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
-        time-start [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
-        time-stop [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
+        time-start [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
+        time-stop [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -182,22 +209,23 @@ is the name of the artifact that should be printed on the command line,
 in our case `stdout`:
 
 ``` sh
+$ just-mr build -P stdout tests greet
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","...","tests","greet","-P","stdout"]
+INFO: Found 3 repositories involved
+INFO: Setup finished, exec ["just","build","-C","...","-P","stdout","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Discovered 5 actions, 0 tree overlays, 3 trees, 1 blobs
 INFO: Building [["@","tutorial","tests","greet"],{}].
 INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
-        pwd [7cbf5be8541d3e99ae5f427d2633c9c13889d0db:313:f]
+        pwd [22b121af0c81943f8174754055d169f69d95789c:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [8b137891791fe96927ad78e64b0aad7bded08bdc:1:f]
         stdout [ae6c6813755da67954a4a562f6d2ef01578c3e89:60:f]
-        time-start [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
-        time-stop [329c969563b282c6eea8774edddad6b40f568fe9:11:f]
+        time-start [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
+        time-stop [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
       (1 runfiles omitted.)
 greet output: Hello World!
 
@@ -221,7 +249,7 @@ inputs.
 ``` sh
 $ just-mr analyse --request-action-input -1 tests greet
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
+INFO: Found 3 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","--request-action-input","-1","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
@@ -229,7 +257,7 @@ INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Result of input of action #-1 of target [["@","tutorial","tests","greet"],{}]: {
         "artifacts": {
           "runner": {"data":{"file_type":"x","id":"4984b1766a38849c7039f8ae9ede9dae891eebc3","size":2004},"type":"KNOWN"},
-          "test": {"data":{"id":"9ed409fe6c4fad2276ad1e1065187ceb4b6fdd41e5aa78709286d3d1ff6f114e","path":"work/test_greet"},"type":"ACTION"},
+          "test": {"data":{"id":"cd8801144beca99330c0003ea464f7c44e9547f4582317f5037b304425ee2d8b","path":"work/test_greet"},"type":"ACTION"},
           "test-args.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"},
           "test-launcher.json": {"data":{"file_type":"f","id":"0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc","size":2},"type":"KNOWN"}
         },
@@ -267,13 +295,13 @@ can also be useful when debugging a build failure.
 ``` sh
 $ just-mr install -o work --request-action-input -1 tests greet
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
+INFO: Found 3 repositories involved
 INFO: Setup finished, exec ["just","install","-C","...","-o","work","--request-action-input","-1","tests","greet"]
 INFO: Requested target is [["@","tutorial","tests","greet"],{}]
 INFO: Request is input of action #-1
 INFO: Analysed target [["@","tutorial","tests","greet"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 3 trees, 1 blobs
+INFO: Discovered 5 actions, 0 tree overlays, 3 trees, 1 blobs
 INFO: Building input of action #-1 of [["@","tutorial","tests","greet"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts can be found in:
@@ -284,6 +312,7 @@ INFO: Artifacts can be found in:
 INFO: Target tainted ["test"].
 $ cd work/
 $ ./test
+
 greet output: Hello World!
 
 greet output: Hello Universe!
@@ -350,21 +379,21 @@ Now we can run the shell test (i.e., build the test result):
 ``` sh
 $ just-mr build tests helloworld
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
+INFO: Found 3 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","tests","helloworld"]
 INFO: Requested target is [["@","tutorial","tests","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","tests","helloworld"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 5 actions, 4 trees, 2 blobs
+INFO: Discovered 5 actions, 0 tree overlays, 4 trees, 2 blobs
 INFO: Building [["@","tutorial","tests","helloworld"],{}].
 INFO: Processed 5 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:
-        pwd [c9deab746798a2d57873d6d05e8a7ecff21acf9e:313:f]
+        pwd [00dc0e2b2c82d1cc616173b339e220249fe9debd:313:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
-        time-start [b05cdf005874e63ea5a6d1242acbbd64cef0e339:11:f]
-        time-stop [b05cdf005874e63ea5a6d1242acbbd64cef0e339:11:f]
+        time-start [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
+        time-stop [7ca67f9c9a4b4f2b1948cc769469f6476e7bd320:11:f]
       (1 runfiles omitted.)
 INFO: Target tainted ["test"].
 $
@@ -377,21 +406,22 @@ name `test_helloworld` that contains all of the above artifacts.
 Creating a compound test target
 -------------------------------
 
-As most people probably do not want to call every test target by hand,
-it is desirable to compound test target that triggers the build of
-multiple test reports. To do so, an `"install"` target can be used. The
-field `"deps"` of an install target is a list of targets for which the
-runfiles are collected. As for the tests the runfiles happen to be tree
-artifacts named the same way as the test and containing all test
-results, this is precisely what we need. Furthermore, as the dependent
-test targets are tainted by `"test"`, also the compound test target must
-be tainted by the same string. To create the compound test target
-combining the two tests above (the tests `"greet"` and `"helloworld"`
-from module `"tests"`), add the following to the `tests/TARGETS` file:
+As most people probably do not want to call every test target by
+hand, it is desirable to have a compound test target that triggers
+the build of multiple test reports. The most simple way to do so
+is to use an `"install"` target. The field `"deps"` of an install
+target is a list of targets for which the runfiles are collected.
+As for the tests the runfiles happen to be tree artifacts named
+the same way as the test and containing all test results, this is
+precisely what we need. Furthermore, as the dependent test targets
+are tainted by `"test"`, also the compound test target must be tainted
+by the same string. To create the compound test target combining
+the two tests above (the tests `"greet"` and `"helloworld"` from
+module `"tests"`), add the following to the `tests/TARGETS` file:
 
 ``` {.jsonc srcname="tests/TARGETS"}
 ...
-, "ALL":
+, "ALL-simple":
   { "type": "install"
   , "tainted": ["test"]
   , "deps": ["greet", "helloworld"]
@@ -400,22 +430,22 @@ from module `"tests"`), add the following to the `tests/TARGETS` file:
 ```
 
 Now we can run all tests at once by just building the compound test
-target `"ALL"`:
+target `"ALL-simple"`:
 
 ``` sh
-$ just-mr build tests ALL
+$ just-mr build tests ALL-simple
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
-INFO: Setup finished, exec ["just","build","-C","...","tests","ALL"]
-INFO: Requested target is [["@","tutorial","tests","ALL"],{}]
-INFO: Analysed target [["@","tutorial","tests","ALL"],{}]
+INFO: Found 3 repositories involved
+INFO: Setup finished, exec ["just","build","-C","...","tests","ALL-simple"]
+INFO: Requested target is [["@","tutorial","tests","ALL-simple"],{}]
+INFO: Analysed target [["@","tutorial","tests","ALL-simple"],{}]
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 5 trees, 3 blobs
-INFO: Building [["@","tutorial","tests","ALL"],{}].
+INFO: Discovered 8 actions, 0 tree overlays, 5 trees, 3 blobs
+INFO: Building [["@","tutorial","tests","ALL-simple"],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts built, logical paths are:
-        test_greet [954aa9658030fe84b297c1d16814d3f04c53b708:208:t]
-        test_helloworld [53f7de4084f3ecb12606f5366b65df870af4f7e0:208:t]
+        test_greet [37b6cb11b5bf862f370df78ef3c0ae9b1437ffeb:208:t]
+        test_helloworld [1345b72ef6ec592fd83ac0614343ab9042358bcd:208:t]
 INFO: Target tainted ["test"].
 $
 ```
@@ -423,3 +453,44 @@ $
 As a result it reports the runfiles (result directories) of both tests
 as artifacts. Both tests ran successfully as none of those artifacts in
 this output above are tagged as `FAILED`.
+
+While the built-in `"install"` rule works in principle, the preferred
+way is to use the rule `["@", "rules", "test", "suite"]`. For
+artifacts and runfiles it does the same as `"install"`, however it
+also propagates the provided information appropriately; this means,
+it can also be used, e.g., as a target for [linting](lint.md) allowing
+in a single target to lint all code that went into all tests. The usage
+is similar, and, as a test target, it is also implicitly tainted.
+
+``` {.jsonc srcname="tests/TARGETS"}
+...
+, "ALL":
+  { "type": ["@", "rules", "test", "suite"]
+  , "deps": ["greet", "helloworld"]
+  }
+...
+```
+
+Again, we can run all tests at once by building the compound target.
+``` sh
+$ just-mr build tests ALL
+INFO: Performing repositories setup
+INFO: Found 3 repositories involved
+INFO: Setup finished, exec ["just","build","-C","...","tests","ALL"]
+INFO: Requested target is [["@","tutorial","tests","ALL"],{}]
+INFO: Analysed target [["@","tutorial","tests","ALL"],{}]
+INFO: Target tainted ["test"].
+INFO: Discovered 8 actions, 0 tree overlays, 5 trees, 3 blobs
+INFO: Building [["@","tutorial","tests","ALL"],{}].
+INFO: Processed 8 actions, 8 cache hits.
+INFO: Artifacts built, logical paths are:
+        test_greet [37b6cb11b5bf862f370df78ef3c0ae9b1437ffeb:208:t]
+        test_helloworld [1345b72ef6ec592fd83ac0614343ab9042358bcd:208:t]
+INFO: Target tainted ["test"].
+$
+```
+
+As the output structure is again one tree per test, test suits can
+be put into other test suites; to avoid conflicts, the `"stage"`
+field of the test suite can be used to put all outputs into a
+suite-specific sudirectory.
