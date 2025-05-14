@@ -98,7 +98,12 @@ Inocations {{invocation | e}}
   <li> Subcommand and positional arguments: <span id="invocation-target"><tt>{{ cmd | e }}</tt></span></li>
   {% endif %}
   {% if cmdline %}
-  <li> Full command line: <tt>{{ cmdline | e }}</tt></li>
+  <li>
+    <details>
+      <summary>Full command line</summary>
+      <tt>{{ cmdline | e }}</tt>
+    </details>
+  </li>
   {% endif %}
   {% if repo_config %}
   <li> Repository configuration:
