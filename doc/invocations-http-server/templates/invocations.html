@@ -19,7 +19,7 @@ Filter by:
         {% if loop.index > 1 %}
         ,
         {% endif %}
-        <a href="/filterinvocations/context/{{ entry["key_hex"] | e }}/{{ value["value_hex"] }}"><tt>{{ value["value"] | e }}</tt></a>
+        <a href="/filterinvocations/context/{{ entry["key_hex"] | e }}/{{ value["value_hex"] | e }}"><tt>{{ value["value"] | e }}</tt></a>
       {% endfor %}<br>
     {% endfor %}
   </details>
@@ -33,7 +33,7 @@ Filter by:
         {% if loop.index > 1 %}
         ,
         {% endif %}
-        <a href="/filterinvocations/remote/prop/{{ entry["key_hex"] | e }}/{{ value["value_hex"] }}"><tt>{{ value["value"] | e }}</tt></a>
+        <a href="/filterinvocations/remote/prop/{{ entry["key_hex"] | e }}/{{ value["value_hex"] | e }}"><tt>{{ value["value"] | e }}</tt></a>
       {% endfor %}<br>
     {% endfor %}
   </details>

@@ -129,7 +129,7 @@ Inocations {{invocation | e}}
         <ul>
           {% for prop in remote_props %}
           <li> <tt>{{ prop["key"] | e }}</tt> :
-            <a href="/filterinvocations/remote/prop/{{ prop["key_hex"] | e }}/{{ prop["value_hex"] }}"><tt>{{ prop["value"] | e }}</tt></a>
+            <a href="/filterinvocations/remote/prop/{{ prop["key_hex"] | e }}/{{ prop["value_hex"] | e }}"><tt>{{ prop["value"] | e }}</tt></a>
           </li>
           {% endfor %}
         </ul>
@@ -146,7 +146,7 @@ Inocations {{invocation | e}}
     <ul>
       {% for entry in context %}
       <li> <tt>{{ entry["key"] | e }}</tt> :
-        <a href="/filterinvocations/context/{{ entry["key_hex"] | e }}/{{ entry["value_hex"] }}"><tt>{{ entry["value"] | e }}</tt></a>
+        <a href="/filterinvocations/context/{{ entry["key_hex"] | e }}/{{ entry["value_hex"] | e }}"><tt>{{ entry["value"] | e }}</tt></a>
       </li>
       {% endfor %}
     </ul>
