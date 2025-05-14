@@ -398,7 +398,7 @@ auto LocalAction::CollectOutputFileOrSymlink(
     auto file_path = exec_path / local_path;
     auto type = FileSystemManager::Type(file_path, /*allow_upwards=*/true);
     if (not type) {
-        Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
+        logger_.Emit(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
@@ -407,7 +407,7 @@ auto LocalAction::CollectOutputFileOrSymlink(
             if (ProtocolTraits::IsNative(
                     local_context_.storage->GetHashFunction().GetType()) and
                 not PathIsNonUpwards(*content)) {
-                Logger::Log(
+                logger_.Emit(
                     LogLevel::Error, "found invalid symlink at {}", local_path);
                 return std::nullopt;
             }
@@ -433,7 +433,7 @@ auto LocalAction::CollectOutputFileOrSymlink(
         }
     }
     else {
-        Logger::Log(
+        logger_.Emit(
             LogLevel::Error, "expected file or symlink at {}", local_path);
     }
     return std::nullopt;
@@ -446,7 +446,7 @@ auto LocalAction::CollectOutputDirOrSymlink(
     auto dir_path = exec_path / local_path;
     auto type = FileSystemManager::Type(dir_path, /*allow_upwards=*/true);
     if (not type) {
-        Logger::Log(LogLevel::Error, "expected known type at {}", local_path);
+        logger_.Emit(LogLevel::Error, "expected known type at {}", local_path);
         return std::nullopt;
     }
     if (IsSymlinkObject(*type)) {
@@ -455,7 +455,7 @@ auto LocalAction::CollectOutputDirOrSymlink(
             if (ProtocolTraits::IsNative(
                     local_context_.storage->GetHashFunction().GetType()) and
                 not PathIsNonUpwards(*content)) {
-                Logger::Log(
+                logger_.Emit(
                     LogLevel::Error, "found invalid symlink at {}", local_path);
                 return std::nullopt;
             }
@@ -476,12 +476,12 @@ auto LocalAction::CollectOutputDirOrSymlink(
                 ArtifactDigestFactory::ToBazel(*digest);
             return out_dir;
         }
-        Logger::Log(LogLevel::Error,
-                    "found invalid entries in directory at {}",
-                    local_path);
+        logger_.Emit(LogLevel::Error,
+                     "found invalid entries in directory at {}",
+                     local_path);
     }
     else {
-        Logger::Log(
+        logger_.Emit(
             LogLevel::Error, "expected directory or symlink at {}", local_path);
     }
     return std::nullopt;
