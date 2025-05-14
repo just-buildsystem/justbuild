@@ -38,6 +38,17 @@ Filter by:
     {% endfor %}
   </details>
   {% endif %}
+  {% if remote_address_filters %}
+  <details>
+    <summary>Remote address</summary>
+    {% for entry in remote_address_filters %}
+      {% if loop.index > 1 %}
+      ,
+      {% endif %}
+      <a href="/filterinvocations/remote/address/{{ entry["value_hex"] | e }}"><tt>{{ entry["value"] | e }}</tt></a>
+    {% endfor %}
+  </details>
+  {% endif %}
 {% endif %}
 {% if full_invocations %}
 <div id="invocation-list">

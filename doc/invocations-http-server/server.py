@@ -75,6 +75,8 @@ class InvocationServer:
                  methods=("GET",), endpoint="filter_noncached"),
             rule("/filterinvocations/remote/prop/<hexidentifier:key>/<hexidentifier:value>",
                  methods=("GET",), endpoint="filter_remote_prop"),
+            rule("/filterinvocations/remote/address/<hexidentifier:value>",
+                 methods=("GET",), endpoint="filter_remote_address"),
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
@@ -117,13 +119,17 @@ class InvocationServer:
         entries = sorted(os.listdir(self.logsdir), reverse=True)
         context_filters = {}
         remote_props_filters = {}
+        remote_address_filters = set()
         def add_filter(data, filters):
-            for k, v in data.items():
-                key = json.dumps(k)
-                value = json.dumps(v)
-                if key not in filters:
-                    filters[key] = set()
-                filters[key].add(value)
+            if isinstance(filters, set):
+                filters.add(json.dumps(data))
+            elif isinstance(filters, map):
+                for k, v in data.items():
+                    key = json.dumps(k)
+                    value = json.dumps(v)
+                    if key not in filters:
+                        filters[key] = set()
+                    filters[key].add(value)
 
         # Load full invocation data (profile data + metadata).
         index = 0
@@ -157,9 +163,12 @@ class InvocationServer:
             target = profile_data.get("target")
             config = core_config(profile_data.get("configuration", {}))
             context = meta_data.get("context", {})
-            remote_props = profile_data.get('remote', {}).get('properties', {})
+            remote = profile_data.get('remote', {})
+            remote_props = remote.get('properties', {})
+            remote_address = remote.get('address')
             add_filter(context, context_filters)
             add_filter(remote_props, remote_props_filters)
+            add_filter(remote_address, remote_address_filters)
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
@@ -167,7 +176,7 @@ class InvocationServer:
                 "config": json.dumps(config) if config else None,
                 "context": json.dumps(context) if context else None,
                 "exit_code": profile_data.get('exit code', 0),
-                "remote_address": profile_data.get('remote', {}).get('address'),
+                "remote_address": remote_address,
                 "remote_props": json.dumps(remote_props) if remote_props else None,
             }
             full_invocations.append(invocation)
@@ -205,14 +214,22 @@ class InvocationServer:
                     break
 
         def convert_filters(filters):
-            return sorted([{
-                "key": key,
-                "key_hex": key.encode().hex(),
-                "values": sorted([{
+            def convert_values(values):
+                return sorted([{
                     "value": v,
                     "value_hex": v.encode().hex(),
                 } for v in values], key=lambda x: x["value"])
-            } for key, values in filters.items() if len(values) > 1], key=lambda x: x["key"])
+            if isinstance(filters, set):
+                return convert_values(filters) if len(filters) > 1 else []
+            elif isinstance(filters, map):
+                return sorted([{
+                    "key": key,
+                    "key_hex": key.encode().hex(),
+                    "values": convert_values(values)
+                } for key, values in filters.items() if len(values) > 1], key=lambda x: x["key"])
+            else:
+                return []
+
         return self.render("invocations.html",
                            {"full_invocations": full_invocations,
                             "full_invocations_count": full_invocations_count,
@@ -220,7 +237,8 @@ class InvocationServer:
                             "reduced_invocations_count": reduced_invocations_count,
                             "filter_info": filter_info,
                             "context_filters": convert_filters(context_filters),
-                            "remote_props_filters": convert_filters(remote_props_filters)})
+                            "remote_props_filters": convert_filters(remote_props_filters),
+                            "remote_address_filters": convert_filters(remote_address_filters)})
 
     def do_filter_remote_prop(self, key, value):
         filter_info = "remote-execution property"
@@ -236,6 +254,23 @@ class InvocationServer:
                 if (json.dumps(k).encode().hex() == key) and (json.dumps(v).encode().hex() == value):
                     return True
             return False
+
+        return self.do_list_invocations(
+            filter_info = filter_info,
+            profile_filter = check_prop,
+        )
+
+    def do_filter_remote_address(self, value):
+        filter_info = "remote address"
+        try:
+            value_string = json.loads(bytes.fromhex(value).decode('utf-8'))
+            filter_info += " " + json.dumps(value_string)
+        except:
+            pass
+
+        def check_prop(p):
+            v = p.get('remote', {}).get('address')
+            return (json.dumps(v).encode().hex() == value)
 
         return self.do_list_invocations(
             filter_info = filter_info,
@@ -379,7 +414,13 @@ class InvocationServer:
                 "blobs": blob_pattern.findall(s),
             })
         params["analysis_errors"] = analysis_errors
-        params["remote_address"] = profile.get('remote', {}).get('address')
+        params["has_remote"] = profile.get('remote') is not None
+        remote_address = profile.get('remote', {}).get('address')
+        params["is_remote"] = remote_address is not None
+        params["remote_address"] = {
+            "value": json.dumps(remote_address),
+            "value_hex": json.dumps(remote_address).encode().hex(),
+        }
         remote_props = []
         for k, v in profile.get('remote', {}).get('properties', {}).items():
             key = json.dumps(k)

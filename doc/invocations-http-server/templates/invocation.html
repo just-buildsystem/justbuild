@@ -120,10 +120,17 @@ Inocations {{invocation | e}}
   {% if config %}
   <li> Target configuration: <tt>{{ config | e }}</tt></li>
   {% endif %}
-  {% if remote_address %}
-  <li> Remote:
+  {% if has_remote %}
+  <li>
+    {% if is_remote %}
+    Remote build:
+    {% else %}
+    Local build:
+    {% endif %}
     <ul>
-      <li> Address: <tt>{{ remote_address | e }}</tt></li>
+      <li> Address:
+        <a href="/filterinvocations/remote/address/{{ remote_address["value_hex"] | e }}"><tt>{{ remote_address["value"] | e }}</tt></a>
+      </li>
       {% if remote_props %}
       <li> Properties:
         <ul>
