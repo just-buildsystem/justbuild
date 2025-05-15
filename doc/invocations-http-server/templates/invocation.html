@@ -3,9 +3,13 @@
 Inocations {{invocation | e}}
 {% endblock %}
 
-{% macro show_action(action) %}
+{% macro show_action(action, first = false) %}
 <li>
+  {% if first %}
+  <details open>
+  {% else %}
   <details>
+  {% endif %}
     <summary>
       {{ action["name_prefix"] | e }} <tt>{{ action["name"] | e}}</tt>
       {% if action["may_fail"] %}
@@ -199,7 +203,7 @@ Inocations {{invocation | e}}
 {% if failed_actions %}
 <ul>
   {% for action in failed_actions %}
-  {{ show_action(action) }}
+  {{ show_action(action, loop.index == 1) }}
   {% endfor %}
 </ul>
 {% else %}
