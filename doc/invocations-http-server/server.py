@@ -126,7 +126,7 @@ class InvocationServer:
         def add_filter(data, filters):
             if isinstance(filters, set):
                 filters.add(json.dumps(data))
-            elif isinstance(filters, map):
+            elif isinstance(filters, dict):
                 for k, v in data.items():
                     key = json.dumps(k)
                     value = json.dumps(v)
@@ -225,7 +225,7 @@ class InvocationServer:
                 } for v in values], key=lambda x: x["value"])
             if isinstance(filters, set):
                 return convert_values(filters) if len(filters) > 1 else []
-            elif isinstance(filters, map):
+            elif isinstance(filters, dict):
                 return sorted([{
                     "key": key,
                     "key_hex": key.encode().hex(),
