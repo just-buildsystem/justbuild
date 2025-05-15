@@ -77,6 +77,8 @@ class InvocationServer:
                  methods=("GET",), endpoint="filter_remote_prop"),
             rule("/filterinvocations/remote/address/<hexidentifier:value>",
                  methods=("GET",), endpoint="filter_remote_address"),
+            rule("/filterinvocations/target/<hexidentifier:value>",
+                 methods=("GET",), endpoint="filter_target"),
             rule("/blob/<hashidentifier:blob>",
                  methods=("GET",),
                  endpoint="get_blob"),
@@ -120,6 +122,7 @@ class InvocationServer:
         context_filters = {}
         remote_props_filters = {}
         remote_address_filters = set()
+        target_filters = set()
         def add_filter(data, filters):
             if isinstance(filters, set):
                 filters.add(json.dumps(data))
@@ -169,6 +172,7 @@ class InvocationServer:
             add_filter(context, context_filters)
             add_filter(remote_props, remote_props_filters)
             add_filter(remote_address, remote_address_filters)
+            add_filter(target, target_filters)
             invocation = {
                 "name": e,
                 "subcommand": profile_data.get("subcommand"),
@@ -238,7 +242,8 @@ class InvocationServer:
                             "filter_info": filter_info,
                             "context_filters": convert_filters(context_filters),
                             "remote_props_filters": convert_filters(remote_props_filters),
-                            "remote_address_filters": convert_filters(remote_address_filters)})
+                            "remote_address_filters": convert_filters(remote_address_filters),
+                            "target_filters": convert_filters(target_filters)})
 
     def do_filter_remote_prop(self, key, value):
         filter_info = "remote-execution property"
@@ -295,6 +300,23 @@ class InvocationServer:
         return self.do_list_invocations(
             filter_info = filter_info,
             metadata_filter = check_prop,
+        )
+
+    def do_filter_target(self, value):
+        filter_info = "target"
+        try:
+            value_string = json.loads(bytes.fromhex(value).decode('utf-8'))
+            filter_info += " " + json.dumps(value_string)
+        except:
+            pass
+
+        def check_prop(p):
+            v = p.get('target')
+            return (json.dumps(v).encode().hex() == value)
+
+        return self.do_list_invocations(
+            filter_info = filter_info,
+            profile_filter = check_prop,
         )
 
     def do_filter_noncached(self):
@@ -454,8 +476,12 @@ class InvocationServer:
         if profile.get('subcommand'):
             params["cmd"] = json.dumps(
                 [profile.get('subcommand')] + profile.get('subcommand args', []))
-        if profile.get('target'):
-            params["target"] = json.dumps(profile.get('target'))
+        target = profile.get('target')
+        if target:
+            params["target"] = {
+                "value": json.dumps(target),
+                "value_hex": json.dumps(target).encode().hex()
+            }
         if profile.get('configuration') is not None:
             params["config"] = json.dumps(core_config(
                 profile.get('configuration')))

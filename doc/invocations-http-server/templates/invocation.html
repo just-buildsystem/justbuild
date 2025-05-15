@@ -115,7 +115,9 @@ Inocations {{invocation | e}}
   </li>
   {% endif %}
   {% if target %}
-  <li> Target: <tt>{{ target | e }}</tt></li>
+  <li> Target:
+    <a href="/filterinvocations/target/{{ target["value_hex"] | e }}"><tt>{{ target["value"] | e }}</tt></a>
+  </li>
   {% endif %}
   {% if config %}
   <li> Target configuration: <tt>{{ config | e }}</tt></li>

@@ -49,6 +49,17 @@ Filter by:
     {% endfor %}
   </details>
   {% endif %}
+  {% if target_filters %}
+  <details>
+    <summary>Target</summary>
+    {% for entry in target_filters %}
+      {% if loop.index > 1 %}
+      ,
+      {% endif %}
+      <a href="/filterinvocations/target/{{ entry["value_hex"] | e }}"><tt>{{ entry["value"] | e }}</tt></a>
+    {% endfor %}
+  </details>
+  {% endif %}
 {% endif %}
 {% if full_invocations %}
 <div id="invocation-list">
