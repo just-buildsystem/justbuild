@@ -48,6 +48,10 @@ be specified.
    directory to be used when generating the `--profile` option in
    the command line for the `just` invocation.
  - `"--dump-graph"` does the same for the `--dump-graph` option.
+ - `"--dump-artifacts"` does the same for the `--dump-artifacts`
+   option; while not directly useful for profiling, browsing the
+   final artifacts (including the test logs) can be useful to
+   understand a particular invocation.
  - `"metadata"` specifies a file name inside the invocation directory
    a metadata file should be written by `just-mr`; that file
    contains, in particular, the full command line that is executed
@@ -63,6 +67,7 @@ would look as follows.
   , "metadata": "meta.json"
   , "--profile": "profile.json"
   , "--dump-graph": "graph.json"
+  , "--dump-artifacts": "artifacts.json"
   }
 }
 ```
