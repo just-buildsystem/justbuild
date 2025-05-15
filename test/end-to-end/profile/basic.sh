@@ -30,7 +30,12 @@ readonly RC="${ETC_DIR}/rc.json"
 cat > "${RC}" <<EOF
 { "invocation log":
   { "directory": {"root": "system", "path": "${LOG_DIR#/}"}
+  , "metadata": "meta.json"
+  , "context variables": ["MY_CONTEXT"]
   , "--profile": "profile.json"
+  , "--dump-artifacts": "artifacts.json"
+  , "--dump-artifacts-to-build": "to-build.json"
+  , "--dump-graph": "graph.json"
   }
 , "rc files": [{"root": "workspace", "path": "rc.json"}]
 , "just": {"root": "system", "path": "${JUST#/}"}
@@ -67,11 +72,15 @@ echo blablabla > data.txt
 cat > rc.json <<'EOF'
 {"invocation log": {"project id": "first-run"}}
 EOF
-"${JUST_MR}" --rc "${RC}" build upper 2>&1
+MY_CONTEXT=TeStCoNtExT "${JUST_MR}" --rc "${RC}" build upper 2>&1
 INVOCATION_DIR="$(ls -d "${LOG_DIR}"/first-run/*)"
 PROFILE="${INVOCATION_DIR}/profile.json"
 
 cat "${PROFILE}"
+echo
+[ $(jq '."exit code"' "${PROFILE}") -eq 0 ]
+[ $(jq -r '."subcommand"' "${PROFILE}") = "build" ]
+[ $(jq -r '."target" | .[3]' "${PROFILE}") = "upper" ]
 [ $(jq '.actions | .[] | .cached' "${PROFILE}") = "false" ]
 
 OUT_ARTIFACT=$(jq -r '.actions | .[] | .artifacts."upper.txt"' "${PROFILE}")
@@ -84,9 +93,34 @@ STDERR=$(jq -r '.actions | .[] | .stderr' "${PROFILE}")
 "${JUST_MR}" --rc "${RC}" install-cas -o "${OUT}/stderr" "${STDERR}" 2>&1
 grep StdOuT "${OUT}/stdout"
 grep StdErR "${OUT}/stderr"
+
+ARTIFACTS="${INVOCATION_DIR}/artifacts.json"
+cat "${ARTIFACTS}"
+echo
+[ $(jq -r '."upper.txt".id' "${ARTIFACTS}") = "${OUT_ARTIFACT}" ]
+
+META="${INVOCATION_DIR}/meta.json"
+cat "${META}"
+echo
+[ $(jq -r '.cmdline | .[0]' "${META}") = "${JUST}" ]
+[ $(jq -r '.context."MY_CONTEXT"' "${META}") = "TeStCoNtExT" ]
+
+TO_BUILD="${INVOCATION_DIR}/to-build.json"
+cat "${TO_BUILD}"
+echo
+[ $(jq -r '."upper.txt".type' "${TO_BUILD}") = "ACTION" ]
+ACTION_ID="$(jq -r '."upper.txt".data.id' "${TO_BUILD}")"
+
+GRAPH="${INVOCATION_DIR}/graph.json"
+cat "${GRAPH}"
+echo
+[ $(jq -r '.actions."'"${ACTION_ID}"'".input."data.txt".type' "${GRAPH}") = "LOCAL" ]
+[ $(jq -r '.actions."'"${ACTION_ID}"'".output | .[0]' "${GRAPH}") = "upper.txt" ]
+
 echo
 
-# Build again, this time the action should be cached;
+# Build again, this time the action should be cached; graph and artifact to
+# build should not have changed
 # again abuse the project id to distingush the runs
 cat > rc.json <<'EOF'
 {"invocation log": {"project id": "second-run"}}
@@ -97,5 +131,10 @@ PROFILE="${INVOCATION_DIR}/profile.json"
 
 cat "${PROFILE}"
 [ $(jq '.actions | .[] | .cached' "${PROFILE}") = "true" ]
+
+TO_BUILD="${INVOCATION_DIR}/to-build.json"
+cat "${TO_BUILD}"
+echo
+[ $(jq -r '."upper.txt".data.id' "${TO_BUILD}") = "${ACTION_ID}" ]
 
 echo OK
