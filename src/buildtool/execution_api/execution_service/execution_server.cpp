@@ -44,7 +44,6 @@
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/hex_string.hpp"
-#include "src/utils/cpp/path.hpp"
 
 namespace {
 void SetTimeStamp(
@@ -320,13 +319,7 @@ namespace {
 
     LocalCasReader reader(&storage.CAS());
     if (ProtocolTraits::IsNative(storage.GetHashFunction().GetType())) {
-        // In native mode: Check validity of tree entries, otherwise set the
-        // digest directly.
-        if (not reader.ReadGitTree(digest)) {
-            auto const error = fmt::format(
-                "Found invalid entry in the Git Tree {}", digest.hash());
-            return unexpected{error};
-        }
+        // In native mode: set the digest directly.
         (*out_dir.mutable_tree_digest()) =
             ArtifactDigestFactory::ToBazel(digest);
     }
@@ -371,13 +364,6 @@ namespace {
     if (not content) {
         return unexpected{fmt::format(
             "Failed to read the symlink content for {}", digest.hash())};
-    }
-
-    // in native mode, check that we do not pass invalid symlinks
-    if (ProtocolTraits::IsNative(storage.GetHashFunction().GetType()) and
-        not PathIsNonUpwards(*content)) {
-        auto const error = fmt::format("Invalid symlink for {}", digest.hash());
-        return unexpected{error};
     }
 
     *(out_link.mutable_target()) = *std::move(content);

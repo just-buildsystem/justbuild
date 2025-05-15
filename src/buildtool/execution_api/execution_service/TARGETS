@@ -33,7 +33,6 @@
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/storage", "garbage_collector"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "path"]
     ]
   , "private-ldflags":
     ["-pthread", "-Wl,--whole-archive,-lpthread,--no-whole-archive"]
