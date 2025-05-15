@@ -205,14 +205,14 @@ class InvocationServer:
                     break
 
         def convert_filters(filters):
-            return [{
+            return sorted([{
                 "key": key,
                 "key_hex": key.encode().hex(),
                 "values": sorted([{
                     "value": v,
                     "value_hex": v.encode().hex(),
                 } for v in values], key=lambda x: x["value"])
-            } for key, values in filters.items() if len(values) > 1]
+            } for key, values in filters.items() if len(values) > 1], key=lambda x: x["key"])
         return self.render("invocations.html",
                            {"full_invocations": full_invocations,
                             "full_invocations_count": full_invocations_count,
