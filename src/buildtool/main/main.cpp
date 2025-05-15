@@ -1200,11 +1200,11 @@ auto main(int argc, char* argv[]) -> int {
                     arguments.analysis.graph_file, &stats, &progress);
                 analyse_result->result_map.ToFile</*kIncludeOrigins=*/false>(
                     arguments.analysis.graph_file_plain, &stats, &progress);
-                if (arguments.analysis.artifacts_to_build_file) {
-                    DumpArtifactsToBuild(
-                        artifacts_runfiles.first,
-                        artifacts_runfiles.second,
-                        *arguments.analysis.artifacts_to_build_file);
+                for (auto const& to_build_file :
+                     arguments.analysis.artifacts_to_build_files) {
+                    DumpArtifactsToBuild(artifacts_runfiles.first,
+                                         artifacts_runfiles.second,
+                                         to_build_file);
                 }
                 // Clean up in parallel
                 {

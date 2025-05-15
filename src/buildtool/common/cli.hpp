@@ -75,7 +75,7 @@ struct AnalysisArguments {
     std::optional<std::filesystem::path> expression_root;
     std::vector<std::filesystem::path> graph_file;
     std::vector<std::filesystem::path> graph_file_plain;
-    std::optional<std::filesystem::path> artifacts_to_build_file;
+    std::vector<std::filesystem::path> artifacts_to_build_files;
     std::optional<std::filesystem::path> serve_errors_file;
     std::optional<std::string> profile;
 };
@@ -366,10 +366,14 @@ static inline auto SetupAnalysisArguments(
                "File path for writing the action graph description to.")
             ->type_name("PATH")
             ->trigger_on_parse();
-        app->add_option("--dump-artifacts-to-build",
-                        clargs->artifacts_to_build_file,
-                        "File path for writing the artifacts to build to.")
-            ->type_name("PATH");
+        app->add_option_function<std::string>(
+               "--dump-artifacts-to-build",
+               [clargs](auto const& file_) {
+                   clargs->artifacts_to_build_files.emplace_back(file_);
+               },
+               "File path for writing the artifacts to build to.")
+            ->type_name("PATH")
+            ->trigger_on_parse();
     }
 }
 
