@@ -48,6 +48,8 @@ be specified.
    directory to be used when generating the `--profile` option in
    the command line for the `just` invocation.
  - `"--dump-graph"` does the same for the `--dump-graph` option.
+ - `"--dump-artifacts-to-build"` does the same for the
+   `--dump-artifacts-to-build` option.
  - `"--dump-artifacts"` does the same for the `--dump-artifacts`
    option; while not directly useful for profiling, browsing the
    final artifacts (including the test logs) can be useful to
@@ -67,6 +69,7 @@ would look as follows.
   , "metadata": "meta.json"
   , "--profile": "profile.json"
   , "--dump-graph": "graph.json"
+  , "--dump-artifacts-to-build": "to-build.json"
   , "--dump-artifacts": "artifacts.json"
   }
 }

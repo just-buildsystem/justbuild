@@ -195,6 +195,9 @@ The just-mrrc is given by a JSON object.
    - *`"--dump-plain-graph"`* A file name specifying the file
      in the invocation-log directory for an invocation-specific
      `--dump-plain-graph` option.
+   - *`"--dump-artifacts-to-build"`* A file name specifying the
+     file in the invocation-log directory for the invocation-specific
+     `--dump-artifacts-to-build` option.
    - *`"--dump-artifacts"`* A file name specifying in the file
      in the invocation-log directory for the invocation-specific
      `--dump-artifacts` option.

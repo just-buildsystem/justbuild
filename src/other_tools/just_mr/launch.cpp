@@ -326,6 +326,20 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
             cmd.emplace_back("--dump-plain-graph");
             cmd.emplace_back(*log_dir / *invocation_log.graph_file_plain);
         }
+        if (invocation_log.dump_artifacts_to_build) {
+            if (not IsValidFileName(*invocation_log.dump_artifacts_to_build)) {
+                Logger::Log(
+                    LogLevel::Error,
+                    "Invalid file name for option --dump-artifacts_to_build: "
+                    "{}",
+                    nlohmann::json(*invocation_log.dump_artifacts_to_build)
+                        .dump());
+                std::exit(kExitClargsError);
+            }
+            cmd.emplace_back("--dump-artifacts-to-build");
+            cmd.emplace_back(*log_dir /
+                             *invocation_log.dump_artifacts_to_build);
+        }
         if (does_build and invocation_log.dump_artifacts) {
             if (not IsValidFileName(*invocation_log.dump_artifacts)) {
                 Logger::Log(
