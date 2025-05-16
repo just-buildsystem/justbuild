@@ -36,6 +36,7 @@ cat > "${RC}" <<EOF
   , "--dump-artifacts": "artifacts.json"
   , "--dump-artifacts-to-build": "to-build.json"
   , "--dump-graph": "graph.json"
+  , "--dump-plain-graph": "plain.json"
   }
 , "rc files": [{"root": "workspace", "path": "rc.json"}]
 , "just": {"root": "system", "path": "${JUST#/}"}
@@ -116,6 +117,14 @@ cat "${GRAPH}"
 echo
 [ $(jq -r '.actions."'"${ACTION_ID}"'".input."data.txt".type' "${GRAPH}") = "LOCAL" ]
 [ $(jq -r '.actions."'"${ACTION_ID}"'".output | .[0]' "${GRAPH}") = "upper.txt" ]
+[ $(jq -r '.actions."'"${ACTION_ID}"'".origins | .[0] | .target | .[3]' "${GRAPH}") = "upper" ]
+
+PLAIN="${INVOCATION_DIR}/plain.json"
+cat "${PLAIN}"
+echo
+[ $(jq -r '.actions."'"${ACTION_ID}"'".input."data.txt".type' "${PLAIN}") = "LOCAL" ]
+[ $(jq -r '.actions."'"${ACTION_ID}"'".output | .[0]' "${PLAIN}") = "upper.txt" ]
+[ $(jq -r '.actions."'"${ACTION_ID}"'".origins' "${PLAIN}") = "null" ]
 
 echo
 
