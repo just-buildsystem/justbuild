@@ -18,6 +18,7 @@
 #include <compare>
 #include <cstddef>
 #include <deque>
+#include <exception>
 #include <memory>
 #include <stack>
 #include <type_traits>
@@ -25,8 +26,8 @@
 #include <utility>
 #include <vector>
 
+#include "fmt/core.h"
 #include "google/protobuf/repeated_ptr_field.h"
-#include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -35,7 +36,6 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
-#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/incremental_reader.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -178,6 +178,50 @@ auto LocalCasReader::DumpRaw(std::filesystem::path const& path,
 
 auto LocalCasReader::IsNativeProtocol() const noexcept -> bool {
     return ProtocolTraits::IsNative(cas_.GetHashFunction().GetType());
+}
+
+auto LocalCasReader::IsDirectoryValid(ArtifactDigest const& digest)
+    const noexcept -> expected<bool, std::string> {
+    try {
+        auto const hash_type = cas_.GetHashFunction().GetType();
+        // read directory
+        if (auto const path = cas_.TreePath(digest)) {
+            if (auto const content = FileSystemManager::ReadFile(*path)) {
+                auto dir =
+                    BazelMsgFactory::MessageFromString<bazel_re::Directory>(
+                        *content);
+                // check symlinks
+                for (auto const& l : dir->symlinks()) {
+                    if (not PathIsNonUpwards(l.target())) {
+                        return false;
+                    }
+                }
+                // traverse subdirs
+                for (auto const& d : dir->directories()) {
+                    auto subdir_digest =
+                        ArtifactDigestFactory::FromBazel(hash_type, d.digest());
+                    if (not subdir_digest) {
+                        return unexpected{std::move(subdir_digest).error()};
+                    }
+                    auto subdir_result =
+                        IsDirectoryValid(*std::move(subdir_digest));
+                    if (not subdir_result) {
+                        return unexpected{std::move(subdir_result).error()};
+                    }
+                    if (not std::move(subdir_result).value()) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return unexpected{
+            fmt::format("Directory {} not found in CAS", digest.hash())};
+    } catch (std::exception const& ex) {
+        return unexpected{fmt::format(
+            "An error occurred checking validity of bazel directory:\n{}",
+            ex.what())};
+    }
 }
 
 namespace {

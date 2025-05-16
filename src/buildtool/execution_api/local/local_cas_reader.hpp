@@ -26,6 +26,7 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/storage/local_cas.hpp"
+#include "src/utils/cpp/expected.hpp"
 
 class LocalCasReader final {
   public:
@@ -57,6 +58,13 @@ class LocalCasReader final {
         std::filesystem::path const& output) const noexcept -> bool;
 
     [[nodiscard]] auto IsNativeProtocol() const noexcept -> bool;
+
+    /// \brief Check recursively if Directory contains any invalid entries
+    /// (i.e., upwards symlinks).
+    /// \returns True if Directory is ok, false if at least on upwards symlink
+    /// has been found, error message on other failures.
+    [[nodiscard]] auto IsDirectoryValid(ArtifactDigest const& digest)
+        const noexcept -> expected<bool, std::string>;
 
   private:
     LocalCAS<true> const& cas_;
