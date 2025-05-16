@@ -19,9 +19,9 @@ Artifacts and their serialization
 There are five different kind of artifacts. The serialization of the
 artifact is always a JSON object with two keys: *`"type"`* and
 *`"data"`*. The value for *`"type"`* is always on of the strings
-*`"LOCAL"`*, *`"KNOWN"`*, *`"ACTION"`*, or *`"TREE"`*. The value for
-*`"data"`* is a JSON object with keys depending on which type the
-artifact is of.
+*`"LOCAL"`*, *`"KNOWN"`*, *`"ACTION"`*, *`"TREE"`*, or
+*`"TREE_OVERLAY"`*. The value for *`"data"`* is a JSON object with keys
+depending on which type the artifact is of.
 
  - *`"LOCAL"`* artifacts refer to source files in a logical repository.
    The describing data are
