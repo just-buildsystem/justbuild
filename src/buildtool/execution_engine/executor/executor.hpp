@@ -237,9 +237,30 @@ class ExecutorImpl {
             // set action options
             remote_action->SetCacheFlag(cache_flag);
             remote_action->SetTimeout(timeout);
+
+            // execute action
             auto result = remote_action->Execute(&logger);
-            if (alternative_api) {
-                if (result) {
+
+            // process result
+            if (result) {
+                // in compatible mode, check that all artifacts are valid
+                if (not ProtocolTraits::IsNative(api.GetHashType())) {
+                    auto upwards_symlinks_check = result->HasUpwardsSymlinks();
+                    if (not upwards_symlinks_check) {
+                        logger.Emit(LogLevel::Error,
+                                    upwards_symlinks_check.error());
+                        return nullptr;
+                    }
+                    if (upwards_symlinks_check.value()) {
+                        logger.Emit(
+                            LogLevel::Error,
+                            "Executed action produced invalid outputs -- "
+                            "upwards symlinks");
+                        return nullptr;
+                    }
+                }
+                // if alternative endpoint used, transfer any missing blobs
+                if (alternative_api) {
                     auto const artifacts = result->Artifacts();
                     if (not artifacts) {
                         logger.Emit(LogLevel::Error, artifacts.error());

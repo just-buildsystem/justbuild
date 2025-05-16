@@ -77,6 +77,8 @@ class IExecutionResponse {
         -> expected<gsl::not_null<ArtifactInfos const*>, std::string> = 0;
     [[nodiscard]] virtual auto DirectorySymlinks() noexcept
         -> expected<gsl::not_null<DirSymlinks const*>, std::string> = 0;
+    [[nodiscard]] virtual auto HasUpwardsSymlinks() noexcept
+        -> expected<bool, std::string> = 0;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_REMOTE_EXECUTION_RESPONSE_HPP

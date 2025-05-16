@@ -139,6 +139,10 @@ class TestResponse : public IExecutionResponse {
         static const DirSymlinks kEmptySymlinks{};
         return gsl::not_null<DirSymlinks const*>(&kEmptySymlinks);
     }
+    [[nodiscard]] auto HasUpwardsSymlinks() noexcept
+        -> expected<bool, std::string> final {
+        return false;
+    }
 
   private:
     TestApiConfig config_{};

@@ -19,7 +19,7 @@
 #include <memory>
 #include <optional>
 #include <string>
-#include <utility>  // std::move
+#include <utility>  // std::move, std:pair
 
 #include <grpcpp/support/status.h>
 
@@ -91,6 +91,7 @@ class BazelResponse final : public IExecutionResponse {
         -> expected<gsl::not_null<ArtifactInfos const*>, std::string> final;
     auto DirectorySymlinks() noexcept
         -> expected<gsl::not_null<DirSymlinks const*>, std::string> final;
+    auto HasUpwardsSymlinks() noexcept -> expected<bool, std::string> final;
 
   private:
     std::string action_id_;
@@ -98,6 +99,7 @@ class BazelResponse final : public IExecutionResponse {
     BazelExecutionClient::ExecutionOutput output_{};
     ArtifactInfos artifacts_;
     DirSymlinks dir_symlinks_;
+    bool has_upwards_symlinks_ = false;  // only tracked in compatible mode
     bool populated_ = false;
 
     explicit BazelResponse(std::string action_id,
@@ -119,8 +121,14 @@ class BazelResponse final : public IExecutionResponse {
     /// \returns Error message on failure, nullopt on success.
     [[nodiscard]] auto Populate() noexcept -> std::optional<std::string>;
 
-    [[nodiscard]] auto UploadTreeMessageDirectories(bazel_re::Tree const& tree)
-        const -> expected<ArtifactDigest, std::string>;
+    /// \brief Tries to upload the tree rot and subdirectories. Performs also a
+    /// symlinks check.
+    /// \returns Pair of ArtifactDigest of root tree and flag signaling the
+    /// presence of any upwards symlinks on success, error message on failure.
+    [[nodiscard]] auto UploadTreeMessageDirectories(
+        bazel_re::Tree const& tree) const
+        -> expected<std::pair<ArtifactDigest, /*has_upwards_symlinks*/ bool>,
+                    std::string>;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_RESPONSE_HPP

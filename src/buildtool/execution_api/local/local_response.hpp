@@ -33,7 +33,6 @@
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
-#include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/local/local_action.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -121,12 +120,20 @@ class LocalResponse final : public IExecutionResponse {
             &dir_symlinks_);  // explicit type needed for expected
     }
 
+    auto HasUpwardsSymlinks() noexcept -> expected<bool, std::string> final {
+        if (auto error_msg = Populate()) {
+            return unexpected{*std::move(error_msg)};
+        }
+        return has_upwards_symlinks_;
+    }
+
   private:
     std::string action_id_;
     LocalAction::Output output_{};
     Storage const& storage_;
     ArtifactInfos artifacts_;
     DirSymlinks dir_symlinks_;
+    bool has_upwards_symlinks_ = false;  // only tracked in compatible mode
     bool populated_ = false;
 
     explicit LocalResponse(
@@ -188,14 +195,11 @@ class LocalResponse final : public IExecutionResponse {
         // collect all symlinks and store them
         for (auto const& link : action_result.output_file_symlinks()) {
             try {
-                // in compatible mode: check symlink validity
-                if (not ProtocolTraits::IsNative(
-                        storage_.GetHashFunction().GetType()) and
-                    not PathIsNonUpwards(link.target())) {
-                    return fmt::format(
-                        "LocalResponse: found invalid symlink at {}",
-                        link.path());
-                }
+                // in compatible mode: track upwards symlinks
+                has_upwards_symlinks_ =
+                    has_upwards_symlinks_ or
+                    (not ProtocolTraits::IsNative(hash_type) and
+                     not PathIsNonUpwards(link.target()));
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
@@ -213,14 +217,11 @@ class LocalResponse final : public IExecutionResponse {
         }
         for (auto const& link : action_result.output_directory_symlinks()) {
             try {
-                // in compatible mode: check symlink validity
-                if (not ProtocolTraits::IsNative(
-                        storage_.GetHashFunction().GetType()) and
-                    not PathIsNonUpwards(link.target())) {
-                    return fmt::format(
-                        "LocalResponse: found invalid symlink at {}",
-                        link.path());
-                }
+                // in compatible mode: track upwards symlinks
+                has_upwards_symlinks_ =
+                    has_upwards_symlinks_ or
+                    (not ProtocolTraits::IsNative(hash_type) and
+                     not PathIsNonUpwards(link.target()));
                 artifacts.emplace(
                     link.path(),
                     Artifact::ObjectInfo{
@@ -248,18 +249,18 @@ class LocalResponse final : public IExecutionResponse {
                     dir.path());
             }
             try {
-                // in compatible mode: check validity of symlinks in dir
-                if (not ProtocolTraits::IsNative(
-                        storage_.GetHashFunction().GetType())) {
-                    auto reader = TreeReader<LocalCasReader>{&storage_.CAS()};
-                    auto result = reader.RecursivelyReadTreeLeafs(
-                        *digest, "", /*include_trees=*/true);
-                    if (not result) {
-                        return fmt::format(
-                            "LocalResponse: found invalid entries in directory "
-                            "{}",
-                            dir.path());
+                // in compatible mode: track upwards symlinks; requires one
+                // directory traversal; other sources of errors should cause a
+                // fail too, so it is ok to report all traversal errors as
+                // if an invalid entry was found
+                if (not has_upwards_symlinks_ and
+                    not ProtocolTraits::IsNative(hash_type)) {
+                    LocalCasReader reader{&storage_.CAS()};
+                    auto valid_dir = reader.IsDirectoryValid(*digest);
+                    if (not valid_dir) {
+                        return std::move(valid_dir).error();
                     }
+                    has_upwards_symlinks_ = not *valid_dir;
                 }
                 artifacts.emplace(
                     dir.path(),
