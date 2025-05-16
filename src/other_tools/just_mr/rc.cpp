@@ -617,7 +617,8 @@ namespace {
             auto graph_file_plain =
                 invocation_log->Get("--dump-plain-graph", Expression::none_t{});
             if (graph_file_plain->IsString()) {
-                clargs->invocation_log.graph_file = graph_file_plain->String();
+                clargs->invocation_log.graph_file_plain =
+                    graph_file_plain->String();
             }
             auto dump_artifacts_to_build = invocation_log->Get(
                 "--dump-artifacts-to-build", Expression::none_t{});
