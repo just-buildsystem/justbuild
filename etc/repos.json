@@ -392,11 +392,11 @@
   , "com_github_grpc_grpc":
     { "repository":
       { "type": "archive"
-      , "content": "a6a8b898fa1d8abe70ed77f45236940d0a5871f2"
-      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.70.1.tar.gz"
-      , "sha256": "c4e85806a3a23fd2a78a9f8505771ff60b2beef38305167d50f5e8151728e426"
-      , "sha512": "35382987b33abb57a27105570c91db048853d95111f125bc6fac8a25f758c29ab2c699c63330b445b0a08f04c9dbc4dfa1dc0c33a7e2d8ea99d06d884a3c9852"
-      , "subdir": "grpc-1.70.1"
+      , "content": "87c37bc5be5d6ded368667d02958d488b94d6143"
+      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.70.2.tar.gz"
+      , "sha256": "92f240f7267ed6cd8ba2be4c59a3b5b6ec0c4b4c466071b1e1d62165b25acf64"
+      , "sha512": "4afd34b36b4d7c41260abad6d921154a3e7176a7a46de6ae97335697db5d11f61e37b08889c007463fc8f3e800788585f5f7d5b2cec12f89b69fc9bc15efd17f"
+      , "subdir": "grpc-1.70.2"
       , "pragma": {"special": "ignore"}
       }
     , "target_root": "import targets"
