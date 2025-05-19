@@ -215,11 +215,11 @@
   , "fmt":
     { "repository":
       { "type": "zip"
-      , "content": "90ab7bf7db31acb0fc6d79a823275a96daa81c4a"
-      , "fetch": "https://github.com/fmtlib/fmt/releases/download/11.1.3/fmt-11.1.3.zip"
-      , "sha256": "7df2fd3426b18d552840c071c977dc891efe274051d2e7c47e2c83c3918ba6df"
-      , "sha512": "5b9f5b0c81c2e3e7fb0d985556f98c45e15cbd89fe2ad1bf691bf1ba47c11192efcc83dd643f18bd8086689432c9b8fd9f55704f3d322bfa617ac67b08ba9530"
-      , "subdir": "fmt-11.1.3"
+      , "content": "da6ad435963d4578c63c723e61a1e6b136fd61d8"
+      , "fetch": "https://github.com/fmtlib/fmt/releases/download/11.2.0/fmt-11.2.0.zip"
+      , "sha256": "203eb4e8aa0d746c62d8f903df58e0419e3751591bb53ff971096eaa0ebd4ec3"
+      , "sha512": "75586d02284a33c0c101b6e78cbb1d61f169610ae9027ddfc20936751a8c2ac4453f3046e7b05fa167a8f8eedeafde0f4cb0bff4f798c17c80994521f660174d"
+      , "subdir": "fmt-11.2.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.fmt"
