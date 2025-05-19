@@ -32,6 +32,9 @@ A feature release on top of `1.5.0`, backwards compatible.
   reporting progress.
 - The "generic" rule now properly detects staging conflicts, taking
   the full inputs into account (and not only the runfiles).
+- An incorrect error handling in the evaluation of computed roots was fixed.
+- Symlinks to directories and files are properly distinguished as requested
+  by the remote-execution protocol.
 
 ## Release `1.5.0` (2025-03-06)
 
