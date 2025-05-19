@@ -1,3 +1,7 @@
+## Release `1.5.2` (UNRELEASED)
+
+Bug fixes on top of `1.5.1`.
+
 ## Release `1.5.1` (2025-04-01)
 
 Bug fixes on top of `1.5.0`.
