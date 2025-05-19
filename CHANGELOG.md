@@ -6,6 +6,11 @@ Bug fixes on top of `1.5.1`.
 
 - The "generic" rule now properly detects staging conflicts, taking
   the full inputs into account (and not only the runfiles).
+- An incorrect error handling in the evaluation of computed roots was fixed.
+- Symlinks to directories and files are properly distinguished as requested
+  by the remote-execution protocol.
+- The bundled build description of `grpc` was bumped to the latest bug-fix
+  release for that minor version, fixing an issue in thread handling.
 
 ## Release `1.5.1` (2025-04-01)
 
