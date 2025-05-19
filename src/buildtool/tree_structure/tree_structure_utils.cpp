@@ -14,7 +14,6 @@
 
 #include "src/buildtool/tree_structure/tree_structure_utils.hpp"
 
-#include <algorithm>
 #include <cstddef>
 #include <filesystem>
 #include <functional>
@@ -38,7 +37,6 @@
 #include "src/buildtool/file_system/git_repo.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/hex_string.hpp"
-#include "src/utils/cpp/path.hpp"
 #include "src/utils/cpp/tmp_dir.hpp"
 
 auto TreeStructureUtils::Compute(ArtifactDigest const& tree,
@@ -65,22 +63,9 @@ auto TreeStructureUtils::Compute(ArtifactDigest const& tree,
             fmt::format("Failed to read content of: {}", tree.hash())};
     }
 
-    auto const check_symlinks =
-        [&storage](std::vector<ArtifactDigest> const& ids) {
-            return std::all_of(
-                ids.begin(), ids.end(), [&storage](auto const& id) -> bool {
-                    auto path_to_symlink =
-                        storage.CAS().BlobPath(id, /*is_executable=*/false);
-                    if (not path_to_symlink) {
-                        return false;
-                    }
-                    auto const content =
-                        FileSystemManager::ReadFile(*path_to_symlink);
-                    return content and PathIsNonUpwards(*content);
-                });
-        };
+    auto skip_symlinks = [](auto const& /*unused*/) { return true; };
     auto const entries = GitRepo::ReadTreeData(
-        *tree_content, tree.hash(), check_symlinks, /*is_hex_id=*/true);
+        *tree_content, tree.hash(), skip_symlinks, /*is_hex_id=*/true);
     if (not entries) {
         return unexpected{
             fmt::format("Failed to parse git tree: {}", tree.hash())};

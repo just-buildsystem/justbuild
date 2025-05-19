@@ -47,7 +47,6 @@
     , ["src/buildtool/file_system", "git_repo"]
     , ["src/buildtool/file_system", "object_type"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "path"]
     , ["src/utils/cpp", "tmp_dir"]
     ]
   }

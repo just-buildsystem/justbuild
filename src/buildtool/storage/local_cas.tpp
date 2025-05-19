@@ -120,31 +120,10 @@ auto LocalCAS<kDoGlobalUplink>::LocalUplinkGitTree(
 
     // Determine tree entries.
     auto content = FileSystemManager::ReadFile(*tree_path);
-    auto check_symlinks =
-        [this](std::vector<ArtifactDigest> const& ids) -> bool {
-        for (auto const& id : ids) {
-            auto link_path = cas_file_.BlobPath(id);
-            TmpFile::Ptr spliced;
-            if (not link_path) {
-                spliced = TrySplice<ObjectType::File>(id);
-                link_path = spliced != nullptr
-                                ? std::optional{spliced->GetPath()}
-                                : std::nullopt;
-            }
-            if (not link_path) {
-                return false;
-            }
-            // in the local CAS we store as files
-            auto content = FileSystemManager::ReadFile(*link_path);
-            if (not content or not PathIsNonUpwards(*content)) {
-                return false;
-            }
-        }
-        return true;
-    };
+    auto skip_symlinks = [](auto const& /*unused*/) { return true; };
     auto tree_entries = GitRepo::ReadTreeData(*content,
                                               digest.hash(),
-                                              check_symlinks,
+                                              skip_symlinks,
                                               /*is_hex_id=*/true);
     if (not tree_entries) {
         return false;

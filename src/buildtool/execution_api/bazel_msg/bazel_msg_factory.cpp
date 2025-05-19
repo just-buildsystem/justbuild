@@ -382,23 +382,12 @@ auto BazelMsgFactory::CreateDirectoryDigestFromGitTree(
         if (not tree_content) {
             return unexpected{tree_content.error()};
         }
-        auto const check_symlinks =
-            [&read_git](std::vector<ArtifactDigest> const& ids) {
-                return std::all_of(ids.begin(),
-                                   ids.end(),
-                                   [&read_git](auto const& id) -> bool {
-                                       auto content = GetContentFromGitEntry(
-                                           read_git, id, ObjectType::Symlink);
-                                       return content and
-                                              PathIsNonUpwards(*content);
-                                   });
-            };
-
         // Git-SHA1 hashing is used for reading from git
         HashFunction const hash_function{HashFunction::Type::GitSHA1};
         // the tree digest is in native mode, so no need for rehashing content
+        auto skip_symlinks = [](auto const& /*unused*/) { return true; };
         auto const entries = GitRepo::ReadTreeData(
-            *tree_content, digest.hash(), check_symlinks, /*is_hex_id=*/true);
+            *tree_content, digest.hash(), skip_symlinks, /*is_hex_id=*/true);
         if (not entries) {
             return unexpected{fmt::format("failed reading entries of tree {}",
                                           digest.hash())};
@@ -645,11 +634,6 @@ auto BazelMsgFactory::CreateGitTreeDigestFromDirectory(
                 }
             }
             else {
-                // check validity of symlink
-                if (not PathIsNonUpwards(sym.target())) {
-                    return unexpected{fmt::format(
-                        "found non-upwards symlink {}", sym_digest.hash())};
-                }
                 // rehash symlink
                 auto const blob_digest = store_symlink(sym.target());
                 if (not blob_digest) {

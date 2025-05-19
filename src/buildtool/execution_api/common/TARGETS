@@ -29,7 +29,6 @@
     [ ["@", "json", "", "json"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/utils/cpp", "hex_string"]
-    , ["src/utils/cpp", "path"]
     ]
   , "stage": ["src", "buildtool", "execution_api", "common"]
   }
