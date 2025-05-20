@@ -117,6 +117,7 @@
     { "type": "let*"
     , "bindings":
       [ ["test type name", "remote execution"]
+      , ["USES_SERVE", false]
       , ["extra_infra", []]
       , ["data", {"type": "empty_map"}]
       , [ "test.sh"
@@ -412,6 +413,7 @@
     { "type": "let*"
     , "bindings":
       [ ["test type name", "target-level cache serving"]
+      , ["USES_SERVE", true]
       , ["extra_infra", ["servestdout", "servestderr"]]
       , [ "test.sh"
         , { "type": "context"

@@ -14,6 +14,7 @@
     , "TEST_REMOTE_EXECUTION"
     , "TIMEOUT_SCALE"
     , "TEST_STANDALONE_SERVE"
+    , "USES_SERVE"
     ]
   , "imports":
     { "artifacts_list": ["@", "rules", "", "field_artifacts_list"]
@@ -89,8 +90,13 @@
         , { "type": "++"
           , "$1":
             [ { "type": "if"
-              , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
-              , "then": ["serve"]
+              , "cond": {"type": "var", "name": "USES_SERVE"}
+              , "then":
+                { "type": "if"
+                , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
+                , "then": ["serve"]
+                , "else": ["remote", "serve"]
+                }
               , "else": ["remote"]
               }
             , { "type": "foreach"
@@ -216,6 +222,7 @@
     , "TEST_REMOTE_EXECUTION"
     , "TIMEOUT_SCALE"
     , "TEST_STANDALONE_SERVE"
+    , "USES_SERVE"
     ]
   , "imports": {"action": "test-action"}
   , "expression":
