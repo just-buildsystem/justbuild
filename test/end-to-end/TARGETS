@@ -15,22 +15,14 @@
   , "files": {"bin/lock-tool-under-test": ["@", "src", "", "bin/just-lock.py"]}
   }
 , "remote tests (unconfigured)":
-  { "type": ["@", "rules", "test", "suite"]
+  { "type": ["@", "rules", "test", "matrix"]
   , "arguments_config": ["TEST_COMPATIBLE_REMOTE", "TEST_BOOTSTRAP_JUST_MR"]
-  , "stage":
-    [ { "type": "if"
-      , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
-      , "then": "compatible"
-      , "else": "native"
-      }
-    ]
   , "deps":
     { "type": "++"
     , "$1":
       [ [["./", "remote-execution", "TESTS"], ["./", "just-mr", "TESTS"]]
       , { "type": "if"
         , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
-        , "then": []
         , "else":
           [ ["./", "serve-service", "TESTS"]
           , ["./", "computed-roots", "TESTS"]
@@ -41,35 +33,23 @@
       ]
     }
   }
-, "remote tests, compatible":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "remote tests (unconfigured)"
-  , "config":
-    {"type": "singleton_map", "key": "TEST_COMPATIBLE_REMOTE", "value": true}
-  }
-, "remote tests, native":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "remote tests (unconfigured)"
-  , "config":
-    {"type": "singleton_map", "key": "TEST_COMPATIBLE_REMOTE", "value": false}
-  }
 , "remote tests":
-  { "type": ["@", "rules", "test", "suite"]
-  , "stage": ["using-remote"]
-  , "deps": ["remote tests, compatible", "remote tests, native"]
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "remote tests (unconfigured)"
+  , "config":
+    { "type": "'"
+    , "$1":
+      { "TEST_MATRIX":
+        { "TEST_COMAPTIBLE_REMOTE":
+          {"remote-compat": true, "remote-native": "false"}
+        }
+      }
+    }
   }
 , "just-mr tests (unconfigured)":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR"]
-  , "stage":
-    [ { "type": "if"
-      , "cond": {"type": "var", "name": "TEST_BOOTSTRAP_JUST_MR"}
-      , "then": "bootstrap-script"
-      , "else": "native"
-      }
-    ]
   , "deps":
     { "type": "`"
     , "$1":
@@ -90,22 +70,23 @@
       ]
     }
   }
-, "just-mr tests, bootstrap-script":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "just-mr tests (unconfigured)"
-  , "config": {"type": "'", "$1": {"TEST_BOOTSTRAP_JUST_MR": true}}
-  }
-, "just-mr tests, native":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "just-mr tests (unconfigured)"
-  , "config": {"type": "'", "$1": {"TEST_BOOTSTRAP_JUST_MR": false}}
+, "just-mr tests (matrix)":
+  { "type": ["@", "rules", "test", "matrix"]
+  , "deps": ["just-mr tests (unconfigured)"]
   }
 , "just-mr tests":
-  { "type": ["@", "rules", "test", "suite"]
-  , "stage": ["with-just-mr"]
-  , "deps": ["just-mr tests, bootstrap-script", "just-mr tests, native"]
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "just-mr tests (matrix)"
+  , "config":
+    { "type": "'"
+    , "$1":
+      { "TEST_MATRIX":
+        { "TEST_BOOTSTRAP_JUST_MR":
+          {"just-mr-bootstrap": true, "just-mr-native": false}
+        }
+      }
+    }
   }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]

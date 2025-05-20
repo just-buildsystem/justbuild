@@ -172,15 +172,9 @@
   , "repos": ["serve-many-targets (data)"]
   }
 , "TESTS (unconfigured)":
-  { "type": ["@", "rules", "test", "suite"]
+  { "type": ["@", "rules", "test", "matrix"]
   , "arguments_config": ["TEST_STANDALONE_SERVE"]
-  , "stage":
-    [ { "type": "if"
-      , "cond": {"type": "var", "name": "TEST_STANDALONE_SERVE"}
-      , "then": "standalone-serve"
-      , "else": "separate-remote"
-      }
-    ]
+  , "stage": ["serve-service"]
   , "deps":
     { "type": "++"
     , "$1":
@@ -207,23 +201,18 @@
       ]
     }
   }
-, "TESTS (separate remote)":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "TESTS (unconfigured)"
-  , "config":
-    {"type": "singleton_map", "key": "TEST_STANDALONE_SERVE", "value": false}
-  }
-, "TESTS (standalone serve)":
-  { "type": "configure"
-  , "tainted": ["test"]
-  , "target": "TESTS (unconfigured)"
-  , "config":
-    {"type": "singleton_map", "key": "TEST_STANDALONE_SERVE", "value": true}
-  }
 , "TESTS":
-  { "type": ["@", "rules", "test", "suite"]
-  , "stage": ["serve-service"]
-  , "deps": ["TESTS (separate remote)", "TESTS (standalone serve)"]
+  { "type": "configure"
+  , "tainted": ["test"]
+  , "target": "TESTS (unconfigured)"
+  , "config":
+    { "type": "'"
+    , "$1":
+      { "TEST_MATRIX":
+        { "TEST_STANDALONE_SERVE":
+          {"standalone-serve": true, "separate-remote": false}
+        }
+      }
+    }
   }
 }
