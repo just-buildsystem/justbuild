@@ -170,12 +170,14 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/remote", "config"]
+    , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/serve_api/remote", "config"]
     ]
   , "stage": ["src", "buildtool", "serve_api", "serve_service"]
   , "private-deps":
     [ ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/common/remote", "remote_common"]
+    , ["src/buildtool/logging", "log_level"]
     ]
   }
 , "target_utils":

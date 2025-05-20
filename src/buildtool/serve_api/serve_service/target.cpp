@@ -221,6 +221,8 @@ auto TargetService::ServeTarget(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
                               target_cache_key_digest.error()};
     }
+    logger_->Emit(
+        LogLevel::Debug, "ServeTarget({})", target_cache_key_digest->hash());
 
     // acquire locks
     auto repo_lock =
@@ -673,6 +675,7 @@ auto TargetService::ServeTargetVariables(
     auto const& root_tree{request->root_tree()};
     auto const& target_file{request->target_file()};
     auto const& target{request->target()};
+    logger_->Emit(LogLevel::Debug, "ServeTargetVariables({}, ...)", root_tree);
     // retrieve content of target file
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
@@ -829,6 +832,8 @@ auto TargetService::ServeTargetDescription(
     auto const& root_tree{request->root_tree()};
     auto const& target_file{request->target_file()};
     auto const& target{request->target()};
+    logger_->Emit(
+        LogLevel::Debug, "ServeTargetDescription({}, ...)", root_tree);
     // retrieve content of target file
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};

@@ -232,6 +232,8 @@ auto SourceTreeService::ServeCommitTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeCommitTreeRequest* request,
     ServeCommitTreeResponse* response) -> ::grpc::Status {
+    logger_->Emit(
+        LogLevel::Debug, "ServeCommitTree({}, ...)", request->commit());
     // get lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -691,6 +693,8 @@ auto SourceTreeService::ServeArchiveTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeArchiveTreeRequest* request,
     ServeArchiveTreeResponse* response) -> ::grpc::Status {
+    logger_->Emit(
+        LogLevel::Debug, "ServeArchiveTree({}, ...)", request->content());
     // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -985,6 +989,7 @@ auto SourceTreeService::ServeDistdirTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::ServeDistdirTreeRequest* request,
     ServeDistdirTreeResponse* response) -> ::grpc::Status {
+    logger_->Emit(LogLevel::Debug, "ServeDistdirTree(...)");
     // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1248,6 +1253,7 @@ auto SourceTreeService::ServeContent(
     const ::justbuild::just_serve::ServeContentRequest* request,
     ServeContentResponse* response) -> ::grpc::Status {
     auto const& content{request->content()};
+    logger_->Emit(LogLevel::Debug, "ServeContent({})", content);
     // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1465,6 +1471,7 @@ auto SourceTreeService::CheckRootTree(
     const ::justbuild::just_serve::CheckRootTreeRequest* request,
     CheckRootTreeResponse* response) -> ::grpc::Status {
     auto const& tree_id{request->tree()};
+    logger_->Emit(LogLevel::Debug, "CheckRootTree({})", tree_id);
     // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1595,6 +1602,8 @@ auto SourceTreeService::GetRemoteTree(
     ::grpc::ServerContext* /* context */,
     const ::justbuild::just_serve::GetRemoteTreeRequest* request,
     GetRemoteTreeResponse* response) -> ::grpc::Status {
+    logger_->Emit(
+        LogLevel::Debug, "GetRemoteTree({})", request->digest().hash());
     // get gc lock for Git cache
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
@@ -1686,6 +1695,7 @@ auto SourceTreeService::ComputeTreeStructure(
     ::grpc::ServerContext* /*context*/,
     const ::justbuild::just_serve::ComputeTreeStructureRequest* request,
     ComputeTreeStructureResponse* response) -> ::grpc::Status {
+    logger_->Emit(LogLevel::Debug, "GetTreeStructure({})", request->tree());
     auto repo_lock = RepositoryGarbageCollector::SharedLock(
         *native_context_->storage_config);
     if (not repo_lock) {

@@ -21,12 +21,14 @@
 
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/remote/remote_common.hpp"
+#include "src/buildtool/logging/log_level.hpp"
 
 auto ConfigurationService::RemoteExecutionEndpoint(
     ::grpc::ServerContext* /*context*/,
     const ::justbuild::just_serve::RemoteExecutionEndpointRequest* /*request*/,
     ::justbuild::just_serve::RemoteExecutionEndpointResponse* response)
     -> ::grpc::Status {
+    logger_->Emit(LogLevel::Debug, "RemoteExecutionEndpoint()");
     std::optional<ServerAddress> address;
     if (serve_config_.client_execution_address.has_value()) {
         address = serve_config_.client_execution_address;
@@ -43,6 +45,7 @@ auto ConfigurationService::Compatibility(
     const ::justbuild::just_serve::CompatibilityRequest* /*request*/,
     ::justbuild::just_serve::CompatibilityResponse* response)
     -> ::grpc::Status {
+    logger_->Emit(LogLevel::Debug, "Compatibility()");
     response->set_compatible(not ProtocolTraits::IsNative(hash_type_));
     return ::grpc::Status::OK;
 }

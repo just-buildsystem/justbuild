@@ -15,6 +15,8 @@
 #ifndef INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP
 #define INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP
 
+#include <memory>
+
 #include <grpcpp/grpcpp.h>
 
 #include "gsl/gsl"
@@ -22,6 +24,7 @@
 #include "justbuild/just_serve/just_serve.pb.h"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/serve_api/remote/config.hpp"
 
 // This service can be used by the client to double-check the server
@@ -62,6 +65,8 @@ class ConfigurationService final
     HashFunction::Type hash_type_;
     RemoteExecutionConfig const& remote_config_;
     RemoteServeConfig const& serve_config_;
+    std::shared_ptr<Logger> logger_{
+        std::make_shared<Logger>("configuration-service")};
 };
 
 #endif  // INCLUDED_SRC_BUILD_SERVE_API_SERVE_SERVICE_CONFIGURATION_HPP
