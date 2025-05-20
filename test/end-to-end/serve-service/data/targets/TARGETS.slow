@@ -1,0 +1,20 @@
+{ "": {"type": "export", "target": "slow", "flexible_config": ["RANGE"]}
+, "slow":
+  { "type": "generic"
+  , "arguments_config": ["RANGE"]
+  , "outs": ["out.txt"]
+  , "cmds":
+    [ "touch out.txt"
+    , { "type": "join"
+      , "$1":
+        [ "for entry in "
+        , {"type": "var", "name": "RANGE"}
+        , " ; "
+        , "do echo $entry >> out.txt ; "
+        , "sleep 1 ; "
+        , "done"
+        ]
+      }
+    ]
+  }
+}

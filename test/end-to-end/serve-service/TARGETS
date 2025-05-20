@@ -147,6 +147,18 @@
   , "repos": ["failure-report (data)"]
   , "keep": ["out/log", "out/serve.log", "out/failure.log"]
   }
+, "interruption-test (data)":
+  { "type": "install"
+  , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.slow"}
+  }
+, "interruption-test":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["interruption-test"]
+  , "test": ["interruption-test.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "repos": ["interruption-test (data)"]
+  , "keep-dirs": ["out"]
+  }
 , "serve-many-targets (data)":
   { "type": "install"
   , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.transform"}
@@ -190,6 +202,7 @@
         , "describe"
         , "deduplication-of-serve-requests"
         , "failure-report"
+        , "interruption-test"
         , "serve-tree"
         ]
       , [ ["./", "serve-archive-root", "TESTS"]
