@@ -24,6 +24,7 @@ import werkzeug.utils
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.middleware.shared_data import SharedDataMiddleware
+from functools import cache
 
 def core_config(conf):
     new_conf = {}
@@ -52,6 +53,7 @@ class InvocationServer:
                  just_mr = None,
                  graph = "graph.json",
                  artifacts = "artifacts.json",
+                 artifacts_to_build = "to-build.json",
                  profile = "profile.json",
                  meta = "meta.json"):
         self.logsdir = logsdir
@@ -62,6 +64,7 @@ class InvocationServer:
         self.profile = profile
         self.graph = graph
         self.artifacts = artifacts
+        self.artifacts_to_build = artifacts_to_build
         self.meta = meta
         self.templatepath = os.path.join(os.path.dirname(__file__), "templates")
         self.jinjaenv = jinja2.Environment(
@@ -91,6 +94,9 @@ class InvocationServer:
             rule("/invocations/<invocationidentifier:invocation>",
                  methods=("GET",),
                  endpoint="get_invocation"),
+            rule("/critical_path/<invocationidentifier:invocation>",
+                 methods=("GET",),
+                 endpoint="get_critical_path"),
         ], converters=dict(
             invocationidentifier=InvocationIdentifierConverter,
             hashidentifier=HashIdentifierConverter,
@@ -531,6 +537,7 @@ class InvocationServer:
                 action_count_cached += 1
         params["action_count"] = action_count
         params["action_count_cached"] = action_count_cached
+        params["fully_cached"] = (action_count == action_count_cached)
         candidates.sort(reverse=True)
         non_cached = []
         params["more_noncached"] = None
@@ -544,6 +551,91 @@ class InvocationServer:
         params["non_cached"] = non_cached
 
         return self.render("invocation.html", params)
+
+    def do_get_critical_path(self, invocation):
+        params = {"invocation": invocation}
+
+        try:
+            with open(os.path.join(
+                    self.logsdir, invocation, self.profile)) as f:
+                profile = json.load(f)
+        except:
+            profile = {}
+
+        try:
+            with open(os.path.join(
+                    self.logsdir, invocation, self.graph)) as f:
+                graph = json.load(f)
+        except:
+            graph = {}
+
+        try:
+            with open(os.path.join(
+                    self.logsdir, invocation, self.artifacts_to_build)) as f:
+                artifacts_to_build = json.load(f)
+        except:
+            artifacts_to_build = {}
+
+        @cache
+        def critical_path(artifact_type, source_id):
+            input_artifacts = []
+            source_duration = 0.0
+            if artifact_type == "ACTION":
+                input_artifacts = graph.get("actions", {}).get(source_id, {}).get("input", {}).values()
+                source_duration = profile.get("actions", {}).get(source_id, {}).get("duration", 0.0)
+            elif artifact_type == "TREE":
+                input_artifacts = graph.get("trees", {}).get(source_id, {}).values()
+            elif artifact_type == "TREE_OVERLAY":
+                input_artifacts = graph.get("tree_overlays", {}).get(source_id, {}).get("trees", [])
+            else:
+                return ([], 0.0)
+
+            max_path  = []
+            max_duration = 0.0
+            for artifact_desc in input_artifacts:
+                path, duration = critical_path(
+                    artifact_desc.get("type", {}),
+                    artifact_desc.get("data", {}).get("id"))
+                if duration > max_duration:
+                    max_duration = duration
+                    max_path = path
+
+            path = max_path + [(artifact_type, source_id)]
+            duration = max_duration + source_duration
+            return (path, duration)
+
+        max_path = []
+        max_name = None
+        max_duration = 0.0
+        for artifact_name, artifact_desc in artifacts_to_build.items():
+            path, duration = critical_path(
+                artifact_desc.get("type", {}),
+                artifact_desc.get("data", {}).get("id"))
+            if duration > max_duration:
+                max_duration = duration
+                max_path = path
+                max_name = artifact_name
+
+        max_path_data = []
+        for artifact_type, source_id in reversed(max_path):
+            source_data = {}
+            if artifact_type == "ACTION":
+                action_profile = profile.get('actions', {}).get(source_id, {})
+                source_data = action_data(source_id, action_profile, graph)
+                source_data["name_prefix"] = "%5.1fs" % (action_profile.get("duration", 0.0),)
+            else:
+                source_data = {"name": source_id}
+            max_path_data.append({
+                "type": artifact_type,
+                "data": source_data
+            })
+
+        params["critical_artifact"] = {
+            "name": max_name,
+            "path": max_path_data,
+            "duration": '%0.3fs' % (max_duration,) if max_duration > 0 else None,
+        }
+        return self.render("critical_path.html", params)
 
 def action_data(name, profile_value, graph):
     data = { "name_prefix": "",
@@ -595,6 +687,8 @@ if __name__ == '__main__':
                         help="Name of the logged action-graph file")
     parser.add_argument("--artifacts", dest="artifacts", default="artifacts.json",
                         help="Name of the logged artifacts file")
+    parser.add_argument("--artifacts-to-build", dest="artifacts_to_build", default="to-build.json",
+                        help="Name of the logged artifacts-to-build file")
     parser.add_argument("--profile", dest="profile", default="profile.json",
                         help="Name of the logged profile file")
     parser.add_argument(
@@ -617,6 +711,7 @@ if __name__ == '__main__':
                      just_mr=just_mr,
                      graph=args.graph,
                      artifacts=args.artifacts,
+                     artifacts_to_build=args.artifacts_to_build,
                      meta=args.meta,
                      profile=args.profile)
     make_server(args.interface, args.port, app).serve_forever()

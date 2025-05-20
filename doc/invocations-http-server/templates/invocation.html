@@ -78,6 +78,9 @@ Invocation {{invocation | e}}
   {% if exit_code != None %}
   <li> Exit code: <tt>{{ exit_code | e }}</tt></li>
   {% endif %}
+  {% if not fully_cached %}
+  <li> <a href="/critical_path/{{invocation | e}}">Critical path</a></li>
+  {% endif %}
   {% if artifacts %}
   <li>
     <details>

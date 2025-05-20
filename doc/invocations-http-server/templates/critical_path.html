@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block heading %}
+Invocations {{invocation | e}}
+{% endblock %}
+
+{% from 'macros.html' import show_action %}
+
+{% block content %}
+<h1>Critical path for {{ invocation | e }}</h1>
+
+<h2>Overview</h2>
+<ul>
+  <li>Invocation: <a href="/invocations/{{ invocation | e }}"><tt>{{ invocation | e }}</tt></a></li>
+  <li>Critical artifact: <tt>{{ critical_artifact["name"] | e }}</tt></li>
+  <li>Duration: <tt>{{ critical_artifact["duration"] | e }}</tt></li>
+  <li>Path:</li>
+  <ul>
+  {% for entry in critical_artifact["path"] %}
+    {% if entry["type"] == "ACTION" %}
+      {{ show_action(entry["data"]) }}
+    {% else %}
+      <li>{{ entry["type"] | lower | e }} <tt>{{ entry["data"]["name"] | e }}</tt></li>
+    {% endif %}
+  {% endfor %}
+  </ul>
+</ul>
+{% endblock %}
