@@ -497,37 +497,6 @@ class InvocationServer:
         params["artifacts"] = output_artifacts
         params["artifacts_count"] = len(output_artifacts)
 
-        def action_data(name, profile_value):
-            data = { "name_prefix": "",
-                     "name": name,
-                     "cached": profile_value.get('cached'),
-                     "exit_code": profile_value.get('exit code', 0)}
-            duration = profile_value.get('duration', 0.0)
-            data["duration"] = '%0.3fs' % (duration,) if duration > 0 else None
-            desc = graph.get('actions', {}).get(name, {})
-            cmd = desc.get('command', [])
-            data["cmd"] = json.dumps(cmd) if cmd else None
-            data["may_fail"] = desc.get("may_fail")
-            data["stdout"] = profile_value.get('stdout')
-            data["stderr"] = profile_value.get('stderr')
-            data["output"] = desc.get('output', [])
-            data["output_dirs"] = desc.get('output_dirs', [])
-            if len(data["output"]) == 1:
-                data["primary_output"] = data["output"][0]
-            elif len(data["output"]) == 0 and len(data["output_dirs"]) == 1:
-                data["primary_output"] = data["output_dirs"][0]
-            else:
-                data["primary_output"] = None
-            data["artifacts"] = profile_value.get('artifacts', {})
-            origins = []
-            for origin in desc.get('origins', []):
-                origins.append("%s#%d@%s" % (
-                    json.dumps(origin.get('target', [])),
-                    origin.get('subtask', 0),
-                    core_config(origin.get('config', {})),))
-            data["origins"] = origins
-            return data
-
         actions_considered = set()
         failed_build_actions = []
         failed_test_actions = []
@@ -535,9 +504,9 @@ class InvocationServer:
             if v.get('exit code', 0) != 0:
                 actions_considered.add(k)
                 if graph.get('actions', {}).get(k, {}).get('may_fail') != None:
-                    failed_test_actions.append(action_data(k, v))
+                    failed_test_actions.append(action_data(k, v, graph))
                 else:
-                    failed_build_actions.append(action_data(k, v))
+                    failed_build_actions.append(action_data(k, v, graph))
         params["failed_actions"] = failed_build_actions + failed_test_actions
 
         # non-failed actions with output
@@ -546,7 +515,7 @@ class InvocationServer:
             if k not in actions_considered:
                if v.get('stdout') or v.get('stderr'):
                    actions_considered.add(k)
-                   output_actions.append(action_data(k,v))
+                   output_actions.append(action_data(k, v, graph))
         params["output_actions"] = output_actions
 
         # longest running non-cached non-failed actions without output
@@ -569,12 +538,43 @@ class InvocationServer:
             params["more_non_cached"] = len(candidates) - 30
             candidates = candidates[:30]
         for t, k, v in candidates:
-            action = action_data(k, v)
+            action = action_data(k, v, graph)
             action["name_prefix"] = "%5.1fs" % (t,)
             non_cached.append(action)
         params["non_cached"] = non_cached
 
         return self.render("invocation.html", params)
+
+def action_data(name, profile_value, graph):
+    data = { "name_prefix": "",
+             "name": name,
+             "cached": profile_value.get('cached'),
+             "exit_code": profile_value.get('exit code', 0)}
+    duration = profile_value.get('duration', 0.0)
+    data["duration"] = '%0.3fs' % (duration,) if duration > 0 else None
+    desc = graph.get('actions', {}).get(name, {})
+    cmd = desc.get('command', [])
+    data["cmd"] = json.dumps(cmd) if cmd else None
+    data["may_fail"] = desc.get("may_fail")
+    data["stdout"] = profile_value.get('stdout')
+    data["stderr"] = profile_value.get('stderr')
+    data["output"] = desc.get('output', [])
+    data["output_dirs"] = desc.get('output_dirs', [])
+    if len(data["output"]) == 1:
+        data["primary_output"] = data["output"][0]
+    elif len(data["output"]) == 0 and len(data["output_dirs"]) == 1:
+        data["primary_output"] = data["output_dirs"][0]
+    else:
+        data["primary_output"] = None
+    data["artifacts"] = profile_value.get('artifacts', {})
+    origins = []
+    for origin in desc.get('origins', []):
+        origins.append("%s#%d@%s" % (
+            json.dumps(origin.get('target', [])),
+            origin.get('subtask', 0),
+            core_config(origin.get('config', {})),))
+    data["origins"] = origins
+    return data
 
 def create_app(logsdir, **kwargs):
     app = InvocationServer(logsdir, **kwargs)
