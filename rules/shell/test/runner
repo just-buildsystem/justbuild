@@ -22,6 +22,7 @@ echo "${RESULT}" > result
 echo UNKNOWN > time-start
 echo UNKNOWN > time-stop
 pwd > pwd
+export HOME="$(pwd)/DO-NO-USE-HOME"
 
 mkdir scratch
 export TEST_TMPDIR=$(realpath scratch)
