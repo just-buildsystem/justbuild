@@ -15,7 +15,7 @@
 
 set -e
 
-readonly ROOT="${PWD}"
+readonly ROOT="$(pwd)"
 readonly DEDUPLICATE="${ROOT}/bin/deduplicate-tool-under-test"
 readonly GIT_IMPORT="${ROOT}/bin/git-import-under-test"
 readonly JUST="${ROOT}/bin/tool-under-test"
@@ -49,7 +49,6 @@ cat > TARGETS << 'EOF'
   }
 }
 EOF
-cat 
 
 echo
 echo "Creating repos.json at ${FOO_REPO}:"
@@ -133,13 +132,13 @@ cat TARGETS
 echo
 echo "Creating TARGETS.result at ${MAIN_ROOT}:"
 cat > TARGETS.result << 'EOF'
-{ "rename_1": 
+{ "rename_1":
   { "type": "generic"
   , "cmds": ["mv out.txt foo.txt"]
   , "outs": ["foo.txt"]
   , "deps": [["@", "structure_1", "", ""]]
   }
-, "rename_2": 
+, "rename_2":
   { "type": "generic"
   , "cmds": ["mv out.txt bar.txt"]
   , "outs": ["bar.txt"]
@@ -205,8 +204,8 @@ cat repos-full.json
 # Dump the graph before deduplication:
 echo
 "${JUST_MR}" -C repos-full.json --norc --just "${JUST}" \
-             --local-build-root "${LBR}" --main "result" analyse \
-             -L '["env", "PATH='"${PATH}"'"]' \
+             --local-build-root "${LBR}" --main "result" \
+             -L '["env", "PATH='"${PATH}"'"]' analyse \
              --dump-plain-graph actions-full.json 2>&1
 
 # Run deduplication:
@@ -217,8 +216,8 @@ echo
 
 # Dump the graph after deduplication:
 "${JUST_MR}" -C repos.json --norc --just "${JUST}" \
-             --local-build-root "${LBR}" --main "result" analyse \
-             -L '["env", "PATH='"${PATH}"'"]' \
+             --local-build-root "${LBR}" --main "result" \
+             -L '["env", "PATH='"${PATH}"'"]' analyse \
              --dump-plain-graph actions.json 2>&1
 
 # Verify that we reduced the number of repositories, but did
@@ -230,7 +229,7 @@ cmp actions-full.json actions.json
 echo
 "${JUST_MR}" -C repos.json --norc --just "${JUST}" \
              --local-build-root "${LBR}" --main "result" \
-             install -L '["env", "PATH='"${PATH}"'"]' \
+             -L '["env", "PATH='"${PATH}"'"]' install \
              -o "${OUT}/result" 2>&1
 
 echo OK
