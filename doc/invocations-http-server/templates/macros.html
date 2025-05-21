@@ -61,7 +61,7 @@
           {% if action["artifacts"].get(out) %}
           <li>
             <a href="/blob/{{ action["artifacts"].get(out) | e}}"><tt>{{ out | e }}</tt></a>
-            <a href="/blob/{{ action["artifacts"].get(out) | e}}/{{ out | e}}"><tt>[&darr;]</tt></a>
+            <a href="/blob/{{ action["artifacts"].get(out) | e}}/{{ action["basenames"].get(out) | e}}"><tt>[&darr;]</tt></a>
           </li>
           {% else %}
           <li> <tt>{{ out | e }}</tt></li>

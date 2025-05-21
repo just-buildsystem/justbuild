@@ -659,6 +659,8 @@ def action_data(name, profile_value, graph):
     else:
         data["primary_output"] = None
     data["artifacts"] = profile_value.get('artifacts', {})
+    data["basenames"] = { name : os.path.basename(name)
+                          for name in data["artifacts"].keys() }
     origins = []
     for origin in desc.get('origins', []):
         origins.append("%s#%d@%s" % (
