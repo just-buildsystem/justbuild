@@ -14,18 +14,13 @@
 
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <memory>
 #include <utility>
 #include <variant>
 #include <vector>
 
 #include <grpcpp/grpcpp.h>
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"

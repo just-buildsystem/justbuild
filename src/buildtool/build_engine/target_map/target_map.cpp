@@ -14,12 +14,6 @@
 
 #include "src/buildtool/build_engine/target_map/target_map.hpp"
 
-#ifdef __unix__
-#include <fnmatch.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <algorithm>
 #include <compare>
 #include <cstdint>
@@ -36,6 +30,8 @@
 #include <utility>
 #include <variant>
 #include <vector>
+
+#include <fnmatch.h>
 
 #include "fmt/core.h"
 #include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"

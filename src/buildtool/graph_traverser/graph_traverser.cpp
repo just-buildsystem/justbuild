@@ -15,11 +15,6 @@
 #include "src/buildtool/graph_traverser/graph_traverser.hpp"
 
 #ifndef BOOTSTRAP_BUILD_TOOL
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
 
 #include <algorithm>
 #include <atomic>
@@ -34,6 +29,8 @@
 #include <sstream>
 #include <thread>
 #include <unordered_set>
+
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "src/buildtool/common/artifact_blob.hpp"

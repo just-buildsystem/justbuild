@@ -15,13 +15,10 @@
 #include "src/buildtool/system/system.hpp"
 
 #ifdef VALGRIND_BUILD
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif  // __unix__
 #include <array>
 #include <string>
+
+#include <unistd.h>
 #else
 #include <cstdlib>
 #endif  // VALGRIND_BUILD

@@ -14,18 +14,14 @@
 
 #include "src/buildtool/execution_api/common/common_api.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <cstddef>
 #include <exception>
 #include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
+
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "src/buildtool/execution_api/common/message_limits.hpp"

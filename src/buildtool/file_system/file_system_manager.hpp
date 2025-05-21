@@ -15,17 +15,6 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_FILE_SYSTEM_MANAGER_HPP
 
-#ifdef __unix__
-#include <fcntl.h>
-#include <pwd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <algorithm>
 #include <array>
 #include <cerrno>  // for errno
@@ -48,6 +37,13 @@
 #include <unordered_set>
 #include <utility>
 #include <variant>
+
+#include <fcntl.h>
+#include <pwd.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "gsl/gsl"
@@ -162,13 +158,10 @@ class FileSystemManager {
     [[nodiscard]] static auto GetUserHome() noexcept -> std::filesystem::path {
         char const* root{nullptr};
 
-#ifdef __unix__
         root = std::getenv("HOME");
         if (root == nullptr) {
             root = getpwuid(getuid())->pw_dir;
         }
-#endif
-
         if (root == nullptr) {
             Logger::Log(LogLevel::Error,
                         "Cannot determine user home directory.");
@@ -198,16 +191,16 @@ class FileSystemManager {
                     log_failure_at, "can not remove file {}", link.string());
                 return false;
             }
-#ifdef __unix__
+            // On some non-unix systems one would have to differentiate between
+            // file and directory symlinks[1], which would require filesystem
+            // access and could lead to inconsistencies due to order of creation
+            // of existing symlink targets. As there is no reliable way to
+            // find out which system we're working on, we continue having
+            // that requirement documented.
+            //
+            // [1] https://en.cppreference.com/w/cpp/filesystem/create_symlink
             std::filesystem::create_directory_symlink(to, link);
             return std::filesystem::is_symlink(link);
-#else
-// For non-unix systems one would have to differentiate between file and
-// directory symlinks[1], which would require filesystem access and could lead
-// to inconsistencies due to order of creation of existing symlink targets.
-// [1]https://en.cppreference.com/w/cpp/filesystem/create_symlink
-#error "Non-unix is not supported yet"
-#endif
         } catch (std::exception const& e) {
             Logger::Log(log_failure_at,
                         "symlinking {} to {}\n{}",
@@ -292,12 +285,8 @@ class FileSystemManager {
                                      std::filesystem::path const& dst,
                                      bool no_clobber = false) noexcept -> bool {
         if (no_clobber) {
-#ifdef __unix__
             return link(src.c_str(), dst.c_str()) == 0 and
                    unlink(src.c_str()) == 0;
-#else
-#error "Non-unix is not supported yet"
-#endif
         }
         try {
             std::filesystem::rename(src, dst);
@@ -1147,7 +1136,6 @@ class FileSystemManager {
                 // symlinks, one has instead to manually call utimensat with
                 // the AT_SYMLINK_NOFOLLOW flag. On non-POSIX systems, we
                 // return false by default for symlinks.
-#ifdef __unix__
                 std::array<timespec, 2> times{};  // default is POSIX epoch
                 if (utimensat(AT_FDCWD,
                               file_path.c_str(),
@@ -1161,13 +1149,6 @@ class FileSystemManager {
                     return false;
                 }
                 return true;
-#else
-                Logger::Log(
-                    LogLevel::Warning,
-                    "Setting the last modification time attribute for a "
-                    "symlink is unsupported!");
-                return false;
-#endif
             }
             std::filesystem::last_write_time(file_path, kPosixEpochTime);
             return true;

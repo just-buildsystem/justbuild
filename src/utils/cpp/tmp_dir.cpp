@@ -14,15 +14,11 @@
 
 #include "src/utils/cpp/tmp_dir.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <cstdlib>
 #include <string_view>
 #include <tuple>
+
+#include <unistd.h>
 
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_level.hpp"

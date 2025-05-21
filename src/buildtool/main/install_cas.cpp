@@ -14,12 +14,6 @@
 
 #include "src/buildtool/main/install_cas.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
@@ -28,6 +22,8 @@
 #include <sstream>
 #include <utility>
 #include <vector>
+
+#include <unistd.h>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"

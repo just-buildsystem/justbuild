@@ -15,13 +15,6 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_IDS_HPP
 
-#ifdef __unix__
-#include <sys/types.h>
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -32,6 +25,9 @@
 #include <sstream>
 #include <string>
 #include <thread>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "gsl/gsl"

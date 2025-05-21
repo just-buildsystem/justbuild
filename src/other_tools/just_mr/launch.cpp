@@ -14,12 +14,6 @@
 
 #include "src/other_tools/just_mr/launch.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <algorithm>
 #include <cerrno>  // for errno
 #include <cstdlib>
@@ -35,6 +29,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#include <unistd.h>
 
 #include "fmt/chrono.h"
 #include "fmt/core.h"

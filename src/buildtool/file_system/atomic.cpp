@@ -14,16 +14,12 @@
 
 #include "src/buildtool/file_system/atomic.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+#include <unistd.h>
 
 #include "fmt/core.h"
 

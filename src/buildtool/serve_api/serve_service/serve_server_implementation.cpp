@@ -16,12 +16,6 @@
 
 #include "src/buildtool/serve_api/serve_service/serve_server_implementation.hpp"
 
-#ifdef __unix__
-#include <unistd.h>
-#else
-#error "Non-unix is not supported yet"
-#endif
-
 #include <filesystem>
 #include <memory>
 #include <utility>
@@ -29,6 +23,7 @@
 #include <vector>
 
 #include <grpcpp/grpcpp.h>
+#include <unistd.h>
 
 #include "fmt/core.h"
 #include "nlohmann/json.hpp"

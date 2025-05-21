@@ -1,5 +1,13 @@
 # Installing the `just` binary
 
+Building `just` requires a sufficiently UNIX-like operating system; in
+particular, the header files `<fnctl.h>`, `<fnmatch.h>`, `<pwd.h>`,
+`<sys/file.h>`, `<sys/stat.h>`, `<sys/types.h>`, `<sys/wait.h>`,
+and `<unistd.h>` are used. There is also the assumption that for
+symlinks (if used) it does not make a difference if they point to
+a file, directory, or are dangling. The tool was successfully built
+and tested on a number of Linux distributions.
+
 ## Building `just` using an older version of `just-mr` and `just`
 
 If an older installation of `just` is already available, `just`
