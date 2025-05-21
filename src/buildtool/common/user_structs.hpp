@@ -28,10 +28,13 @@
 
 /* Structures populated exclusively from command line with user-defined data */
 
+static inline const std::filesystem::path kDefaultSetupRoot =
+    FileSystemManager::GetCurrentDirectory();
+
 struct LocalPaths {
     // user-defined locations
     std::optional<std::filesystem::path> root{std::nullopt};
-    std::filesystem::path setup_root{FileSystemManager::GetCurrentDirectory()};
+    std::filesystem::path setup_root = kDefaultSetupRoot;
     std::optional<std::filesystem::path> workspace_root{
         // find workspace root
         []() -> std::optional<std::filesystem::path> {
@@ -45,7 +48,7 @@ struct LocalPaths {
                         });
                 };
             // default path to current dir
-            auto path = FileSystemManager::GetCurrentDirectory();
+            auto path = kDefaultSetupRoot;
             auto root_path = path.root_path();
             while (true) {
                 if (is_workspace_root(path)) {

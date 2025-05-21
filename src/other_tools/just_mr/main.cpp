@@ -265,12 +265,17 @@ auto main(int argc, char* argv[]) -> int {
         }
 
         SetupLogging(arguments.log);
+        // Parse rc file, if given, and returns any configuration file found in
+        // known locations, with the setup root updated accordingly
         auto config_file = ReadJustMRRC(&arguments);
         // As the rc file can contain logging parameters, reset the logging
         // configuration
         SetupLogging(arguments.log);
+        // An explicitly given configuration file path wins. In this case, the
+        // default setup root must be used
         if (arguments.common.repository_config) {
             config_file = arguments.common.repository_config;
+            arguments.common.just_mr_paths->setup_root = kDefaultSetupRoot;
         }
 
         // if optional args were not read from just-mrrc or given by user, use
