@@ -36,6 +36,7 @@
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
+#include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/execution_action.hpp"
 #include "src/buildtool/execution_api/common/execution_api.hpp"
@@ -732,31 +733,124 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
     ExecProps const& props) {
     auto api = api_factory();
 
-    auto action = api->CreateAction(
-        *api->UploadTree({}),
-        {"/bin/sh", "-c", "set -e; ln -s none foo; rm -rf bar; ln -s none bar"},
-        "",
-        {"foo"},
-        {"bar"},
-        {},
-        props);
+    SECTION("dangling") {
+        auto action = api->CreateAction(
+            *api->UploadTree({}),
+            {"/bin/sh",
+             "-c",
+             "set -e; "
+             "ln -s none foo; "
+             "rm -rf bar; ln -s none bar; "
+             "mkdir -p baz; ln -s none baz/foo; ln -s none baz/bar"},
+            "",
+            {"foo"},
+            {"bar", "baz"},
+            {},
+            props);
 
-    // run execution
-    auto const response = action->Execute();
-    REQUIRE(response);
+        // run execution
+        auto const response = action->Execute();
+        REQUIRE(response);
 
-    // verify result
-    auto const artifacts = response->Artifacts();
-    REQUIRE(artifacts.has_value());
-    REQUIRE(artifacts.value()->contains("foo"));
-    CHECK(IsSymlinkObject(artifacts.value()->at("foo").type));
-    REQUIRE(artifacts.value()->contains("bar"));
-    CHECK(IsSymlinkObject(artifacts.value()->at("bar").type));
+        // verify result
+        auto const artifacts = response->Artifacts();
+        REQUIRE(artifacts.has_value());
+        REQUIRE(artifacts.value()->contains("foo"));
+        CHECK(IsSymlinkObject(artifacts.value()->at("foo").type));
+        REQUIRE(artifacts.value()->contains("bar"));
+        CHECK(IsSymlinkObject(artifacts.value()->at("bar").type));
+        REQUIRE(artifacts.value()->contains("baz"));
+        CHECK(IsTreeObject(artifacts.value()->at("baz").type));
 
-    // check if bar was correctly detected as directory symlink
-    auto dir_symlinks = response->DirectorySymlinks();
-    REQUIRE(dir_symlinks);
-    CHECK((*dir_symlinks)->contains("bar"));
+        // check if bar was correctly detected as directory symlink
+        auto dir_symlinks = response->DirectorySymlinks();
+        REQUIRE(dir_symlinks);
+        CHECK((*dir_symlinks)->contains("bar"));
+
+        SECTION("consuming dangling symlinks") {
+            auto dangling_symlinks_tree = artifacts.value()->at("baz");
+            auto consume_action =
+                api->CreateAction(dangling_symlinks_tree.digest,
+                                  {"/bin/sh",
+                                   "-c",
+                                   "set -e; "
+                                   "[ \"$(readlink foo)\" = \"none\" ]; "
+                                   "[ \"$(readlink bar)\" = \"none\" ]; "
+                                   "touch success"},
+                                  "",
+                                  {"success"},
+                                  {},
+                                  {},
+                                  props);
+
+            auto const consume_response = consume_action->Execute();
+            REQUIRE(consume_response);
+            CHECK(consume_response->ExitCode() == 0);
+        }
+    }
+
+    SECTION("upwards") {
+        auto action = api->CreateAction(
+            *api->UploadTree({}),
+            {"/bin/sh",
+             "-c",
+             "set -e; "
+             "ln -s ../foo foo; "
+             "rm -rf bar; ln -s /bar bar; "
+             "mkdir -p baz; ln -s ../foo baz/foo; ln -s /bar baz/bar"},
+            "",
+            {"foo"},
+            {"bar", "baz"},
+            {},
+            props);
+
+        // run execution
+        auto const response = action->Execute();
+        REQUIRE(response);
+
+        // verify result
+        auto const artifacts = response->Artifacts();
+        REQUIRE(artifacts.has_value());
+
+        if (ProtocolTraits::IsNative(api->GetHashType())) {
+            // in native, no symlink is collected, as none of them is valid
+            CHECK(artifacts.value()->empty());
+            return;
+        }
+
+        REQUIRE(artifacts.value()->contains("foo"));
+        CHECK(IsSymlinkObject(artifacts.value()->at("foo").type));
+        REQUIRE(artifacts.value()->contains("bar"));
+        CHECK(IsSymlinkObject(artifacts.value()->at("bar").type));
+        REQUIRE(artifacts.value()->contains("baz"));
+        CHECK(IsTreeObject(artifacts.value()->at("baz").type));
+
+        // check if bar was correctly detected as directory symlink
+        auto dir_symlinks = response->DirectorySymlinks();
+        REQUIRE(dir_symlinks);
+        CHECK((*dir_symlinks)->contains("bar"));
+
+        SECTION("consuming upwards symlinks") {
+            auto upwards_symlinks_tree = artifacts.value()->at("baz");
+            auto consume_action =
+                api->CreateAction(upwards_symlinks_tree.digest,
+                                  {"/bin/sh",
+                                   "-c",
+                                   "set -e; "
+                                   "[ \"$(readlink foo)\" = \"../foo\" ]; "
+                                   "[ \"$(readlink bar)\" = \"/bar\" ]; "
+                                   "touch success"},
+                                  "",
+                                  {"success"},
+                                  {},
+                                  {},
+                                  props);
+
+            auto const consume_response = consume_action->Execute();
+            REQUIRE(consume_response);
+            CHECK(consume_response->ExitCode() == 0);
+        }
+    }
 }
 
 #endif  // INCLUDED_SRC_TEST_BUILDTOOL_EXECUTION_API_COMMON_API_TEST_HPP
