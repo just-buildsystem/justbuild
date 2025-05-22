@@ -11,8 +11,16 @@ Invocations {{invocation | e}}
 <h2>Overview</h2>
 <ul>
   <li>Invocation: <a href="/invocations/{{ invocation | e }}"><tt>{{ invocation | e }}</tt></a></li>
+  {% if critical_artifact["wall_clock_time"] %}
+  <li>Wall-clock time: <tt>{{ critical_artifact["wall_clock_time"] | e }}</tt></li>
+  {% endif %}
+  {% if critical_artifact["duration"] %}
+  <li>Length of critical path: <tt>{{ critical_artifact["duration"] | e }}</tt></li>
+  {% endif %}
+  {% if critical_artifact["name"] %}
   <li>Critical artifact: <tt>{{ critical_artifact["name"] | e }}</tt></li>
-  <li>Duration: <tt>{{ critical_artifact["duration"] | e }}</tt></li>
+  {% endif %}
+  {% if critical_artifact["path"] %}
   <li>Path:</li>
   <ul>
   {% for entry in critical_artifact["path"] %}
@@ -23,5 +31,6 @@ Invocations {{invocation | e}}
     {% endif %}
   {% endfor %}
   </ul>
+  {% endif %}
 </ul>
 {% endblock %}

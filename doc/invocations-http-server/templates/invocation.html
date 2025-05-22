@@ -75,6 +75,9 @@ Invocation {{invocation | e}}
   {% else %}
   <li> Context: <i>(none)</i></li>
   {% endif %}
+  {% if wall_clock_time %}
+  <li> Wall-clock time: <tt>{{ wall_clock_time | e }}</tt></li>
+  {% endif %}
   {% if exit_code != None %}
   <li> Exit code: <tt>{{ exit_code | e }}</tt></li>
   {% endif %}

@@ -72,6 +72,9 @@ Filter by:
     {% if invocation.target %}
     <span id="invocation-target"><tt>{{ invocation.target | e}}</tt></span>
     {% endif %}
+    {% if invocation.wall_clock_time %}
+    <tt>{{ invocation.wall_clock_time | e}}</tt>
+    {% endif %}
     {% if invocation.exit_code != 0 %}
     <span id="invocation-failure"><b>
       {% if invocation.exit_code == 1 %}
