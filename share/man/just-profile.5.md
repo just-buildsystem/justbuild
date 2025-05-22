@@ -88,6 +88,11 @@ The profile file contains the following information.
     respectively, as hex-encoded strings, provided the respective output is
     non-empty.
 
+- For the key *`"start time"`* the start time of the invocation in
+  seconds since the epoch.
+
+- For the key *`"stop time"`* the stop time of the invocation in seconds
+  since the epoch.
 
 See also
 ========

@@ -24,6 +24,7 @@
 #include "src/utils/cpp/expected.hpp"
 
 void Profile::Write(int exit_code) {
+    profile_["stop time"] = std::time(nullptr);
     if (not actions_.empty()) {
         auto actions = nlohmann::json::object();
         for (auto const& [k, v] : actions_) {

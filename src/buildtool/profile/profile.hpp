@@ -15,6 +15,7 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_PROFILE_PROFILE_HPP
 #define INCLUDED_SRC_BUILDTOOL_PROFILE_PROFILE_HPP
 
+#include <ctime>
 #include <functional>
 #include <mutex>
 #include <optional>
@@ -33,6 +34,7 @@ class Profile {
     explicit Profile(std::string output_file, CommandLineArguments const& cli)
         : output_file_{std::move(output_file)} {
         profile_ = nlohmann::json::object();
+        profile_["start time"] = std::time(nullptr);
         SetCLI(cli);
     }
 
