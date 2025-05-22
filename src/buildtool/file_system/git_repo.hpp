@@ -109,6 +109,19 @@ class GitRepo {
     /// Reading a tree must be backed by an object database. Therefore, a real
     /// repository is required.
     /// \param id         The object id.
+    /// \param is_hex_id  Specify whether `id` is hex string or raw.
+    /// \param ignore_special   If set, treat symlinks as absent.
+    /// \note This method does not perform any content-based validity checks on
+    /// the read entries. For reading with symlinks validation use ReadTree().
+    [[nodiscard]] auto ReadDirectTree(std::string const& id,
+                                      bool is_hex_id = false,
+                                      bool ignore_special = false)
+        const noexcept -> std::optional<tree_entries_t>;
+
+    /// \brief Read entries from tree in CAS.
+    /// Reading a tree must be backed by an object database. Therefore, a real
+    /// repository is required.
+    /// \param id         The object id.
     /// \param check_symlinks   Function to check non-upwardness condition.
     /// \param is_hex_id  Specify whether `id` is hex string or raw.
     /// \param ignore_special   If set, treat symlinks as absent.

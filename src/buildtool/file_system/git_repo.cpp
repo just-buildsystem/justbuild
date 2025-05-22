@@ -1784,10 +1784,9 @@ auto GitRepo::IsRepoFake() const noexcept -> bool {
     return is_repo_fake_;
 }
 
-auto GitRepo::ReadTree(std::string const& id,
-                       gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
-                       bool is_hex_id,
-                       bool ignore_special) const noexcept
+auto GitRepo::ReadDirectTree(std::string const& id,
+                             bool is_hex_id,
+                             bool ignore_special) const noexcept
     -> std::optional<tree_entries_t> {
 #ifndef BOOTSTRAP_BUILD_TOOL
     try {
@@ -1822,6 +1821,34 @@ auto GitRepo::ReadTree(std::string const& id,
                         is_hex_id ? std::string{id} : ToHexString(id));
             return std::nullopt;
         }
+#ifndef NDEBUG
+        // Debug-only consistency check for read entries to avoid downstream
+        // failures due to programmatic errors. Expected to always pass.
+        // No need to check if entries exist, so do not pass the Git CAS.
+        EnsuresAudit(ValidateEntries(entries));
+#endif
+
+        return entries;
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Debug, "reading direct tree failed with:\n{}", ex.what());
+    }
+#endif
+
+    return std::nullopt;
+}
+
+auto GitRepo::ReadTree(std::string const& id,
+                       gsl::not_null<SymlinksCheckFunc> const& check_symlinks,
+                       bool is_hex_id,
+                       bool ignore_special) const noexcept
+    -> std::optional<tree_entries_t> {
+#ifndef BOOTSTRAP_BUILD_TOOL
+    try {
+        auto entries = ReadDirectTree(id, is_hex_id, ignore_special);
+        if (not entries) {
+            return std::nullopt;
+        }
 
         // checking non-upwardness of symlinks can not be easily or safely done
         // during the tree walk, so it is done here. This is only needed for
@@ -1830,8 +1857,8 @@ auto GitRepo::ReadTree(std::string const& id,
             // we first gather all symlink candidates
             // to check symlinks in bulk, optimized for network-backed repos
             std::vector<ArtifactDigest> symlinks{};
-            symlinks.reserve(entries.size());  // at most one symlink per entry
-            for (auto const& entry : entries) {
+            symlinks.reserve(entries->size());  // at most one symlink per entry
+            for (auto const& entry : *entries) {
                 if (std::any_of(entry.second.begin(),
                                 entry.second.end(),
                                 [](TreeEntry const& item) {
@@ -1861,15 +1888,11 @@ auto GitRepo::ReadTree(std::string const& id,
             }
         }
 
-#ifndef NDEBUG
-        // Check consistency of entries. No need to check if entries exist.
-        EnsuresAudit(ValidateEntries(entries));
-#endif
-
         return entries;
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "reading tree failed with:\n{}", ex.what());
+        Logger::Log(LogLevel::Error,
+                    "reading tree with checker failed with:\n{}",
+                    ex.what());
     }
 #endif
 
