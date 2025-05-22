@@ -86,14 +86,19 @@ auto GitTree::Read(std::filesystem::path const& repo_path,
 
 auto GitTree::Read(gsl::not_null<GitCASPtr> const& cas,
                    std::string const& tree_id,
-                   bool ignore_special) noexcept -> std::optional<GitTree> {
+                   bool ignore_special,
+                   bool skip_checks) noexcept -> std::optional<GitTree> {
     if (auto raw_id = FromHexString(tree_id)) {
         auto repo = GitRepo::Open(cas);
         if (repo != std::nullopt) {
-            if (auto entries = repo->ReadTree(*raw_id,
-                                              SymlinksChecker{cas},
-                                              /*is_hex_id=*/false,
-                                              ignore_special)) {
+            auto entries =
+                skip_checks ? repo->ReadDirectTree(
+                                  *raw_id, /*is_hex_id=*/false, ignore_special)
+                            : repo->ReadTree(*raw_id,
+                                             SymlinksChecker{cas},
+                                             /*is_hex_id=*/false,
+                                             ignore_special);
+            if (entries) {
                 // NOTE: the raw_id value is NOT recomputed when
                 // ignore_special==true.
                 return GitTree::FromEntries(
@@ -155,11 +160,13 @@ auto GitTreeEntry::Tree(bool ignore_special) const& noexcept
                 if (repo == std::nullopt) {
                     return std::nullopt;
                 }
-
-                if (auto entries = repo->ReadTree(raw_id_,
-                                                  SymlinksChecker{cas_},
-                                                  /*is_hex_id=*/false,
-                                                  ignore_special)) {
+                auto entries = repo->ReadTree(raw_id_,
+                                              SymlinksChecker{cas_},
+                                              /*is_hex_id=*/false,
+                                              ignore_special);
+                if (entries) {
+                    // NOTE: the raw_id value is NOT recomputed when
+                    // ignore_special==true.
                     return GitTree::FromEntries(
                         cas_, std::move(*entries), raw_id_, ignore_special);
                 }

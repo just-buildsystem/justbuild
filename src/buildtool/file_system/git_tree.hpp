@@ -53,11 +53,13 @@ class GitTree {
     /// \param cas      Git CAS that contains the tree id.
     /// \param tree_id  Tree id as as hex string.
     /// \param ignore_special   If set, treat symlinks as absent.
+    /// \param skip_checks      If set, skip any symlinks checks.
     /// NOTE: If ignore_special==true, the stored entries might differ from the
     /// actual tree, as some filesystem entries get skipped.
     [[nodiscard]] static auto Read(gsl::not_null<GitCASPtr> const& cas,
                                    std::string const& tree_id,
-                                   bool ignore_special = false) noexcept
+                                   bool ignore_special = false,
+                                   bool skip_checks = false) noexcept
         -> std::optional<GitTree>;
 
     /// \brief Lookup by dir entry name. '.' and '..' are not allowed.
@@ -147,7 +149,6 @@ class GitTreeEntry {
     [[nodiscard]] auto IsTree() const noexcept { return IsTreeObject(type_); }
 
     [[nodiscard]] auto Blob() const noexcept -> std::optional<std::string>;
-    [[nodiscard]] auto Tree(bool) && = delete;
     [[nodiscard]] auto Tree(bool ignore_special = false) const& noexcept
         -> std::optional<GitTree> const&;
 
