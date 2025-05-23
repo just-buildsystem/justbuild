@@ -92,7 +92,7 @@ targets["stage"] = {"type": "install", "files": stage}
 targets[""] = {"type": "export", "target": "stage"}
 
 with open(sys.argv[1], "w") as f:
-    json.dump(targets, f)
+    json.dump(targets, f, sort_keys=True)
     f.write("\n")
 ```
 
@@ -161,18 +161,18 @@ build the target files we want.
 ```shell
 $ just-mr --main 'src target tasks description' build -p
 INFO: Performing repositories setup
-INFO: Found 3 repositories to set up
+INFO: Found 3 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","-p"]
 INFO: Repository "src target tasks description" depends on 1 top-level computed roots
 INFO: Requested target is [["@","src target tasks description","",""],{}]
 INFO: Analysed target [["@","src target tasks description","",""],{}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","src target tasks description","",""],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
-        TARGETS [254c72c511e84a84f42c92518d78c405f40ac5fe:462:f]
-{"lib ./foo": {"type": "generic", "outs": ["TARGETS"], "deps": [["@", "utils", "", "generate-target.py"]], "cmds": ["./generate-target.py foo"]}, "lib ./bar": {"type": "generic", "outs": ["TARGETS"], "deps": [["@", "utils", "", "generate-target.py"], ["", "./bar/deps"]], "cmds": ["./generate-target.py bar ./bar/deps"]}, "stage": {"type": "install", "files": {"foo/TARGETS": "lib ./foo", "bar/TARGETS": "lib ./bar"}}, "": {"type": "export", "target": "stage"}}
+        TARGETS [68336b9823a86d0f64a5a79990c6b171d4f6523b:434:f]
+{"": {"target": "stage", "type": "export"}, "lib ./bar": {"cmds": ["./generate.py bar ./bar/deps"], "deps": [["@", "utils", "", "generate.py"], ["", "./bar/deps"]], "outs": ["TARGETS"], "type": "generic"}, "lib ./foo": {"cmds": ["./generate.py foo"], "deps": [["@", "utils", "", "generate.py"]], "outs": ["TARGETS"], "type": "generic"}, "stage": {"files": {"bar/TARGETS": "lib ./bar", "foo/TARGETS": "lib ./foo"}, "type": "install"}}
 INFO: Backing up artifacts of 1 export targets
 ```
 
@@ -247,18 +247,18 @@ hints on the computation of the computed roots.
 ```shell
 $ just-mr analyse --log-limit 4 bar ''
 INFO: Performing repositories setup
-INFO: Found 8 repositories to set up
+INFO: Found 8 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","--log-limit","4","bar",""]
 INFO: Repository "" depends on 1 top-level computed roots
-PERF: Export target ["@","src target tasks description","",""] taken from cache: [7a9b0e386c9e3d3d185498876e52f9f52867af4e:120:f] -> [3d60470c815b923a7fe795e57281b715f52d2144:582:f]
-PERF: Root [["@","src target tasks description","",""],{}] evaluated to 464a5693f8eb79507900ea5c9757508e790bf161, log cfd9aa252f1a61b098f2ffb4da19d00886787d5e
-PERF: Export target ["@","src target build","",""] registered for caching: [89fb2fefeca243ed9ebc877e47d27db1bbed2920:120:f]
-PERF: Root [["@","src target build","",""],{}] evaluated to db732bc9b76cb485970795dad3de7941567f4caa, log 048c8f45cc847ae95935d5132acee2651df00ffa
+PERF: Export target ["@","src target tasks description","",""] taken from cache: [52dd0203238644382280dc9ae79c75d1f7e5adf1:120:f] -> [79a4114597a03d82acfd95a5f95f0d22c6f09ccb:582:f]
+PERF: Root [["@","src target tasks description","",""],{}] evaluated to e5dfc10a073e3e101a256bc38fae67ec234afccb, log aa803f1f445bfe20826495e33252ea02c4c1d7e0
+PERF: Export target ["@","src target build","",""] registered for caching: [309aac8800c83359aa900b7368b25b03bb343110:120:f]
+PERF: Root [["@","src target build","",""],{}] evaluated to db732bc9b76cb485970795dad3de7941567f4caa, log c33eb0167ccd7b5b3b8db51657d0d80885c61f98
 INFO: Requested target is [["@","","bar",""],{}]
 INFO: Analysed target [["@","","bar",""],{}]
 INFO: Result of target [["@","","bar",""],{}]: {
         "artifacts": {
-          "bar/libbar.a": {"data":{"id":"13441397141cdf7beb6693406a378fb61fdc39882b6930000fb0f5159d188a0b","path":"work/bar/libbar.a"},"type":"ACTION"}
+          "bar/libbar.a": {"data":{"id":"081122c668771bb09ef30b12687c6f131583506714a992595133ab9983366ce7","path":"work/bar/libbar.a"},"type":"ACTION"}
         },
         "provides": {
           "compile-args": [
@@ -270,12 +270,14 @@ INFO: Result of target [["@","","bar",""],{}]: {
           },
           "debug-srcs": {
           },
+          "dwarf-pkg": {
+          },
           "link-args": [
             "bar/libbar.a",
             "foo/libfoo.a"
           ],
           "link-deps": {
-            "foo/libfoo.a": {"data":{"id":"8a14c7242e00dd3f38ab857d0f8c7b2fe128902ab5ebf65069e71bc2f9c4936f","path":"work/foo/libfoo.a"},"type":"ACTION"}
+            "foo/libfoo.a": {"data":{"id":"613a6756639b7fac44a698379581f7ac9113536f95722e4180cae3af45befeb9","path":"work/foo/libfoo.a"},"type":"ACTION"}
           },
           "lint": [
           ],
@@ -318,16 +320,16 @@ After that, we can immediately build the new library.
 ```shell
 $ just-mr build --log-limit 4 baz ''
 INFO: Performing repositories setup
-INFO: Found 8 repositories to set up
+INFO: Found 8 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","--log-limit","4","baz",""]
 INFO: Repository "" depends on 1 top-level computed roots
-PERF: Export target ["@","src target tasks description","",""] registered for caching: [03ae0cf28c983014f5eb51685939d462eff595a1:120:f]
-PERF: Root [["@","src target tasks description","",""],{}] evaluated to 6d689bfb84401c1bd1a58736e1f3438d75403892, log 715213ed3038987f18724559969e008550574ad6
-PERF: Export target ["@","src target build","",""] registered for caching: [f5193f37b81bd335de68b6aad207c6e35fc9b16a:120:f]
-PERF: Root [["@","src target build","",""],{}] evaluated to 739a4750d43328ad9c6ff7d9445246a6506368fd, log 7c5efb22ac00ec8ad6cb0ef93735cba24725e33c
+PERF: Export target ["@","src target tasks description","",""] registered for caching: [02e0545e14758f7fe08a90b56cbfae2e12bdd51e:120:f]
+PERF: Root [["@","src target tasks description","",""],{}] evaluated to 43a0b068d6065519061b508a22725c50e68279be, log bf4cc2d0d803bcff78bd7e4e835440467f3a3674
+PERF: Export target ["@","src target build","",""] registered for caching: [00c234393fc6986c308c16d6847ed09e79282097:120:f]
+PERF: Root [["@","src target build","",""],{}] evaluated to 739a4750d43328ad9c6ff7d9445246a6506368fd, log 51525391c622a398b5190adee07c9de6338d56ba
 INFO: Requested target is [["@","","baz",""],{}]
 INFO: Analysed target [["@","","baz",""],{}]
-INFO: Discovered 6 actions, 3 trees, 0 blobs
+INFO: Discovered 6 actions, 0 tree overlays, 3 trees, 0 blobs
 INFO: Building [["@","","baz",""],{}].
 INFO: Processed 2 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
