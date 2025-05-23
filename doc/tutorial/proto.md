@@ -79,16 +79,15 @@ and sets up all the repositories.
 ``` sh
 $ just-mr build address
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
-PROG: [  0%] 1 local, 0 cached, 0 done
-PROG: [  0%] 1 local, 0 cached, 0 done
-PROG: [ 66%] 1 local, 1 cached, 14 done
-PROG: [ 90%] 1 local, 1 cached, 19 done
-PROG: [ 95%] 1 local, 1 cached, 20 done; 1 fetches ("rules-cc/just/import targets")
+INFO: Found 23 repositories involved
+PROG: [ 44%] 0 computed, 1 local, 13 cached, 4 done; 7 fetches ("rules-cc/just/defaults", ...)
+PROG: [ 66%] 0 computed, 1 local, 13 cached, 6 done; 7 fetches ("rules-cc/just/defaults", ...)
+PROG: [ 66%] 0 computed, 1 local, 13 cached, 6 done; 7 fetches ("rules-cc/just/defaults", ...)
+PROG: [ 77%] 0 computed, 1 local, 13 cached, 7 done; 7 fetches ("rules-cc/just/defaults", ...)
 INFO: Setup finished, exec ["just","build","-C","...","--local-build-root","/tmp/proto","address"]
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Analysed target [["@","","","address"],{}]
-INFO: Discovered 0 actions, 0 trees, 0 blobs
+INFO: Discovered 0 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","address"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -110,7 +109,7 @@ structure of the `.proto` files.
 ``` sh
 $ just-mr analyse --dump-nodes - address
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","--dump-nodes","-","address"]
 INFO: Requested target is [["@","","","address"],{}]
 INFO: Result of target [["@","","","address"],{}]: {
@@ -118,7 +117,7 @@ INFO: Result of target [["@","","","address"],{}]: {
         },
         "provides": {
           "proto": [
-            {"id":"2a483a2de7f25c1bc066e47245f55ec9a2d4a719","type":"NODE"}
+            {"id":"6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50","type":"NODE"}
           ]
         },
         "runfiles": {
@@ -126,7 +125,19 @@ INFO: Result of target [["@","","","address"],{}]: {
       }
 INFO: Target nodes of target [["@","","","address"],{}]:
 {
-  "089f6cae7ca77bb786578d3e0138b6ff445c5c92": {
+  "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": {
+    "node_type": "library",
+    "string_fields": {
+      "name": ["addressbook"],
+      "stage": [""]
+    },
+    "target_fields": {
+      "deps": [],
+      "srcs": [{"id":"dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce","type":"NODE"}]
+    },
+    "type": "ABSTRACT_NODE"
+  },
+  "dd79fcd0043ad155b5765f6a7a58a6c88fbcd38567ab0523684bd54a925727ce": {
     "result": {
       "artifact_stage": {
         "addressbook.proto": {
@@ -144,18 +155,6 @@ INFO: Target nodes of target [["@","","","address"],{}]:
       }
     },
     "type": "VALUE_NODE"
-  },
-  "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": {
-    "node_type": "library",
-    "string_fields": {
-      "name": ["addressbook"],
-      "stage": [""]
-    },
-    "target_fields": {
-      "deps": [],
-      "srcs": [{"id":"089f6cae7ca77bb786578d3e0138b6ff445c5c92","type":"NODE"}]
-    },
-    "type": "ABSTRACT_NODE"
   }
 }
 $
@@ -214,12 +213,12 @@ $ just-mr build add_person
 [...]
 $ just-mr build add_person
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","add_person"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Analysed target [["@","","","add_person"],{}]
 INFO: Export targets found: 2 cached, 0 uncached, 0 not eligible for caching
-INFO: Discovered 5 actions, 2 trees, 0 blobs
+INFO: Discovered 5 actions, 0 tree overlays, 2 trees, 0 blobs
 INFO: Building [["@","","","add_person"],{}].
 INFO: Processed 5 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -235,14 +234,22 @@ replaced by `"..."` for clarity.)
 ``` sh
 $ just-mr analyse add_person --dump-actions -
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","add_person","--dump-actions","-"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"6ba3552427c6c47b52bc2fa571a64af300e27243","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"cb403cfeb7af26f83cb268056847f465d330ac44f7a563788305436b2640df2e","path":"work/add_person"},"type":"ACTION"}
         },
         "provides": {
+          "debug-hdrs": {
+          },
+          "debug-srcs": {
+          },
+          "dwarf-pkg": {
+          },
+          "lint": [
+          ],
           "package": {
             "to_bin": true
           },
@@ -289,14 +296,22 @@ earlier.
 ``` sh
 $ just-mr analyse add_person --dump-targets -
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","add_person","--dump-targets","-"]
 INFO: Requested target is [["@","","","add_person"],{}]
 INFO: Result of target [["@","","","add_person"],{}]: {
         "artifacts": {
-          "add_person": {"data":{"id":"6ba3552427c6c47b52bc2fa571a64af300e27243","path":"add_person"},"type":"ACTION"}
+          "add_person": {"data":{"id":"cb403cfeb7af26f83cb268056847f465d330ac44f7a563788305436b2640df2e","path":"work/add_person"},"type":"ACTION"}
         },
         "provides": {
+          "debug-hdrs": {
+          },
+          "debug-srcs": {
+          },
+          "dwarf-pkg": {
+          },
+          "lint": [
+          ],
           "package": {
             "to_bin": true
           },
@@ -309,14 +324,14 @@ INFO: Result of target [["@","","","add_person"],{}]: {
 INFO: List of analysed targets:
 {
   "#": {
-    "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+    "c4f68b96f739e96f894c5b498ab2b3f0bc62df120419094f867b1d5769f5e4fa": {
+      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"DWP":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"LINT":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}]
       }
     },
@@ -344,8 +359,8 @@ INFO: List of analysed targets:
     },
     "rules-cc/just/toolchain": {
       "CC": {
-        "defaults": [{"ARCH":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "unknown": [{"ARCH":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "unknown": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
       }
     }
   }
@@ -371,7 +386,7 @@ purpose.
 ``` sh
 $ just-mr analyse 'address proto library'
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","address proto library"]
 INFO: Requested target is [["@","","","address proto library"],{}]
 INFO: Result of target [["@","","","address proto library"],{}]: {
@@ -381,16 +396,17 @@ INFO: Result of target [["@","","","address proto library"],{}]: {
           ...
           "compile-deps": {
             ...
-            "addressbook.pb.h": {"data":{"id":"b05ff2058068a30961c3e28318b9105795a08a42","path":"work/addressbook.pb.h"},"type":"ACTION"},
+            "addressbook.pb.h": {"data":{"id":"bab5472beed7f032000d2d2cbf7d772c22c8c95cccdecbe70e73e9494ee34bf0","path":"work/addressbook.pb.h"},"type":"ACTION"},
             ...
           },
+          ...
           "link-args": [
             "libaddressbook.a",
             ...
           ],
           "link-deps": {
             ...
-            "libaddressbook.a": {"data":{"id":"acc15c9c1218b4df277f49d537a3c4b961263490","path":"libaddressbook.a"},"type":"ACTION"},
+            "libaddressbook.a": {"data":{"id":"fa60ded058e1fc7663b4b925a1274d1fe330bedb12c8785a7042e450ef17a7c1","path":"work/libaddressbook.a"},"type":"ACTION"},
             ...
           },
           ...
@@ -446,39 +462,42 @@ targets and the one anonymous target is reused by both binaries.
 ``` sh
 $ just-mr analyse test --dump-targets -
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","test","--dump-targets","-"]
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Result of target [["@","","","test"],{}]: {
         "artifacts": {
-          "result": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"result"},"type":"ACTION"},
-          "stderr": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"stderr"},"type":"ACTION"},
-          "stdout": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"stdout"},"type":"ACTION"},
-          "time-start": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"time-start"},"type":"ACTION"},
-          "time-stop": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"time-stop"},"type":"ACTION"},
-          "work/addressbook.data": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"work/addressbook.data"},"type":"ACTION"},
-          "work/out.txt": {"data":{"id":"e37a69e5d5213f53da5f1c2a42297c987732984f","path":"work/out.txt"},"type":"ACTION"}
+          "pwd": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"pwd"},"type":"ACTION"},
+          "result": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"result"},"type":"ACTION"},
+          "stderr": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"stderr"},"type":"ACTION"},
+          "stdout": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"stdout"},"type":"ACTION"},
+          "time-start": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"time-start"},"type":"ACTION"},
+          "time-stop": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"time-stop"},"type":"ACTION"},
+          "work/addressbook.data": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"work/addressbook.data"},"type":"ACTION"},
+          "work/out.txt": {"data":{"id":"73744cdcd8be5082a6960ec0cf8c929d2a9cd0dd65860e3458901c49c8e4744f","path":"work/out.txt"},"type":"ACTION"}
         },
         "provides": {
+          "lint": [
+          ]
         },
         "runfiles": {
-          "read-write-test": {"data":{"id":"71d9414c93b1bf4c2883af6070671761f9bc5cbf"},"type":"TREE"}
+          "read-write-test": {"data":{"id":"89bfa89b538549aa812415be625759872191d05315726828829848a87f86fa9f"},"type":"TREE"}
         }
       }
 INFO: List of analysed targets:
 {
   "#": {
-    "eda46ea21de25033ff7250e6a4cdc0b2c24be0c7": {
-      "2a483a2de7f25c1bc066e47245f55ec9a2d4a719": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+    "c4f68b96f739e96f894c5b498ab2b3f0bc62df120419094f867b1d5769f5e4fa": {
+      "6bcfb07e77f4d00f84d4c38bff64b92e0a1cf07399bd0987250eaef1b06b0b50": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
     }
   },
   "@": {
     "": {
       "": {
-        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "add_person": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"DWP":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"LINT":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
         "address": [{}],
-        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"ARCH_DISPATCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"RUNS_PER_TEST":null,"TARGET_ARCH":null,"TEST_ENV":null,"TIMEOUT_SCALE":null,"TOOLCHAIN_CONFIG":null}],
+        "list_people": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"DWP":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"LINT":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "test": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"ADD_LDFLAGS":null,"AR":null,"ARCH":null,"ARCH_DISPATCH":null,"BUILD_POSITION_INDEPENDENT":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"DWP":null,"ENV":null,"HOST_ARCH":null,"LDFLAGS":null,"LINT":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"RUNS_PER_TEST":null,"TARGET_ARCH":null,"TEST_ENV":null,"TEST_SUMMARY_EXECUTION_PROPERTIES":null,"TIMEOUT_SCALE":null,"TOOLCHAIN_CONFIG":null}],
         "test.sh": [{}]
       }
     },
@@ -488,6 +507,9 @@ INFO: List of analysed targets:
       },
       "CC/proto": {
         "defaults": [{"ADD_CFLAGS":null,"ADD_CXXFLAGS":null,"AR":null,"ARCH":null,"CC":null,"CFLAGS":null,"CXX":null,"CXXFLAGS":null,"DEBUG":null,"ENV":null,"HOST_ARCH":null,"OS":null,"PKG_CONFIG_ARGS":null,"PREFIX":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}]
+      },
+      "shell": {
+        "defaults": [{"ARCH":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
       }
     },
     "rules-cc/just/protobuf": {
@@ -506,8 +528,8 @@ INFO: List of analysed targets:
     },
     "rules-cc/just/toolchain": {
       "CC": {
-        "defaults": [{"ARCH":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
-        "unknown": [{"ARCH":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
+        "defaults": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"OS":null,"TARGET_ARCH":null,"TOOLCHAIN_CONFIG":null}],
+        "unknown": [{"ARCH":null,"DEBUG":null,"HOST_ARCH":null,"TARGET_ARCH":null}]
       }
     }
   }
@@ -521,28 +543,29 @@ Finally, the test passes and the output is as expected.
 ``` sh
 $ just-mr build test -P work/out.txt
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","test","-P","work/out.txt"]
 INFO: Requested target is [["@","","","test"],{}]
 INFO: Analysed target [["@","","","test"],{}]
 INFO: Export targets found: 2 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["test"].
-INFO: Discovered 8 actions, 5 trees, 1 blobs
+INFO: Discovered 8 actions, 0 tree overlays, 5 trees, 1 blobs
 INFO: Building [["@","","","test"],{}].
 INFO: Processed 8 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
+        pwd [9006e78b54c8f3118918d2d471c79745ffa0c8a0:311:f]
         result [7ef22e9a431ad0272713b71fdc8794016c8ef12f:5:f]
         stderr [e69de29bb2d1d6434b8b29ae775ad8c2e48c5391:0:f]
         stdout [7fab9dd1ee66a1e76a3697a27524f905600afbd0:196:f]
-        time-start [8e3614748ef049ea08bc49740d9ba55dfd42ef06:11:f]
-        time-stop [8e3614748ef049ea08bc49740d9ba55dfd42ef06:11:f]
-        work/addressbook.data [b673b647fbce717116104e84c335fdecaae974d6:41:f]
-        work/out.txt [ae02d08605d72d74bbfa72d33e4d314bb3632591:101:f]
+        time-start [0836c60e080d14176345259e32f65c1e14edfc49:11:f]
+        time-stop [0836c60e080d14176345259e32f65c1e14edfc49:11:f]
+        work/addressbook.data [036614cb6ec77ecf979729cbef3f22bd5ebd6a56:41:f]
+        work/out.txt [90ffe98823f628b92fe54b8c85f1754a9085c8db:101:f]
       (1 runfiles omitted.)
 Person ID: 12345
   Name: John Doe
   E-mail address: jdoe@example.org
-  Updated: 2024-04-19T15:51:27Z
+  Updated: ...
 INFO: Target tainted ["test"].
 $
 ```
@@ -574,51 +597,49 @@ The debugging target can then be installed to a directory of our choosing.
 ``` sh
 $ just-mr install "list_people debug staged" -o .ext/debug
 INFO: Performing repositories setup
-INFO: Found 23 repositories to set up
+INFO: Found 23 repositories involved
 INFO: Setup finished, exec ["just","install","-C","...","list_people debug staged","-o",".ext/debug"]
 INFO: Requested target is [["@","","","list_people debug staged"],{}]
 INFO: Analysed target [["@","","","list_people debug staged"],{}]
-INFO: Export targets found: 0 cached, 90 uncached, 0 not eligible for caching
-INFO: Discovered 419 actions, 89 trees, 1 blobs
+INFO: Export targets found: 0 cached, 98 uncached, 0 not eligible for caching
+INFO: Discovered 447 actions, 0 tree overlays, 99 trees, 1 blobs
 INFO: Building [["@","","","list_people debug staged"],{}].
 [...]
-INFO: Processed 419 actions, 1 cache hits.
+INFO: Processed 447 actions, 1 cache hits.
 INFO: Artifacts can be found in:
-        /tmp/tutorial/.ext/debug/bin/list_people [2cc2f0efa28327bdf7d49f5d2cafcc25c1693a4c:41761464:x]
+        /tmp/tutorial/.ext/debug/bin/list_people [71165d3aed4491169ed8bb8e783a9bbc15b9e9b6:46902576:x]
         /tmp/tutorial/.ext/debug/include/absl/algorithm/algorithm.h [59aeed7d264d927e44648428056cc9c489fad844:2190:f]
-        /tmp/tutorial/.ext/debug/include/absl/algorithm/container.h [c7bafae1477cf2bb88928b92d0248cb8a146814c:78387:f]
+        /tmp/tutorial/.ext/debug/include/absl/algorithm/container.h [6bbe3b5adf40b8a4bc48551f8e9f0af96dd98ace:80031:f]
         ...
-        /tmp/tutorial/.ext/debug/include/absl/types/variant.h [ac93464bf8d0f63f745b8461daa7698a91caf6f7:34055:f]
-        /tmp/tutorial/.ext/debug/include/absl/utility/utility.h [fc0d1f65516a3da1341f639577acb4fdab64fe0d:8711:f]
-        /tmp/tutorial/.ext/debug/include/addressbook.pb.h [964e2745b22e5920f291801db91f2c73ed5435ad:44427:f]
-        /tmp/tutorial/.ext/debug/include/google/protobuf/any.h [03ddf3f54386e158b1f2575c158f1106d7265a24:5302:f]
-        /tmp/tutorial/.ext/debug/include/google/protobuf/any.pb.h [b9c4ada87b05a3fdeef134e561d4ce010040728e:15844:f]
+        /tmp/tutorial/.ext/debug/include/absl/utility/utility.h [ebbb49b7159a3bcf2f1edbf9d44bd67dceb0329f:7646:f]
+        /tmp/tutorial/.ext/debug/include/addressbook.pb.h [f273099fe8d8345b1e61bdfa19751aefebe55869:46787:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/any.h [fe8a1775c77b91fc08368833d70236509dde82b7:6127:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/any.pb.h [67185ebca130f840ddacd687c59faceb523730e4:16787:f]
         /tmp/tutorial/.ext/debug/include/google/protobuf/any.proto [eff44e5099da27f7fb1ef14bb34902ccf4250b89:6154:f]
         ...
-        /tmp/tutorial/.ext/debug/include/google/protobuf/wrappers.pb.h [02819d3219fe8ffcaf67cee25b7a73ab6e934f24:69964:f]
+        /tmp/tutorial/.ext/debug/include/google/protobuf/wrappers.pb.h [0d85637aa1dadd86ccbc81a9563d54aba9eb9b3b:77623:f]
         /tmp/tutorial/.ext/debug/include/google/protobuf/wrappers.proto [1959fa55a4e7f284a9d6a78a447c5d89d137e87c:4044:f]
-        /tmp/tutorial/.ext/debug/include/utf8_validity.h [4a8d75b3b46d569526b9ae36814e71f1dab476d7:692:f]
-        /tmp/tutorial/.ext/debug/include/zconf.h [fb76ffe312ae45cf5d5d5e448f81e06fa79ab874:16682:f]
-        /tmp/tutorial/.ext/debug/include/zlib.h [6b7244f9943219c7b6e5a08d4913f2a15810d0c4:96778:f]
+        /tmp/tutorial/.ext/debug/include/utf8_range.h [d7c232616022bb28c8bc35ca62d61f890a2f8ced:540:f]
+        /tmp/tutorial/.ext/debug/include/utf8_validity.h [1f251d0fec0a2ae496335780d93a2869a1d7f743:712:f]
+        /tmp/tutorial/.ext/debug/include/zconf.h [62adc8d8431f2f9149ae0b1583915e21a28dd8b5:16500:f]
+        /tmp/tutorial/.ext/debug/include/zlib.h [8d4b932eaf6a0fbb8133b3ab49ba5ef587059fa0:96829:f]
         /tmp/tutorial/.ext/debug/work/absl/algorithm/algorithm.h [59aeed7d264d927e44648428056cc9c489fad844:2190:f]
-        /tmp/tutorial/.ext/debug/work/absl/algorithm/container.h [c7bafae1477cf2bb88928b92d0248cb8a146814c:78387:f]
+        /tmp/tutorial/.ext/debug/work/absl/algorithm/container.h [6bbe3b5adf40b8a4bc48551f8e9f0af96dd98ace:80031:f]
         ...
-        /tmp/tutorial/.ext/debug/work/absl/types/span.h [88cd75954084d0df6d774fc038f243fdc1140942:27228:f]
-        /tmp/tutorial/.ext/debug/work/absl/types/variant.h [ac93464bf8d0f63f745b8461daa7698a91caf6f7:34055:f]
-        /tmp/tutorial/.ext/debug/work/absl/utility/utility.h [fc0d1f65516a3da1341f639577acb4fdab64fe0d:8711:f]
-        /tmp/tutorial/.ext/debug/work/addressbook.pb.cc [b19ba7ad01dbf9c701f58b2b511845da2f0e8171:36687:f]
-        /tmp/tutorial/.ext/debug/work/addressbook.pb.h [964e2745b22e5920f291801db91f2c73ed5435ad:44427:f]
+        /tmp/tutorial/.ext/debug/work/absl/utility/utility.h [ebbb49b7159a3bcf2f1edbf9d44bd67dceb0329f:7646:f]
+        /tmp/tutorial/.ext/debug/work/addressbook.pb.cc [2261b2349a90b090d501c3c3c362e1efc783c218:46574:f]
+        /tmp/tutorial/.ext/debug/work/addressbook.pb.h [f273099fe8d8345b1e61bdfa19751aefebe55869:46787:f]
         ...
-        /tmp/tutorial/.ext/debug/work/google/protobuf/any.h [03ddf3f54386e158b1f2575c158f1106d7265a24:5302:f]
-        /tmp/tutorial/.ext/debug/work/google/protobuf/any.pb.h [b9c4ada87b05a3fdeef134e561d4ce010040728e:15844:f]
+        /tmp/tutorial/.ext/debug/work/google/protobuf/any.h [fe8a1775c77b91fc08368833d70236509dde82b7:6127:f]
+        /tmp/tutorial/.ext/debug/work/google/protobuf/any.pb.h [67185ebca130f840ddacd687c59faceb523730e4:16787:f]
         /tmp/tutorial/.ext/debug/work/google/protobuf/any.proto [eff44e5099da27f7fb1ef14bb34902ccf4250b89:6154:f]
         ...
         /tmp/tutorial/.ext/debug/work/list_people.cc [b309c596804739007510f06ff62c12898275fec7:2268:f]
         ...
-        /tmp/tutorial/.ext/debug/work/zlib.h [6b7244f9943219c7b6e5a08d4913f2a15810d0c4:96778:f]
+        /tmp/tutorial/.ext/debug/work/zlib.h [8d4b932eaf6a0fbb8133b3ab49ba5ef587059fa0:96829:f]
         /tmp/tutorial/.ext/debug/work/zutil.c [b1c5d2d3c6daf5a4b7a337dafe3e862ca177b41c:7179:f]
-        /tmp/tutorial/.ext/debug/work/zutil.h [902a304cc2d913d5548e0489c0c451790208c96f:7247:f]
-INFO: Backing up artifacts of 90 export targets
+        /tmp/tutorial/.ext/debug/work/zutil.h [48dd7febae65eeeaad7794f0a9317bcd054c107f:6677:f]
+INFO: Backing up artifacts of 98 export targets
 ```
 
 As the command requires (re)building many targets in debug mode, some of the

@@ -58,7 +58,7 @@ To build a target, we need to run `just` with the subcommand `build`:
 $ just build greeter
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -77,7 +77,7 @@ and specify the output directory:
 $ just install greeter -o .
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
 INFO: Artifacts can be found in:
@@ -104,7 +104,7 @@ a text file, as well as for piping the artifact to another program.
 $ just build greeter -P out.txt
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -113,7 +113,7 @@ Hello World
 $ just build -p
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -178,7 +178,7 @@ As we only request targets, no conflicts arise.
 $ just build upper -p
 INFO: Requested target is [["@","","","upper"],{}]
 INFO: Analysed target [["@","","","upper"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","upper"],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -187,7 +187,7 @@ WORLD
 $ just build greeter -p
 INFO: Requested target is [["@","","","greeter"],{}]
 INFO: Analysed target [["@","","","greeter"],{}]
-INFO: Discovered 1 actions, 0 trees, 0 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","greeter"],{}].
 INFO: Processed 1 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -217,7 +217,7 @@ artifact of that target) as such a mapping is necessarily conflict free.
 $ just build both
 INFO: Requested target is [["@","","","both"],{}]
 INFO: Analysed target [["@","","","both"],{}]
-INFO: Discovered 2 actions, 0 trees, 0 blobs
+INFO: Discovered 2 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","","","both"],{}].
 INFO: Processed 2 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:

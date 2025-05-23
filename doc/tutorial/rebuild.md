@@ -134,11 +134,11 @@ takes the action result from cache.
 $ touch ROOT
 $ just-mr build
 INFO: Performing repositories setup
-INFO: Found 2 repositories to set up
+INFO: Found 2 repositories involved
 INFO: Setup finished, exec ["just","build","-C","..."]
 INFO: Requested target is [["@","","",""],{}]
 INFO: Analysed target [["@","","",""],{}]
-INFO: Discovered 6 actions, 1 trees, 0 blobs
+INFO: Discovered 6 actions, 0 tree overlays, 1 trees, 0 blobs
 INFO: Building [["@","","",""],{}].
 INFO: Processed 6 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -148,11 +148,11 @@ INFO: Artifacts built, logical paths are:
 $ sleep 1
 $ just-mr build
 INFO: Performing repositories setup
-INFO: Found 2 repositories to set up
+INFO: Found 2 repositories involved
 INFO: Setup finished, exec ["just","build","-C","..."]
 INFO: Requested target is [["@","","",""],{}]
 INFO: Analysed target [["@","","",""],{}]
-INFO: Discovered 6 actions, 1 trees, 0 blobs
+INFO: Discovered 6 actions, 0 tree overlays, 1 trees, 0 blobs
 INFO: Building [["@","","",""],{}].
 INFO: Processed 6 actions, 6 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -161,11 +161,11 @@ INFO: Artifacts built, logical paths are:
         share/hello/version.txt [de0d4f12aeb65c9e0a52909a07b0638e16e112fd:34:f]
 $ just-mr rebuild
 INFO: Performing repositories setup
-INFO: Found 2 repositories to set up
+INFO: Found 2 repositories involved
 INFO: Setup finished, exec ["just","rebuild","-C","..."]
 INFO: Requested target is [["@","","",""],{}]
 INFO: Analysed target [["@","","",""],{}]
-INFO: Discovered 6 actions, 1 trees, 0 blobs
+INFO: Discovered 6 actions, 0 tree overlays, 1 trees, 0 blobs
 INFO: Rebuilding [["@","","",""],{}].
 WARN: Found flaky action:
        - id: 50e387d4d4c4dd9d8e6d08e1895c7dc729e5a4f3e7c7ad90cc93e373b5dea947

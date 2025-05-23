@@ -78,11 +78,11 @@ with the empty object and refine it later.
 $ echo {} > TARGETS.units
 $ just-mr install -o . definitions.units
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","install","-C","...","-o",".","definitions.units"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
-INFO: Discovered 0 actions, 0 trees, 0 blobs
+INFO: Discovered 0 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","units","","definitions.units"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
@@ -132,17 +132,17 @@ their inputs) and, in fact, have a fixed command line.
 ``` sh
 $ just-mr analyse definitions.units --dump-actions -
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","definitions.units","--dump-actions","-"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Result of target [["@","units","","definitions.units"],{}]: {
         "artifacts": {
-          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"25d6d534845e948a49064e394712e529b4f6bd915de19d5d42549dacfa60dc41","path":"patched"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
-          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"25d6d534845e948a49064e394712e529b4f6bd915de19d5d42549dacfa60dc41","path":"patched"},"type":"ACTION"}
         }
       }
 INFO: Actions for target [["@","units","","definitions.units"],{}]:
@@ -188,11 +188,11 @@ Building `"definitions.units"` we find out that the patch applied correctly
 ``` sh
 $ just-mr build definitions.units -P definitions.units | grep -A 5 'German units'
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","definitions.units","-P","definitions.units"]
 INFO: Requested target is [["@","units","","definitions.units"],{}]
 INFO: Analysed target [["@","units","","definitions.units"],{}]
-INFO: Discovered 1 actions, 0 trees, 1 blobs
+INFO: Discovered 1 actions, 0 tree overlays, 0 trees, 1 blobs
 INFO: Building [["@","units","","definitions.units"],{}].
 INFO: Processed 1 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -224,19 +224,19 @@ and the output of the patch action.
 ``` sh
 $ just-mr analyse data-draft
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","data-draft"]
 INFO: Requested target is [["@","units","","data-draft"],{}]
 INFO: Result of target [["@","units","","data-draft"],{}]: {
         "artifacts": {
           "currency.units": {"data":{"file_type":"f","id":"ac6da8afaac0f34e114e123e4ab3a41e59121b10","size":14707},"type":"KNOWN"},
-          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"25d6d534845e948a49064e394712e529b4f6bd915de19d5d42549dacfa60dc41","path":"patched"},"type":"ACTION"}
         },
         "provides": {
         },
         "runfiles": {
           "currency.units": {"data":{"file_type":"f","id":"ac6da8afaac0f34e114e123e4ab3a41e59121b10","size":14707},"type":"KNOWN"},
-          "definitions.units": {"data":{"id":"ac620477c30dc79701cdda95ec97a06f12251b6f","path":"patched"},"type":"ACTION"}
+          "definitions.units": {"data":{"id":"25d6d534845e948a49064e394712e529b4f6bd915de19d5d42549dacfa60dc41","path":"patched"},"type":"ACTION"}
         }
       }
 $
@@ -329,17 +329,17 @@ total, giving 5 compile and one link action.
 ``` sh
 $ just-mr build units-draft
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","units-draft"]
 INFO: Requested target is [["@","units","","units-draft"],{}]
 INFO: Analysed target [["@","units","","units-draft"],{}]
-INFO: Discovered 6 actions, 1 trees, 0 blobs
+INFO: Discovered 6 actions, 0 tree overlays, 1 trees, 0 blobs
 INFO: Building [["@","units","","units-draft"],{}].
-INFO (action:f9426e7a0c3525618ead3787872e843c86f12dd2):
-     Stderr of command: ["cc","-I","work","-isystem","include","-c","work/strfunc.c","-o","work/strfunc.o"]
-     work/strfunc.c:109:8: warning: extra tokens at end of #endif directive [-Wendif-labels]
-       109 | #endif NO_STRSPN
-           |        ^~~~~~~~~
+INFO (action:a6adae74a8b50103a46700203f32e2286cec0a31ac41667b88d5b1ebe9b9860c):
+     Stderr of command ["cc","-I","work","-isystem","include","-c","work/strfunc.c","-o","work/strfunc.o"] in environment {"PATH":"/bin:/usr/bin"}
+       work/strfunc.c:109:8: warning: extra tokens at end of #endif directive [-Wendif-labels]
+         109 | #endif NO_STRSPN
+             |        ^~~~~~~~~
 INFO: Processed 6 actions, 0 cache hits.
 INFO: Artifacts built, logical paths are:
         units [40cdc2a9fa6f06004bbf290014519ba21f122e7d:124488:x]
@@ -354,11 +354,11 @@ a patch.
 ``` sh
 $ just-mr install -o . strfunc.c
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","install","-C","...","-o",".","strfunc.c"]
 INFO: Requested target is [["@","units","","strfunc.c"],{}]
 INFO: Analysed target [["@","units","","strfunc.c"],{}]
-INFO: Discovered 0 actions, 0 trees, 0 blobs
+INFO: Discovered 0 actions, 0 tree overlays, 0 trees, 0 blobs
 INFO: Building [["@","units","","strfunc.c"],{}].
 INFO: Processed 0 actions, 0 cache hits.
 INFO: Artifacts can be found in:
@@ -407,11 +407,11 @@ cache.
 ``` sh
 $ just-mr build units
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","units"]
 INFO: Requested target is [["@","units","","units"],{}]
 INFO: Analysed target [["@","units","","units"],{}]
-INFO: Discovered 7 actions, 1 trees, 1 blobs
+INFO: Discovered 7 actions, 0 tree overlays, 1 trees, 1 blobs
 INFO: Building [["@","units","","units"],{}].
 INFO: Processed 7 actions, 5 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -434,11 +434,11 @@ Then things work as expected
 ``` sh
 $ just-mr install -o /tmp/testinstall
 INFO: Performing repositories setup
-INFO: Found 4 repositories to set up
+INFO: Found 4 repositories involved
 INFO: Setup finished, exec ["just","install","-C","...","-o","/tmp/testinstall"]
 INFO: Requested target is [["@","units","",""],{}]
 INFO: Analysed target [["@","units","",""],{}]
-INFO: Discovered 8 actions, 1 trees, 1 blobs
+INFO: Discovered 8 actions, 0 tree overlays, 1 trees, 1 blobs
 INFO: Building [["@","units","",""],{}].
 INFO: Processed 8 actions, 8 cache hits.
 INFO: Artifacts can be found in:

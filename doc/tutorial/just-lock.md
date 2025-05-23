@@ -146,12 +146,12 @@ $ just-lock -C repos.in.json -o repos.out.json
 $
 $ just-mr -C repos.out.json build helloworld
 INFO: Performing repositories setup
-INFO: Found 5 repositories to set up
+INFO: Found 5 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 1 cached, 0 uncached, 0 not eligible for caching
-INFO: Discovered 4 actions, 2 trees, 0 blobs
+INFO: Discovered 4 actions, 0 tree overlays, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 4 cache hits.
 INFO: Artifacts built, logical paths are:

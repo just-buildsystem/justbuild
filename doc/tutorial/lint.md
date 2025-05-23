@@ -23,24 +23,26 @@ abstract nodes for our sources (`main.cpp`, `greet/greet.hpp`,
 ``` sh
 $ just-mr analyse -D '{"LINT": true}' --dump-nodes -
 INFO: Performing repositories setup
-INFO: Found 5 repositories to set up
+INFO: Found 5 repositories involved
 INFO: Setup finished, exec ["just","analyse","-C","...","-D","{\"LINT\": true}","--dump-nodes","-"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{"LINT":true}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{"LINT":true}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
 INFO: Result of target [["@","tutorial","","helloworld"],{"LINT":true}]: {
         "artifacts": {
-          "helloworld": {"data":{"id":"edf0113a4dff26d1d2453947fe0c7ae11a6cabb125a5ddb2f15e10106e01781c","path":"work/helloworld"},"type":"ACTION"}
+          "helloworld": {"data":{"id":"1154ef311dff82653bc6a1a92bfc6152bc116cb86652b4b5218385fe39054391","path":"work/helloworld"},"type":"ACTION"}
         },
         "provides": {
           "debug-hdrs": {
           },
           "debug-srcs": {
           },
+          "dwarf-pkg": {
+          },
           "lint": [
-            {"id":"28df1af04041db0c150bbdef440fc3265a57e1163258fd15a4373b7279e4b91a","type":"NODE"},
-            {"id":"f76b7acba64fc35a5c67f81d52a4aa47e0b0c8966eaf19c1f51477a4e0b8fc79","type":"NODE"},
-            {"id":"bd8ee55d88fade7ebc8121ab7e230aed3888b27f9e87841482b2b08ecf47acb0","type":"NODE"}
+            {"id":"aec2651a9f3b869554e3a2e5cc3ab85d86610a79aae388a4f7839396dc2167d2","type":"NODE"},
+            {"id":"509e506f8d0c2ebe4fca63fe7cc528be17165bae464410ac5fba97a6ed92930d","type":"NODE"},
+            {"id":"cb3bd5f3934e199ddf5d43eae6866f8c6ba449f060213a244c93f0826c070c3f","type":"NODE"}
           ],
           "package": {
             "to_bin": true
@@ -53,12 +55,40 @@ INFO: Result of target [["@","tutorial","","helloworld"],{"LINT":true}]: {
       }
 INFO: Target nodes of target [["@","tutorial","","helloworld"],{"LINT":true}]:
 {
-  "28df1af04041db0c150bbdef440fc3265a57e1163258fd15a4373b7279e4b91a": {
+  "509e506f8d0c2ebe4fca63fe7cc528be17165bae464410ac5fba97a6ed92930d": {
     "result": {
       "artifact_stage": {
         "include": {
           "data": {
-            "id": "ac340b9e4bcdf82d972ff9286bbda4cd7219d6d3487867875418aeb2b03012b5"
+            "id": "a882ca13d51c70aa6b02d4996aa426ee6e21bf85881ec0f6dbe0a278f5a27b7b"
+          },
+          "type": "TREE"
+        },
+        "work/greet/greet.hpp": {
+          "data": {
+            "path": "greet/greet.hpp",
+            "repository": "tutorial"
+          },
+          "type": "LOCAL"
+        }
+      },
+      "provides": {
+        "cmd": ["c++","-O2","-Wall","-I","work","-isystem","include","-E","work/greet/greet.hpp"],
+        "direct deps artifact names": ["include/fmt","work/greet/greet.hpp"],
+        "extra outs": [],
+        "src": "work/greet/greet.hpp"
+      },
+      "runfiles": {
+      }
+    },
+    "type": "VALUE_NODE"
+  },
+  "aec2651a9f3b869554e3a2e5cc3ab85d86610a79aae388a4f7839396dc2167d2": {
+    "result": {
+      "artifact_stage": {
+        "include": {
+          "data": {
+            "id": "29d6c7fef3c48a1a3b15edd770b33d073d5c9cd1e6e9fb22917831fcdd762ebb"
           },
           "type": "TREE"
         },
@@ -72,6 +102,8 @@ INFO: Target nodes of target [["@","tutorial","","helloworld"],{"LINT":true}]:
       },
       "provides": {
         "cmd": ["c++","-O2","-Wall","-I","work","-isystem","include","-c","work/main.cpp","-o","work/main.o"],
+        "direct deps artifact names": ["include/greet/greet.hpp"],
+        "extra outs": [],
         "src": "work/main.cpp"
       },
       "runfiles": {
@@ -79,12 +111,12 @@ INFO: Target nodes of target [["@","tutorial","","helloworld"],{"LINT":true}]:
     },
     "type": "VALUE_NODE"
   },
-  "bd8ee55d88fade7ebc8121ab7e230aed3888b27f9e87841482b2b08ecf47acb0": {
+  "cb3bd5f3934e199ddf5d43eae6866f8c6ba449f060213a244c93f0826c070c3f": {
     "result": {
       "artifact_stage": {
         "include": {
           "data": {
-            "id": "124bb6d1afd5839463acf1f602109c4229ea303dc5dbfc63d2d4ce21fa590d24"
+            "id": "a882ca13d51c70aa6b02d4996aa426ee6e21bf85881ec0f6dbe0a278f5a27b7b"
           },
           "type": "TREE"
         },
@@ -105,33 +137,9 @@ INFO: Target nodes of target [["@","tutorial","","helloworld"],{"LINT":true}]:
       },
       "provides": {
         "cmd": ["c++","-O2","-Wall","-I","work","-isystem","include","-c","work/greet/greet.cpp","-o","work/greet/greet.o"],
+        "direct deps artifact names": ["include/fmt","work/greet/greet.hpp"],
+        "extra outs": [],
         "src": "work/greet/greet.cpp"
-      },
-      "runfiles": {
-      }
-    },
-    "type": "VALUE_NODE"
-  },
-  "f76b7acba64fc35a5c67f81d52a4aa47e0b0c8966eaf19c1f51477a4e0b8fc79": {
-    "result": {
-      "artifact_stage": {
-        "include": {
-          "data": {
-            "id": "124bb6d1afd5839463acf1f602109c4229ea303dc5dbfc63d2d4ce21fa590d24"
-          },
-          "type": "TREE"
-        },
-        "work/greet/greet.hpp": {
-          "data": {
-            "path": "greet/greet.hpp",
-            "repository": "tutorial"
-          },
-          "type": "LOCAL"
-        }
-      },
-      "provides": {
-        "cmd": ["c++","-O2","-Wall","-I","work","-isystem","include","-E","work/greet/greet.hpp"],
-        "src": "work/greet/greet.hpp"
       },
       "runfiles": {
       }
@@ -162,9 +170,10 @@ subcommand.
 ``` sh
 $ just-mr --main rules-cc describe --rule lint targets
 INFO: Performing repositories setup
-INFO: Found 2 repositories to set up
+INFO: Found 2 repositories involved
 INFO: Setup finished, exec ["just","describe","-C","...","--rule","lint","targets"]
  | Run a given linter on the lint information provided by the given targets.
+...
  Target fields
  - "linter"
    | Single artifact running the lint checks.
@@ -315,13 +324,13 @@ We now can build our lint report in the same way as any test report.
 ``` sh
 $ just-mr build lint -P report
 INFO: Performing repositories setup
-INFO: Found 5 repositories to set up
+INFO: Found 5 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","lint","-P","report"]
 INFO: Requested target is [["@","tutorial","","lint"],{}]
 INFO: Analysed target [["@","tutorial","","lint"],{}]
 INFO: Export targets found: 0 cached, 1 uncached, 0 not eligible for caching
 INFO: Target tainted ["lint"].
-INFO: Discovered 11 actions, 7 trees, 0 blobs
+INFO: Discovered 11 actions, 0 tree overlays, 7 trees, 0 blobs
 INFO: Building [["@","tutorial","","lint"],{}].
 INFO: Processed 7 actions, 3 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -351,12 +360,12 @@ Building succeeds without any warning.
 ``` sh
 $ just-mr build helloworld
 INFO: Performing repositories setup
-INFO: Found 5 repositories to set up
+INFO: Found 5 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","helloworld"]
 INFO: Requested target is [["@","tutorial","","helloworld"],{}]
 INFO: Analysed target [["@","tutorial","","helloworld"],{}]
 INFO: Export targets found: 1 cached, 0 uncached, 0 not eligible for caching
-INFO: Discovered 4 actions, 2 trees, 0 blobs
+INFO: Discovered 4 actions, 0 tree overlays, 2 trees, 0 blobs
 INFO: Building [["@","tutorial","","helloworld"],{}].
 INFO: Processed 4 actions, 1 cache hits.
 INFO: Artifacts built, logical paths are:
@@ -367,15 +376,20 @@ However, the linter reports it.
 ``` sh
 $ just-mr build lint -P report || :
 INFO: Performing repositories setup
-INFO: Found 5 repositories to set up
+INFO: Found 5 repositories involved
 INFO: Setup finished, exec ["just","build","-C","...","lint","-P","report"]
 INFO: Requested target is [["@","tutorial","","lint"],{}]
 INFO: Analysed target [["@","tutorial","","lint"],{}]
 INFO: Export targets found: 1 cached, 0 uncached, 0 not eligible for caching
 INFO: Target tainted ["lint"].
-INFO: Discovered 8 actions, 6 trees, 0 blobs
+INFO: Discovered 8 actions, 0 tree overlays, 6 trees, 0 blobs
 INFO: Building [["@","tutorial","","lint"],{}].
-WARN (action:b9abc2d5c9766644da1f9db5ec6586f6ced35f36670046b14f73ad532ce12ba4): lint failed for work/greet/greet.cpp (exit code 1)
+WARN (action:415a94f0c74ec937e2504b9ef5f94696232ff2c57eb2bec00c226896e2eb8be6):
+     lint failed for work/greet/greet.cpp (exit code 1); outputs:
+      - "result" [94e1707e853c36f514de3876408c09a0e0ca6fc4:5:f]
+      - "stderr" [ffc377e8898697782ab96419f6ab82c60985c752:235:f]
+      - "stdout" [17975e013bd2cc3f66509e11737e1e169f1bd162:231:f]
+      - "out" [caf25f0a518d21909625f9a7974002796f6d8b5f:39:t]
 INFO: Processed 4 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
         out [c298959107421711f8d87a2b96e95858c065b9b9:41:t] FAILED
