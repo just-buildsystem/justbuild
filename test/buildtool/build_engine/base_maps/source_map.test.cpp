@@ -31,14 +31,17 @@
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-auto SetupConfig(bool use_git) -> RepositoryConfig {
+auto SetupConfig(StorageConfig const* storage_config,
+                 bool use_git) -> RepositoryConfig {
     // manually create locally a test symlink in data_src; should match the
     // git test_repo structure
     if (not use_git) {
@@ -51,7 +54,9 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
     if (use_git) {
         auto repo_path = CreateTestRepo();
         REQUIRE(repo_path);
-        auto git_root = FileRoot::FromGit(*repo_path, kSrcTreeId);
+        REQUIRE(storage_config);
+        auto git_root =
+            FileRoot::FromGit(storage_config, *repo_path, kSrcTreeId);
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
@@ -63,10 +68,11 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
 auto ReadSourceTarget(EntityName const& id,
                       SourceTargetMap::Consumer consumer,
                       HashFunction::Type hash_type,
+                      StorageConfig const* storage_config,
                       bool use_git = false,
                       std::optional<SourceTargetMap::FailureFunction>
                           fail_func = std::nullopt) -> bool {
-    auto repo_config = SetupConfig(use_git);
+    auto repo_config = SetupConfig(storage_config, use_git);
     auto directory_entries = CreateDirectoryEntriesMap(&repo_config);
     auto source_artifacts =
         CreateSourceTargetMap(&directory_entries, &repo_config, hash_type);
@@ -99,13 +105,19 @@ TEST_CASE("from file") {
     };
 
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
+        CHECK(ReadSourceTarget(
+            name, consumer, hash_type, nullptr, /*use_git=*/false));
         CHECK(artifacts["file"]["type"] == "LOCAL");
         CHECK(artifacts["file"]["data"]["path"] == "file");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadSourceTarget(name,
+                               consumer,
+                               hash_type,
+                               &storage_config.Get(),
+                               /*use_git=*/true));
         CHECK(artifacts["file"]["type"] == "KNOWN");
         CHECK(
             artifacts["file"]["data"]["id"] ==
@@ -125,14 +137,19 @@ TEST_CASE("not present at all") {
 
     SECTION("via file") {
         CHECK_FALSE(ReadSourceTarget(
-            name, consumer, hash_type, /*use_git=*/false, fail_func));
+            name, consumer, hash_type, nullptr, /*use_git=*/false, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(ReadSourceTarget(
-            name, consumer, hash_type, /*use_git=*/true, fail_func));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK_FALSE(ReadSourceTarget(name,
+                                     consumer,
+                                     hash_type,
+                                     &storage_config.Get(),
+                                     /*use_git=*/true,
+                                     fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
@@ -149,14 +166,19 @@ TEST_CASE("malformed entry") {
 
     SECTION("via git tree") {
         CHECK_FALSE(ReadSourceTarget(
-            name, consumer, hash_type, /*use_git=*/false, fail_func));
+            name, consumer, hash_type, nullptr, /*use_git=*/false, fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(ReadSourceTarget(
-            name, consumer, hash_type, /*use_git=*/true, fail_func));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK_FALSE(ReadSourceTarget(name,
+                                     consumer,
+                                     hash_type,
+                                     &storage_config.Get(),
+                                     /*use_git=*/true,
+                                     fail_func));
         CHECK_FALSE(consumed);
         CHECK(failure_called);
     }
@@ -172,13 +194,19 @@ TEST_CASE("subdir file") {
     };
 
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
+        CHECK(ReadSourceTarget(
+            name, consumer, hash_type, nullptr, /*use_git=*/false));
         CHECK(artifacts["bar/file"]["type"] == "LOCAL");
         CHECK(artifacts["bar/file"]["data"]["path"] == "foo/bar/file");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadSourceTarget(name,
+                               consumer,
+                               hash_type,
+                               &storage_config.Get(),
+                               /*use_git=*/true));
         CHECK(artifacts["bar/file"]["type"] == "KNOWN");
         CHECK(
             artifacts["bar/file"]["data"]["id"] ==
@@ -197,13 +225,19 @@ TEST_CASE("subdir symlink") {
     };
 
     SECTION("via file") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/false));
+        CHECK(ReadSourceTarget(
+            name, consumer, hash_type, nullptr, /*use_git=*/false));
         CHECK(artifacts["link"]["type"] == "LOCAL");
         CHECK(artifacts["link"]["data"]["path"] == "foo/link");
     }
 
     SECTION("via git tree") {
-        CHECK(ReadSourceTarget(name, consumer, hash_type, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadSourceTarget(name,
+                               consumer,
+                               hash_type,
+                               &storage_config.Get(),
+                               /*use_git=*/true));
         CHECK(artifacts["link"]["type"] == "KNOWN");
         CHECK(artifacts["link"]["data"]["id"] ==
               (ProtocolTraits::IsNative(hash_type) ? kSrcLinkIdSha1

@@ -241,8 +241,8 @@ void ComputeAndFill(
                         "Root {} taken from cache to be {}",
                         target.ToString(),
                         root);
-            auto root_result =
-                FileRoot::FromGit(storage_config->GitRoot(), root);
+            auto root_result = FileRoot::FromGit(
+                storage_config, storage_config->GitRoot(), root);
             if (not root_result) {
                 (*logger)(fmt::format("Failed to create git root for {}", root),
                           /*fatal=*/true);
@@ -345,7 +345,8 @@ void ComputeAndFill(
                 target.ToString(),
                 *result,
                 log_desc);
-    auto root_result = FileRoot::FromGit(storage_config->GitRoot(), *result);
+    auto root_result =
+        FileRoot::FromGit(storage_config, storage_config->GitRoot(), *result);
     if (not root_result) {
         (*logger)(fmt::format("Failed to create git root for {}", *result),
                   /*fatal=*/true);
@@ -609,7 +610,8 @@ void ComputeAndFill(
     }
 
     if (local_tree_structure.has_value()) {
-        auto resolved_root = FileRoot::FromGit(native_storage_config.GitRoot(),
+        auto resolved_root = FileRoot::FromGit(storage_config,
+                                               native_storage_config.GitRoot(),
                                                local_tree_structure->hash());
         if (not resolved_root) {
             return unexpected{

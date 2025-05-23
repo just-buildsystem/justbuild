@@ -44,6 +44,7 @@
 #include "src/buildtool/file_system/precomputed_root.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/concepts.hpp"
 #include "src/utils/cpp/expected.hpp"
 // Keep it to ensure fmt::format works on JSON objects
@@ -337,15 +338,19 @@ class FileRoot {
         : root_{fs_root_t{std::move(root)}}, ignore_special_{ignore_special} {}
     FileRoot(gsl::not_null<GitCASPtr> const& cas,
              gsl::not_null<GitTreePtr> const& tree,
+             gsl::not_null<StorageConfig const*> const& storage_config,
              bool ignore_special = false) noexcept
-        : root_{RootGit{cas, tree}}, ignore_special_{ignore_special} {}
+        : root_{RootGit{cas, tree}},
+          storage_config_{storage_config},
+          ignore_special_{ignore_special} {}
     explicit FileRoot(PrecomputedRoot precomputed)
         : root_{std::move(precomputed)} {}
 
-    [[nodiscard]] static auto FromGit(std::filesystem::path const& repo_path,
-                                      std::string const& git_tree_id,
-                                      bool ignore_special = false) noexcept
-        -> std::optional<FileRoot> {
+    [[nodiscard]] static auto FromGit(
+        gsl::not_null<StorageConfig const*> const& storage_config,
+        std::filesystem::path const& repo_path,
+        std::string const& git_tree_id,
+        bool ignore_special = false) noexcept -> std::optional<FileRoot> {
         auto cas = GitCAS::Open(repo_path);
         if (not cas) {
             return std::nullopt;
@@ -357,6 +362,7 @@ class FileRoot {
         try {
             return FileRoot{cas,
                             std::make_shared<GitTree const>(std::move(*tree)),
+                            storage_config,
                             ignore_special};
         } catch (...) {
             return std::nullopt;
@@ -680,9 +686,11 @@ class FileRoot {
     /// \brief Parses a FileRoot from string. On errors, populates error_msg.
     /// \returns the FileRoot and optional local path (if the root is local),
     /// nullopt on errors.
-    [[nodiscard]] static auto ParseRoot(std::string const& repo,
-                                        std::string const& keyword,
-                                        nlohmann::json const& root)
+    [[nodiscard]] static auto ParseRoot(
+        gsl::not_null<StorageConfig const*> storage_config,
+        std::string const& repo,
+        std::string const& keyword,
+        nlohmann::json const& root)
         -> expected<std::pair<FileRoot, std::optional<std::filesystem::path>>,
                     std::string> {
         using ResultType =
@@ -721,7 +729,8 @@ class FileRoot {
                     repo)};
             }
             if (root.size() == 3) {
-                if (auto git_root = FileRoot::FromGit(root[2], root[1])) {
+                if (auto git_root =
+                        FileRoot::FromGit(storage_config, root[2], root[1])) {
                     return ResultType{std::move(*git_root), std::nullopt};
                 }
                 return unexpected{fmt::format(
@@ -762,8 +771,11 @@ class FileRoot {
                     repo)};
             }
             if (root.size() == 3) {
-                if (auto git_root = FileRoot::FromGit(
-                        root[2], root[1], /*ignore_special=*/true)) {
+                if (auto git_root =
+                        FileRoot::FromGit(storage_config,
+                                          root[2],
+                                          root[1],
+                                          /*ignore_special=*/true)) {
                     return ResultType{std::move(*git_root), std::nullopt};
                 }
                 return unexpected{fmt::format(
@@ -800,6 +812,8 @@ class FileRoot {
 
   private:
     root_t root_;
+    // For Git-based roots, keep a pointer to the
+    StorageConfig const* storage_config_ = nullptr;
     // If set, forces lookups to ignore entries which are neither file nor
     // directories instead of erroring out. This means implicitly also that
     // there are no more fast tree lookups, i.e., tree traversal is a must.

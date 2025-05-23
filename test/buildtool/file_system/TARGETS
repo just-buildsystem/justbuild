@@ -77,6 +77,7 @@
     , ["", "catch-main"]
     , ["utils", "shell_quoting"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "file_system"]
   }

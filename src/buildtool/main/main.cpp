@@ -480,7 +480,8 @@ void SetupFileChunker() {
 
 // Set all roots and name mappings from the command-line arguments and
 // return the name of the main repository and main workspace path if local.
-auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
+auto DetermineRoots(gsl::not_null<StorageConfig const*> const& storage_config,
+                    gsl::not_null<RepositoryConfig*> const& repository_config,
                     CommonArguments const& cargs,
                     AnalysisArguments const& aargs)
     -> std::pair<std::string, std::optional<std::filesystem::path>> {
@@ -546,8 +547,8 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
         bool const is_main_repo{repo == main_repo};
         auto it_ws = desc.find("workspace_root");
         if (it_ws != desc.end()) {
-            if (auto parsed_root =
-                    FileRoot::ParseRoot(repo, "workspace_root", *it_ws)) {
+            if (auto parsed_root = FileRoot::ParseRoot(
+                    storage_config, repo, "workspace_root", *it_ws)) {
                 auto result = *std::move(parsed_root);
                 ws_root = std::move(result.first);
                 if (is_main_repo and result.second.has_value()) {
@@ -579,26 +580,27 @@ auto DetermineRoots(gsl::not_null<RepositoryConfig*> const& repository_config,
             std::exit(kExitFailure);
         }
         auto info = RepositoryConfig::RepositoryInfo{std::move(*ws_root)};
-        auto parse_keyword_root = [&desc = desc, &repo = repo, is_main_repo](
-                                      FileRoot* keyword_root,
-                                      std::string const& keyword,
-                                      auto const& keyword_carg) {
-            auto it = desc.find(keyword);
-            if (it != desc.end()) {
-                if (auto parsed_root =
-                        FileRoot::ParseRoot(repo, keyword, *it)) {
-                    (*keyword_root) = std::move(parsed_root)->first;
+        auto parse_keyword_root =
+            [&desc = desc, &repo = repo, is_main_repo, storage_config](
+                FileRoot* keyword_root,
+                std::string const& keyword,
+                auto const& keyword_carg) {
+                auto it = desc.find(keyword);
+                if (it != desc.end()) {
+                    if (auto parsed_root = FileRoot::ParseRoot(
+                            storage_config, repo, keyword, *it)) {
+                        (*keyword_root) = std::move(parsed_root)->first;
+                    }
+                    else {
+                        Logger::Log(LogLevel::Error, parsed_root.error());
+                        std::exit(kExitFailure);
+                    }
                 }
-                else {
-                    Logger::Log(LogLevel::Error, parsed_root.error());
-                    std::exit(kExitFailure);
-                }
-            }
 
-            if (is_main_repo and keyword_carg) {
-                *keyword_root = FileRoot{*keyword_carg};
-            }
-        };
+                if (is_main_repo and keyword_carg) {
+                    *keyword_root = FileRoot{*keyword_carg};
+                }
+            };
 
         info.target_root = info.workspace_root;
         parse_keyword_root(&info.target_root, "target_root", aargs.target_root);
@@ -1038,8 +1040,10 @@ auto main(int argc, char* argv[]) -> int {
         }
 #endif  // BOOTSTRAP_BUILD_TOOL
 
-        auto [main_repo, main_ws_root] =
-            DetermineRoots(&repo_config, arguments.common, arguments.analysis);
+        auto [main_repo, main_ws_root] = DetermineRoots(&*storage_config,
+                                                        &repo_config,
+                                                        arguments.common,
+                                                        arguments.analysis);
 
         std::size_t eval_root_jobs =
             std::lround(std::ceil(std::sqrt(arguments.common.jobs)));

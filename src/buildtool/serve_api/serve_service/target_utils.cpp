@@ -66,7 +66,7 @@ auto GetServingRepository(RemoteServeConfig const& serve_config,
 }
 
 auto DetermineRoots(RemoteServeConfig const& serve_config,
-                    StorageConfig const& storage_config,
+                    gsl::not_null<StorageConfig const*> storage_config,
                     std::string const& main_repo,
                     std::filesystem::path const& repo_config_path,
                     gsl::not_null<RepositoryConfig*> const& repository_config,
@@ -97,15 +97,12 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
     for (auto const& [repo, desc] : repos.items()) {
         // root parser
         auto parse_keyword_root =
-            [&serve_config,
-             &storage_config,
-             &desc = desc,
-             &repo = repo,
-             logger](
+            [&serve_config, storage_config, &desc = desc, &repo = repo, logger](
                 std::string const& keyword) -> expected<FileRoot, std::string> {
             auto it = desc.find(keyword);
             if (it != desc.end()) {
-                auto parsed_root = FileRoot::ParseRoot(repo, keyword, *it);
+                auto parsed_root =
+                    FileRoot::ParseRoot(storage_config, repo, keyword, *it);
                 if (not parsed_root) {
                     return unexpected{std::move(parsed_root).error()};
                 }
@@ -120,14 +117,15 @@ auto DetermineRoots(RemoteServeConfig const& serve_config,
                 // find the serving repository for the root tree
                 auto tree_id = *parsed_root->first.GetAbsentTreeId();
                 auto repo_path = GetServingRepository(
-                    serve_config, storage_config, tree_id, logger);
+                    serve_config, *storage_config, tree_id, logger);
                 if (not repo_path) {
                     return unexpected{fmt::format(
                         "{} tree {} is not known", keyword, tree_id)};
                 }
                 // set the root as present
                 if (auto root =
-                        FileRoot::FromGit(*repo_path,
+                        FileRoot::FromGit(storage_config,
+                                          *repo_path,
                                           tree_id,
                                           parsed_root->first.IgnoreSpecial())) {
                     return *std::move(root);

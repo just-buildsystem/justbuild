@@ -416,7 +416,7 @@ auto TargetService::ServeTarget(
     RepositoryConfig repository_config{};
     std::string const main_repo{"0"};  // known predefined main repository name
     if (auto msg = DetermineRoots(serve_config_,
-                                  *local_context_.storage_config,
+                                  local_context_.storage_config,
                                   main_repo,
                                   *repo_config_path,
                                   &repository_config,

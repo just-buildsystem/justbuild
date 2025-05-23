@@ -29,18 +29,23 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-auto SetupConfig(bool use_git) -> RepositoryConfig {
+auto SetupConfig(StorageConfig const* storage_config,
+                 bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath / "data_rule"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
         REQUIRE(repo_path);
-        auto git_root = FileRoot::FromGit(*repo_path, kRuleTreeId);
+        REQUIRE(storage_config);
+        auto git_root =
+            FileRoot::FromGit(storage_config, *repo_path, kRuleTreeId);
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
@@ -51,8 +56,9 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
 
 auto ReadUserRule(EntityName const& id,
                   UserRuleMap::Consumer value_checker,
+                  StorageConfig const* storage_config = nullptr,
                   bool use_git = false) -> bool {
-    auto repo_config = SetupConfig(use_git);
+    auto repo_config = SetupConfig(storage_config, use_git);
     auto expr_file_map = CreateExpressionFileMap(&repo_config, 0);
     auto expr_func_map = CreateExpressionMap(&expr_file_map, &repo_config);
     auto rule_file_map = CreateRuleFileMap(&repo_config, 0);
@@ -80,11 +86,13 @@ TEST_CASE("Test empty rule", "[expression_map]") {
     auto consumer = [](auto values) { REQUIRE(values[0]); };
 
     SECTION("via file") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+        CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadUserRule(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -101,11 +109,13 @@ TEST_CASE("Test rule fields", "[rule_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+        CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadUserRule(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -117,11 +127,13 @@ TEST_CASE("Test config_transitions target", "[rule_map]") {
             EntityName{"", ".", "test_config_transitions_target_via_field"};
 
         SECTION("via file") {
-            CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+            CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
         }
 
         SECTION("via git tree") {
-            CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+            auto const storage_config = TestStorageConfig::Create();
+            CHECK(ReadUserRule(
+                name, consumer, &storage_config.Get(), /*use_git=*/true));
         }
     }
     SECTION("via implicit") {
@@ -129,11 +141,13 @@ TEST_CASE("Test config_transitions target", "[rule_map]") {
             EntityName{"", ".", "test_config_transitions_target_via_implicit"};
 
         SECTION("via file") {
-            CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+            CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
         }
 
         SECTION("via git tree") {
-            CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+            auto const storage_config = TestStorageConfig::Create();
+            CHECK(ReadUserRule(
+                name, consumer, &storage_config.Get(), /*use_git=*/true));
         }
     }
 }
@@ -159,11 +173,13 @@ TEST_CASE("Test config_transitions canonicalness", "[rule_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+        CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadUserRule(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -185,11 +201,13 @@ TEST_CASE("Test call of imported expression", "[rule_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/false));
+        CHECK(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadUserRule(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadUserRule(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -200,11 +218,13 @@ TEST_CASE("Fail due to unknown ID", "[rule_map]") {
     };
 
     SECTION("via file") {
-        CHECK_FALSE(ReadUserRule(name, consumer, /*use_git=*/false));
+        CHECK_FALSE(ReadUserRule(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(ReadUserRule(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK_FALSE(ReadUserRule(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 

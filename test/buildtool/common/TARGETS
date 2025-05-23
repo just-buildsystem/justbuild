@@ -41,6 +41,7 @@
     , ["@", "src", "src/buildtool/execution_api/local", "local_api"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["@", "src", "src/buildtool/storage", "storage"]
     , ["", "catch-main"]
     , ["utils", "test_storage_config"]

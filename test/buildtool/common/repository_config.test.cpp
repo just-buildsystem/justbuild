@@ -30,6 +30,7 @@
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "src/buildtool/storage/storage.hpp"
 #include "test/utils/hermeticity/test_storage_config.hpp"
 
@@ -43,7 +44,7 @@ namespace {
     return FileSystemManager::GetCurrentDirectory() / "test/buildtool/common";
 }
 
-[[nodiscard]] auto GetGitRoot() -> FileRoot {
+[[nodiscard]] auto GetGitRoot(StorageConfig const* storage_config) -> FileRoot {
     static std::atomic<int> counter{};
     auto repo_path =
         GetTestDir() / "test_repo" /
@@ -55,7 +56,8 @@ namespace {
                     "commit --allow-empty -m'init'") == 0) {
         auto constexpr kEmptyTreeId =
             "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
-        if (auto root = FileRoot::FromGit(repo_path, kEmptyTreeId)) {
+        if (auto root =
+                FileRoot::FromGit(storage_config, repo_path, kEmptyTreeId)) {
             return std::move(*root);
         }
     }
@@ -63,11 +65,12 @@ namespace {
 }
 
 [[nodiscard]] auto CreateFixedRepoInfo(
+    StorageConfig const* storage_config,
     std::map<std::string, std::string> const& bindings = {},
     std::string const& tfn = "TARGETS",
     std::string const& rfn = "RULES",
     std::string const& efn = "EXPRESSIONS") {
-    static auto const kGitRoot = GetGitRoot();
+    static auto const kGitRoot = GetGitRoot(storage_config);
     return RepositoryConfig::RepositoryInfo{
         kGitRoot, kGitRoot, kGitRoot, kGitRoot, bindings, tfn, rfn, efn};
 }
@@ -134,7 +137,7 @@ TEST_CASE("Compute key of fixed repository", "[repository_config]") {
     RepositoryConfig config{};
 
     SECTION("for single fixed repository") {
-        config.SetInfo("foo", CreateFixedRepoInfo());
+        config.SetInfo("foo", CreateFixedRepoInfo(&storage_config.Get()));
         auto key = config.RepositoryKey(storage, "foo");
         REQUIRE(key);
 
@@ -144,15 +147,23 @@ TEST_CASE("Compute key of fixed repository", "[repository_config]") {
     }
 
     SECTION("for fixed repositories with same missing dependency") {
-        config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz"}}));
-        config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz"}}));
+        config.SetInfo(
+            "foo",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz"}}));
+        config.SetInfo(
+            "bar",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz"}}));
         CHECK_FALSE(config.RepositoryKey(storage, "foo"));
         CHECK_FALSE(config.RepositoryKey(storage, "bar"));
     }
 
     SECTION("for fixed repositories with different missing dependency") {
-        config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));
-        config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz1"}}));
+        config.SetInfo(
+            "foo",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz0"}}));
+        config.SetInfo(
+            "bar",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz1"}}));
         CHECK_FALSE(config.RepositoryKey(storage, "foo"));
         CHECK_FALSE(config.RepositoryKey(storage, "bar"));
     }
@@ -170,8 +181,12 @@ TEST_CASE("Compute key of file repository", "[repository_config]") {
     }
 
     SECTION("for graph with leaf dependency as file") {
-        config.SetInfo("foo", CreateFixedRepoInfo({{"bar", "bar"}}));
-        config.SetInfo("bar", CreateFixedRepoInfo({{"baz", "baz"}}));
+        config.SetInfo(
+            "foo",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"bar", "bar"}}));
+        config.SetInfo(
+            "bar",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"baz", "baz"}}));
         config.SetInfo("baz", CreateFileRepoInfo());
         CHECK_FALSE(config.RepositoryKey(storage, "foo"));
     }
@@ -184,12 +199,14 @@ TEST_CASE("Compare key of two repos with same content", "[repository_config]") {
     RepositoryConfig config{};
 
     // create two different repo infos with same content (baz should be same)
-    config.SetInfo("foo", CreateFixedRepoInfo({{"dep", "baz0"}}));
-    config.SetInfo("bar", CreateFixedRepoInfo({{"dep", "baz1"}}));
+    config.SetInfo(
+        "foo", CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz0"}}));
+    config.SetInfo(
+        "bar", CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz1"}}));
 
     SECTION("with leaf dependency") {
         // create duplicate leaf repo info with global name 'baz0' and 'baz1'
-        auto baz = CreateFixedRepoInfo();
+        auto baz = CreateFixedRepoInfo(&storage_config.Get());
         config.SetInfo("baz0", Copy(baz));
         config.SetInfo("baz1", Copy(baz));
 
@@ -208,7 +225,8 @@ TEST_CASE("Compare key of two repos with same content", "[repository_config]") {
 
     SECTION("with cyclic dependency") {
         // create duplicate cyclic repo info with global name 'baz0' and 'baz1'
-        auto baz = CreateFixedRepoInfo({{"foo", "foo"}, {"bar", "bar"}});
+        auto baz = CreateFixedRepoInfo(&storage_config.Get(),
+                                       {{"foo", "foo"}, {"bar", "bar"}});
         config.SetInfo("baz0", Copy(baz));
         config.SetInfo("baz1", Copy(baz));
 
@@ -227,8 +245,12 @@ TEST_CASE("Compare key of two repos with same content", "[repository_config]") {
 
     SECTION("with two separate cyclic graphs") {
         // create two cyclic repo infos producing two separate graphs
-        config.SetInfo("baz0", CreateFixedRepoInfo({{"dep", "foo"}}));
-        config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "bar"}}));
+        config.SetInfo(
+            "baz0",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "foo"}}));
+        config.SetInfo(
+            "baz1",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "bar"}}));
 
         // check if computed key is same
         auto foo_key = config.RepositoryKey(storage, "foo");
@@ -243,8 +265,12 @@ TEST_CASE("Compare key of two repos with same content", "[repository_config]") {
     }
 
     SECTION("for graph with leaf repos refering to themselfs") {
-        config.SetInfo("baz0", CreateFixedRepoInfo({{"dep", "baz0"}}));
-        config.SetInfo("baz1", CreateFixedRepoInfo({{"dep", "baz1"}}));
+        config.SetInfo(
+            "baz0",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz0"}}));
+        config.SetInfo(
+            "baz1",
+            CreateFixedRepoInfo(&storage_config.Get(), {{"dep", "baz1"}}));
 
         // check if computed key is same
         auto foo_key = config.RepositoryKey(storage, "foo");

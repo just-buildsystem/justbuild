@@ -190,6 +190,7 @@
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/logging", "logging"]
+    , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "expected"]
     , ["src/utils/cpp", "json"]

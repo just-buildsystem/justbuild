@@ -28,18 +28,23 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-auto SetupConfig(bool use_git) -> RepositoryConfig {
+auto SetupConfig(StorageConfig const* storage_config,
+                 bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath / "data_expr"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
         REQUIRE(repo_path);
-        auto git_root = FileRoot::FromGit(*repo_path, kExprTreeId);
+        REQUIRE(storage_config);
+        auto git_root =
+            FileRoot::FromGit(storage_config, *repo_path, kExprTreeId);
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
@@ -50,8 +55,9 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
 
 auto ReadExpressionFunction(EntityName const& id,
                             ExpressionFunctionMap::Consumer value_checker,
+                            StorageConfig const* storage_config = nullptr,
                             bool use_git = false) -> bool {
-    auto repo_config = SetupConfig(use_git);
+    auto repo_config = SetupConfig(storage_config, use_git);
     auto expr_file_map = CreateExpressionFileMap(&repo_config, 0);
     auto expr_func_map = CreateExpressionMap(&expr_file_map, &repo_config);
 
@@ -83,11 +89,14 @@ TEST_CASE("Simple expression object literal", "[expression_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/false));
+        CHECK(
+            ReadExpressionFunction(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadExpressionFunction(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -106,11 +115,14 @@ TEST_CASE("Simple read of variable", "[expression_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/false));
+        CHECK(
+            ReadExpressionFunction(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadExpressionFunction(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -129,11 +141,14 @@ TEST_CASE("Simple call of imported expression", "[expression_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/false));
+        CHECK(
+            ReadExpressionFunction(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadExpressionFunction(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -152,11 +167,14 @@ TEST_CASE("Overwrite import in nested expression", "[expression_map]") {
     };
 
     SECTION("via file") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/false));
+        CHECK(
+            ReadExpressionFunction(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK(ReadExpressionFunction(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadExpressionFunction(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 
@@ -167,11 +185,14 @@ TEST_CASE("Fail due to unkown ID", "[expression_map]") {
     };
 
     SECTION("via file") {
-        CHECK_FALSE(ReadExpressionFunction(name, consumer, /*use_git=*/false));
+        CHECK_FALSE(
+            ReadExpressionFunction(name, consumer, nullptr, /*use_git=*/false));
     }
 
     SECTION("via git tree") {
-        CHECK_FALSE(ReadExpressionFunction(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK_FALSE(ReadExpressionFunction(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
     }
 }
 

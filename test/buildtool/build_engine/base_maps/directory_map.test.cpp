@@ -25,18 +25,23 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/multithreading/task_system.hpp"
+#include "src/buildtool/storage/config.hpp"
 #include "test/buildtool/build_engine/base_maps/test_repo.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 
 namespace {
 
 using namespace BuildMaps::Base;  // NOLINT
 
-auto SetupConfig(bool use_git) -> RepositoryConfig {
+auto SetupConfig(StorageConfig const* storage_config,
+                 bool use_git) -> RepositoryConfig {
     auto root = FileRoot{kBasePath / "data_src"};
     if (use_git) {
         auto repo_path = CreateTestRepo();
         REQUIRE(repo_path);
-        auto git_root = FileRoot::FromGit(*repo_path, kSrcTreeId);
+        REQUIRE(storage_config);
+        auto git_root =
+            FileRoot::FromGit(storage_config, *repo_path, kSrcTreeId);
         REQUIRE(git_root);
         root = std::move(*git_root);
     }
@@ -47,8 +52,9 @@ auto SetupConfig(bool use_git) -> RepositoryConfig {
 
 auto ReadDirectory(ModuleName const& id,
                    DirectoryEntriesMap::Consumer value_checker,
+                   StorageConfig const* storage_config,
                    bool use_git = false) -> bool {
-    auto repo_config = SetupConfig(use_git);
+    auto repo_config = SetupConfig(storage_config, use_git);
     auto data_direntries = CreateDirectoryEntriesMap(&repo_config);
     bool success{true};
     {
@@ -77,12 +83,14 @@ TEST_CASE("simple usage") {
     };
 
     SECTION("via file") {
-        CHECK(ReadDirectory(name, consumer, /*use_git=*/false));
+        CHECK(ReadDirectory(name, consumer, nullptr, /*use_git=*/false));
         CHECK(as_expected);
     }
 
     SECTION("via git tree") {
-        CHECK(ReadDirectory(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadDirectory(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
         CHECK(as_expected);
     }
 }
@@ -97,12 +105,14 @@ TEST_CASE("missing directory") {
     };
 
     SECTION("via file") {
-        CHECK(ReadDirectory(name, consumer, /*use_git=*/false));
+        CHECK(ReadDirectory(name, consumer, nullptr, /*use_git=*/false));
         CHECK(as_expected);
     }
 
     SECTION("via git tree") {
-        CHECK(ReadDirectory(name, consumer, /*use_git=*/true));
+        auto const storage_config = TestStorageConfig::Create();
+        CHECK(ReadDirectory(
+            name, consumer, &storage_config.Get(), /*use_git=*/true));
         CHECK(as_expected);
     }
 }

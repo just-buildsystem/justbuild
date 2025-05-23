@@ -32,6 +32,7 @@
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/utils/cpp/expected.hpp"
 #include "test/utils/hermeticity/test_hash_function_type.hpp"
+#include "test/utils/hermeticity/test_storage_config.hpp"
 #include "test/utils/shell_quoting.hpp"
 
 namespace {
@@ -195,11 +196,14 @@ TEST_CASE("Creating file root", "[file_root]") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
 
-        auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root =
+            FileRoot::FromGit(&storage_config.Get(), *repo_path, kTreeSymId);
         REQUIRE(root);
         CHECK(root->Exists("."));
 
-        CHECK_FALSE(FileRoot::FromGit("does_not_exist", kTreeSymId));
+        CHECK_FALSE(FileRoot::FromGit(
+            &storage_config.Get(), "does_not_exist", kTreeSymId));
     }
 
     SECTION("local root ignore-special") {
@@ -216,13 +220,18 @@ TEST_CASE("Creating file root", "[file_root]") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
 
-        auto root =
-            FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root = FileRoot::FromGit(&storage_config.Get(),
+                                      *repo_path,
+                                      kTreeSymId,
+                                      /*ignore_special=*/true);
         REQUIRE(root);
         CHECK(root->Exists("."));
 
-        CHECK_FALSE(FileRoot::FromGit(
-            "does_not_exist", kTreeSymId, /*ignore_special=*/true));
+        CHECK_FALSE(FileRoot::FromGit(&storage_config.Get(),
+                                      "does_not_exist",
+                                      kTreeSymId,
+                                      /*ignore_special=*/true));
     }
 }
 
@@ -237,7 +246,9 @@ TEST_CASE("Reading files", "[file_root]") {
     SECTION("git root") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root =
+            FileRoot::FromGit(&storage_config.Get(), *repo_path, kTreeSymId);
         REQUIRE(root);
 
         TestFileRootReadFilesAndSymlinks(*root);
@@ -254,8 +265,11 @@ TEST_CASE("Reading files", "[file_root]") {
     SECTION("git root ignore-special") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root =
-            FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root = FileRoot::FromGit(&storage_config.Get(),
+                                      *repo_path,
+                                      kTreeSymId,
+                                      /*ignore_special=*/true);
         REQUIRE(root);
 
         TestFileRootReadFilesOnly(*root);
@@ -273,7 +287,9 @@ TEST_CASE("Reading directories", "[file_root]") {
     SECTION("git root") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root =
+            FileRoot::FromGit(&storage_config.Get(), *repo_path, kTreeSymId);
         REQUIRE(root);
 
         TestFileRootReadDirectory(*root, /*with_symlinks=*/true);
@@ -290,8 +306,11 @@ TEST_CASE("Reading directories", "[file_root]") {
     SECTION("git root ignore-special") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root =
-            FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root = FileRoot::FromGit(&storage_config.Get(),
+                                      *repo_path,
+                                      kTreeSymId,
+                                      /*ignore_special=*/true);
         REQUIRE(root);
 
         TestFileRootReadDirectory(*root, /*with_symlinks=*/false);
@@ -309,7 +328,9 @@ TEST_CASE("Reading blobs", "[file_root]") {
     SECTION("git root") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root =
+            FileRoot::FromGit(&storage_config.Get(), *repo_path, kTreeSymId);
         REQUIRE(root);
 
         auto foo = root->ReadBlob(kFooIdGitSha1);
@@ -330,8 +351,11 @@ TEST_CASE("Reading blobs", "[file_root]") {
     SECTION("git root ignore-special") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root =
-            FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root = FileRoot::FromGit(&storage_config.Get(),
+                                      *repo_path,
+                                      kTreeSymId,
+                                      /*ignore_special=*/true);
         REQUIRE(root);
 
         auto foo = root->ReadBlob(kFooIdGitSha1);
@@ -353,7 +377,9 @@ TEST_CASE("Reading blob type", "[file_root]") {
     SECTION("git root") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root = FileRoot::FromGit(*repo_path, kTreeSymId);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root =
+            FileRoot::FromGit(&storage_config.Get(), *repo_path, kTreeSymId);
         REQUIRE(root);
 
         TestFileRootReadBlobType(*root);
@@ -369,8 +395,11 @@ TEST_CASE("Reading blob type", "[file_root]") {
     SECTION("git root ignore-special") {
         auto repo_path = CreateTestRepoSymlinks(false);
         REQUIRE(repo_path);
-        auto root =
-            FileRoot::FromGit(*repo_path, kTreeSymId, /*ignore_special=*/true);
+        auto const storage_config = TestStorageConfig::Create();
+        auto root = FileRoot::FromGit(&storage_config.Get(),
+                                      *repo_path,
+                                      kTreeSymId,
+                                      /*ignore_special=*/true);
         REQUIRE(root);
 
         TestFileRootReadBlobType(*root);
@@ -417,7 +446,9 @@ static void CheckGitRoot(HashFunction::Type hash_type,
                          bool ignore_special) noexcept {
     auto const repo_path = CreateTestRepoSymlinks(false);
     REQUIRE(repo_path);
-    auto const root = FileRoot::FromGit(*repo_path, kTreeSymId, ignore_special);
+    auto const storage_config = TestStorageConfig::Create();
+    auto const root = FileRoot::FromGit(
+        &storage_config.Get(), *repo_path, kTreeSymId, ignore_special);
     REQUIRE(root);
 
     auto const foo = root->ToArtifactDescription(hash_type, "baz/foo", "repo");

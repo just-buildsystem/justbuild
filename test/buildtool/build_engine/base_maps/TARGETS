@@ -33,7 +33,9 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -50,7 +52,9 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -72,8 +76,10 @@
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/file_system", "file_system_manager"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["", "catch-main"]
     , ["utils", "test_hash_function_type"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -92,7 +98,9 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
@@ -112,7 +120,9 @@
     , ["@", "src", "src/buildtool/common", "config"]
     , ["@", "src", "src/buildtool/file_system", "file_root"]
     , ["@", "src", "src/buildtool/multithreading", "task_system"]
+    , ["@", "src", "src/buildtool/storage", "config"]
     , ["", "catch-main"]
+    , ["utils", "test_storage_config"]
     ]
   , "stage": ["test", "buildtool", "build_engine", "base_maps"]
   }
