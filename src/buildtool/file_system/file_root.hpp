@@ -746,9 +746,8 @@ class FileRoot {
         if (root[0] == FileRoot::kFileIgnoreSpecialMarker) {
             if (root.size() != 2 or (not root[1].is_string())) {
                 return unexpected{fmt::format(
-                    "\"file ignore-special\" scheme expects precisely "
-                    "one string "
-                    "argument, but found {} for {} of repository {}",
+                    "\"file ignore-special\" scheme expects precisely one "
+                    "string argument, but found {} for {} of repository {}",
                     root.dump(),
                     keyword,
                     repo)};
