@@ -1244,6 +1244,9 @@ auto main(int argc, char* argv[]) -> int {
                 analyse_result->id.ToShortString(
                     Evaluator::GetExpressionLogLimit()));
 
+            if (profile != nullptr) {
+                profile->StartBuild();
+            }
             auto build_result =
                 traverser.BuildAndStage(artifacts,
                                         runfiles,

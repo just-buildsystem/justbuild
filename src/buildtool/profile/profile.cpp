@@ -178,3 +178,7 @@ void Profile::SetRemoteExecutionConfig(RemoteExecutionConfig const& config) {
     remote["dispatch"] = dispatch;
     profile_["remote"] = remote;
 }
+
+void Profile::StartBuild() {
+    profile_["build start time"] = std::time(nullptr);
+}

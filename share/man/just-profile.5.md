@@ -91,6 +91,9 @@ The profile file contains the following information.
 - For the key *`"start time"`* the start time of the invocation in
   seconds since the epoch.
 
+- For the key *`"build start time"`* the start time of the build phase (if
+  any) in seconds since the epoch.
+
 - For the key *`"stop time"`* the stop time of the invocation in seconds
   since the epoch.
 

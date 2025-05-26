@@ -46,6 +46,7 @@ class Profile {
                              IExecutionResponse::Ptr const& response,
                              std::string const& cwd);
     void NoteAnalysisError(std::string const& error_message);
+    void StartBuild();
 
   private:
     struct ActionData {
