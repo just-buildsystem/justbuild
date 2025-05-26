@@ -457,7 +457,8 @@ class ExecutorImpl {
         }
         else {
             // if known blob is not available, read and upload it
-            content = ReadGitBlob(repo, repo_config, hash);
+            content = ReadGitBlob(
+                repo, repo_config, hash, IsSymlinkObject(info.type));
         }
         if (not content) {
             logger.Emit(LogLevel::Error, "failed to get content");
@@ -478,15 +479,16 @@ class ExecutorImpl {
     [[nodiscard]] static auto ReadGitBlob(
         std::string const& repo,
         gsl::not_null<const RepositoryConfig*> const& repo_config,
-        std::string const& hash) noexcept -> std::optional<std::string> {
+        std::string const& hash,
+        bool is_symlink) noexcept -> std::optional<std::string> {
         std::optional<std::string> blob{};
         if (auto const* ws_root = repo_config->WorkspaceRoot(repo)) {
             // try to obtain blob from local workspace's Git CAS, if any
-            blob = ws_root->ReadBlob(hash);
+            blob = ws_root->ReadBlob(hash, is_symlink);
         }
         if (not blob) {
             // try to obtain blob from global Git CAS, if any
-            blob = repo_config->ReadBlobFromGitCAS(hash, /*is_symlink=*/false);
+            blob = repo_config->ReadBlobFromGitCAS(hash, is_symlink);
         }
         return blob;
     }

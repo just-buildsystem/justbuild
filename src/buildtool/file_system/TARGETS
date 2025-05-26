@@ -178,6 +178,7 @@
     [ "file_system_manager"
     , "git_cas"
     , "git_tree"
+    , "git_tree_utils"
     , "object_type"
     , "precomputed_root"
     , ["@", "fmt", "", "fmt"]
@@ -193,6 +194,7 @@
     , ["src/buildtool/storage", "config"]
     , ["src/utils/cpp", "concepts"]
     , ["src/utils/cpp", "expected"]
+    , ["src/utils/cpp", "hex_string"]
     , ["src/utils/cpp", "json"]
     ]
   , "stage": ["src", "buildtool", "file_system"]
