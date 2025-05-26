@@ -91,7 +91,7 @@
       [ "The number of times the test should be run in order to detect flakyness."
       , "If set, no test action will be taken from cache."
       , ""
-      , "The individual test runs will be summarized by the implict dependency"
+      , "The individual test runs will be summarized by the implicit dependency"
       , "on the target \"summarizer\". By setting this target in the target"
       , "in the target layer of this rues repository (instead of letting it"
       , "default to the respective file) the layout of the summary can be"

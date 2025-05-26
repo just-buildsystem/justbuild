@@ -16,7 +16,7 @@
   , "artifacts_doc":
     [ "The runfiles of the \"srcs\" targets staged to the directory"
     , "specified in \"stage\" together the runfiles of the targets"
-    , "specied in the field \"deps\" (in their original location)."
+    , "specified in the field \"deps\" (in their original location)."
     ]
   , "runfiles_doc": ["Same as artifacts"]
   , "imports":
@@ -81,7 +81,7 @@
   , "artifacts_doc":
     [ "Artifacts of the targets specified in \"deps\". For conflicting"
     , "logical paths, the artifact is taken from the latest target (in"
-    , "the \"deps\" field) that defines that logical path"
+    , "the \"deps\" field) that defines that logical path."
     ]
   , "runfiles_doc": ["Same as artifacts"]
   , "expression":

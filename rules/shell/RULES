@@ -3,7 +3,7 @@
     [ "A rule to provide defaults for the usage of the shell"
     , ""
     , "All targets using invocations of the shell use the target"
-    , "[\"shel\", \"defaults\"] to determine which shell to use and how to"
+    , "[\"shell\", \"defaults\"] to determine which shell to use and how to"
     , "invoke it. The definition of this default target is probably the only"
     , "meaningful use of this rule."
     ]
