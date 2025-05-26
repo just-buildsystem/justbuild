@@ -187,11 +187,11 @@
   , "cli11":
     { "repository":
       { "type": "archive"
-      , "content": "624cd17664daa964e192c176c98ea2fb919afd3d"
-      , "fetch": "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.4.2.tar.gz"
-      , "sha256": "f2d893a65c3b1324c50d4e682c0cdc021dd0477ae2c048544f39eed6654b699a"
-      , "sha512": "fdb61c430f5b99a9495fda7f94bfc8d0fb5360c99beeccbcb3b8918713579aac97fa0dcbce296065d9043f141a538c505919c9810fd1d192661e8b48b6a2637a"
-      , "subdir": "CLI11-2.4.2"
+      , "content": "6689a311c4e3f31e0428a6135ed03f2ccac448f8"
+      , "fetch": "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
+      , "sha256": "17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55"
+      , "sha512": "895fb61e4c9974ee8e8d4681fb880a10126a412f24bb147d558d465d78fe784a044c5443edf1ce20fc9936901073073d795b034e0c02bdb3c8aa74c9d6ac811c"
+      , "subdir": "CLI11-2.5.0"
       }
     , "target_root": "import targets"
     , "target_file_name": "TARGETS.cli11"
