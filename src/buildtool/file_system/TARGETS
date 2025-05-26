@@ -217,4 +217,17 @@
   , "private-deps": [["@", "fmt", "", "fmt"]]
   , "stage": ["src", "buildtool", "file_system"]
   }
+, "git_tree_utils":
+  { "type": ["@", "rules", "CC", "library"]
+  , "name": ["git_tree_utils"]
+  , "hdrs": ["git_tree_utils.hpp"]
+  , "srcs": ["git_tree_utils.cpp"]
+  , "deps": ["git_cas", "git_tree", ["src/buildtool/storage", "config"]]
+  , "private-deps":
+    [ "file_system_manager"
+    , "object_type"
+    , ["src/buildtool/storage", "fs_utils"]
+    ]
+  , "stage": ["src", "buildtool", "file_system"]
+  }
 }

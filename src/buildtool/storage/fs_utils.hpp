@@ -89,6 +89,12 @@ namespace StorageUtils {
                                    std::size_t generation = 0) noexcept
     -> std::filesystem::path;
 
+/// \brief Get the path to the file marking a known valid Git tree.
+[[nodiscard]] auto GetValidTreesMarkerFile(StorageConfig const& storage_config,
+                                           std::string const& tree_hash,
+                                           std::size_t generation = 0) noexcept
+    -> std::filesystem::path;
+
 /// \brief Write a tree id to file. The parent folder of the file must exist!
 [[nodiscard]] auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
                                    std::string const& tree_id) noexcept -> bool;

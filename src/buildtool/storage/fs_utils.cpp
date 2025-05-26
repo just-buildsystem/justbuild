@@ -119,6 +119,14 @@ auto GetRehashIDFile(StorageConfig const& storage_config,
            (from_git ? "from-git" : "from-cas") / hash;
 }
 
+auto GetValidTreesMarkerFile(StorageConfig const& storage_config,
+                             std::string const& tree_hash,
+                             std::size_t generation) noexcept
+    -> std::filesystem::path {
+    return storage_config.GenerationCacheRoot(generation) /
+           "validated-git-trees" / tree_hash;
+}
+
 auto WriteTreeIDFile(std::filesystem::path const& tree_id_file,
                      std::string const& tree_id) noexcept -> bool {
     // needs to be done safely, so use the rename trick
