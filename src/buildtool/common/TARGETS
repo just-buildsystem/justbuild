@@ -189,6 +189,7 @@
     , ["src/buildtool/file_system", "precomputed_root"]
     , ["src/buildtool/logging", "log_level"]
     , ["src/buildtool/multithreading", "atomic_value"]
+    , ["src/buildtool/storage", "config"]
     , ["src/buildtool/storage", "storage"]
     ]
   , "stage": ["src", "buildtool", "common"]

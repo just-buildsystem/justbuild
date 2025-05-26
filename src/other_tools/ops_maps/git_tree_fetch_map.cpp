@@ -41,17 +41,18 @@
 namespace {
 
 void BackupToRemote(ArtifactDigest const& digest,
-                    StorageConfig const& native_storage_config,
+                    StorageConfig const* native_storage_config,
                     StorageConfig const* compat_storage_config,
                     gsl::not_null<IExecutionApi const*> const& local_api,
                     IExecutionApi const& remote_api,
                     GitTreeFetchMap::LoggerPtr const& logger) {
     // try to back up to remote CAS
     auto repo = RepositoryConfig{};
-    if (repo.SetGitCAS(native_storage_config.GitRoot())) {
+    if (repo.SetGitCAS(native_storage_config->GitRoot(),
+                       native_storage_config)) {
         auto git_api =
             MRGitApi{&repo,
-                     &native_storage_config,
+                     native_storage_config,
                      compat_storage_config,
                      compat_storage_config != nullptr ? &*local_api : nullptr};
         if (git_api.RetrieveToCas(
@@ -123,7 +124,7 @@ void MoveCASTreeToGit(
                 // back up only native digests, as that is what Git stores
                 auto const native_digest = ArtifactDigest{tree_hash, 0};
                 BackupToRemote(native_digest,
-                               *native_storage_config,
+                               native_storage_config,
                                compat_storage_config,
                                local_api,
                                *remote_api,
@@ -180,7 +181,7 @@ void TagAndSetRoot(
             // backup to remote if needed and in compatibility mode
             if (backup_to_remote and remote_api != nullptr) {
                 BackupToRemote(digest,
-                               *native_storage_config,
+                               native_storage_config,
                                compat_storage_config,
                                local_api,
                                *remote_api,
@@ -378,7 +379,7 @@ auto CreateGitTreeFetchMap(
                     // backup to remote if needed
                     if (backup_to_remote and remote_api != nullptr) {
                         BackupToRemote(ArtifactDigest{key.tree_hash, 0},
-                                       *native_storage_config,
+                                       native_storage_config,
                                        compat_storage_config,
                                        local_api,
                                        *remote_api,
@@ -732,7 +733,7 @@ auto CreateGitTreeFetchMap(
                                     remote_api != nullptr) {
                                     BackupToRemote(
                                         ArtifactDigest{key.tree_hash, 0},
-                                        *native_storage_config,
+                                        native_storage_config,
                                         compat_storage_config,
                                         local_api,
                                         *remote_api,

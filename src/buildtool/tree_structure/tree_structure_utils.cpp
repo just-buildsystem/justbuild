@@ -208,6 +208,7 @@ auto TreeStructureUtils::ImportToGit(
 auto TreeStructureUtils::ExportFromGit(
     ArtifactDigest const& tree,
     std::vector<std::filesystem::path> const& source_repos,
+    StorageConfig const& storage_config,
     IExecutionApi const& target_api) noexcept -> expected<bool, std::string> {
     if (not tree.IsTree() or not ProtocolTraits::IsNative(tree.GetHashType())) {
         return unexpected{fmt::format("Not a git tree: {}", tree.hash())};
@@ -231,7 +232,7 @@ auto TreeStructureUtils::ExportFromGit(
     }
 
     RepositoryConfig repo_config{};
-    if (not repo_config.SetGitCAS(*repo)) {
+    if (not repo_config.SetGitCAS(*repo, &storage_config)) {
         return unexpected{
             fmt::format("Failed to set git cas at {}", repo->string())};
     }
@@ -276,7 +277,8 @@ auto TreeStructureUtils::ComputeStructureLocally(
 
     // If the tree is not in the storage, it must be present in git:
     if (not storage.CAS().TreePath(tree).has_value()) {
-        auto in_cas = ExportFromGit(tree, known_repositories, local_api);
+        auto in_cas =
+            ExportFromGit(tree, known_repositories, storage_config, local_api);
         if (not in_cas.has_value()) {
             return unexpected{
                 fmt::format("While exporting {} from git to CAS:\n{}",

@@ -67,12 +67,14 @@ class TreeStructureUtils final {
     /// regular GitApi for retrieval from git and doesn't perform rehashing.
     /// \param tree           Tree to export
     /// \param source_repos   Repositories to check
+    /// \param storage_config   Storage to use for lookups
     /// \param target_api     Api to export the tree to
     /// \return True if target api contains tree after the call, false if none
     /// of source repositories contain tree, or an error message on failure.
     [[nodiscard]] static auto ExportFromGit(
         ArtifactDigest const& tree,
         std::vector<std::filesystem::path> const& source_repos,
+        StorageConfig const& storage_config,
         IExecutionApi const& target_api) noexcept
         -> expected<bool, std::string>;
 

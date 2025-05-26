@@ -35,8 +35,10 @@ auto ServeApi::UploadTree(ArtifactDigest const& tree,
             fmt::format("Not a git tree: {}", tree.hash()), not kIsSyncError}};
     }
 
+    // Set up the repository config; compatibility of used storage instance is
+    // irrelevant here, as only the build root path info is needed.
     RepositoryConfig repo;
-    if (not repo.SetGitCAS(git_repo)) {
+    if (not repo.SetGitCAS(git_repo, &storage_config_)) {
         return unexpected{UploadError{
             fmt::format("Failed to SetGitCAS at {}", git_repo.string()),
             not kIsSyncError}};

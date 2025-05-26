@@ -370,7 +370,7 @@ auto SourceTreeService::SyncGitEntryToCas(
     }
 
     auto repo = RepositoryConfig{};
-    if (not repo.SetGitCAS(repo_path)) {
+    if (not repo.SetGitCAS(repo_path, native_context_->storage_config)) {
         logger_->Emit(
             LogLevel::Error, "Failed to SetGitCAS at {}", repo_path.string());
         return TResponse::INTERNAL_ERROR;

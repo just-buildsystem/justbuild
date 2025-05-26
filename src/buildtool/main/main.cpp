@@ -1020,6 +1020,7 @@ auto main(int argc, char* argv[]) -> int {
 
         if (arguments.cmd == SubCommand::kInstallCas) {
             if (not repo_config.SetGitCAS(storage_config->GitRoot(),
+                                          &(*storage_config),
                                           LogLevel::Trace)) {
                 Logger::Log(LogLevel::Debug,
                             "Failed set Git CAS {}.",
@@ -1082,6 +1083,7 @@ auto main(int argc, char* argv[]) -> int {
                     return kExitSyntaxError;
                 }
                 if (not repo_config.SetGitCAS(*arguments.graph.git_cas,
+                                              &(*storage_config),
                                               LogLevel::Debug)) {
                     Logger::Log(LogLevel::Warning,
                                 "Failed set Git CAS {}.",
