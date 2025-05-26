@@ -414,6 +414,7 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Get the source tree hash for a non-absent Git root.
     [[nodiscard]] auto GetTreeHash() const noexcept
         -> std::optional<std::string> {
         if (auto const* root_git = std::get_if<RootGit>(&root_)) {
@@ -425,6 +426,7 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Get the witnessing repository path for a non-absent Git root.
     [[nodiscard]] auto GetGitCasRoot() const noexcept
         -> std::optional<std::filesystem::path> {
         if (auto const* git_root = std::get_if<RootGit>(&root_)) {
@@ -433,13 +435,15 @@ class FileRoot {
         return std::nullopt;
     }
 
-    // Indicates that subsequent calls to `Exists()`, `IsFile()`,
-    // `IsDirectory()`, and `BlobType()` on contents of the same directory will
-    // be served without any additional file system lookups.
+    /// \brief Indicates that subsequent calls to `Exists()`, `IsFile()`,
+    /// `IsDirectory()`, and `BlobType()` on valid contents of the same
+    /// directory will be served without any additional file system lookups.
     [[nodiscard]] auto HasFastDirectoryLookup() const noexcept -> bool {
         return std::holds_alternative<RootGit>(root_);
     }
 
+    /// \brief Check existence of path in non-absent source root.
+    /// Invalid entries are treated as absent.
     [[nodiscard]] auto Exists(std::filesystem::path const& path) const noexcept
         -> bool {
         if (std::holds_alternative<RootGit>(root_)) {
@@ -466,6 +470,7 @@ class FileRoot {
         return false;  // absent roots cannot be interrogated locally
     }
 
+    /// \brief Check if path is a file in non-absent source root.
     [[nodiscard]] auto IsFile(
         std::filesystem::path const& file_path) const noexcept -> bool {
         if (std::holds_alternative<RootGit>(root_)) {
@@ -481,6 +486,8 @@ class FileRoot {
         return false;  // absent roots cannot be interrogated locally
     }
 
+    /// \brief Check if path is a symlink in non-absent source root.
+    /// Invalid entries are treated as missing.
     [[nodiscard]] auto IsSymlink(
         std::filesystem::path const& file_path) const noexcept -> bool {
         if (ignore_special_) {
@@ -501,11 +508,15 @@ class FileRoot {
         return false;  // absent roots cannot be interrogated locally
     }
 
+    /// \brief Check if path is a blob in non-absent source root.
+    /// Invalid entries are treated as missing.
     [[nodiscard]] auto IsBlob(
         std::filesystem::path const& file_path) const noexcept -> bool {
         return IsFile(file_path) or IsSymlink(file_path);
     }
 
+    /// \brief Check if path is a directory in non-absent source root.
+    /// Does NOT verify entries.
     [[nodiscard]] auto IsDirectory(
         std::filesystem::path const& dir_path) const noexcept -> bool {
         if (std::holds_alternative<RootGit>(root_)) {
@@ -524,7 +535,8 @@ class FileRoot {
         return false;  // absent roots cannot be interrogated locally
     }
 
-    /// \brief Read content of file or symlink.
+    /// \brief Read content of file or symlink from non-absent source root.
+    /// Returns value only for valid entries.
     [[nodiscard]] auto ReadContent(std::filesystem::path const& file_path)
         const noexcept -> std::optional<std::string> {
         if (std::holds_alternative<RootGit>(root_)) {
@@ -549,6 +561,8 @@ class FileRoot {
         return std::nullopt;
     }
 
+    /// \brief Read entries of directory from non-absent source root.
+    /// Returns value only for valid entries.
     [[nodiscard]] auto ReadDirectory(std::filesystem::path const& dir_path)
         const noexcept -> DirectoryEntries {
         try {
@@ -609,6 +623,8 @@ class FileRoot {
         return DirectoryEntries{DirectoryEntries::pairs_t{}};
     }
 
+    /// \brief Get type of blob at given path in non-absent root.
+    /// Returns value only for valid entries.
     [[nodiscard]] auto BlobType(std::filesystem::path const& file_path)
         const noexcept -> std::optional<ObjectType> {
         if (std::holds_alternative<RootGit>(root_)) {
@@ -630,7 +646,8 @@ class FileRoot {
         return std::nullopt;
     }
 
-    /// \brief Read a blob from the root based on its ID.
+    /// \brief Read a blob from a non-absent Git root based on its ID.
+    /// Content of symlinks is validated.
     [[nodiscard]] auto ReadBlob(std::string const& blob_id,
                                 bool is_symlink = false) const noexcept
         -> std::optional<std::string> {
@@ -643,7 +660,7 @@ class FileRoot {
         return std::nullopt;
     }
 
-    /// \brief Read a root tree based on its ID.
+    /// \brief Read tree from a non-absent Git root based on its ID.
     /// This should include all valid entry types.
     [[nodiscard]] auto ReadTree(std::string const& tree_id) const noexcept
         -> std::optional<GitTree> {
@@ -662,8 +679,8 @@ class FileRoot {
         return std::nullopt;
     }
 
-    // Create LOCAL or KNOWN artifact. Does not check existence for LOCAL.
-    // `file_path` must reference a blob.
+    /// \brief Create LOCAL or KNOWN artifact. Does not check existence or
+    /// validity for LOCAL. `file_path` must reference a blob.
     [[nodiscard]] auto ToArtifactDescription(
         HashFunction::Type hash_type,
         std::filesystem::path const& file_path,
