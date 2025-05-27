@@ -47,6 +47,7 @@ class Profile {
                              std::string const& cwd);
     void NoteAnalysisError(std::string const& error_message);
     void StartBuild();
+    void StopBuild();
 
   private:
     struct ActionData {

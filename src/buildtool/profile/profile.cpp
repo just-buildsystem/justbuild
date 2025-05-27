@@ -182,3 +182,7 @@ void Profile::SetRemoteExecutionConfig(RemoteExecutionConfig const& config) {
 void Profile::StartBuild() {
     profile_["build start time"] = std::time(nullptr);
 }
+
+void Profile::StopBuild() {
+    profile_["build stop time"] = std::time(nullptr);
+}

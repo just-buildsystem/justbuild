@@ -1255,6 +1255,9 @@ auto main(int argc, char* argv[]) -> int {
                                         std::move(trees),
                                         std::move(tree_overlays),
                                         std::move(cache_artifacts));
+            if (profile != nullptr) {
+                profile->StopBuild();
+            }
             dump_and_cleanup_thread.join();
             if (build_result) {
                 WriteTargetCacheEntries(
