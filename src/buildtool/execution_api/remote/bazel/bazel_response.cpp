@@ -97,7 +97,6 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     if (populated_) {
         return std::nullopt;
     }
-    populated_ = true;
 
     ArtifactInfos artifacts{};
     auto const& action_result = output_.action_result;
@@ -215,6 +214,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
+        populated_ = true;
         return std::nullopt;
     }
 
@@ -272,6 +272,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     }
     artifacts_ = std::move(artifacts);
     dir_symlinks_ = std::move(dir_symlinks);
+    populated_ = true;
     return std::nullopt;
 }
 

@@ -144,7 +144,6 @@ class LocalResponse final : public IExecutionResponse {
         if (populated_) {
             return std::nullopt;
         }
-        populated_ = true;
 
         ArtifactInfos artifacts{};
         auto const& action_result = output_.action;
@@ -276,6 +275,7 @@ class LocalResponse final : public IExecutionResponse {
         }
         artifacts_ = std::move(artifacts);
         dir_symlinks_ = std::move(dir_symlinks);
+        populated_ = true;
         return std::nullopt;
     }
 
