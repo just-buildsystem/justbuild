@@ -170,9 +170,9 @@ class InvocationServer:
                 continue
             full_invocations_count += 1
             target = profile_data.get("target")
-            start_time = profile_data.get("start time")
+            build_start_time = profile_data.get("build start time")
             stop_time = profile_data.get("stop time")
-            wall_clock_time = stop_time - start_time if (start_time is not None and stop_time is not None) else None
+            build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
             config = core_config(profile_data.get("configuration", {}))
             context = meta_data.get("context", {})
             remote = profile_data.get('remote', {})
@@ -188,7 +188,7 @@ class InvocationServer:
                 "target": json.dumps(target) if target else None,
                 "config": json.dumps(config) if config else None,
                 "context": json.dumps(context) if context else None,
-                "wall_clock_time": "%5ds" % (wall_clock_time,) if wall_clock_time else None,
+                "build_wall_clock_time": "%5ds" % (build_wall_clock_time,) if build_wall_clock_time else None,
                 "exit_code": profile_data.get('exit code', 0),
                 "remote_address": remote_address,
                 "remote_props": json.dumps(remote_props) if remote_props else None,
@@ -554,9 +554,12 @@ class InvocationServer:
             non_cached.append(action)
         params["non_cached"] = non_cached
         start_time = profile.get("start time")
+        build_start_time = profile.get("build start time")
         stop_time = profile.get("stop time")
         wall_clock_time = stop_time - start_time if (start_time is not None and stop_time is not None) else None
+        build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
         params["wall_clock_time"] = "%ds" % (wall_clock_time,) if wall_clock_time else None
+        params["build_wall_clock_time"] = "%ds" % (build_wall_clock_time,) if build_wall_clock_time else None
 
         return self.render("invocation.html", params)
 
@@ -638,14 +641,14 @@ class InvocationServer:
                 "data": source_data
             })
 
-        start_time = profile.get("start time")
+        build_start_time = profile.get("build start time")
         stop_time = profile.get("stop time")
-        wall_clock_time = stop_time - start_time if (start_time is not None and stop_time is not None) else None
+        build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
         params["critical_artifact"] = {
             "name": max_name,
             "path": max_path_data if max_path_data else None,
             "duration": '%0.3fs' % (max_duration,) if max_duration > 0 else None,
-            "wall_clock_time": "%ds" % (wall_clock_time,) if wall_clock_time else None,
+            "build_wall_clock_time": "%ds" % (build_wall_clock_time,) if build_wall_clock_time else None,
         }
         return self.render("critical_path.html", params)
 

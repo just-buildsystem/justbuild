@@ -78,6 +78,9 @@ Invocation {{invocation | e}}
   {% if wall_clock_time %}
   <li> Wall-clock time: <tt>{{ wall_clock_time | e }}</tt></li>
   {% endif %}
+  {% if build_wall_clock_time %}
+  <li> Wall-clock time (build only): <tt>{{ build_wall_clock_time | e }}</tt></li>
+  {% endif %}
   {% if exit_code != None %}
   <li> Exit code: <tt>{{ exit_code | e }}</tt></li>
   {% endif %}
