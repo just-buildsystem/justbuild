@@ -185,34 +185,28 @@
   }
 , "TESTS (unconfigured)":
   { "type": ["@", "rules", "test", "matrix"]
-  , "arguments_config": ["TEST_STANDALONE_SERVE"]
   , "stage": ["serve-service"]
   , "deps":
-    { "type": "++"
-    , "$1":
-      [ [ "serve-target-remote-build"
-        , "serve-target-remote-build-dispatch"
-        , "serve-target-failed-build"
-        , "serve-many-targets"
-        , "serve-target-cache-hit"
-        , "serve-start-execute"
-        , "serve-start-execute-sharding"
-        , "serve-export-deps"
-        , "serve-query-target-cache-value"
-        , "describe"
-        , "deduplication-of-serve-requests"
-        , "failure-report"
-        , "interruption-test"
-        , "serve-tree"
-        ]
-      , [ ["./", "serve-archive-root", "TESTS"]
-        , ["./", "serve-git-root", "TESTS"]
-        , ["./", "serve-file-root", "TESTS"]
-        , ["./", "serve-git-tree-root", "TESTS"]
-        , ["./", "serve-distdir-root", "TESTS"]
-        ]
-      ]
-    }
+    [ "deduplication-of-serve-requests"
+    , "describe"
+    , "failure-report"
+    , "interruption-test"
+    , "serve-export-deps"
+    , "serve-many-targets"
+    , "serve-query-target-cache-value"
+    , "serve-start-execute"
+    , "serve-start-execute-sharding"
+    , "serve-target-cache-hit"
+    , "serve-target-failed-build"
+    , "serve-target-remote-build"
+    , "serve-target-remote-build-dispatch"
+    , "serve-tree"
+    , ["./", "serve-archive-root", "TESTS"]
+    , ["./", "serve-distdir-root", "TESTS"]
+    , ["./", "serve-file-root", "TESTS"]
+    , ["./", "serve-git-root", "TESTS"]
+    , ["./", "serve-git-tree-root", "TESTS"]
+    ]
   }
 , "TESTS":
   { "type": "configure"
