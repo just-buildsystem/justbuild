@@ -569,8 +569,8 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
         git_buf_dispose(&buffer);
         return commit_hash;  // success!
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "commit subdir failed with:\n{}", ex.what());
+        (*logger)(fmt::format("commit subdir failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -680,7 +680,8 @@ auto GitRepo::KeepTag(std::string const& commit,
             true /*fatal*/);
         return std::nullopt;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, "keep tag failed with:\n{}", ex.what());
+        (*logger)(fmt::format("keep tag failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -712,8 +713,8 @@ auto GitRepo::GetHeadCommit(anon_logger_ptr const& logger) noexcept
         }
         return std::string(git_oid_tostr_s(&head_oid));
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "get head commit failed with:\n{}", ex.what());
+        (*logger)(fmt::format("get head commit failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -799,11 +800,12 @@ auto GitRepo::FetchFromPath(std::shared_ptr<git_config> cfg,
         }
         return true;  // success!
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "Fetch {} from local repository {} failed with:\n{}",
-                    branch ? fmt::format("branch {}", *branch) : "all",
-                    repo_path,
-                    ex.what());
+        (*logger)(
+            fmt::format("Fetch {} from local repository {} failed with:\n{}",
+                        branch ? fmt::format("branch {}", *branch) : "all",
+                        repo_path,
+                        ex.what()),
+            true /*fatal*/);
         return false;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -926,10 +928,9 @@ auto GitRepo::KeepTree(std::string const& tree_id,
                   true /*fatal*/);
         return std::nullopt;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "keep tree {} failed with:\n{}",
-                    tree_id,
-                    ex.what());
+        (*logger)(
+            fmt::format("keep tree {} failed with:\n{}", tree_id, ex.what()),
+            true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1023,9 +1024,9 @@ auto GitRepo::GetSubtreeFromCommit(std::string const& commit,
         std::string tree_hash{git_oid_tostr_s(git_tree_id(tree.get()))};
         return tree_hash;  // success
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "get subtree from commit failed with:\n{}",
-                    ex.what());
+        (*logger)(
+            fmt::format("get subtree from commit failed with:\n{}", ex.what()),
+            true /*fatal*/);
         return unexpected{GitLookupError::Fatal};
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1103,9 +1104,9 @@ auto GitRepo::GetSubtreeFromTree(std::string const& tree_id,
         // if no subdir, return given tree hash
         return tree_id;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "get subtree from tree failed with:\n{}",
-                    ex.what());
+        (*logger)(
+            fmt::format("get subtree from tree failed with:\n{}", ex.what()),
+            true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1155,9 +1156,9 @@ auto GitRepo::GetSubtreeFromPath(std::filesystem::path const& fpath,
         }
         return *std::move(res);
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "get subtree from path failed with:\n{}",
-                    ex.what());
+        (*logger)(
+            fmt::format("get subtree from path failed with:\n{}", ex.what()),
+            true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1212,8 +1213,9 @@ auto GitRepo::CheckCommitExists(std::string const& commit,
         git_commit_free(commit_obj);
         return true;  // commit exists
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "check commit exists failed with:\n{}", ex.what());
+        (*logger)(
+            fmt::format("check commit exists failed with:\n{}", ex.what()),
+            true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1257,9 +1259,9 @@ auto GitRepo::GetRepoRootFromPath(std::filesystem::path const& fpath,
         }
         return actual_root;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
-                    "get repo root from path failed with:\n{}",
-                    ex.what());
+        (*logger)(
+            fmt::format("get repo root from path failed with:\n{}", ex.what()),
+            true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1305,8 +1307,8 @@ auto GitRepo::CheckTreeExists(std::string const& tree_id,
         }
         return true;  // tree found
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "check tree exists failed with:\n{}", ex.what());
+        (*logger)(fmt::format("check tree exists failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1352,8 +1354,8 @@ auto GitRepo::CheckBlobExists(std::string const& blob_id,
         }
         return true;  // blob found
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "check blob exists failed with:\n{}", ex.what());
+        (*logger)(fmt::format("check blob exists failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1408,8 +1410,8 @@ auto GitRepo::TryReadBlob(std::string const& blob_id,
                   true /*fatal*/);
         return std::pair(false, std::nullopt);
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "check blob exists failed with:\n{}", ex.what());
+        (*logger)(fmt::format("check blob exists failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::pair(false, std::nullopt);
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1440,7 +1442,8 @@ auto GitRepo::WriteBlob(std::string const& content,
         }
         return std::string{git_oid_tostr_s(&blob_oid)};
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error, "write blob failed with:\n{}", ex.what());
+        (*logger)(fmt::format("write blob failed with:\n{}", ex.what()),
+                  true /*fatal*/);
         return std::nullopt;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1619,12 +1622,13 @@ auto GitRepo::LocalFetchViaTmpRepo(StorageConfig const& storage_config,
                   true /*fatal*/);
         return false;
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error,
-            "Fetch {} from local repository {} via tmp dir failed with:\n{}",
-            branch ? fmt::format("branch {}", *branch) : "all",
-            repo_path,
-            ex.what());
+        (*logger)(
+            fmt::format("Fetch {} from local repository {} via tmp dir failed "
+                        "with:\n{}",
+                        branch ? fmt::format("branch {}", *branch) : "all",
+                        repo_path,
+                        ex.what()),
+            true /*fatal*/);
         return false;
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -2024,8 +2028,11 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
             }
         }
     } catch (std::exception const& ex) {
-        Logger::Log(
-            LogLevel::Error, "reading subdirectory {} failed", dir.string());
+        (*logger)(
+            fmt::format("reading subdirectory {} failed unexpectedly with:\n{}",
+                        dir.string(),
+                        ex.what()),
+            /*fatal=*/true);
         return false;
     }
     return true;  // success!
@@ -2040,34 +2047,43 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
     tree_entries_t entries{};
     auto dir_read_and_store = [this, &entries, dir, logger](auto name,
                                                             auto type) {
-        const auto full_name = dir / name;
-        if (IsTreeObject(type)) {
-            // store subdirectory as a tree in the ODB
-            if (auto raw_id =
-                    this->CreateTreeFromDirectory(full_name, logger)) {
-                entries[std::move(*raw_id)].emplace_back(name.string(),
-                                                         ObjectType::Tree);
-                return true;
-            }
-            (*logger)(
-                fmt::format("failed creating tree {}", full_name.string()),
-                /*fatal=*/true);
-            return false;
-        }
-        // for non-tree entries, read content and write it as a blob to the ODB
-        if (auto content =
-                FileSystemManager::ReadContentAtPath(full_name, type)) {
-            if (auto hash = WriteBlob(*content, logger)) {
-                if (auto raw_id = FromHexString(*hash)) {
+        try {
+            const auto full_name = dir / name;
+            if (IsTreeObject(type)) {
+                // store subdirectory as a tree in the ODB
+                if (auto raw_id =
+                        this->CreateTreeFromDirectory(full_name, logger)) {
                     entries[std::move(*raw_id)].emplace_back(name.string(),
-                                                             type);
+                                                             ObjectType::Tree);
                     return true;
                 }
+                (*logger)(
+                    fmt::format("failed creating tree {}", full_name.string()),
+                    /*fatal=*/true);
+                return false;
             }
+            // for non-tree entries, read content and write it as a blob to the
+            // ODB
+            if (auto content =
+                    FileSystemManager::ReadContentAtPath(full_name, type)) {
+                if (auto hash = WriteBlob(*content, logger)) {
+                    if (auto raw_id = FromHexString(*hash)) {
+                        entries[std::move(*raw_id)].emplace_back(name.string(),
+                                                                 type);
+                        return true;
+                    }
+                }
+            }
+            (*logger)(
+                fmt::format("failed creating blob {}", full_name.string()),
+                /*fatal=*/true);
+            return false;
+        } catch (std::exception const& ex) {
+            (*logger)(fmt::format("unexpectedly failed creating blob with:\n{}",
+                                  ex.what()),
+                      /*fatal=*/true);
+            return false;
         }
-        (*logger)(fmt::format("failed creating blob {}", full_name.string()),
-                  /*fatal=*/true);
-        return false;
     };
 
     if (ReadDirectory(dir, dir_read_and_store, logger)) {
