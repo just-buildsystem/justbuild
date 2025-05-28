@@ -171,8 +171,9 @@ class InvocationServer:
             full_invocations_count += 1
             target = profile_data.get("target")
             build_start_time = profile_data.get("build start time")
+            build_stop_time = profile_data.get("build stop time")
             stop_time = profile_data.get("stop time")
-            build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
+            build_wall_clock_time = build_stop_time - build_start_time if (build_start_time is not None and build_stop_time is not None) else None
             config = core_config(profile_data.get("configuration", {}))
             context = meta_data.get("context", {})
             remote = profile_data.get('remote', {})
@@ -555,9 +556,10 @@ class InvocationServer:
         params["non_cached"] = non_cached
         start_time = profile.get("start time")
         build_start_time = profile.get("build start time")
+        build_stop_time = profile.get("build stop time")
         stop_time = profile.get("stop time")
         wall_clock_time = stop_time - start_time if (start_time is not None and stop_time is not None) else None
-        build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
+        build_wall_clock_time = build_stop_time - build_start_time if (build_start_time is not None and build_stop_time is not None) else None
         params["wall_clock_time"] = "%ds" % (wall_clock_time,) if wall_clock_time else None
         params["build_wall_clock_time"] = "%ds" % (build_wall_clock_time,) if build_wall_clock_time else None
 
@@ -642,8 +644,8 @@ class InvocationServer:
             })
 
         build_start_time = profile.get("build start time")
-        stop_time = profile.get("stop time")
-        build_wall_clock_time = stop_time - build_start_time if (build_start_time is not None and stop_time is not None) else None
+        build_stop_time = profile.get("build stop time")
+        build_wall_clock_time = build_stop_time - build_start_time if (build_start_time is not None and build_stop_time is not None) else None
         params["critical_artifact"] = {
             "name": max_name,
             "path": max_path_data if max_path_data else None,
