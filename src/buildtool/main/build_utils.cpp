@@ -14,6 +14,7 @@
 
 #include "src/buildtool/main/build_utils.hpp"
 
+#include <cmath>
 #include <iterator>
 #include <memory>
 #include <unordered_set>
@@ -160,6 +161,7 @@ void WriteTargetCacheEntries(
     TargetCache<true> const& tc,
     Logger const* logger,
     LogLevel log_level) {
+    std::size_t sqrt_jobs = std::lround(std::ceil(std::sqrt(jobs)));
     if (strategy == TargetCacheWriteStrategy::Disable) {
         return;
     }
@@ -171,7 +173,7 @@ void WriteTargetCacheEntries(
     }
     // set up writer map
     auto tc_writer_map = CreateTargetCacheWriterMap(
-        cache_targets, extra_infos, jobs, &apis, strategy, tc);
+        cache_targets, extra_infos, sqrt_jobs, &apis, strategy, tc);
     std::vector<Artifact::ObjectInfo> cache_targets_ids;
     cache_targets_ids.reserve(cache_targets.size());
     for (auto const& [k, _] : cache_targets) {
@@ -180,7 +182,7 @@ void WriteTargetCacheEntries(
     // write the target cache keys
     bool failed{false};
     {
-        TaskSystem ts{jobs};
+        TaskSystem ts{sqrt_jobs};
         tc_writer_map.ConsumeAfterKeysReady(
             &ts,
             cache_targets_ids,
