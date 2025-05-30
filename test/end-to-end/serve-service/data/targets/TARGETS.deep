@@ -1,0 +1,14 @@
+{ "": {"type": "export", "target": "deep", "flexible_config": ["DEPTH"]}
+, "deep":
+  { "type": "generic"
+  , "arguments_config": ["DEPTH"]
+  , "deps": ["deep-output.py"]
+  , "out_dirs": ["out"]
+  , "cmds":
+    [ { "type": "join_cmd"
+      , "$1":
+        ["python3", "deep-output.py", "out", {"type": "var", "name": "DEPTH"}]
+      }
+    ]
+  }
+}

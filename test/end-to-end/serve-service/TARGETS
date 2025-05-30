@@ -147,6 +147,22 @@
   , "repos": ["failure-report (data)"]
   , "keep": ["out/log", "out/serve.log", "out/failure.log"]
   }
+, "deep tree (data)":
+  { "type": "install"
+  , "files":
+    { "ROOT": "data/ROOT"
+    , "TARGETS": "data/targets/TARGETS.deep"
+    , "deep-output.py": "data/deep-output.py"
+    }
+  }
+, "deep tree":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["deep-tree"]
+  , "test": ["deep-tree.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "repos": ["deep tree (data)"]
+  , "keep-dirs": ["out"]
+  }
 , "interruption-test (data)":
   { "type": "install"
   , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.slow"}
@@ -202,6 +218,7 @@
   , "stage": ["serve-service"]
   , "deps":
     [ "deduplication-of-serve-requests"
+    , "deep tree"
     , "describe"
     , "failure-report"
     , "interruption-test"
