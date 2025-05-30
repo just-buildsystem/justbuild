@@ -159,6 +159,20 @@
   , "repos": ["interruption-test (data)"]
   , "keep-dirs": ["out"]
   }
+, "load test (data)":
+  { "type": "generic"
+  , "outs": ["ROOT", "TARGETS"]
+  , "cmds": ["touch ROOT", "python3 wide-deep-targets.py"]
+  , "deps": ["wide-deep-targets.py"]
+  }
+, "load test":
+  { "type": ["end-to-end", "with serve"]
+  , "name": ["load-test"]
+  , "test": ["load-test.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  , "repos": ["load test (data)"]
+  , "keep-dirs": ["out"]
+  }
 , "serve-many-targets (data)":
   { "type": "install"
   , "files": {"ROOT": "data/ROOT", "TARGETS": "data/targets/TARGETS.transform"}
@@ -191,6 +205,7 @@
     , "describe"
     , "failure-report"
     , "interruption-test"
+    , "load test"
     , "serve-export-deps"
     , "serve-many-targets"
     , "serve-query-target-cache-value"
