@@ -17,30 +17,20 @@
   , "tainted": ["test"]
   , "target": "bundled-test"
   , "config":
-    { "type": "let*"
-    , "bindings":
-      [ ["SUFFIX", "-debug"]
-      , ["TEST_ENV", {"type": "singleton_map", "key": "DEBUG", "value": "YES"}]
-      ]
-    , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
-    }
+    {"type": "'", "$1": {"SUFFIX": "-debug", "TEST_ENV": {"DEBUG": "YES"}}}
   }
 , "bundled-test-gnu":
   { "type": "configure"
   , "tainted": ["test"]
   , "target": "bundled-test"
   , "config":
-    { "type": "let*"
-    , "bindings":
-      [ ["SUFFIX", "-gnu"]
-      , [ "TEST_ENV"
-        , { "type": "singleton_map"
-          , "key": "JUST_BUILD_CONF"
-          , "value": "{\"TOOLCHAIN_CONFIG\":{\"FAMILY\": \"gnu\"}, \"CC\": \"gcc\", \"CXX\": \"g++\"}"
-          }
-        ]
-      ]
-    , "body": {"type": "env", "vars": ["TEST_ENV", "SUFFIX"]}
+    { "type": "'"
+    , "$1":
+      { "SUFFIX": "-gnu"
+      , "TEST_ENV":
+        { "JUST_BUILD_CONF": "{\"TOOLCHAIN_CONFIG\":{\"FAMILY\": \"gnu\"}, \"CC\": \"gcc\", \"CXX\": \"g++\"}"
+        }
+      }
     }
   }
 , "distro-bootstrap-deps":

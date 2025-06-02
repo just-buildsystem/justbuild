@@ -187,18 +187,13 @@
   { "type": "configure"
   , "target": ["@", "libgit2", "", "git2"]
   , "config":
-    { "type": "let*"
-    , "bindings":
-      [ ["USE_SHA1", "OpenSSL"]
-      , ["USE_SHA256", "OpenSSL"]
-      , ["USE_SSH", false]
-      , ["USE_HTTPS", "OpenSSL"]
-      , ["USE_GSSAPI", false]
-      ]
-    , "body":
-      { "type": "env"
-      , "vars":
-        ["USE_SHA1", "USE_SHA256", "USE_SSH", "USE_HTTPS", "USE_GSSAPI"]
+    { "type": "'"
+    , "$1":
+      { "USE_SHA1": "OpenSSL"
+      , "USE_SHA256": "OpenSSL"
+      , "USE_SSH": false
+      , "USE_HTTPS": "OpenSSL"
+      , "USE_GSSAPI": false
       }
     }
   }
@@ -206,47 +201,25 @@
   { "type": "configure"
   , "target": ["@", "libcurl", "", "curl"]
   , "config":
-    { "type": "let*"
-    , "bindings":
-      [ ["ENABLE_ARES", true]
-      , ["CURL_DISABLE_DICT", true]
-      , ["CURL_DISABLE_FILE", true]
-      , ["CURL_DISABLE_FTP", false]
-      , ["CURL_DISABLE_GOPHER", true]
-      , ["CURL_DISABLE_IMAP", true]
-      , ["CURL_DISABLE_LDAP", true]
-      , ["CURL_DISABLE_LDAPS", true]
-      , ["CURL_DISABLE_MQTT", true]
-      , ["CURL_DISABLE_POP3", true]
-      , ["CURL_DISABLE_RTSP", true]
-      , ["CURL_DISABLE_SMB", true]
-      , ["CURL_DISABLE_SMTP", true]
-      , ["CURL_DISABLE_TELNET", true]
-      , ["CURL_DISABLE_TFTP", false]
-      , ["CURL_USE_LIBPSL", false]
-      , ["CURL_USE_LIBSSH2", false]
-      ]
-    , "body":
-      { "type": "env"
-      , "vars":
-        [ "ENABLE_ARES"
-        , "CURL_DISABLE_DICT"
-        , "CURL_DISABLE_FILE"
-        , "CURL_DISABLE_FTP"
-        , "CURL_DISABLE_GOPHER"
-        , "CURL_DISABLE_IMAP"
-        , "CURL_DISABLE_LDAP"
-        , "CURL_DISABLE_LDAPS"
-        , "CURL_DISABLE_MQTT"
-        , "CURL_DISABLE_POP3"
-        , "CURL_DISABLE_RTSP"
-        , "CURL_DISABLE_SMB"
-        , "CURL_DISABLE_SMTP"
-        , "CURL_DISABLE_TELNET"
-        , "CURL_DISABLE_TFTP"
-        , "CURL_USE_LIBPSL"
-        , "CURL_USE_LIBSSH2"
-        ]
+    { "type": "'"
+    , "$1":
+      { "ENABLE_ARES": true
+      , "CURL_DISABLE_DICT": true
+      , "CURL_DISABLE_FILE": true
+      , "CURL_DISABLE_FTP": false
+      , "CURL_DISABLE_GOPHER": true
+      , "CURL_DISABLE_IMAP": true
+      , "CURL_DISABLE_LDAP": true
+      , "CURL_DISABLE_LDAPS": true
+      , "CURL_DISABLE_MQTT": true
+      , "CURL_DISABLE_POP3": true
+      , "CURL_DISABLE_RTSP": true
+      , "CURL_DISABLE_SMB": true
+      , "CURL_DISABLE_SMTP": true
+      , "CURL_DISABLE_TELNET": true
+      , "CURL_DISABLE_TFTP": false
+      , "CURL_USE_LIBPSL": false
+      , "CURL_USE_LIBSSH2": false
       }
     }
   }
@@ -254,37 +227,20 @@
   { "type": "configure"
   , "target": ["@", "libarchive", "", "archive"]
   , "config":
-    { "type": "let*"
-    , "bindings":
-      [ ["ENABLE_LIBB2", false]
-      , ["ENABLE_LZ4", false]
-      , ["ENABLE_LZMA", true]
-      , ["ENABLE_ZSTD", false]
-      , ["ENABLE_LIBXML2", false]
-      , ["ENABLE_EXPAT", false]
-      , ["ENABLE_PCREPOSIX", false]
-      , ["ENABLE_PCRE2POSIX", false]
-      , ["ENABLE_LIBGCC", false]
-      , ["ENABLE_CNG", false]
-      , ["XATTR_PROVIDER", "gnu"]
-      , ["ENABLE_ACL", false]
-      ]
-    , "body":
-      { "type": "env"
-      , "vars":
-        [ "ENABLE_LIBB2"
-        , "ENABLE_LZ4"
-        , "ENABLE_LZMA"
-        , "ENABLE_ZSTD"
-        , "ENABLE_LIBXML2"
-        , "ENABLE_EXPAT"
-        , "ENABLE_PCREPOSIX"
-        , "ENABLE_PCRE2POSIX"
-        , "ENABLE_LIBGCC"
-        , "ENABLE_CNG"
-        , "XATTR_PROVIDER"
-        , "ENABLE_ACL"
-        ]
+    { "type": "'"
+    , "$1":
+      { "ENABLE_LIBB2": false
+      , "ENABLE_LZ4": false
+      , "ENABLE_LZMA": true
+      , "ENABLE_ZSTD": false
+      , "ENABLE_LIBXML2": false
+      , "ENABLE_EXPAT": false
+      , "ENABLE_PCREPOSIX": false
+      , "ENABLE_PCRE2POSIX": false
+      , "ENABLE_LIBGCC": false
+      , "ENABLE_CNG": false
+      , "XATTR_PROVIDER": "gnu"
+      , "ENABLE_ACL": false
       }
     }
   }
