@@ -63,6 +63,8 @@ struct SetupRepos {
 namespace Utils {
 
 /// \brief Get the repo dependency closure for a given main repository.
+/// If main repository is absent, emits a warning for any reachable
+/// non-content-fixed repository found.
 /// \param repos ExpressionPtr of Map type.
 void ReachableRepositories(
     ExpressionPtr const& repos,

@@ -110,6 +110,12 @@
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "repos": ["fetch-absent (data)"]
   }
+, "absent-closure":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["absent-closure"]
+  , "test": ["absent-closure.sh"]
+  , "deps": [["", "mr-tool-under-test"]]
+  }
 , "absent-config":
   { "type": ["end-to-end", "with serve"]
   , "name": ["absent-config"]
@@ -288,6 +294,7 @@
               }
             , [ "fetch-absent"
               , "fetch-absent-git-tree"
+              , "absent-closure"
               , "absent-config"
               , "fetch-absent-archives"
               , "fetch-absent-archives-symlinks"

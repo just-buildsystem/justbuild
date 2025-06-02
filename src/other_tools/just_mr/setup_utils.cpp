@@ -80,6 +80,57 @@ void WarnUnknownKeys(std::string const& name, ExpressionPtr const& repo_def) {
     return std::nullopt;
 }
 
+[[nodiscard]] auto IsAbsent(ExpressionPtr const& repo_def) -> bool {
+    if (repo_def.IsNotNull() and repo_def->IsMap()) {
+        if (auto repo = repo_def->Get("repository", Expression::none_t{});
+            repo.IsNotNull() and repo->IsMap()) {
+            if (auto pragma = repo->Get("pragma", Expression::none_t{});
+                pragma.IsNotNull() and pragma->IsMap()) {
+                auto absent = pragma->Get("absent", Expression::none_t{});
+                return absent.IsNotNull() and absent->IsBool() and
+                       absent->Bool();
+            }
+        }
+    }
+    return false;
+}
+
+[[nodiscard]] auto IsNotContentFixed(ExpressionPtr const& repo_def) -> bool {
+    if (not repo_def.IsNotNull() or not repo_def->IsMap()) {
+        return false;
+    }
+    if (auto repo = repo_def->Get("repository", Expression::none_t{});
+        repo.IsNotNull() and repo->IsMap()) {
+        // Check if type == "file"
+        auto type = repo->Get("type", Expression::none_t{});
+        if (not type.IsNotNull() or not type->IsString()) {
+            return false;
+        }
+        if (type->String() == "file") {
+            auto pragma = repo->Get("pragma", Expression::none_t{});
+            if (not pragma.IsNotNull() or not pragma->IsMap()) {
+                return true;  // not content-fixed if not to_git
+            }
+            // Check for explicit to_git == true
+            if (auto to_git = pragma->Get("to_git", Expression::none_t{});
+                to_git.IsNotNull() and to_git->IsBool() and to_git->Bool()) {
+                return false;
+            }
+            // Check for implicit to_git == true
+            if (auto special = pragma->Get("special", Expression::none_t{});
+                special.IsNotNull() and special->IsString()) {
+                auto const& special_str = special->String();
+                if (special_str == "resolve-partially" or
+                    special_str == "resolve-completely") {
+                    return false;
+                }
+            }
+            return true;  // not content-fixed if not to_git
+        }
+    }
+    return false;
+}
+
 }  // namespace
 
 namespace JustMR::Utils {
@@ -91,6 +142,8 @@ void ReachableRepositories(
     // use temporary sets to avoid duplicates
     std::unordered_set<std::string> include_repos_set;
     std::unordered_set<std::string> setup_repos_set;
+
+    bool absent_main = IsAbsent(repos->Get(main, Expression::none_t{}));
 
     // traverse all bindings of main repository
     for (std::queue<std::string> to_process({main}); not to_process.empty();
@@ -107,6 +160,16 @@ void ReachableRepositories(
             continue;
         }
         WarnUnknownKeys(repo_name, repos_repo_name);
+
+        // Warn if main repo is marked absent and current repo (including main)
+        // is not content-fixed
+        if (absent_main and IsNotContentFixed(repos_repo_name)) {
+            Logger::Log(LogLevel::Warning,
+                        "Found non-content-fixed repository {} as dependency "
+                        "of absent main repository {}",
+                        nlohmann::json(repo_name).dump(),
+                        nlohmann::json(main).dump());
+        }
 
         // If the current repo is a computed one, process its target repo
         if (auto precomputed = GetTargetRepoIfPrecomputed(repos, repo_name)) {
