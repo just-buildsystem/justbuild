@@ -14,8 +14,8 @@
 # limitations under the License.
 
 ###
-# Test that users are warned if a non-absent repository is reached from an
-# absent main repository.
+# Test that users are warned if a non-content-fixed repository is reached from
+# an absent main repository.
 ##
 
 set -eu
