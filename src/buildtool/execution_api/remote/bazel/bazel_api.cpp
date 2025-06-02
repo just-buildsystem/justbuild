@@ -473,6 +473,10 @@ auto BazelApi::CreateAction(
         return false;
     }
 
+    if (failure) {
+        return false;
+    }
+
     try {
         for (auto const& info : artifacts_info) {
             done->insert(info);
@@ -484,7 +488,7 @@ auto BazelApi::CreateAction(
                     ex.what());
     }
 
-    return not failure;
+    return true;
 }
 
 [[nodiscard]] auto BazelApi::RetrieveToMemory(
