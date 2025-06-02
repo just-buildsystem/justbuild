@@ -28,6 +28,9 @@ A feature release on top of `1.5.0`, backwards compatible.
   file sytem.
 - `just serve` now fetches trees from remote execution in parallel
   and through its local CAS; this fixes a performance issue.
+- A bug was fixed that could cause the number of threads being
+  the square of what was specified during backing up artifacts of
+  export targets after build.
 - `just-mr` now also consideres computed roots (as no-op) when
   reporting progress.
 - The "generic" rule now properly detects staging conflicts, taking
