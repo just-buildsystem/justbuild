@@ -519,6 +519,7 @@ class InvocationServer:
                 else:
                     failed_build_actions.append(action_data(k, v, graph))
         params["failed_actions"] = failed_build_actions + failed_test_actions
+        params["failed_actions_count"] = len(params["failed_actions"])
 
         # non-failed actions with output
         output_actions = []
@@ -528,6 +529,7 @@ class InvocationServer:
                    actions_considered.add(k)
                    output_actions.append(action_data(k, v, graph))
         params["output_actions"] = output_actions
+        params["output_actions_count"] = len(output_actions)
 
         # longest running non-cached non-failed actions without output
         candidates = []
@@ -554,6 +556,7 @@ class InvocationServer:
             action["name_prefix"] = "%5.1fs" % (t,)
             non_cached.append(action)
         params["non_cached"] = non_cached
+        params["non_cached_count"] = len(non_cached)
         start_time = profile.get("start time")
         build_start_time = profile.get("build start time")
         build_stop_time = profile.get("build stop time")

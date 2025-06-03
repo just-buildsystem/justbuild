@@ -131,7 +131,7 @@ Invocation {{invocation | e}}
   <li> Cached: <tt>{{ action_count_cached | e }}</tt></li>
 </ul>
 
-<h3>Failed actions</h3>
+<h3> Failed actions ({{ failed_actions_count | e }})</h3>
 {% if failed_actions %}
 <ul>
   {% for action in failed_actions %}
@@ -142,7 +142,7 @@ Invocation {{invocation | e}}
 <i>(none)</i>
 {% endif %}
 
-<h3>Other actions with console output</h3>
+<h3>Other actions with console output ({{ output_actions_count | e }})</h3>
 {% if output_actions %}
 <ul>
   {% for action in output_actions %}
@@ -154,7 +154,7 @@ Invocation {{invocation | e}}
 {% endif %}
 
 
-<h3>Remaining non-cached actions</h3>
+<h3>Remaining non-cached actions ({{ non_cached_count | e}})</h3>
 {% if non_cached %}
 In order of decreasing run time.
 <ul>
