@@ -4,9 +4,15 @@
   , "test": ["stage-links.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "tree-reference":
+  { "type": ["end-to-end", "with remote"]
+  , "name": ["tree-reference"]
+  , "test": ["tree-reference.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["symlinks"]
-  , "deps": ["stage-links"]
+  , "deps": ["stage-links", "tree-reference"]
   }
 }
