@@ -564,7 +564,7 @@ class FileRoot {
     /// \brief Read entries of directory from non-absent source root.
     /// Returns value only for valid entries.
     [[nodiscard]] auto ReadDirectory(std::filesystem::path const& dir_path)
-        const noexcept -> DirectoryEntries {
+        const noexcept -> std::optional<DirectoryEntries> {
         try {
             if (std::holds_alternative<RootGit>(root_)) {
                 auto const& git_root = std::get<RootGit>(root_);
@@ -577,10 +577,11 @@ class FileRoot {
                         // it directly
                         return DirectoryEntries{&(*root_tree)};
                     }
-                    Logger::Log(LogLevel::Warning,
-                                "Asked to read invalid Git source tree {}",
-                                root_tree->FileRootHash());
-                    return DirectoryEntries{DirectoryEntries::pairs_t{}};
+                    Logger::Log(
+                        LogLevel::Debug,
+                        "Failed to read root directory of Git source tree {}",
+                        root_tree->FileRootHash());
+                    return std::nullopt;
                 }
                 if (auto entry = root_tree->LookupEntryByPath(dir_path)) {
                     if (ignore_special_ or
@@ -593,32 +594,38 @@ class FileRoot {
                         }
                     }
                     Logger::Log(
-                        LogLevel::Warning,
-                        "Asked to read invalid subdir {} of Git source tree {}",
+                        LogLevel::Debug,
+                        "Failed to read subdir {} of Git source tree {}",
                         dir_path.string(),
                         root_tree->FileRootHash());
-                    return DirectoryEntries{DirectoryEntries::pairs_t{}};
+                    return std::nullopt;
                 }
             }
             else if (std::holds_alternative<fs_root_t>(root_)) {
                 DirectoryEntries::pairs_t map{};
+                auto const subdir_path = std::get<fs_root_t>(root_) / dir_path;
                 if (FileSystemManager::ReadDirectory(
-                        std::get<fs_root_t>(root_) / dir_path,
+                        subdir_path,
                         [&map](const auto& name, auto type) {
                             map.emplace(name.string(), type);
                             return true;
                         },
                         /*allow_upwards=*/false,
                         ignore_special_,
-                        /*log_failure_at=*/LogLevel::Warning)) {
+                        /*log_failure_at=*/LogLevel::Debug)) {
                     return DirectoryEntries{std::move(map)};
                 }
+                Logger::Log(LogLevel::Debug,
+                            "Failed to read file source directory {}",
+                            subdir_path.string());
+                return std::nullopt;
             }
         } catch (std::exception const& ex) {
-            Logger::Log(LogLevel::Error,
-                        "reading directory {} failed with:\n{}",
+            Logger::Log(LogLevel::Debug,
+                        "Reading source directory {} failed with:\n{}",
                         dir_path.string(),
                         ex.what());
+            return std::nullopt;
         }
         return DirectoryEntries{DirectoryEntries::pairs_t{}};
     }

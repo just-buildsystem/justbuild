@@ -33,7 +33,7 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(
             (*logger)(
                 fmt::format("Cannot determine workspace root for repository {}",
                             key.repository),
-                true);
+                /*fatal=*/true);
             return;
         }
         if (ws_root->IsAbsent()) {
@@ -43,9 +43,9 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(
                 missing_root = *absent_tree;
             }
             (*logger)(fmt::format("Would have to read directory entries of "
-                                  "absent root {}.",
+                                  "absent root {}",
                                   missing_root),
-                      true);
+                      /*fatal=*/true);
             return;
         }
         auto dir_path = key.module.empty() ? "." : key.module;
@@ -56,7 +56,14 @@ auto BuildMaps::Base::CreateDirectoryEntriesMap(
                 FileRoot::DirectoryEntries::pairs_t{}});
             return;
         }
-        (*setter)(ws_root->ReadDirectory(dir_path));
+        if (auto read_dir = ws_root->ReadDirectory(dir_path)) {
+            (*setter)(*std::move(read_dir));
+            return;
+        }
+        (*logger)(fmt::format("Failed to read directory {} from repository {}",
+                              dir_path,
+                              key.repository),
+                  /*fatal=*/true);
     };
     return AsyncMapConsumer<BuildMaps::Base::ModuleName,
                             FileRoot::DirectoryEntries>{directory_reader, jobs};

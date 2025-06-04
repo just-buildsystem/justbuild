@@ -134,19 +134,20 @@ void TestFileRootReadEntries(FileRoot const& root,
     REQUIRE(root.Exists(path));
     REQUIRE(root.IsDirectory(path));
     auto entries = root.ReadDirectory(path);
+    REQUIRE(entries.has_value());
 
-    CHECK_FALSE(entries.Empty());
-    CHECK(entries.ContainsBlob("foo"));
-    CHECK(entries.ContainsBlob("bar"));
+    CHECK_FALSE(entries->Empty());
+    CHECK(entries->ContainsBlob("foo"));
+    CHECK(entries->ContainsBlob("bar"));
     if (has_baz) {
-        CHECK_FALSE(entries.ContainsBlob("baz"));
-        CHECK(with_symlinks == entries.ContainsBlob("baz_l"));
-        CHECK(with_symlinks == entries.ContainsBlob("foo_l"));
+        CHECK_FALSE(entries->ContainsBlob("baz"));
+        CHECK(with_symlinks == entries->ContainsBlob("baz_l"));
+        CHECK(with_symlinks == entries->ContainsBlob("foo_l"));
     }
     else {
-        CHECK(with_symlinks == entries.ContainsBlob("bar_l"));
+        CHECK(with_symlinks == entries->ContainsBlob("bar_l"));
     }
-    CHECK_FALSE(entries.ContainsBlob("does_not_exist"));
+    CHECK_FALSE(entries->ContainsBlob("does_not_exist"));
 }
 
 void TestFileRootReadDirectory(FileRoot const& root, bool with_symlinks) {
