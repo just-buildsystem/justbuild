@@ -1881,7 +1881,7 @@ auto GitRepo::ReadTree(std::string const& id,
 
             if (not symlinks.empty() and
                 not std::invoke(check_symlinks.get(), symlinks)) {
-                Logger::Log(LogLevel::Error,
+                Logger::Log(LogLevel::Debug,
                             "found upwards symlinks in Git tree {}",
                             is_hex_id ? std::string{id} : ToHexString(id));
                 return std::nullopt;
@@ -1890,7 +1890,7 @@ auto GitRepo::ReadTree(std::string const& id,
 
         return entries;
     } catch (std::exception const& ex) {
-        Logger::Log(LogLevel::Error,
+        Logger::Log(LogLevel::Debug,
                     "reading tree with checker failed with:\n{}",
                     ex.what());
     }
