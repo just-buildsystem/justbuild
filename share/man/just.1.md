@@ -861,4 +861,6 @@ See also
 
 **`just-repository-config`**(5),
 **`just-serve-config`**(5),
+**`just-graph-file`**(5),
+**`just-profile`**(5),
 **`just-mr`**(1)

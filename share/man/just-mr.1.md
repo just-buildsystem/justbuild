@@ -379,6 +379,7 @@ details.
 See also
 ========
 
+**`just-mrrc`**(5),
 **`just-mr-repository-config`**(5),
 **`just-repository-config`**(5),
 **`just`**(1)
