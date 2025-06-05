@@ -55,7 +55,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     GIT_FILEMODE_BLOB_EXECUTABLE,
     GIT_FILEMODE_TREE};
 
-[[nodiscard]] auto ToHexString(git_oid const& oid) noexcept
+[[nodiscard]] auto ToHexString(git_oid const& oid)
     -> std::optional<std::string> {
     std::string hex_id(GIT_OID_HEXSZ, '\0');
     if (git_oid_fmt(hex_id.data(), &oid) != 0) {
@@ -99,7 +99,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
     }
 }
 
-[[nodiscard]] auto GitTypeToObjectType(git_object_t const& type) noexcept
+[[nodiscard]] auto GitTypeToObjectType(git_object_t const& type)
     -> std::optional<ObjectType> {
     switch (type) {
         case GIT_OBJECT_BLOB:
@@ -154,8 +154,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
 
 [[nodiscard]] auto flat_tree_walker_ignore_special(const char* /*root*/,
                                                    const git_tree_entry* entry,
-                                                   void* payload) noexcept
-    -> int {
+                                                   void* payload) -> int {
     auto* entries =
         reinterpret_cast<GitRepo::tree_entries_t*>(payload);  // NOLINT
 
@@ -180,7 +179,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
 
 [[nodiscard]] auto flat_tree_walker(const char* /*root*/,
                                     const git_tree_entry* entry,
-                                    void* payload) noexcept -> int {
+                                    void* payload) -> int {
     auto* entries =
         reinterpret_cast<GitRepo::tree_entries_t*>(payload);  // NOLINT
 
@@ -1640,10 +1639,17 @@ auto GitRepo::LocalFetchViaTmpRepo(StorageConfig const& storage_config,
 auto GitRepo::GetConfigSnapshot() const noexcept
     -> std::shared_ptr<git_config> {
 #ifndef BOOTSTRAP_BUILD_TOOL
-    git_config* cfg_ptr{nullptr};
-    if (git_repository_config_snapshot(&cfg_ptr, git_cas_->GetRepository()) ==
-        0) {
-        return std::shared_ptr<git_config>(cfg_ptr, config_closer);
+    try {
+        git_config* cfg_ptr{nullptr};
+        if (git_repository_config_snapshot(&cfg_ptr,
+                                           git_cas_->GetRepository()) == 0) {
+            return std::shared_ptr<git_config>(cfg_ptr, config_closer);
+        }
+    } catch (std::exception const& ex) {
+        Logger::Log(
+            LogLevel::Debug,
+            "Unexpected failure getting Git configuration snapshot:\n{}",
+            ex.what());
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
     return nullptr;
