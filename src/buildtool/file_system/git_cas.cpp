@@ -38,8 +38,8 @@ namespace {
         case GIT_OBJECT_TREE:
             return ObjectType::Tree;
         default:
-            Logger::Log(LogLevel::Error,
-                        "unsupported git object type {}",
+            Logger::Log(LogLevel::Debug,
+                        "Unsupported git object type {}",
                         git_object_type2string(type));
             return std::nullopt;
     }
