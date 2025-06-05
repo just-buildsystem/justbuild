@@ -386,10 +386,10 @@ INFO: Discovered 8 actions, 0 tree overlays, 6 trees, 0 blobs
 INFO: Building [["@","tutorial","","lint"],{}].
 WARN (action:415a94f0c74ec937e2504b9ef5f94696232ff2c57eb2bec00c226896e2eb8be6):
      lint failed for work/greet/greet.cpp (exit code 1); outputs:
+      - "out" [caf25f0a518d21909625f9a7974002796f6d8b5f:39:t]
       - "result" [94e1707e853c36f514de3876408c09a0e0ca6fc4:5:f]
       - "stderr" [ffc377e8898697782ab96419f6ab82c60985c752:235:f]
       - "stdout" [17975e013bd2cc3f66509e11737e1e169f1bd162:231:f]
-      - "out" [caf25f0a518d21909625f9a7974002796f6d8b5f:39:t]
 INFO: Processed 4 actions, 2 cache hits.
 INFO: Artifacts built, logical paths are:
         out [c298959107421711f8d87a2b96e95858c065b9b9:41:t] FAILED
