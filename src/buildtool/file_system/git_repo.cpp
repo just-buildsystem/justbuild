@@ -93,7 +93,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
             std::ostringstream str;
             str << std::oct << static_cast<int>(mode);
             Logger::Log(
-                LogLevel::Error, "unsupported git filemode {}", str.str());
+                LogLevel::Debug, "unsupported git filemode {}", str.str());
             return std::nullopt;
         }
     }
@@ -107,7 +107,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
         case GIT_OBJECT_TREE:
             return ObjectType::Tree;
         default:
-            Logger::Log(LogLevel::Error,
+            Logger::Log(LogLevel::Debug,
                         "unsupported git object type {}",
                         git_object_type2string(type));
             return std::nullopt;
@@ -171,7 +171,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }
     }
-    Logger::Log(LogLevel::Error,
+    Logger::Log(LogLevel::Debug,
                 "failed ignore_special walk for git tree entry: {}",
                 name);
     return -1;  // fail
@@ -193,7 +193,7 @@ std::unordered_set<git_filemode_t> const kNonSpecialGitFileModes{
             return 1;  // return >=0 on success, 1 == skip subtrees (flat)
         }
     }
-    Logger::Log(LogLevel::Error, "failed walk for git tree entry: {}", name);
+    Logger::Log(LogLevel::Debug, "failed walk for git tree entry: {}", name);
     return -1;  // fail
 }
 
@@ -453,12 +453,12 @@ auto GitRepo::InitAndOpen(std::filesystem::path const& repo_path,
         }
         Logger::Log(LogLevel::Error,
                     "initializing git repository {} failed with:\n{}",
-                    (repo_path / "").string(),
+                    repo_path.string(),
                     err_mess);
     } catch (std::exception const& ex) {
         Logger::Log(LogLevel::Error,
                     "initializing git repository {} failed with:\n{}",
-                    (repo_path / "").string(),
+                    repo_path.string(),
                     ex.what());
     }
 #endif  // BOOTSTRAP_BUILD_TOOL
@@ -1963,7 +1963,7 @@ auto GitRepo::CreateTree(tree_entries_t const& entries) const noexcept
         return ToRawString(oid);
     } catch (std::exception const& ex) {
         Logger::Log(
-            LogLevel::Error, "creating tree failed with:\n{}", ex.what());
+            LogLevel::Debug, "creating tree failed with:\n{}", ex.what());
         return std::nullopt;
     }
 #endif
