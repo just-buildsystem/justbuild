@@ -23,7 +23,7 @@ readonly JUST_MR="${PWD}/bin/mr-tool-under-test"
 readonly LBR="${TEST_TMPDIR}/local-build-root"
 readonly OUT="${TEST_TMPDIR}/build-output"
 readonly REPO_DIRS="${TEST_TMPDIR}/repos"
-readonly WRKDIR="${PWD}"
+readonly WRKDIR="${PWD}/work"
 
 # Set up repo foo
 mkdir -p "${REPO_DIRS}/foo/src"
