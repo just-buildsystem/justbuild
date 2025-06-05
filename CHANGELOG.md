@@ -35,9 +35,12 @@ A feature release on top of `1.5.0`, backwards compatible.
   reporting progress.
 - The "generic" rule now properly detects staging conflicts, taking
   the full inputs into account (and not only the runfiles).
+- Illegitimate symlinks in explicit source-tree references are now
+  rejected reliably.
 - An incorrect error handling in the evaluation of computed roots was fixed.
-- Symlinks to directories and files are properly distinguished as requested
-  by the remote-execution protocol.
+- `just execute`: Symlinks to directories and files are properly
+  distinguished as requested by the remote-execution protocol.
+- Various improvements of the documentation.
 
 ## Release `1.5.0` (2025-03-06)
 
