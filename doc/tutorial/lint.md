@@ -342,6 +342,16 @@ INFO: Backing up artifacts of 1 export targets
 INFO: Target tainted ["lint"].
 ```
 
+Note the difference between the discovered and processed actions.
+This is inherent to the way linting works: in order to know the
+precise command line with which a source file is compiled, the
+respective target has to be analysed. However, to lint the source
+files, it is not necessary to actually build the binary whose
+source code should be linted. Of course, if a combined test target
+that includes linting as well as end-to-end tests is considered,
+the binary has to be built (and hence the actions processed) for
+other reasons.
+
 To see that some real linting is going on, let's modify one
 of our source files. Say, we'll make the greeting independent
 of the recipient.
