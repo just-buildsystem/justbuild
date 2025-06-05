@@ -2097,12 +2097,9 @@ auto GitRepo::CreateShallowTree(tree_entries_t const& entries) noexcept
         for (auto const& entry : std::filesystem::directory_iterator{dir}) {
             if (auto type = FileSystemManager::Type(entry.path(),
                                                     /*allow_upwards=*/true)) {
-                if (not read_and_store_entry(entry.path().filename(), *type)) {
-                    std::invoke(*logger,
-                                fmt::format("Could not read and store to ODB "
-                                            "subdir entry {}",
-                                            entry.path().string()),
-                                /*fatal=*/true);
+                if (not read_and_store_entry(
+                        entry.path().filename(), *type, logger)) {
+                    // logging with fatal already handled
                     return false;
                 }
             }
@@ -2133,8 +2130,10 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
     return std::nullopt;
 #else
     tree_entries_t entries{};
-    auto dir_read_and_store = [this, &entries, dir, logger](auto name,
-                                                            auto type) {
+    StoreDirEntryFunc dir_read_and_store =
+        [this, &entries, dir](std::filesystem::path const& name,
+                              ObjectType type,
+                              anon_logger_ptr const& logger) -> bool {
         try {
             const auto full_name = dir / name;
             if (IsTreeObject(type)) {
@@ -2145,10 +2144,7 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
                                                              ObjectType::Tree);
                     return true;
                 }
-                std::invoke(
-                    *logger,
-                    fmt::format("Failed creating tree {}", full_name.string()),
-                    /*fatal=*/true);
+                // logging with fatal already handled
                 return false;
             }
             // for non-tree entries, read content and write it as a blob to the
@@ -2179,8 +2175,16 @@ auto GitRepo::CreateTreeFromDirectory(std::filesystem::path const& dir,
     };
 
     if (ReadDirectory(dir, dir_read_and_store, logger)) {
-        return CreateTree(entries);
+        if (auto tree = CreateTree(entries)) {
+            return tree;
+        }
+        std::invoke(
+            *logger,
+            fmt::format("failed to create tree from entries of directory {}",
+                        dir.string()),
+            /*fatal=*/true);
     }
+    // logging with fatal already handled
     return std::nullopt;
 #endif  // BOOTSTRAP_BUILD_TOOL
 }
