@@ -709,8 +709,10 @@ class ExecutorImpl {
             return false;
         }
 
-        auto const output_files = action->OutputFilePaths();
-        auto const output_dirs = action->OutputDirPaths();
+        auto output_files = action->OutputFilePaths();
+        auto output_dirs = action->OutputDirPaths();
+        std::sort(output_files.begin(), output_files.end());
+        std::sort(output_dirs.begin(), output_dirs.end());
 
         if (artifacts.value()->empty() or
             not CheckOutputsExist(
@@ -744,13 +746,13 @@ class ExecutorImpl {
                 auto base = action->Content().Cwd();
                 message << *(action->MayFail()) << " (exit code "
                         << response->ExitCode() << "); outputs:";
-                for (auto const& [name, node] : action->OutputFiles()) {
+                for (auto const& name : output_files) {
                     message << "\n - " << nlohmann::json(name).dump() << " "
                             << artifacts.value()
                                    ->at(RebasePathStringRelativeTo(base, name))
                                    .ToString();
                 }
-                for (auto const& [name, node] : action->OutputDirs()) {
+                for (auto const& name : output_dirs) {
                     message << "\n - " << nlohmann::json(name).dump() << " "
                             << artifacts.value()
                                    ->at(RebasePathStringRelativeTo(base, name))
