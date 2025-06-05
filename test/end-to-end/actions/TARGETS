@@ -99,7 +99,7 @@
   }
 , "tree-conflicts":
   { "type": ["@", "rules", "shell/test", "script"]
-  , "name": ["tree-conflcits"]
+  , "name": ["tree-conflicts"]
   , "test": ["tree-conflicts.sh"]
   , "deps": [["", "tool-under-test"]]
   , "keep": ["out/graph.json", "out/artifacts.json", "out/log"]
