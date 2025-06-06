@@ -91,8 +91,13 @@ Invocation {{invocation | e}}
   {% endif %}
   {% if artifacts %}
   <li>
+    {% if artifacts_count == 1 %}
+    <details open>
+      <summary open>artifact</summary>
+    {% else %}
     <details>
       <summary>{{ artifacts_count | e }} artifacts</summary>
+    {% endif %}
       <ul>
         {% for entry in artifacts %}
         <li>
