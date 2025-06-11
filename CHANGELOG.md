@@ -2,6 +2,13 @@
 
 Bug fixes on top of `1.5.2`.
 
+### Fixes
+
+- A bug was fixed that could cause the number of threads being
+  the square of what was specified during backing up artifacts of
+  export targets after build.
+- Error handling was fixed in git-repository handling and in parallel
+  fetching of artifacts.
 
 ## Release `1.5.2` (2025-05-19)
 
