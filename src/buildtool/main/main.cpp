@@ -771,7 +771,9 @@ auto main(int argc, char* argv[]) -> int {
             }
 
             if (GarbageCollector::TriggerGarbageCollection(
-                    *storage_config, arguments.gc.no_rotate)) {
+                    *storage_config,
+                    arguments.gc.no_rotate,
+                    arguments.gc.all)) {
                 return kExitSuccess;
             }
             return kExitBuildEnvironment;

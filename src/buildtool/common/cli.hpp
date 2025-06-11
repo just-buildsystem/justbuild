@@ -192,7 +192,8 @@ struct ServeArguments {
 };
 
 struct GcArguments {
-    bool no_rotate{};
+    bool no_rotate = false;
+    bool all = false;
 };
 
 struct ToAddArguments {
@@ -838,10 +839,17 @@ static inline auto SetupServeArguments(
 
 static inline void SetupGcArguments(gsl::not_null<CLI::App*> const& app,
                                     gsl::not_null<GcArguments*> const& args) {
-    app->add_flag("--no-rotate",
-                  args->no_rotate,
-                  "Do not rotate cache generations, only clean up what can be "
-                  "done without losing cache.");
+    auto* no_rotate =
+        app->add_flag("--no-rotate",
+                      args->no_rotate,
+                      "Do not rotate cache generations, only clean up what can "
+                      "be done without losing cache.");
+
+    auto* all = app->add_flag(
+        "--all", args->all, "Remove all cache generations at once");
+
+    no_rotate->excludes(all);
+    all->excludes(no_rotate);
 }
 
 #endif  // INCLUDED_SRC_BUILDTOOL_COMMON_CLI_HPP
