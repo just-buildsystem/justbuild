@@ -1,4 +1,4 @@
-## Release `1.5.3` (UNRELEASED)
+## Release `1.5.3` (2025-06-12)
 
 Bug fixes on top of `1.5.2`.
 
