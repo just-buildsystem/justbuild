@@ -526,6 +526,30 @@ TEST_CASE("LocalCAS: Split-Splice", "[storage]") {
     }
 }
 
+TEST_CASE("Skip compactification", "[storage]") {
+    auto const config = TestStorageConfig::Create();
+    auto const storage = Storage::Create(&config.Get());
+
+    auto const& cas = storage.CAS();
+
+    // Create a large object in CAS:
+    using LargeTestUtils::File;
+    auto object = File::Create(cas, File::kLargeId, File::kLargeSize);
+    REQUIRE(object.has_value());
+    auto& [digest, path] = *object;
+    REQUIRE(cas.BlobPath(digest, /*is_executable=*/false).has_value());
+
+    // Trigger garbage collection with --all
+    REQUIRE(GarbageCollector::TriggerGarbageCollection(
+        config.Get(), /*no_rotation=*/false, /*gc_all=*/true));
+
+    // Check no generation remains:
+    for (std::size_t i = 0; i < config.Get().num_generations; ++i) {
+        CHECK_FALSE(
+            FileSystemManager::Exists(config.Get().GenerationCacheRoot(i)));
+    }
+}
+
 // Test uplinking of nested large objects:
 // A large tree depends on a number of nested objects:
 //

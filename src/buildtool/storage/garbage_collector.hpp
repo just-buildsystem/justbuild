@@ -26,12 +26,18 @@
 /// Responsible for deleting oldest generation.
 class GarbageCollector {
   public:
-    /// \brief Trigger garbage collection; unless no_rotation is given, this
-    /// will include rotation of generations and deleting the oldest generation.
-    /// \returns true on success.
+    /// \brief Trigger garbage collection
+    /// \param storage_config Storage to collect garbage in
+    /// \param no_rotation Skip rotation of generation and perform only steps
+    /// that can be done without losing existing cache. Incompatible with
+    /// gc_all.
+    /// \param gc_all Remove all cache generations at once. Incompatible with
+    /// no_rotation.
+    /// \return true on success.
     [[nodiscard]] auto static TriggerGarbageCollection(
         StorageConfig const& storage_config,
-        bool no_rotation = false) noexcept -> bool;
+        bool no_rotation = false,
+        bool gc_all = false) noexcept -> bool;
 
     /// \brief Acquire shared lock to prevent garbage collection from running.
     /// \param storage_config   Storage to be locked.

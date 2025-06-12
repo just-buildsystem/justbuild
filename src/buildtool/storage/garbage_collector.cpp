@@ -70,7 +70,14 @@ auto GarbageCollector::LockFilePath(
 
 auto GarbageCollector::TriggerGarbageCollection(
     StorageConfig const& storage_config,
-    bool no_rotation) noexcept -> bool {
+    bool no_rotation,
+    bool gc_all) noexcept -> bool {
+    if (no_rotation and gc_all) {
+        Logger::Log(LogLevel::Error,
+                    "no_rotation and gc_all cannot be set together");
+        return false;
+    }
+
     std::string const remove_me = "remove-me";
 
     auto pid = CreateProcessUniqueId();
@@ -165,15 +172,38 @@ auto GarbageCollector::TriggerGarbageCollection(
         // Compactification must take place before rotating generations.
         // Otherwise, an interruption of the process during compactification
         // would lead to an invalid old generation.
-        if (not GarbageCollector::Compactify(storage_config,
-                                             MessageLimits::kMaxGrpcLength)) {
+        if (not gc_all and not GarbageCollector::Compactify(
+                               storage_config, MessageLimits::kMaxGrpcLength)) {
             Logger::Log(LogLevel::Error,
                         "Failed to compactify the youngest generation.");
             return false;
         }
 
+        if (gc_all) {
+            // Rename all cache generations starting from the oldest generation.
+            // If the process gets interrupted, the youngest cache stays
+            // available.
+            for (int i = static_cast<int>(storage_config.num_generations) - 1;
+                 i >= 0;
+                 --i) {
+                auto remove_me_dir =
+                    storage_config.CacheRoot() /
+                    fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
+                to_remove.emplace_back(remove_me_dir);
+
+                auto cache_root = storage_config.GenerationCacheRoot(i);
+                if (FileSystemManager::IsDirectory(cache_root) and
+                    not FileSystemManager::Rename(cache_root, remove_me_dir)) {
+                    Logger::Log(LogLevel::Error,
+                                "Failed to rename {} to {}",
+                                cache_root.string(),
+                                remove_me_dir.string());
+                    return false;
+                }
+            }
+        }
         // Rotate generations unless told not to do so
-        if (not no_rotation) {
+        else if (not no_rotation) {
             auto remove_me_dir =
                 storage_config.CacheRoot() /
                 fmt::format("{}{}", remove_me_prefix, remove_me_counter++);
@@ -216,6 +246,8 @@ auto GarbageCollector::TriggerGarbageCollection(
 
 auto GarbageCollector::Compactify(StorageConfig const& storage_config,
                                   size_t threshold) noexcept -> bool {
+    Logger::Log(LogLevel::Performance, "Compactification has been started");
+
     // Compactification must be done for both native and compatible storages.
     static constexpr std::array kHashes = {HashFunction::Type::GitSHA1,
                                            HashFunction::Type::PlainSHA256};
