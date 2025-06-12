@@ -1,490 +1,1203 @@
-{ "main": "just"
-, "repositories":
-  { "just":
-    { "repository": {"type": "file", "path": "."}
-    , "bindings":
-      { "rules": "rules-just"
-      , "gsl": "com_github_microsoft_gsl"
-      , "cli11": "cli11"
-      , "json": "json"
-      , "fmt": "fmt"
-      , "ssl": "ssl"
-      , "grpc": "com_github_grpc_grpc"
-      , "googleapis": "google_apis"
-      , "bazel_remote_apis": "bazel_remote_apis"
-      , "libgit2": "com_github_libgit2_libgit2"
-      , "protoc": "protobuf"
-      , "libcurl": "com_github_curl_curl"
-      , "libarchive": "com_github_libarchive_libarchive"
-      }
-    , "bootstrap": {"link": ["-pthread"]}
-    , "bootstrap_local": {"link": ["-pthread"]}
-    }
-  , "just tests":
-    { "repository": {"type": "file", "path": "test"}
-    , "bindings":
-      { "src": "just"
-      , "rules": "rules-just"
-      , "just-distfiles": "just-distfiles"
-      , "catch2": "catch2"
-      , "gsl": "com_github_microsoft_gsl"
-      , "cli11": "cli11"
-      , "json": "json"
-      , "fmt": "fmt"
-      , "ssl": "ssl"
-      , "grpc": "com_github_grpc_grpc"
-      , "googleapis": "google_apis"
-      , "bazel_remote_apis": "bazel_remote_apis"
-      , "libgit2": "com_github_libgit2_libgit2"
-      , "protoc": "protobuf"
-      }
-    }
-  , "just-distfiles":
-    { "repository":
-      { "type": "distdir"
-      , "repositories":
-        [ "com_github_microsoft_gsl"
-        , "cli11"
-        , "json"
-        , "fmt"
-        , "ssl"
-        , "protobuf"
-        , "bazel_remote_apis"
-        , "google_apis"
-        , "com_google_absl"
-        , "zlib"
-        , "re2"
-        , "com_github_cares_cares"
-        , "com_github_grpc_grpc"
-        , "com_github_libgit2_libgit2"
-        , "com_github_curl_curl"
-        , "com_github_libarchive_libarchive"
-        , "lzma"
-        , "bzip2"
+{
+  "main": "just",
+  "repositories": {
+    "just": {
+      "repository": {
+        "type": "file",
+        "path": "."
+      },
+      "bindings": {
+        "rules": "rules-just",
+        "gsl": "com_github_microsoft_gsl",
+        "cli11": "cli11",
+        "json": "json",
+        "fmt": "fmt",
+        "ssl": "ssl",
+        "grpc": "com_github_grpc_grpc",
+        "googleapis": "google_apis",
+        "bazel_remote_apis": "bazel_remote_apis",
+        "libgit2": "com_github_libgit2_libgit2",
+        "protoc": "protobuf",
+        "libcurl": "com_github_curl_curl",
+        "libarchive": "com_github_libarchive_libarchive"
+      },
+      "bootstrap": {
+        "link": [
+          "-pthread"
+        ]
+      },
+      "bootstrap_local": {
+        "link": [
+          "-pthread"
         ]
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.distfiles"
-    }
-  , "toolchain":
-    { "repository":
-      {"type": "file", "path": "etc/toolchain", "pragma": {"to_git": true}}
-    , "rule_root": "rules"
-    }
-  , "defaults":
-    { "repository":
-      {"type": "file", "path": "etc/defaults", "pragma": {"to_git": true}}
-    }
-  , "patches":
-    { "repository":
-      {"type": "file", "path": "etc/patches", "pragma": {"to_git": true}}
-    }
-  , "rules":
-    { "repository":
-      {"type": "file", "path": "rules", "pragma": {"to_git": true}}
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "bindings": {"toolchain": "toolchain"}
-    }
-  , "rules-just":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.just"
-    , "bindings":
-      {"base": "rules", "protoc": "protobuf", "grpc": "com_github_grpc_grpc"}
-    }
-  , "rules-boringssl":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.boringssl"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-protobuf":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.protobuf"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-grpc":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.grpc"
-    , "bindings": {"base": "rules", "protoc": "protobuf"}
-    }
-  , "rules-absl":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.absl"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-re2":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.re2"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-git2":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.git2"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-curl":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.curl"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-bzip2":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.bzip2"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-lzma":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.lzma"
-    , "bindings": {"base": "rules"}
-    }
-  , "rules-archive":
-    { "repository": "rules"
-    , "target_root": "defaults"
-    , "rule_root": "rules"
-    , "target_file_name": "TARGETS.archive"
-    , "bindings": {"base": "rules"}
-    }
-  , "import targets":
-    { "repository":
-      {"type": "file", "path": "etc/import", "pragma": {"to_git": true}}
-    , "pkg_bootstrap": {"local_path": "etc/import.pkgconfig"}
-    }
-  , "com_github_microsoft_gsl":
-    { "repository":
-      { "type": "archive"
-      , "content": "386f0a89a47763481223a63d5026215af8d3c827"
-      , "fetch": "https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.tar.gz"
-      , "sha256": "f0e32cb10654fea91ad56bde89170d78cfbf4363ee0b01d8f097de2ba49f6ce9"
-      , "sha512": "7fa7446796c6bf82fb3bff09f86a69c446a27be528bef3b17c8bc5ad2f24d5cf86bdb3d3813ecb44726e8f395020180e97e41027330d1fbf545cc0f0b44aac29"
-      , "subdir": "GSL-4.0.0/include/gsl"
+    },
+    "just tests": {
+      "repository": {
+        "type": "file",
+        "path": "test"
+      },
+      "bindings": {
+        "src": "just",
+        "rules": "rules-just",
+        "just-distfiles": "just-distfiles",
+        "catch2": "catch2",
+        "gsl": "com_github_microsoft_gsl",
+        "cli11": "cli11",
+        "json": "json",
+        "fmt": "fmt",
+        "ssl": "ssl",
+        "grpc": "com_github_grpc_grpc",
+        "googleapis": "google_apis",
+        "bazel_remote_apis": "bazel_remote_apis",
+        "libgit2": "com_github_libgit2_libgit2",
+        "protoc": "protobuf"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.gsl"
-    , "bindings": {"rules": "rules"}
-    , "bootstrap": {"include_name": "gsl"}
-    , "pkg_bootstrap": {"local_path": "include/gsl"}
-    }
-  , "cli11":
-    { "repository":
-      { "type": "archive"
-      , "content": "6689a311c4e3f31e0428a6135ed03f2ccac448f8"
-      , "fetch": "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz"
-      , "sha256": "17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55"
-      , "sha512": "895fb61e4c9974ee8e8d4681fb880a10126a412f24bb147d558d465d78fe784a044c5443edf1ce20fc9936901073073d795b034e0c02bdb3c8aa74c9d6ac811c"
-      , "subdir": "CLI11-2.5.0"
+    },
+    "lint": {
+      "repository": {
+        "type": "file",
+        "path": "lint"
+      },
+      "bindings": {
+        "rules": "rules-just",
+        "src": "just",
+        "tests": "just tests",
+        "clang": "clang-18"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.cli11"
-    , "bindings": {"rules": "rules"}
-    , "bootstrap": {"include_dir": "include/CLI", "include_name": "CLI"}
-    }
-  , "json":
-    { "repository":
-      { "type": "zip"
-      , "content": "733571f96614cc01fcebf76c8359f52706677c61"
-      , "fetch": "https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip"
-      , "sha256": "a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d"
-      , "sha512": "8d923e2586acf736fc1886bf1839ca0126444ec60ce93a4bd18c21eef4475dff6f608203e42bf4968878dc50727a8c20c517dd8c1ac5c6b0bb6a95f2dce5546e"
-      , "subdir": "include/nlohmann"
+    },
+    "just-distfiles": {
+      "repository": {
+        "type": "distdir",
+        "repositories": [
+          "com_github_microsoft_gsl",
+          "cli11",
+          "json",
+          "fmt",
+          "ssl",
+          "protobuf",
+          "bazel_remote_apis",
+          "google_apis",
+          "com_google_absl",
+          "zlib",
+          "re2",
+          "com_github_cares_cares",
+          "com_github_grpc_grpc",
+          "com_github_libgit2_libgit2",
+          "com_github_curl_curl",
+          "com_github_libarchive_libarchive",
+          "lzma",
+          "bzip2"
+        ]
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.distfiles"
+    },
+    "toolchain": {
+      "repository": {
+        "type": "file",
+        "path": "etc/toolchain",
+        "pragma": {
+          "to_git": true
+        }
+      },
+      "rule_root": "rules"
+    },
+    "defaults": {
+      "repository": {
+        "type": "file",
+        "path": "etc/defaults",
+        "pragma": {
+          "to_git": true
+        }
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.json"
-    , "bindings": {"rules": "rules"}
-    , "bootstrap": {"include_name": "nlohmann"}
-    }
-  , "fmt":
-    { "repository":
-      { "type": "zip"
-      , "content": "da6ad435963d4578c63c723e61a1e6b136fd61d8"
-      , "fetch": "https://github.com/fmtlib/fmt/releases/download/11.2.0/fmt-11.2.0.zip"
-      , "sha256": "203eb4e8aa0d746c62d8f903df58e0419e3751591bb53ff971096eaa0ebd4ec3"
-      , "sha512": "75586d02284a33c0c101b6e78cbb1d61f169610ae9027ddfc20936751a8c2ac4453f3046e7b05fa167a8f8eedeafde0f4cb0bff4f798c17c80994521f660174d"
-      , "subdir": "fmt-11.2.0"
+    },
+    "patches": {
+      "repository": {
+        "type": "file",
+        "path": "etc/patches",
+        "pragma": {
+          "to_git": true
+        }
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.fmt"
-    , "bindings": {"rules": "rules"}
-    , "bootstrap":
-      { "include_dir": "include/fmt"
-      , "build": "cd src && {cxx} {cxxflags} -I ../include -c os.cc format.cc && {ar} cqs ../libfmt.a *.o"
-      , "link": ["-lfmt"]
+    },
+    "rules": {
+      "repository": {
+        "type": "file",
+        "path": "rules",
+        "pragma": {
+          "to_git": true
+        }
+      },
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "bindings": {
+        "toolchain": "toolchain"
       }
-    , "pkg_bootstrap": {"link": ["-lfmt"], "link_dirs": ["lib"]}
-    }
-  , "ssl":
-    { "repository":
-      { "type": "archive"
-      , "content": "d9ff3aa3d22337e93cb0a0e2df00ca8abea2fac6"
-      , "fetch": "https://github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz"
-      , "sha256": "2f12c33d2cf25a658a1b981fb96923dac87e9175fb20e45db6950ee36c526356"
-      , "sha512": "51f91bee640e38ce20c180195de6811b5be7522240faae2b57158fa9c298ed09292ecb09c770df5d4fc6a3100bc2459de4e9d312e315265c1ea7ade347bad3f2"
-      , "subdir": "boringssl-dec0d8f681348af8bb675e07bd89989665fca8bc"
-      , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz"
+    },
+    "rules-just": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.just",
+      "bindings": {
+        "base": "rules",
+        "protoc": "protobuf",
+        "grpc": "com_github_grpc_grpc"
+      }
+    },
+    "rules-boringssl": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.boringssl",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-protobuf": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.protobuf",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-grpc": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.grpc",
+      "bindings": {
+        "base": "rules",
+        "protoc": "protobuf"
+      }
+    },
+    "rules-absl": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.absl",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-re2": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.re2",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-git2": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.git2",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-curl": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.curl",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-bzip2": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.bzip2",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-lzma": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.lzma",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "rules-archive": {
+      "repository": "rules",
+      "target_root": "defaults",
+      "rule_root": "rules",
+      "target_file_name": "TARGETS.archive",
+      "bindings": {
+        "base": "rules"
+      }
+    },
+    "import targets": {
+      "repository": {
+        "type": "file",
+        "path": "etc/import",
+        "pragma": {
+          "to_git": true
+        }
+      },
+      "pkg_bootstrap": {
+        "local_path": "etc/import.pkgconfig"
+      }
+    },
+    "com_github_microsoft_gsl": {
+      "repository": {
+        "type": "archive",
+        "content": "386f0a89a47763481223a63d5026215af8d3c827",
+        "fetch": "https://github.com/microsoft/GSL/archive/refs/tags/v4.0.0.tar.gz",
+        "sha256": "f0e32cb10654fea91ad56bde89170d78cfbf4363ee0b01d8f097de2ba49f6ce9",
+        "sha512": "7fa7446796c6bf82fb3bff09f86a69c446a27be528bef3b17c8bc5ad2f24d5cf86bdb3d3813ecb44726e8f395020180e97e41027330d1fbf545cc0f0b44aac29",
+        "subdir": "GSL-4.0.0/include/gsl"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.gsl",
+      "bindings": {
+        "rules": "rules"
+      },
+      "bootstrap": {
+        "include_name": "gsl"
+      },
+      "pkg_bootstrap": {
+        "local_path": "include/gsl"
+      }
+    },
+    "cli11": {
+      "repository": {
+        "type": "archive",
+        "content": "6689a311c4e3f31e0428a6135ed03f2ccac448f8",
+        "fetch": "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.5.0.tar.gz",
+        "sha256": "17e02b4cddc2fa348e5dbdbb582c59a3486fa2b2433e70a0c3bacb871334fd55",
+        "sha512": "895fb61e4c9974ee8e8d4681fb880a10126a412f24bb147d558d465d78fe784a044c5443edf1ce20fc9936901073073d795b034e0c02bdb3c8aa74c9d6ac811c",
+        "subdir": "CLI11-2.5.0"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.cli11",
+      "bindings": {
+        "rules": "rules"
+      },
+      "bootstrap": {
+        "include_dir": "include/CLI",
+        "include_name": "CLI"
+      }
+    },
+    "json": {
+      "repository": {
+        "type": "zip",
+        "content": "733571f96614cc01fcebf76c8359f52706677c61",
+        "fetch": "https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip",
+        "sha256": "a22461d13119ac5c78f205d3df1db13403e58ce1bb1794edc9313677313f4a9d",
+        "sha512": "8d923e2586acf736fc1886bf1839ca0126444ec60ce93a4bd18c21eef4475dff6f608203e42bf4968878dc50727a8c20c517dd8c1ac5c6b0bb6a95f2dce5546e",
+        "subdir": "include/nlohmann"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.json",
+      "bindings": {
+        "rules": "rules"
+      },
+      "bootstrap": {
+        "include_name": "nlohmann"
+      }
+    },
+    "fmt": {
+      "repository": {
+        "type": "zip",
+        "content": "da6ad435963d4578c63c723e61a1e6b136fd61d8",
+        "fetch": "https://github.com/fmtlib/fmt/releases/download/11.2.0/fmt-11.2.0.zip",
+        "sha256": "203eb4e8aa0d746c62d8f903df58e0419e3751591bb53ff971096eaa0ebd4ec3",
+        "sha512": "75586d02284a33c0c101b6e78cbb1d61f169610ae9027ddfc20936751a8c2ac4453f3046e7b05fa167a8f8eedeafde0f4cb0bff4f798c17c80994521f660174d",
+        "subdir": "fmt-11.2.0"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.fmt",
+      "bindings": {
+        "rules": "rules"
+      },
+      "bootstrap": {
+        "include_dir": "include/fmt",
+        "build": "cd src && {cxx} {cxxflags} -I ../include -c os.cc format.cc && {ar} cqs ../libfmt.a *.o",
+        "link": [
+          "-lfmt"
+        ]
+      },
+      "pkg_bootstrap": {
+        "link": [
+          "-lfmt"
+        ],
+        "link_dirs": [
+          "lib"
         ]
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.boringssl"
-    , "bindings": {"rules": "rules-boringssl", "patches": "patches"}
-    , "bootstrap":
-      { "arch_map": {"arm64": "aarch64"}
-      , "build": "{cxx} {cxxflags} -I . -I src/include -c `find . '(' -ipath './src/crypto/*.cc' -o -ipath './src/gen/crypto/*.cc' -o -ipath './src/crypto/*.S' -o -ipath './src/gen/bcm/*.S' -o -ipath './src/gen/crypto/*.S' -o -ipath './src/third_party/fiat/asm/*.S' ')' -type f ! -ipath '*_test.*' ! -ipath '*/test/*'` && {ar} cqs libcrypto.a *.o"
-      , "link": ["-lcrypto", "-pthread"]
-      , "include_dir": "src/include/openssl"
-      , "include_name": "openssl"
-      }
-    , "pkg_bootstrap": {"link": ["-lcrypto", "-pthread"], "link_dirs": ["lib"]}
-    }
-  , "protobuf":
-    { "repository":
-      { "type": "archive"
-      , "content": "e8787a2f6d661aaaec426743c4e9667be7c8ba2f"
-      , "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v29.0/protobuf-29.0.tar.gz"
-      , "sha256": "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c"
-      , "sha512": "c5637486a533557ea909d1f880b0f0064fff0c4665612e023170941310c45bf8e7373d2c67de621824b056530e98792c00799d71ec4ff7b6af9142cdc4cb8dee"
-      , "subdir": "protobuf-29.0"
-      }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.protobuf"
-    , "bindings":
-      {"rules": "rules-protobuf", "zlib": "zlib", "absl": "com_google_absl"}
-    , "pkg_bootstrap":
-      { "copy":
-        ["bin/protoc", "include/google/protobuf", "proto/google/protobuf"]
-      }
-    }
-  , "bazel_remote_apis":
-    { "repository":
-      { "type": "archive"
-      , "content": "da6d7d589ccd1924ba9840a4e329e438dfa27f86"
-      , "fetch": "https://github.com/bazelbuild/remote-apis/archive/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0.tar.gz"
-      , "sha256": "7421abd5352ccf927c2050453a4dbfa1f7b1c7170ec3e8702b6fe2d39b8805fe"
-      , "sha512": "3042690ee4b17a27db92ca867b4225c25f3f16344dce5fe86695d72ddda531e1593a5f0f70a291283451ce1e9f606c2285d222df3787815cd8f4054e1113bc9d"
-      , "subdir": "remote-apis-e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0"
-      }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.bazel_remote_apis"
-    , "bindings":
-      {"rules": "rules", "google_apis": "google_apis", "patches": "patches"}
-    , "pkg_bootstrap": {"local_path": "include"}
-    }
-  , "google_apis":
-    { "repository":
-      { "type": "archive"
-      , "content": "db3c51a8fd9c923a4e4908d8bcd7dd4642cc4664"
-      , "fetch": "https://github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz"
-      , "sha256": "0513f0f40af63bd05dc789cacc334ab6cec27cc89db596557cb2dfe8919463e4"
-      , "sha512": "d77ea83f8e68e3c0b667e7de43c2cd28b0ca7b969b2cf127b3873fc19f330ad85afb314bef4174a4e11ed68b620e43853d8b44eb833c5eca7e820ca21c1c3e15"
-      , "subdir": "googleapis-fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0"
-      , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz"
+    },
+    "ssl": {
+      "repository": {
+        "type": "archive",
+        "content": "d9ff3aa3d22337e93cb0a0e2df00ca8abea2fac6",
+        "fetch": "https://github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz",
+        "sha256": "2f12c33d2cf25a658a1b981fb96923dac87e9175fb20e45db6950ee36c526356",
+        "sha512": "51f91bee640e38ce20c180195de6811b5be7522240faae2b57158fa9c298ed09292ecb09c770df5d4fc6a3100bc2459de4e9d312e315265c1ea7ade347bad3f2",
+        "subdir": "boringssl-dec0d8f681348af8bb675e07bd89989665fca8bc",
+        "mirrors": [
+          "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/boringssl/archive/dec0d8f681348af8bb675e07bd89989665fca8bc.tar.gz"
+        ]
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.boringssl",
+      "bindings": {
+        "rules": "rules-boringssl",
+        "patches": "patches"
+      },
+      "bootstrap": {
+        "arch_map": {
+          "arm64": "aarch64"
+        },
+        "build": "{cxx} {cxxflags} -I . -I src/include -c `find . '(' -ipath './src/crypto/*.cc' -o -ipath './src/gen/crypto/*.cc' -o -ipath './src/crypto/*.S' -o -ipath './src/gen/bcm/*.S' -o -ipath './src/gen/crypto/*.S' -o -ipath './src/third_party/fiat/asm/*.S' ')' -type f ! -ipath '*_test.*' ! -ipath '*/test/*'` && {ar} cqs libcrypto.a *.o",
+        "link": [
+          "-lcrypto",
+          "-pthread"
+        ],
+        "include_dir": "src/include/openssl",
+        "include_name": "openssl"
+      },
+      "pkg_bootstrap": {
+        "link": [
+          "-lcrypto",
+          "-pthread"
+        ],
+        "link_dirs": [
+          "lib"
         ]
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.google_apis"
-    , "bindings": {"rules": "rules", "patches": "patches"}
-    , "pkg_bootstrap": {"local_path": "include"}
-    }
-  , "com_google_absl":
-    { "repository":
-      { "type": "archive"
-      , "content": "b5cc395c49afa2a2dec1d9c4072500494b126974"
-      , "fetch": "https://github.com/abseil/abseil-cpp/releases/download/20240722.0/abseil-cpp-20240722.0.tar.gz"
-      , "sha256": "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3"
-      , "sha512": "bd2cca8f007f2eee66f51c95a979371622b850ceb2ce3608d00ba826f7c494a1da0fba3c1427728f2c173fe50d59b701da35c2c9fdad2752a5a49746b1c8ef31"
-      , "subdir": "abseil-cpp-20240722.0"
-      , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz"
+    },
+    "protobuf": {
+      "repository": {
+        "type": "archive",
+        "content": "e8787a2f6d661aaaec426743c4e9667be7c8ba2f",
+        "fetch": "https://github.com/protocolbuffers/protobuf/releases/download/v29.0/protobuf-29.0.tar.gz",
+        "sha256": "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
+        "sha512": "c5637486a533557ea909d1f880b0f0064fff0c4665612e023170941310c45bf8e7373d2c67de621824b056530e98792c00799d71ec4ff7b6af9142cdc4cb8dee",
+        "subdir": "protobuf-29.0"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.protobuf",
+      "bindings": {
+        "rules": "rules-protobuf",
+        "zlib": "zlib",
+        "absl": "com_google_absl"
+      },
+      "pkg_bootstrap": {
+        "copy": [
+          "bin/protoc",
+          "include/google/protobuf",
+          "proto/google/protobuf"
         ]
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.absl"
-    , "bindings": {"rules": "rules-absl", "patches": "patches"}
-    }
-  , "zlib":
-    { "repository":
-      { "type": "archive"
-      , "content": "53fa48bf97f0ee0f42c62743b018507a6583ec3e"
-      , "fetch": "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"
-      , "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23"
-      , "sha512": "580677aad97093829090d4b605ac81c50327e74a6c2de0b85dd2e8525553f3ddde17556ea46f8f007f89e435493c9a20bc997d1ef1c1c2c23274528e3c46b94f"
-      , "subdir": "zlib-1.3.1"
+    },
+    "bazel_remote_apis": {
+      "repository": {
+        "type": "archive",
+        "content": "da6d7d589ccd1924ba9840a4e329e438dfa27f86",
+        "fetch": "https://github.com/bazelbuild/remote-apis/archive/e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0.tar.gz",
+        "sha256": "7421abd5352ccf927c2050453a4dbfa1f7b1c7170ec3e8702b6fe2d39b8805fe",
+        "sha512": "3042690ee4b17a27db92ca867b4225c25f3f16344dce5fe86695d72ddda531e1593a5f0f70a291283451ce1e9f606c2285d222df3787815cd8f4054e1113bc9d",
+        "subdir": "remote-apis-e1fe21be4c9ae76269a5a63215bb3c72ed9ab3f0"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.bazel_remote_apis",
+      "bindings": {
+        "rules": "rules",
+        "google_apis": "google_apis",
+        "patches": "patches"
+      },
+      "pkg_bootstrap": {
+        "local_path": "include"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.zlib"
-    , "bindings": {"rules": "rules"}
-    }
-  , "bzip2":
-    { "repository":
-      { "type": "archive"
-      , "content": "f9d91f2012aedeedcfd3bd918124ca11f0160373"
-      , "fetch": "https://github.com/libarchive/bzip2/archive/refs/tags/bzip2-1.0.8.tar.gz"
-      , "sha256": "db106b740252669664fd8f3a1c69fe7f689d5cd4b132f82ba82b9afba27627df"
-      , "sha512": "596d1b304f1f2d64b020d04845db10a2330c7f614a9fd0b5344afff65877d2141b3fcaa43d9e2dbc2f6a7929a1dab07df54d3d4bd69678b53906472958c7b80c"
-      , "subdir": "bzip2-bzip2-1.0.8"
+    },
+    "google_apis": {
+      "repository": {
+        "type": "archive",
+        "content": "db3c51a8fd9c923a4e4908d8bcd7dd4642cc4664",
+        "fetch": "https://github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz",
+        "sha256": "0513f0f40af63bd05dc789cacc334ab6cec27cc89db596557cb2dfe8919463e4",
+        "sha512": "d77ea83f8e68e3c0b667e7de43c2cd28b0ca7b969b2cf127b3873fc19f330ad85afb314bef4174a4e11ed68b620e43853d8b44eb833c5eca7e820ca21c1c3e15",
+        "subdir": "googleapis-fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0",
+        "mirrors": [
+          "https://storage.googleapis.com/grpc-bazel-mirror/github.com/googleapis/googleapis/archive/fe8ba054ad4f7eca946c2d14a63c3f07c0b586a0.tar.gz"
+        ]
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.google_apis",
+      "bindings": {
+        "rules": "rules",
+        "patches": "patches"
+      },
+      "pkg_bootstrap": {
+        "local_path": "include"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.bzip2"
-    , "bindings": {"rules": "rules-bzip2"}
-    }
-  , "lzma":
-    { "repository":
-      { "type": "archive"
-      , "content": "80e67abd2e08a54ec21f195b3e9e4abfc64ba7e1"
-      , "fetch": "https://github.com/tukaani-project/xz/releases/download/v5.6.3/xz-5.6.3.tar.gz"
-      , "sha256": "b1d45295d3f71f25a4c9101bd7c8d16cb56348bbef3bbc738da0351e17c73317"
-      , "sha512": "b07b45e18615d1946e9d12157af99b54700d757832a638fccab70549574dcd7f28e69e71cc4c0b9c808959f818e79b668a5ccf108429ea0f40b6125bfd55d274"
-      , "subdir": "xz-5.6.3"
+    },
+    "com_google_absl": {
+      "repository": {
+        "type": "archive",
+        "content": "b5cc395c49afa2a2dec1d9c4072500494b126974",
+        "fetch": "https://github.com/abseil/abseil-cpp/releases/download/20240722.0/abseil-cpp-20240722.0.tar.gz",
+        "sha256": "f50e5ac311a81382da7fa75b97310e4b9006474f9560ac46f54a9967f07d4ae3",
+        "sha512": "bd2cca8f007f2eee66f51c95a979371622b850ceb2ce3608d00ba826f7c494a1da0fba3c1427728f2c173fe50d59b701da35c2c9fdad2752a5a49746b1c8ef31",
+        "subdir": "abseil-cpp-20240722.0",
+        "mirrors": [
+          "https://storage.googleapis.com/grpc-bazel-mirror/github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz"
+        ]
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.absl",
+      "bindings": {
+        "rules": "rules-absl",
+        "patches": "patches"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.lzma"
-    , "bindings": {"rules": "rules-lzma"}
-    }
-  , "re2":
-    { "repository":
-      { "type": "archive"
-      , "content": "8eebd70d7ebd33ac5d736090cecd7cfe1831b9e3"
-      , "fetch": "https://github.com/google/re2/archive/refs/tags/2022-04-01.tar.gz"
-      , "sha256": "1ae8ccfdb1066a731bba6ee0881baad5efd2cd661acd9569b689f2586e1a50e9"
-      , "sha512": "fc3d7cc1ee6bd771719845566d83ffc8c4e19d838748e842a1e19c7564473c9a0a061bebb3966ffa82de6515346f9bbddc2d94ceb3de89233f58826774bd7ce7"
-      , "subdir": "re2-2022-04-01"
-      , "mirrors":
-        [ "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/re2/archive/2022-04-01.tar.gz"
+    },
+    "zlib": {
+      "repository": {
+        "type": "archive",
+        "content": "53fa48bf97f0ee0f42c62743b018507a6583ec3e",
+        "fetch": "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz",
+        "sha256": "9a93b2b7dfdac77ceba5a558a580e74667dd6fede4585b91eefb60f03b72df23",
+        "sha512": "580677aad97093829090d4b605ac81c50327e74a6c2de0b85dd2e8525553f3ddde17556ea46f8f007f89e435493c9a20bc997d1ef1c1c2c23274528e3c46b94f",
+        "subdir": "zlib-1.3.1"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.zlib",
+      "bindings": {
+        "rules": "rules"
+      }
+    },
+    "bzip2": {
+      "repository": {
+        "type": "archive",
+        "content": "f9d91f2012aedeedcfd3bd918124ca11f0160373",
+        "fetch": "https://github.com/libarchive/bzip2/archive/refs/tags/bzip2-1.0.8.tar.gz",
+        "sha256": "db106b740252669664fd8f3a1c69fe7f689d5cd4b132f82ba82b9afba27627df",
+        "sha512": "596d1b304f1f2d64b020d04845db10a2330c7f614a9fd0b5344afff65877d2141b3fcaa43d9e2dbc2f6a7929a1dab07df54d3d4bd69678b53906472958c7b80c",
+        "subdir": "bzip2-bzip2-1.0.8"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.bzip2",
+      "bindings": {
+        "rules": "rules-bzip2"
+      }
+    },
+    "lzma": {
+      "repository": {
+        "type": "archive",
+        "content": "80e67abd2e08a54ec21f195b3e9e4abfc64ba7e1",
+        "fetch": "https://github.com/tukaani-project/xz/releases/download/v5.6.3/xz-5.6.3.tar.gz",
+        "sha256": "b1d45295d3f71f25a4c9101bd7c8d16cb56348bbef3bbc738da0351e17c73317",
+        "sha512": "b07b45e18615d1946e9d12157af99b54700d757832a638fccab70549574dcd7f28e69e71cc4c0b9c808959f818e79b668a5ccf108429ea0f40b6125bfd55d274",
+        "subdir": "xz-5.6.3"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.lzma",
+      "bindings": {
+        "rules": "rules-lzma"
+      }
+    },
+    "re2": {
+      "repository": {
+        "type": "archive",
+        "content": "8eebd70d7ebd33ac5d736090cecd7cfe1831b9e3",
+        "fetch": "https://github.com/google/re2/archive/refs/tags/2022-04-01.tar.gz",
+        "sha256": "1ae8ccfdb1066a731bba6ee0881baad5efd2cd661acd9569b689f2586e1a50e9",
+        "sha512": "fc3d7cc1ee6bd771719845566d83ffc8c4e19d838748e842a1e19c7564473c9a0a061bebb3966ffa82de6515346f9bbddc2d94ceb3de89233f58826774bd7ce7",
+        "subdir": "re2-2022-04-01",
+        "mirrors": [
+          "https://storage.googleapis.com/grpc-bazel-mirror/github.com/google/re2/archive/2022-04-01.tar.gz"
+        ]
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.re2",
+      "bindings": {
+        "rules": "rules-re2"
+      }
+    },
+    "com_github_cares_cares": {
+      "repository": {
+        "type": "archive",
+        "content": "4237a53f7a5dc1cfb4d04a6b6374f8674c32e271",
+        "fetch": "https://github.com/c-ares/c-ares/releases/download/cares-1_19_1/c-ares-1.19.1.tar.gz",
+        "sha256": "321700399b72ed0e037d0074c629e7741f6b2ec2dda92956abe3e9671d3e268e",
+        "sha512": "466a94efda626e815a6ef7a890637056339f883d549ea6055e289fd8cd2391130e5682c905c0fb3bd7e955af7f6deb793562c170eb0ee066a4a62085a82ba470",
+        "subdir": "c-ares-1.19.1"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.cares",
+      "bindings": {
+        "rules": "rules",
+        "grpc": "com_github_grpc_grpc"
+      }
+    },
+    "com_github_grpc_grpc": {
+      "repository": {
+        "type": "archive",
+        "content": "87c37bc5be5d6ded368667d02958d488b94d6143",
+        "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.70.2.tar.gz",
+        "sha256": "92f240f7267ed6cd8ba2be4c59a3b5b6ec0c4b4c466071b1e1d62165b25acf64",
+        "sha512": "4afd34b36b4d7c41260abad6d921154a3e7176a7a46de6ae97335697db5d11f61e37b08889c007463fc8f3e800788585f5f7d5b2cec12f89b69fc9bc15efd17f",
+        "subdir": "grpc-1.70.2",
+        "pragma": {
+          "special": "ignore"
+        }
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.grpc",
+      "rule_file_name": "RULES.grpc",
+      "bindings": {
+        "rules": "rules-grpc",
+        "protobuf": "protobuf",
+        "ssl": "ssl",
+        "absl": "com_google_absl",
+        "zlib": "zlib",
+        "re2": "re2",
+        "cares": "com_github_cares_cares",
+        "google_apis": "google_apis"
+      },
+      "pkg_bootstrap": {
+        "copy": [
+          "bin/grpc_cpp_plugin",
+          "include/grpc",
+          "include/grpcpp",
+          "include/grpc++"
         ]
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.re2"
-    , "bindings": {"rules": "rules-re2"}
-    }
-  , "com_github_cares_cares":
-    { "repository":
-      { "type": "archive"
-      , "content": "4237a53f7a5dc1cfb4d04a6b6374f8674c32e271"
-      , "fetch": "https://github.com/c-ares/c-ares/releases/download/cares-1_19_1/c-ares-1.19.1.tar.gz"
-      , "sha256": "321700399b72ed0e037d0074c629e7741f6b2ec2dda92956abe3e9671d3e268e"
-      , "sha512": "466a94efda626e815a6ef7a890637056339f883d549ea6055e289fd8cd2391130e5682c905c0fb3bd7e955af7f6deb793562c170eb0ee066a4a62085a82ba470"
-      , "subdir": "c-ares-1.19.1"
-      }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.cares"
-    , "bindings": {"rules": "rules", "grpc": "com_github_grpc_grpc"}
-    }
-  , "com_github_grpc_grpc":
-    { "repository":
-      { "type": "archive"
-      , "content": "87c37bc5be5d6ded368667d02958d488b94d6143"
-      , "fetch": "https://github.com/grpc/grpc/archive/refs/tags/v1.70.2.tar.gz"
-      , "sha256": "92f240f7267ed6cd8ba2be4c59a3b5b6ec0c4b4c466071b1e1d62165b25acf64"
-      , "sha512": "4afd34b36b4d7c41260abad6d921154a3e7176a7a46de6ae97335697db5d11f61e37b08889c007463fc8f3e800788585f5f7d5b2cec12f89b69fc9bc15efd17f"
-      , "subdir": "grpc-1.70.2"
-      , "pragma": {"special": "ignore"}
-      }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.grpc"
-    , "rule_file_name": "RULES.grpc"
-    , "bindings":
-      { "rules": "rules-grpc"
-      , "protobuf": "protobuf"
-      , "ssl": "ssl"
-      , "absl": "com_google_absl"
-      , "zlib": "zlib"
-      , "re2": "re2"
-      , "cares": "com_github_cares_cares"
-      , "google_apis": "google_apis"
-      }
-    , "pkg_bootstrap":
-      { "copy":
-        [ "bin/grpc_cpp_plugin"
-        , "include/grpc"
-        , "include/grpcpp"
-        , "include/grpc++"
+    },
+    "com_github_libgit2_libgit2": {
+      "repository": {
+        "type": "archive",
+        "content": "80f999c62e8da8da7d64fe543c8eeb9953bf6974",
+        "fetch": "https://github.com/libgit2/libgit2/archive/refs/tags/v1.7.2.tar.gz",
+        "sha256": "de384e29d7efc9330c6cdb126ebf88342b5025d920dcb7c645defad85195ea7f",
+        "sha512": "825737e4a1991fba50ea535f15b0e560ebe76ead752e04aeba36925b944d0da77fe9826a70980a1aa3d0bf9afbedfab79dd92e799c9252931384c89ebec9b012",
+        "subdir": "libgit2-1.7.2"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.git2",
+      "bindings": {
+        "rules": "rules-git2",
+        "zlib": "zlib",
+        "ssl": "ssl"
+      },
+      "bootstrap": {
+        "include_dir": "include",
+        "include_name": "."
+      },
+      "pkg_bootstrap": {
+        "copy": [
+          "git2.h",
+          "git2"
         ]
       }
-    }
-  , "com_github_libgit2_libgit2":
-    { "repository":
-      { "type": "archive"
-      , "content": "80f999c62e8da8da7d64fe543c8eeb9953bf6974"
-      , "fetch": "https://github.com/libgit2/libgit2/archive/refs/tags/v1.7.2.tar.gz"
-      , "sha256": "de384e29d7efc9330c6cdb126ebf88342b5025d920dcb7c645defad85195ea7f"
-      , "sha512": "825737e4a1991fba50ea535f15b0e560ebe76ead752e04aeba36925b944d0da77fe9826a70980a1aa3d0bf9afbedfab79dd92e799c9252931384c89ebec9b012"
-      , "subdir": "libgit2-1.7.2"
+    },
+    "catch2": {
+      "repository": {
+        "type": "archive",
+        "content": "5af653af0c54ad580176a8cadb5a1cef8c880372",
+        "fetch": "https://github.com/catchorg/Catch2/archive/refs/tags/v3.5.3.tar.gz",
+        "sha256": "8d723b0535c94860ef8cf6231580fa47d67a3416757ecb10639e40d748ab6c71",
+        "sha512": "57c996f679cbad212cb0fde39e506bade37bd559c0e93e20f407f2a2f029e98b78661e10257f9c8e4cb5fd7d52d0ea1eae3d4a1f989c6d66fcb281e32e1688f6",
+        "subdir": "Catch2-3.5.3"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.catch2",
+      "bindings": {
+        "rules": "rules"
+      },
+      "bootstrap": {
+        "drop": true
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.git2"
-    , "bindings": {"rules": "rules-git2", "zlib": "zlib", "ssl": "ssl"}
-    , "bootstrap": {"include_dir": "include", "include_name": "."}
-    , "pkg_bootstrap": {"copy": ["git2.h", "git2"]}
-    }
-  , "catch2":
-    { "repository":
-      { "type": "archive"
-      , "content": "5af653af0c54ad580176a8cadb5a1cef8c880372"
-      , "fetch": "https://github.com/catchorg/Catch2/archive/refs/tags/v3.5.3.tar.gz"
-      , "sha256": "8d723b0535c94860ef8cf6231580fa47d67a3416757ecb10639e40d748ab6c71"
-      , "sha512": "57c996f679cbad212cb0fde39e506bade37bd559c0e93e20f407f2a2f029e98b78661e10257f9c8e4cb5fd7d52d0ea1eae3d4a1f989c6d66fcb281e32e1688f6"
-      , "subdir": "Catch2-3.5.3"
+    },
+    "com_github_curl_curl": {
+      "repository": {
+        "type": "archive",
+        "content": "7b7ace4d7cc7d4059163bbd789ef7071e5d326e5",
+        "fetch": "https://github.com/curl/curl/releases/download/curl-8_6_0/curl-8.6.0.tar.gz",
+        "sha256": "9c6db808160015f30f3c656c0dec125feb9dc00753596bf858a272b5dd8dc398",
+        "sha512": "43fdb6b81b394f3382d353d5f57673b2b3d26cfe34b25d08a526bc0597f508d5298e5a7088d0736d1f139cad19cd922affa51533c3a5a4bb5f2de68891c2958d",
+        "subdir": "curl-8.6.0"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.curl",
+      "bindings": {
+        "rules": "rules-curl",
+        "zlib": "zlib",
+        "ssl": "ssl",
+        "cares": "com_github_cares_cares"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.catch2"
-    , "bindings": {"rules": "rules"}
-    , "bootstrap": {"drop": true}
-    }
-  , "com_github_curl_curl":
-    { "repository":
-      { "type": "archive"
-      , "content": "7b7ace4d7cc7d4059163bbd789ef7071e5d326e5"
-      , "fetch": "https://github.com/curl/curl/releases/download/curl-8_6_0/curl-8.6.0.tar.gz"
-      , "sha256": "9c6db808160015f30f3c656c0dec125feb9dc00753596bf858a272b5dd8dc398"
-      , "sha512": "43fdb6b81b394f3382d353d5f57673b2b3d26cfe34b25d08a526bc0597f508d5298e5a7088d0736d1f139cad19cd922affa51533c3a5a4bb5f2de68891c2958d"
-      , "subdir": "curl-8.6.0"
+    },
+    "com_github_libarchive_libarchive": {
+      "repository": {
+        "type": "archive",
+        "content": "994435922d1ce63b52f6420f90b1b2a9f6670c39",
+        "fetch": "https://github.com/libarchive/libarchive/releases/download/v3.7.7/libarchive-3.7.7.tar.gz",
+        "sha256": "4cc540a3e9a1eebdefa1045d2e4184831100667e6d7d5b315bb1cbc951f8ddff",
+        "sha512": "cce6eecfcd33d228bd1b1162a90bad63750adb53ac4edcaed34e2fdc30b6ba211cf1fd25d4b8761373949ceec266478b09bd70ffa4e374803a29e8573d6d149e",
+        "subdir": "libarchive-3.7.7"
+      },
+      "target_root": "import targets",
+      "target_file_name": "TARGETS.archive",
+      "bindings": {
+        "rules": "rules-archive",
+        "zlib": "zlib",
+        "ssl": "ssl",
+        "bzip2": "bzip2",
+        "lzma": "lzma"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.curl"
-    , "bindings":
-      { "rules": "rules-curl"
-      , "zlib": "zlib"
-      , "ssl": "ssl"
-      , "cares": "com_github_cares_cares"
+    },
+    "clang-18": {
+      "repository": "clang-18/toolchains",
+      "target_file_name": "clang.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules",
+        "clang": "clang-18/compilers/clang-18.1.8-native"
       }
-    }
-  , "com_github_libarchive_libarchive":
-    { "repository":
-      { "type": "archive"
-      , "content": "994435922d1ce63b52f6420f90b1b2a9f6670c39"
-      , "fetch": "https://github.com/libarchive/libarchive/releases/download/v3.7.7/libarchive-3.7.7.tar.gz"
-      , "sha256": "4cc540a3e9a1eebdefa1045d2e4184831100667e6d7d5b315bb1cbc951f8ddff"
-      , "sha512": "cce6eecfcd33d228bd1b1162a90bad63750adb53ac4edcaed34e2fdc30b6ba211cf1fd25d4b8761373949ceec266478b09bd70ffa4e374803a29e8573d6d149e"
-      , "subdir": "libarchive-3.7.7"
+    },
+    "clang-18/cmake-3.27.1": {
+      "repository": "clang-18/toolchains",
+      "target_file_name": "cmake.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules",
+        "cmake": "clang-18/tools/cmake-3.27.1"
       }
-    , "target_root": "import targets"
-    , "target_file_name": "TARGETS.archive"
-    , "bindings":
-      { "rules": "rules-archive"
-      , "zlib": "zlib"
-      , "ssl": "ssl"
-      , "bzip2": "bzip2"
-      , "lzma": "lzma"
+    },
+    "clang-18/compilers/clang-18.1.8-native": {
+      "repository": {
+        "type": "archive",
+        "content": "3d2972e91936ce5d4176802eb8b5ef3e0a727914",
+        "fetch": "https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-18.1.8.tar.gz",
+        "sha256": "09c08693a9afd6236f27a2ebae62cda656eba19021ef3f94d59e931d662d4856",
+        "subdir": "llvm-project-llvmorg-18.1.8",
+        "pragma": {
+          "special": "resolve-partially"
+        }
+      },
+      "target_root": "clang-18/compilers",
+      "target_file_name": "clang-18-native.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/clang_with_gcc13",
+        "binutils": "clang-18/imports/binutils-latest",
+        "patches": "clang-18/patches",
+        "iwyu": "clang-18/iwyu-18"
+      }
+    },
+    "clang-18/compilers/gcc-13.3.0-native": {
+      "repository": {
+        "type": "archive",
+        "content": "d8f1f6dac9c58f38092c84be1627547edaaa1af9",
+        "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-13.3.0/gcc-13.3.0.tar.gz",
+        "sha256": "3a2b10cab86e32358fdac871546d57e2700e9bdb5875ef33fff5b601265b9e32",
+        "subdir": "gcc-13.3.0"
+      },
+      "target_root": "clang-18/compilers",
+      "target_file_name": "gcc-13-native.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/gcc",
+        "binutils": "clang-18/imports/binutils-latest",
+        "gmp": "clang-18/imports/gmp-6.3.0",
+        "mpc": "clang-18/imports/mpc-1.3.1",
+        "mpfr": "clang-18/imports/mpfr-4.2.1",
+        "patches": "clang-18/patches"
+      }
+    },
+    "clang-18/compilers/gcc-14.2.0-musl": {
+      "repository": "clang-18/compilers",
+      "target_file_name": "gcc-14-musl.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/gcc",
+        "musl-cross-make": "clang-18/imports/musl-cross-make-fe915821",
+        "binutils": "clang-18/imports/binutils-latest",
+        "musl": "clang-18/imports/musl-1.2.4",
+        "gmp": "clang-18/imports/gmp-6.3.0",
+        "mpc": "clang-18/imports/mpc-1.3.1",
+        "mpfr": "clang-18/imports/mpfr-4.2.1",
+        "gcc": "clang-18/compilers/gcc-14.2.0-native",
+        "mimalloc": "clang-18/imports/mimalloc-2.1.2"
+      }
+    },
+    "clang-18/compilers/gcc-14.2.0-native": {
+      "repository": {
+        "type": "archive",
+        "content": "97ed2ad91801278cb7d89c720ee1dce6fa3e2a5d",
+        "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz",
+        "sha256": "a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9",
+        "subdir": "gcc-14.2.0"
+      },
+      "target_root": "clang-18/compilers",
+      "target_file_name": "gcc-14-native.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/gcc",
+        "binutils": "clang-18/imports/binutils-latest",
+        "gmp": "clang-18/imports/gmp-6.3.0",
+        "mpc": "clang-18/imports/mpc-1.3.1",
+        "mpfr": "clang-18/imports/mpfr-4.2.1",
+        "patches": "clang-18/patches"
+      }
+    },
+    "clang-18/imports/binutils-latest": {
+      "repository": {
+        "type": "archive",
+        "content": "17cfb0cec609e1771ed867b2d005492329759e39",
+        "fetch": "https://ftp.gnu.org/gnu/binutils/binutils-2.41.tar.xz",
+        "sha256": "ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450",
+        "subdir": "binutils-2.41"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "binutils.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/gcc"
+      }
+    },
+    "clang-18/imports/boringssl": {
+      "repository": {
+        "type": "archive",
+        "content": "19cdde8ba529848172c09e84e3deb2c92dc670c3",
+        "fetch": "https://github.com/google/boringssl/archive/6195bf8242156c9a2fa75702eee058f91b86a88b.tar.gz",
+        "sha256": "ad0b806b6c5cbd6cae121c608945d5fed468748e330632e8d53315089ad52c67",
+        "subdir": "boringssl-6195bf8242156c9a2fa75702eee058f91b86a88b"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "boringssl.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/tools"
+      }
+    },
+    "clang-18/imports/config-3d5db9e": {
+      "repository": {
+        "type": "archive",
+        "content": "3a01a6bdf61b589ad70e35e1abf15758f6c2aa39",
+        "fetch": "https://git.savannah.gnu.org/gitweb/?p=config.git;a=snapshot;h=3d5db9ebe8607382d17d60faf8853c944fc5f353;sf=tgz",
+        "sha256": "b9974284ff6f9e285c8c57f57a9b0726f48576c61edc2e94a71815198fda0827",
+        "subdir": "config-3d5db9e"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/gmp-6.3.0": {
+      "repository": {
+        "type": "archive",
+        "content": "eed1334cca024677702c3a4de194758cb1b15c36",
+        "fetch": "https://gmplib.org/download/gmp/gmp-6.3.0.tar.xz",
+        "sha256": "a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898",
+        "subdir": "gmp-6.3.0"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/linux-headers-4.19.88-1": {
+      "repository": {
+        "type": "archive",
+        "content": "d67e9625ed2750a32eadc8abdd4a356f429e1e61",
+        "fetch": "https://github.com/sabotage-linux/kernel-headers/releases/download/v4.19.88-1/linux-headers-4.19.88-1.tar.xz",
+        "sha256": "995bc76ccf0c40d752b5ea67c022232a17eef6c9ec80ea74ea742e3c19992813",
+        "subdir": "linux-headers-4.19.88-1",
+        "pragma": {
+          "special": "resolve-partially"
+        }
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/mimalloc-2.1.2": {
+      "repository": {
+        "type": "archive",
+        "content": "da9d9ced476e35074380f3e240b59970dc443cd8",
+        "fetch": "https://github.com/microsoft/mimalloc/archive/refs/tags/v2.1.2.tar.gz",
+        "sha256": "2b1bff6f717f9725c70bf8d79e4786da13de8a270059e4ba0bdd262ae7be46eb",
+        "subdir": "mimalloc-2.1.2"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/mpc-1.3.1": {
+      "repository": {
+        "type": "archive",
+        "content": "afd933ab8b5246004dc0767bcd3d51333d5ca720",
+        "fetch": "https://ftp.gnu.org/gnu/mpc/mpc-1.3.1.tar.gz",
+        "sha256": "ab642492f5cf882b74aa0cb730cd410a81edcdbec895183ce930e706c1c759b8",
+        "subdir": "mpc-1.3.1"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/mpfr-4.2.1": {
+      "repository": {
+        "type": "archive",
+        "content": "62fb991131420c31d94e7e992c9ba798e8de866f",
+        "fetch": "https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.xz",
+        "sha256": "277807353a6726978996945af13e52829e3abd7a9a5b7fb2793894e18f1fcbb2",
+        "subdir": "mpfr-4.2.1"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/musl-1.2.4": {
+      "repository": {
+        "type": "archive",
+        "content": "3ae819b834bf1ca20cff02cb67b7526372d58bfd",
+        "fetch": "https://musl.libc.org/releases/musl-1.2.4.tar.gz",
+        "sha256": "7a35eae33d5372a7c0da1188de798726f68825513b7ae3ebe97aaaa52114f039",
+        "subdir": "musl-1.2.4"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/musl-cross-make-fe915821": {
+      "repository": {
+        "type": "archive",
+        "content": "99cdef1bbcaf683b9801453fc78aa0c59636f9a2",
+        "fetch": "https://github.com/richfelker/musl-cross-make/archive/fe915821b652a7fa37b34a596f47d8e20bc72338.tar.gz",
+        "sha256": "c5df9afd5efd41c97fc7f3866664ef0c91af0ff65116e27cd9cba078c7ab33ae",
+        "subdir": "musl-cross-make-fe915821b652a7fa37b34a596f47d8e20bc72338"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "musl-cross-make-fe915821.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/gcc",
+        "linux-headers": "clang-18/imports/linux-headers-4.19.88-1",
+        "config": "clang-18/imports/config-3d5db9e",
+        "patches": "clang-18/patches"
+      }
+    },
+    "clang-18/imports/stage-0/gmp-4.2.4": {
+      "repository": {
+        "type": "archive",
+        "content": "c3b7c9fa7ff0f6634dfde7ba8bf4a9afa0b3b509",
+        "fetch": "https://ftp.gnu.org/gnu/gmp/gmp-4.2.4.tar.gz",
+        "sha256": "09652b51e348ea459f121c01b4b7189821e06bf457fbd85382aa6f0b741b4e78",
+        "subdir": "gmp-4.2.4"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/stage-0/mpc-0.8.1": {
+      "repository": {
+        "type": "archive",
+        "content": "4828dd699fe92fc23456a7abe58fae1aa45c9e84",
+        "fetch": "https://gcc.gnu.org/pub/gcc/infrastructure/mpc-0.8.1.tar.gz",
+        "sha256": "e664603757251fd8a352848276497a4c79b7f8b21fd8aedd5cc0598a38fee3e4",
+        "subdir": "mpc-0.8.1"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/stage-0/mpfr-2.3.1": {
+      "repository": {
+        "type": "archive",
+        "content": "34118d1fdb9a271925d769458ededef8c595876f",
+        "fetch": "https://www.mpfr.org/mpfr-2.3.1/mpfr-2.3.1.tar.gz",
+        "sha256": "504e34cace2fe0ba2824abb66928b623965d6f5f9bc931316e6785db7ef2e790",
+        "subdir": "mpfr-2.3.1"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/stage-1/gmp-5.1.3": {
+      "repository": {
+        "type": "archive",
+        "content": "ba6992490775f21d0926ab17b51a7b8b6ed5e586",
+        "fetch": "https://ftp.gnu.org/gnu/gmp/gmp-5.1.3.tar.gz",
+        "sha256": "71f37fe18b7eaffd0700c0d3c5062268c3933c7100c29f944b81d2b6e9f78527",
+        "subdir": "gmp-5.1.3"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "files.TARGETS"
+    },
+    "clang-18/imports/zlib": {
+      "repository": {
+        "type": "archive",
+        "content": "d115fc690fa59d3be51b3442158876536140b6c2",
+        "fetch": "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.gz",
+        "sha256": "b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30",
+        "subdir": "zlib-1.2.13"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "zlib.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/tools"
+      }
+    },
+    "clang-18/iwyu-18": {
+      "repository": {
+        "type": "archive",
+        "content": "04ffb3d3e78e6d20fd0ea2fe627f83de4418528d",
+        "fetch": "https://github.com/include-what-you-use/include-what-you-use/archive/refs/tags/0.22.tar.gz",
+        "sha256": "34c7636da2abe7b86580b53b762f5269e71efff460f24f17d5913c56eb99cb7c",
+        "subdir": "include-what-you-use-0.22"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "iwyu.TARGETS"
+    },
+    "clang-18/patches": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "etc/patches"
+      }
+    },
+    "clang-18/patches/busybox-1593": {
+      "repository": {
+        "type": "foreign file",
+        "content": "5c8fd3526a514ff64fd3d31b9a849d0649e0d197",
+        "fetch": "https://bugs.busybox.net/attachment.cgi?id=9751",
+        "sha256": "6671a12c48dbcefb653fc8403d1f103a1e2eba4a49b1ee9a9c27da8aa2db80d4",
+        "name": "remove-cbq.patch"
+      },
+      "target_root": "clang-18/imports",
+      "target_file_name": "empty.TARGETS"
+    },
+    "clang-18/python-3.12.0": {
+      "repository": "clang-18/toolchains",
+      "target_file_name": "python.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules",
+        "python": "clang-18/tools/python-3.12.0"
+      }
+    },
+    "clang-18/rules": {
+      "repository": {
+        "type": "zip",
+        "content": "e046bb9eb2db84e425ad93deb275800b6be4d3a1",
+        "fetch": "https://github.com/just-buildsystem/rules-cc/archive/refs/tags/v1.6.0-alpha+20250606.zip",
+        "sha256": "cb544ea41aec99e14ce874ac968ae4d21c3af4ce3de8cfd692a24b6baa2c3003",
+        "subdir": "rules-cc-1.6.0-alpha-20250606/rules"
+      }
+    },
+    "clang-18/rules/clang_with_gcc13": {
+      "repository": "clang-18/rules",
+      "target_root": "clang-18/defaults",
+      "rule_root": "clang-18/rules",
+      "target_file_name": "clang.TARGETS",
+      "bindings": {
+        "base": "clang-18/rules/gcc",
+        "gcc": "clang-18/compilers/gcc-13.3.0-native",
+        "cmake": "clang-18/cmake-3.27.1",
+        "python": "clang-18/python-3.12.0",
+        "stage-0": "clang-18/rules/stage-0"
+      }
+    },
+    "clang-18/rules/gcc": {
+      "repository": "clang-18/rules",
+      "target_root": "clang-18/defaults",
+      "rule_root": "clang-18/rules",
+      "target_file_name": "gcc.TARGETS",
+      "bindings": {
+        "base": "clang-18/rules/stage-1",
+        "gcc": "clang-18/stage-1/gcc",
+        "stage-0": "clang-18/rules/stage-0"
+      }
+    },
+    "clang-18/rules/stage-0": {
+      "repository": "clang-18/rules",
+      "target_root": "clang-18/defaults",
+      "rule_root": "clang-18/rules",
+      "target_file_name": "stage-0.TARGETS",
+      "bindings": {
+        "busybox": "clang-18/stage-0/busybox"
+      }
+    },
+    "clang-18/rules/stage-1": {
+      "repository": "clang-18/rules",
+      "target_root": "clang-18/defaults",
+      "rule_root": "clang-18/rules",
+      "target_file_name": "stage-1.TARGETS",
+      "bindings": {
+        "make": "clang-18/stage-0/make",
+        "busybox": "clang-18/stage-0/busybox",
+        "gcc": "clang-18/stage-0/gcc",
+        "stage-0": "clang-18/rules/stage-0"
+      }
+    },
+    "clang-18/rules/tools": {
+      "repository": "clang-18/rules",
+      "target_root": "clang-18/defaults",
+      "rule_root": "clang-18/rules",
+      "target_file_name": "tools.TARGETS",
+      "bindings": {
+        "base": "clang-18/rules/gcc",
+        "gcc-musl": "clang-18/compilers/gcc-14.2.0-musl",
+        "stage-0": "clang-18/rules/stage-0"
+      }
+    },
+    "clang-18/stage-0/binutils": {
+      "repository": "clang-18/imports/binutils-latest",
+      "target_root": "clang-18/bootstrap",
+      "target_file_name": "stage-0-binutils.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/stage-0",
+        "busybox": "clang-18/stage-0/busybox",
+        "make": "clang-18/stage-0/make"
+      }
+    },
+    "clang-18/stage-0/busybox": {
+      "repository": {
+        "type": "archive",
+        "content": "529defd1de4d1e362458e6561017ae74b2b3f28e",
+        "fetch": "https://busybox.net/downloads/busybox-1.36.1.tar.bz2",
+        "sha256": "b8cc24c9574d809e7279c3be349795c5d5ceb6fdf19ca709f80cde50e47de314",
+        "subdir": "busybox-1.36.1"
+      },
+      "target_root": "clang-18/bootstrap",
+      "target_file_name": "stage-0-busybox.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/stage-0",
+        "gcc": "clang-18/stage-0/gcc",
+        "make": "clang-18/stage-0/make",
+        "patch-cbq": "clang-18/patches/busybox-1593"
+      }
+    },
+    "clang-18/stage-0/gcc": {
+      "repository": {
+        "type": "archive",
+        "content": "4819a9afa95dae6ac8d5abec15049a66e3e725a0",
+        "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-4.7.4/gcc-4.7.4.tar.gz",
+        "sha256": "ddbaa583c5d4e4f0928bf15d9f6b6c283349e16eedc47bde71e1b813f6f37819",
+        "subdir": "gcc-4.7.4"
+      },
+      "target_root": "clang-18/bootstrap",
+      "target_file_name": "stage-0-gcc.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/stage-0",
+        "busybox": "clang-18/stage-0/busybox",
+        "make": "clang-18/stage-0/make",
+        "binutils": "clang-18/stage-0/binutils",
+        "gmp": "clang-18/imports/stage-0/gmp-4.2.4",
+        "mpc": "clang-18/imports/stage-0/mpc-0.8.1",
+        "mpfr": "clang-18/imports/stage-0/mpfr-2.3.1",
+        "patches": "clang-18/patches"
+      }
+    },
+    "clang-18/stage-0/make": {
+      "repository": {
+        "type": "archive",
+        "content": "4adc00a78258ae2eb53d103ef2c1ecf291a86fbf",
+        "fetch": "https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz",
+        "sha256": "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
+        "subdir": "make-4.4.1"
+      },
+      "target_root": "clang-18/bootstrap",
+      "target_file_name": "stage-0-make.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/stage-0",
+        "busybox": "clang-18/stage-0/busybox",
+        "gcc": "clang-18/stage-0/gcc"
+      }
+    },
+    "clang-18/stage-1/gcc": {
+      "repository": {
+        "type": "archive",
+        "content": "25e1bc0b9c97916a3e6c3f4c100bf170ddf06eaa",
+        "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.gz",
+        "sha256": "27e879dccc639cd7b0cc08ed575c1669492579529b53c9ff27b0b96265fa867d",
+        "subdir": "gcc-10.2.0"
+      },
+      "target_root": "clang-18/bootstrap",
+      "target_file_name": "stage-1-gcc.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/stage-1",
+        "gmp": "clang-18/imports/stage-1/gmp-5.1.3",
+        "mpc": "clang-18/imports/mpc-1.3.1",
+        "mpfr": "clang-18/imports/mpfr-4.2.1",
+        "binutils": "clang-18/imports/binutils-latest",
+        "patches": "clang-18/patches"
+      }
+    },
+    "clang-18/tools/cmake-3.27.1": {
+      "repository": {
+        "type": "archive",
+        "content": "45586697d7bb7d4f3cae4c86bba5bde710a367a9",
+        "fetch": "https://github.com/Kitware/CMake/releases/download/v3.27.1/cmake-3.27.1.tar.gz",
+        "sha256": "b1a6b0135fa11b94476e90f5b32c4c8fad480bf91cf22d0ded98ce22c5132004",
+        "subdir": "cmake-3.27.1"
+      },
+      "target_root": "clang-18/tools",
+      "target_file_name": "cmake-3.27.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/tools",
+        "ssl": "clang-18/imports/boringssl"
+      }
+    },
+    "clang-18/tools/python-3.12.0": {
+      "repository": {
+        "type": "archive",
+        "content": "0b9a01c1b77e8b75a977e7e8e447d6764215eb1b",
+        "fetch": "https://www.python.org/ftp/python/3.12.0/Python-3.12.0.tar.xz",
+        "sha256": "795c34f44df45a0e9b9710c8c71c15c671871524cd412ca14def212e8ccb155d",
+        "subdir": "Python-3.12.0"
+      },
+      "target_root": "clang-18/tools",
+      "target_file_name": "python-3.12.TARGETS",
+      "bindings": {
+        "rules": "clang-18/rules/tools",
+        "zlib": "clang-18/imports/zlib"
+      }
+    },
+    "clang-18/bootstrap": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "src/bootstrap"
+      }
+    },
+    "clang-18/compilers": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "src/compilers"
+      }
+    },
+    "clang-18/defaults": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "etc/defaults"
+      }
+    },
+    "clang-18/imports": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "etc/imports"
+      }
+    },
+    "clang-18/toolchains": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "toolchains"
+      }
+    },
+    "clang-18/tools": {
+      "repository": {
+        "type": "git",
+        "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
+        "branch": "master",
+        "commit": "45171532f2d76037aab146be8fb61faa8a7a7852",
+        "subdir": "src/tools"
       }
     }
   }
