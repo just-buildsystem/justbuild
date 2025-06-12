@@ -1,0 +1,43 @@
+{ "":
+  { "type": "install"
+  , "tainted": ["lint", "test"]
+  , "dirs": [["LINT: clang-tidy", "clang-tidy"]]
+  }
+, "clang toolchain":
+  { "type": "configure"
+  , "arguments_config": ["TOOLCHAIN_CONFIG"]
+  , "target": ["@", "clang", "", "toolchain"]
+  , "config":
+    { "type": "`"
+    , "$1":
+      { "TOOLCHAIN_CONFIG":
+        { "type": ","
+        , "$1":
+          { "type": "map_union"
+          , "$1":
+            [ { "type": "var"
+              , "name": "TOOLCHAIN_CONFIG"
+              , "default": {"type": "empty_map"}
+              }
+            , {"type": "'", "$1": {"INCLUDE_LINTER": true}}
+            ]
+          }
+        }
+      }
+    }
+  }
+, "clang": {"type": "install", "dirs": [["clang toolchain", "toolchain"]]}
+, "LINT: clang-tidy":
+  { "type": ["@", "rules", "lint", "targets"]
+  , "tainted": ["test"]
+  , "name": ["clang-tidy"]
+  , "linter": ["run_clang_tidy.py"]
+  , "summarizer": ["summary.py"]
+  , "config": [["@", "src", "", ".clang-tidy"], "clang"]
+  , "targets":
+    [ ["@", "src", "src/buildtool/main", "just"]
+    , ["@", "src", "src/other_tools/just_mr", "just-mr"]
+    , ["@", "tests", "", "ALL"]
+    ]
+  }
+}
