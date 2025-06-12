@@ -28,6 +28,12 @@
   , "test": ["reconstruct-executable.sh"]
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   }
+, "gc-all":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["gc-all"]
+  , "test": ["gc-all.sh"]
+  , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["gc"]
@@ -35,6 +41,7 @@
     [ "basic"
     , "compactification"
     , "export"
+    , "gc-all"
     , "reconstruct-executable"
     , "tc-deps"
     ]
