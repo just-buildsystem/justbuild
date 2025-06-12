@@ -288,6 +288,13 @@ As the non-rotating tasks can be useful in their own right, the
 `--no-rotate` option can be used to request only the clean-up tasks
 that do not lose information.
 
+If it is necessary to remove the entire cache, the `--all` option can
+be used to skip generation rotation and splitting of large files. In
+this scenario, all cache generations get removed starting from the
+oldest generation.
+
+`--no-rotate` and `--all` are incompatible options.
+
 **`execute`**
 -------------
 
@@ -835,7 +842,12 @@ operations will be removed, in a FIFO scheme. If unset, defaults to
 **`--no-rotate`**  
 Do not rotate gargabe-collection generations. Instead, only carry
 out clean up tasks that do not affect what is stored in the cache.
+Incompatible with `--all`.
 
+**`--all`**
+Do not rotate garbage-collection generations and do not split large
+files. Instead, remove all cache generations at once. Incompatible with
+`--no-rotate`.
 
 EXIT STATUS
 ===========

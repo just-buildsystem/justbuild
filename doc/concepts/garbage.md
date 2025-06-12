@@ -199,6 +199,11 @@ for transfer to an end point that supports blob splicing.
 The compactification step will also be carried out if the `--no-rotate`
 option is given to `gc`.
 
+The compactification step is skipped if the `--all` option is given to
+`gc`, since that option triggers removal of all cache generations.
+
+`--no-rotate` and `--all` are incompatible options.
+
 Gargabe Collection for Repository Roots
 ---------------------------------------
 
