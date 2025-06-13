@@ -59,14 +59,22 @@ be specified.
    contains, in particular, the full command line that is executed
    and the blob identifier of the repository configuration file
    used in that invocation of `just` (if any).
+ - `"context variables"` specifies a list of environment variables
+   for which the value should be recorded in the metadata file;
+   while `just` is designed to deliberately ignore environment
+   variables for the build, environment variables can be used to
+   communicate some context for the invocation, especially when
+   run on a CI system. This can later also be used for an analysis
+   based on a more fine-grained sharding.
 
-So, if invocation logging is desired, a typical `~/.just-mrrc` file
-would look as follows.
+So, if invocation logging is desired, the relevant part of a typical
+`~/.just-mrrc` file could look as follows.
 ``` json
 { "rc files": [{"root": "workspace", "path": "etc/rc.json"}]
 , "invocation log":
   { "directory": {"root": "home", "path": "log/justbuild"}
   , "metadata": "meta.json"
+  , "context variables": ["CI_MERGE_REQUEST_IID", "CI_COMMIT_SHA"]
   , "--profile": "profile.json"
   , "--dump-graph": "graph.json"
   , "--dump-artifacts-to-build": "to-build.json"
@@ -74,6 +82,11 @@ would look as follows.
   }
 }
 ```
+If some shared infrastructure (like a network file system) is
+available, it usually is a good idea to choose for `"directory"`
+a `"system"` path rather than a `"home"` one. In any case, it is
+advisable to set up some form of cronjob to rotate the invocation
+logs, as they can get quite large.
 
 Of course, the main motivation for invocation logging is doing
 statistical analysis later. However, it can also be useful to browse
