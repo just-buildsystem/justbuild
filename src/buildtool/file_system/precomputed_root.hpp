@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_FILE_SYSTEM_PRECOMPUTED_ROOT_HPP
 
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <optional>
 #include <string>
@@ -23,6 +24,8 @@
 #include <variant>
 
 #include "nlohmann/json.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"
 
 struct ComputedRoot final {
@@ -86,11 +89,35 @@ class PrecomputedRoot final {
 
     [[nodiscard]] auto operator==(PrecomputedRoot const& other) const noexcept
         -> bool {
-        return root_ == other.root_;
+        try {
+            return root_ == other.root_;
+        } catch (std::exception const& e) {
+            try {
+                Logger::Log(
+                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                std::terminate();
+            } catch (...) {
+                std::terminate();
+            }
+        } catch (...) {
+            std::terminate();
+        }
     }
     [[nodiscard]] auto operator<(PrecomputedRoot const& other) const noexcept
         -> bool {
-        return root_ < other.root_;
+        try {
+            return root_ < other.root_;
+        } catch (std::exception const& e) {
+            try {
+                Logger::Log(
+                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                std::terminate();
+            } catch (...) {
+                std::terminate();
+            }
+        } catch (...) {
+            std::terminate();
+        }
     }
 
     [[nodiscard]] auto ToString() const noexcept -> std::string;

@@ -40,7 +40,7 @@
 class RepositoryConfig {
 
   public:
-    struct RepositoryInfo {
+    struct RepositoryInfo {  // NOLINT(bugprone-exception-escape)
         FileRoot workspace_root;
         FileRoot target_root{workspace_root};
         FileRoot rule_root{target_root};

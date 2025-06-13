@@ -18,6 +18,7 @@
 #include <compare>
 #include <cstddef>
 #include <cstdint>
+#include <exception>
 #include <filesystem>
 #include <functional>
 #include <string>
@@ -27,6 +28,8 @@
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
+#include "src/buildtool/logging/log_level.hpp"
+#include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 
 namespace BuildMaps::Base {
@@ -83,12 +86,14 @@ struct NamedTarget {
     }
     [[nodiscard]] auto ToString() const -> std::string;
     [[nodiscard]] friend auto operator==(NamedTarget const& x,
-                                         NamedTarget const& y) -> bool {
+                                         NamedTarget const& y) noexcept
+        -> bool {
         return x.repository == y.repository and x.module == y.module and
                x.name == y.name and x.reference_t == y.reference_t;
     }
     [[nodiscard]] friend auto operator!=(NamedTarget const& x,
-                                         NamedTarget const& y) -> bool {
+                                         NamedTarget const& y) noexcept
+        -> bool {
         return not(x == y);
     }
     [[nodiscard]] auto operator<(NamedTarget const& other) const noexcept
@@ -128,11 +133,37 @@ class EntityName {
                                  std::move(name),
                                  reference_type}} {}
 
-    friend auto operator==(EntityName const& a, EntityName const& b) -> bool {
-        return a.entity_name_ == b.entity_name_;
+    friend auto operator==(EntityName const& a,
+                           EntityName const& b) noexcept -> bool {
+        try {
+            return a.entity_name_ == b.entity_name_;
+        } catch (std::exception const& e) {
+            try {
+                Logger::Log(
+                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                std::terminate();
+            } catch (...) {
+                std::terminate();
+            }
+        } catch (...) {
+            std::terminate();
+        }
     }
-    friend auto operator<(EntityName const& a, EntityName const& b) -> bool {
-        return a.entity_name_ < b.entity_name_;
+    friend auto operator<(EntityName const& a,
+                          EntityName const& b) noexcept -> bool {
+        try {
+            return a.entity_name_ < b.entity_name_;
+        } catch (std::exception const& e) {
+            try {
+                Logger::Log(
+                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                std::terminate();
+            } catch (...) {
+                std::terminate();
+            }
+        } catch (...) {
+            std::terminate();
+        }
     }
     [[nodiscard]] auto IsAnonymousTarget() const -> bool {
         return std::holds_alternative<AnonymousTarget>(entity_name_);

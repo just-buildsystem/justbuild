@@ -183,7 +183,20 @@ class FileRoot {
 
             friend auto operator==(Iterator const& x,
                                    Iterator const& y) noexcept -> bool {
-                return x.it_ == y.it_;
+                try {
+                    return x.it_ == y.it_;
+                } catch (std::exception const& e) {
+                    try {
+                        Logger::Log(LogLevel::Error,
+                                    "Unexpected excpetion: {}",
+                                    e.what());
+                        std::terminate();
+                    } catch (...) {
+                        std::terminate();
+                    }
+                } catch (...) {
+                    std::terminate();
+                }
             }
             friend auto operator!=(Iterator const& x,
                                    Iterator const& y) noexcept -> bool {

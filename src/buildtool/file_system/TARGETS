@@ -204,7 +204,12 @@
   , "name": ["precomputed_root"]
   , "hdrs": ["precomputed_root.hpp"]
   , "srcs": ["precomputed_root.cpp"]
-  , "deps": [["@", "json", "", "json"], ["src/utils/cpp", "expected"]]
+  , "deps":
+    [ ["@", "json", "", "json"]
+    , ["src/buildtool/logging", "log_level"]
+    , ["src/buildtool/logging", "logging"]
+    , ["src/utils/cpp", "expected"]
+    ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
     , ["@", "gsl", "", "gsl"]
