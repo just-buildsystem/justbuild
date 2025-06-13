@@ -31,7 +31,24 @@ def run_lint(src, cmd):
     dump_meta(src, cmd)
     config = os.environ.get("CONFIG")
     shutil.copyfile(os.path.join(config, ".clang-tidy"), ".clang-tidy")
-    extra = ["-Wno-unused-command-line-argument"]
+    extra = [ "-Wno-unused-command-line-argument"]
+
+    # add include paths from the bundled toolchain
+    baseincludepath = os.path.join(
+        config, "toolchain", "include", "c++", "13.3.0"
+    )
+    # We're using the native toolchain, so arch-specific headers are
+    # only available for one arch. Hence we can try all supported candidates
+    # and add the ones found
+    for arch in ["x86_64", "arm"]:
+        idir = os.path.join(baseincludepath,
+                            "%s-pc-linux-gnu" % (arch,))
+        if os.path.exists(idir):
+            extra += ["-isystem", idir]
+    extra += [
+        "-isystem", baseincludepath,
+    ]
+
     if src.endswith(".tpp"):
         extra += ["-x", "c++"]
     db = [{
