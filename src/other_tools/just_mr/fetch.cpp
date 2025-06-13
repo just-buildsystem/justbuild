@@ -223,7 +223,8 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                 return kExitFetchError;
             }
             auto repo_type_str = repo_type->get()->String();
-            if (not kCheckoutTypeMap.contains(repo_type_str)) {
+            auto const checkout_type_it = kCheckoutTypeMap.find(repo_type_str);
+            if (checkout_type_it == kCheckoutTypeMap.end()) {
                 Logger::Log(LogLevel::Error,
                             "Config: Unknown repository type {} for {}",
                             nlohmann::json(repo_type_str).dump(),
@@ -231,7 +232,7 @@ auto MultiRepoFetch(std::shared_ptr<Configuration> const& config,
                 return kExitFetchError;
             }
             // only do work if repo is archive or git tree type
-            switch (kCheckoutTypeMap.at(repo_type_str)) {
+            switch (checkout_type_it->second) {
                 case CheckoutType::Archive: {
                     auto logger = std::make_shared<AsyncMapConsumerLogger>(
                         [&repo_name](std::string const& msg, bool fatal) {

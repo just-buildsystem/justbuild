@@ -840,14 +840,11 @@ auto LookupExpr(SubExprEvaluator&& eval,
         throw Evaluator::EvaluationError{fmt::format(
             "Map expected to be mapping but found {}.", d->ToString())};
     }
-    auto lookup = Expression::kNone;
-    if (d->Map().contains(k->String())) {
-        lookup = d->Map().at(k->String());
+    auto const& lookup = d->Map().Find(k->String());
+    if (lookup and (*lookup)->IsNotNull()) {
+        return **lookup;
     }
-    if (lookup->IsNone()) {
-        lookup = eval(expr->Get("default", Expression::none_t()), env);
-    }
-    return lookup;
+    return eval(expr->Get("default", Expression::none_t()), env);
 }
 
 auto ArrayAccessExpr(SubExprEvaluator&& eval,
@@ -936,7 +933,7 @@ auto ToSubdirExpr(SubExprEvaluator&& eval,
     else {
         for (auto const& el : d->Map()) {
             auto new_key = ToNormalPath(subdir / el.first).string();
-            if (auto it = result.find(new_key);
+            if (auto const it = result.find(new_key);
                 it != result.end() and
                 (not((it->second == el.second) and el.second->IsCacheable()))) {
                 auto msg_expr = expr->Map().Find("msg");
@@ -979,7 +976,7 @@ auto FromSubdirExpr(SubExprEvaluator&& eval,
             std::filesystem::path(el.first).lexically_relative(subdir));
         if (PathIsNonUpwards(new_path)) {
             auto new_key = new_path.string();
-            if (auto it = result.find(new_key);
+            if (auto const it = result.find(new_key);
                 it != result.end() &&
                 (!((it->second == el.second) && el.second->IsCacheable()))) {
                 throw Evaluator::EvaluationError{

@@ -221,9 +221,16 @@ auto TreeOperationsUtils::SerializeGitTree(
         }
         auto it = git_entries.find(*git_hash);
         if (it == git_entries.end()) {
-            git_entries.insert({*git_hash, std::vector<GitRepo::TreeEntry>{}});
+            if (auto res = git_entries.insert(
+                    {*git_hash, std::vector<GitRepo::TreeEntry>{}});
+                res.second) {
+                it = std::move(res).first;
+            }
+            else {
+                return std::nullopt;
+            }
         }
-        git_entries.at(*git_hash).emplace_back(name, entry.info.type);
+        it->second.emplace_back(name, entry.info.type);
     }
 
     // Serialize git entries.

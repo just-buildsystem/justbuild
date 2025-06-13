@@ -26,6 +26,7 @@
 #include <string>
 #include <thread>
 #include <type_traits>
+#include <unordered_map>
 #include <vector>
 
 #include "CLI/CLI.hpp"
@@ -705,8 +706,9 @@ static inline auto SetupToAddArguments(
     app->add_option_function<std::string>(
         "--resolve-special",
         [clargs](auto const& raw_value) {
-            if (kResolveSpecialMap.contains(raw_value)) {
-                clargs->resolve_special = kResolveSpecialMap.at(raw_value);
+            if (auto const it = kResolveSpecialMap.find(raw_value);
+                it != kResolveSpecialMap.end()) {
+                clargs->resolve_special = it->second;
             }
             else {
                 Logger::Log(LogLevel::Warning,

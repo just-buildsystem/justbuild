@@ -337,7 +337,7 @@ auto LocalAction::StageInputs(
         return false;
     }
     for (std::size_t i{}; i < result->paths.size(); ++i) {
-        if (not StageInput(result->paths.at(i), result->infos.at(i), copies)) {
+        if (not StageInput(result->paths[i], result->infos[i], copies)) {
             return false;
         }
     }

@@ -34,15 +34,15 @@ namespace {
         std::size_t shift = 0;
         for (std::size_t length = 0; shift + length < request.size();
              ++length) {
-            if (request.at(shift + length) == '/') {
-                parts.emplace_back(&request.at(shift), length);
+            if (request[shift + length] == '/') {
+                parts.emplace_back(&request[shift], length);
                 shift += length + 1;
                 length = 0;
             }
         }
 
         if (shift < request.size()) {
-            parts.emplace_back(&request.at(shift), request.size() - shift);
+            parts.emplace_back(&request[shift], request.size() - shift);
         }
     } catch (...) {
         return {};
@@ -80,15 +80,15 @@ auto ByteStreamUtils::ReadRequest::FromString(
 
     auto const parts = ::SplitRequest(request);
     if (parts.size() != kReadRequestPartsCount or
-        parts.at(kBlobsIndex).compare(ByteStreamUtils::kBlobs) != 0) {
+        parts[kBlobsIndex].compare(ByteStreamUtils::kBlobs) != 0) {
         return std::nullopt;
     }
 
     ReadRequest result;
-    result.instance_name_ = std::string(parts.at(kInstanceNameIndex));
-    result.hash_ = std::string(parts.at(kHashIndex));
+    result.instance_name_ = std::string(parts[kInstanceNameIndex]);
+    result.hash_ = std::string(parts[kHashIndex]);
     try {
-        result.size_ = std::stoi(std::string(parts.at(kSizeIndex)));
+        result.size_ = std::stoi(std::string(parts[kSizeIndex]));
     } catch (...) {
         return std::nullopt;
     }
@@ -126,17 +126,17 @@ auto ByteStreamUtils::WriteRequest::FromString(
 
     auto const parts = ::SplitRequest(request);
     if (parts.size() != kWriteRequestPartsCount or
-        parts.at(kUploadsIndex).compare(ByteStreamUtils::kUploads) != 0 or
-        parts.at(kBlobsIndex).compare(ByteStreamUtils::kBlobs) != 0) {
+        parts[kUploadsIndex].compare(ByteStreamUtils::kUploads) != 0 or
+        parts[kBlobsIndex].compare(ByteStreamUtils::kBlobs) != 0) {
         return std::nullopt;
     }
 
     WriteRequest result;
-    result.instance_name_ = std::string(parts.at(kInstanceNameIndex));
-    result.uuid_ = std::string(parts.at(kUUIDIndex));
-    result.hash_ = std::string(parts.at(kHashIndex));
+    result.instance_name_ = std::string(parts[kInstanceNameIndex]);
+    result.uuid_ = std::string(parts[kUUIDIndex]);
+    result.hash_ = std::string(parts[kHashIndex]);
     try {
-        result.size_ = std::stoul(std::string(parts.at(kSizeIndex)));
+        result.size_ = std::stoul(std::string(parts[kSizeIndex]));
     } catch (...) {
         return std::nullopt;
     }

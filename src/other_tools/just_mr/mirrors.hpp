@@ -158,7 +158,7 @@ namespace MirrorsUtils {
             CurlURLHandle::GetHostname(mirror).value_or(std::string{});
         auto it = mirrors_by_hostname.find(hostname);
         if (it != mirrors_by_hostname.end()) {
-            mirrors_by_hostname.at(hostname).emplace_back(mirror);
+            it->second.emplace_back(mirror);
         }
         else {
             // add missing or unknown hostnames to fallback list with key ""

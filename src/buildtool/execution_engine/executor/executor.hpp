@@ -632,8 +632,8 @@ class ExecutorImpl {
         std::vector<DependencyGraph::NamedArtifactNodePtr> const& artifacts)
         -> std::optional<ArtifactDigest> {
         if (artifacts.size() == 1 and
-            (artifacts.at(0).path == "." or artifacts.at(0).path.empty())) {
-            auto const& info = artifacts.at(0).node->Content().Info();
+            (artifacts[0].path == "." or artifacts[0].path.empty())) {
+            auto const& info = artifacts[0].node->Content().Info();
             if (info and IsTreeObject(info->type)) {
                 // Artifact list contains single tree with path "." or "". Reuse
                 // the existing tree artifact by returning its digest.
@@ -831,7 +831,7 @@ class ExecutorImpl {
             msg << nlohmann::json(action->Env()).dump();
         }
         auto const& origin_map = progress->OriginMap();
-        auto origins = origin_map.find(action->Content().Id());
+        auto const origins = origin_map.find(action->Content().Id());
         if (origins != origin_map.end() and not origins->second.empty()) {
             msg << "\nrequested by";
             for (auto const& origin : origins->second) {
@@ -887,7 +887,7 @@ class ExecutorImpl {
              remote_context->exec_config->dispatch) {
             bool match = true;
             for (auto const& [k, v] : pred) {
-                auto v_it = properties.find(k);
+                auto const v_it = properties.find(k);
                 if (not(v_it != properties.end() and v_it->second == v)) {
                     match = false;
                 }

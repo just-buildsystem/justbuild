@@ -211,9 +211,8 @@ class TestProject {
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
-    auto const contents =
-        FileSystemManager::ReadFile(result->output_paths.at(0));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
+    auto const contents = FileSystemManager::ReadFile(result->output_paths[0]);
     CHECK(contents.has_value());
     CHECK(contents == "Hello, World!\n");
 
@@ -232,7 +231,7 @@ class TestProject {
 
         REQUIRE(exec_result);
         REQUIRE(exec_result->output_paths.size() == 1);
-        auto const exec_path = exec_result->output_paths.at(0);
+        auto const exec_path = exec_result->output_paths[0];
         CHECK(FileSystemManager::IsFile(exec_path));
         CHECK(FileSystemManager::IsExecutable(exec_path));
         CHECK(FileSystemManager::Type(exec_path) == ObjectType::Executable);
@@ -288,7 +287,7 @@ class TestProject {
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
     if (is_hermetic) {
         CHECK(stats.ActionsQueuedCounter() == 0);
@@ -339,7 +338,7 @@ class TestProject {
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
     auto const clargs_full_build = p.CmdLineArgs("_entry_points_full_build");
     GraphTraverser const gt_full_build{clargs_full_build.gtargs,
@@ -350,7 +349,7 @@ class TestProject {
 
     REQUIRE(full_build_result);
     REQUIRE(full_build_result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(full_build_result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(full_build_result->output_paths[0]));
 
     if (is_hermetic) {
         CHECK(stats.ActionsQueuedCounter() == 8);
@@ -408,7 +407,7 @@ class TestProject {
     REQUIRE(cpp_result);
     REQUIRE(cpp_result->output_paths.size() == 1);
 
-    CHECK(FileSystemManager::IsFile(cpp_result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(cpp_result->output_paths[0]));
 
     if (is_hermetic) {
         CHECK(stats.ActionsQueuedCounter() == 0);
@@ -435,7 +434,7 @@ class TestProject {
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
     if (is_hermetic) {
         CHECK(stats.ActionsQueuedCounter() == 2);
@@ -489,10 +488,9 @@ static void TestBlobsUploadedAndUsed(
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
-    auto const contents =
-        FileSystemManager::ReadFile(result->output_paths.at(0));
+    auto const contents = FileSystemManager::ReadFile(result->output_paths[0]);
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 
@@ -548,10 +546,9 @@ static void TestEnvironmentVariablesSetAndUsed(
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
-    auto const contents =
-        FileSystemManager::ReadFile(result->output_paths.at(0));
+    auto const contents = FileSystemManager::ReadFile(result->output_paths[0]);
     CHECK(contents.has_value());
     CHECK(contents == "content from environment variable");
 
@@ -607,10 +604,9 @@ static void TestTreesUsed(
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
-    auto const contents =
-        FileSystemManager::ReadFile(result->output_paths.at(0));
+    auto const contents = FileSystemManager::ReadFile(result->output_paths[0]);
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 
@@ -666,10 +662,9 @@ static void TestNestedTreesUsed(
 
     REQUIRE(result);
     REQUIRE(result->output_paths.size() == 1);
-    CHECK(FileSystemManager::IsFile(result->output_paths.at(0)));
+    CHECK(FileSystemManager::IsFile(result->output_paths[0]));
 
-    auto const contents =
-        FileSystemManager::ReadFile(result->output_paths.at(0));
+    auto const contents = FileSystemManager::ReadFile(result->output_paths[0]);
     CHECK(contents.has_value());
     CHECK(contents == "this is a test to check if blobs are uploaded");
 

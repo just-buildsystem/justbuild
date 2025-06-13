@@ -103,9 +103,9 @@ TEST_CASE("Test rule fields", "[rule_map]") {
         REQUIRE_FALSE((*values[0])->StringFields().empty());
         REQUIRE_FALSE((*values[0])->TargetFields().empty());
         REQUIRE_FALSE((*values[0])->ConfigFields().empty());
-        CHECK((*values[0])->StringFields().at(0) == "foo");
-        CHECK((*values[0])->TargetFields().at(0) == "bar");
-        CHECK((*values[0])->ConfigFields().at(0) == "baz");
+        CHECK((*values[0])->StringFields()[0] == "foo");
+        CHECK((*values[0])->TargetFields()[0] == "bar");
+        CHECK((*values[0])->ConfigFields()[0] == "baz");
     };
 
     SECTION("via file") {

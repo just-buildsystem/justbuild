@@ -502,7 +502,8 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
         }
         // get repo_type
         auto repo_type_str = repo_type->get()->String();
-        if (not kCheckoutTypeMap.contains(repo_type_str)) {
+        auto const checkout_type_it = kCheckoutTypeMap.find(repo_type_str);
+        if (checkout_type_it == kCheckoutTypeMap.end()) {
             (*logger)(fmt::format("DistdirCheckout: Unknown type {} for "
                                   "repository {}",
                                   nlohmann::json(repo_type_str).dump(),
@@ -511,7 +512,7 @@ void DistdirCheckout(ExpressionPtr const& repo_desc,
             return;
         }
         // only do work if repo is archive type
-        if (kCheckoutTypeMap.at(repo_type_str) == CheckoutType::Archive) {
+        if (checkout_type_it->second == CheckoutType::Archive) {
             auto const archive =
                 ParseArchiveContent(*resolved_repo_desc, dist_repo_name);
             if (not archive) {
@@ -794,7 +795,8 @@ auto CreateReposToSetupMap(
             }
             // get repo_type
             auto repo_type_str = repo_type->get()->String();
-            if (not kCheckoutTypeMap.contains(repo_type_str)) {
+            auto const checkout_type_it = kCheckoutTypeMap.find(repo_type_str);
+            if (checkout_type_it == kCheckoutTypeMap.end()) {
                 (*logger)(
                     fmt::format("Config: Unknown type {} for repository {}",
                                 nlohmann::json(repo_type_str).dump(),
@@ -811,7 +813,7 @@ auto CreateReposToSetupMap(
                               fatal);
                 });
             // do checkout
-            switch (kCheckoutTypeMap.at(repo_type_str)) {
+            switch (checkout_type_it->second) {
                 case CheckoutType::Git: {
                     GitCheckout(*resolved_repo_desc,
                                 std::move(repos),

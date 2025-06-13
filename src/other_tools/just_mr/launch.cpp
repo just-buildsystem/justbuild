@@ -93,8 +93,9 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
 
     std::optional<LockFile> lock{};
     if (subcommand and kKnownJustSubcommands.contains(*subcommand)) {
+        auto const& flags = kKnownJustSubcommands.at(*subcommand);
         // Read the config file if needed
-        if (kKnownJustSubcommands.at(*subcommand).config) {
+        if (flags.config) {
             auto repo_lock =
                 RepositoryGarbageCollector::SharedLock(storage_config);
             if (not repo_lock) {
@@ -128,15 +129,14 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
                 return kExitSetupError;
             }
         }
-        use_build_root = kKnownJustSubcommands.at(*subcommand).build_root;
-        use_launcher = kKnownJustSubcommands.at(*subcommand).launch;
-        supports_defines = kKnownJustSubcommands.at(*subcommand).defines;
-        supports_remote = kKnownJustSubcommands.at(*subcommand).remote;
-        supports_remote_properties =
-            kKnownJustSubcommands.at(*subcommand).remote_props;
-        supports_serve = kKnownJustSubcommands.at(*subcommand).serve;
-        supports_dispatch = kKnownJustSubcommands.at(*subcommand).dispatch;
-        does_build = kKnownJustSubcommands.at(*subcommand).does_build;
+        use_build_root = flags.build_root;
+        use_launcher = flags.launch;
+        supports_defines = flags.defines;
+        supports_remote = flags.remote;
+        supports_remote_properties = flags.remote_props;
+        supports_serve = flags.serve;
+        supports_dispatch = flags.dispatch;
+        does_build = flags.does_build;
     }
     // build just command
     std::vector<std::string> cmd = {common_args.just_path->string()};

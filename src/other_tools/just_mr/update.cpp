@@ -24,6 +24,7 @@
 #include <optional>
 #include <thread>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "fmt/core.h"
@@ -118,7 +119,8 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                 return kExitUpdateError;
             }
             auto repo_type_str = repo_type->get()->String();
-            if (not kCheckoutTypeMap.contains(repo_type_str)) {
+            auto const checkout_type_it = kCheckoutTypeMap.find(repo_type_str);
+            if (checkout_type_it == kCheckoutTypeMap.end()) {
                 Logger::Log(LogLevel::Error,
                             "Unknown repository type {} for {}",
                             nlohmann::json(repo_type_str).dump(),
@@ -126,7 +128,7 @@ auto MultiRepoUpdate(std::shared_ptr<Configuration> const& config,
                 return kExitUpdateError;
             }
             // only do work if repo is git type
-            if (kCheckoutTypeMap.at(repo_type_str) == CheckoutType::Git) {
+            if (checkout_type_it->second == CheckoutType::Git) {
                 auto repo_desc_repository =
                     (*resolved_repo_desc)->At("repository");
                 if (not repo_desc_repository) {
