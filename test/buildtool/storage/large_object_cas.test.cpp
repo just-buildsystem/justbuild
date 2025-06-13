@@ -27,6 +27,7 @@
 
 #include "catch2/catch_test_macros.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
+#include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
@@ -680,7 +681,25 @@ auto Blob<kIsExecutable>::Create(LocalCAS<kDefaultDoGlobalUplink> const& cas,
                                  std::string const& id,
                                  std::uintmax_t size) noexcept
     -> std::optional<std::pair<ArtifactDigest, std::filesystem::path>> {
-    auto path = Generate(id, size);
+    std::optional<std::filesystem::path> path;
+    while (not path.has_value()) {
+        path = Generate(id, size);
+        auto digest = path.has_value()
+                          ? ArtifactDigestFactory::HashFileAs<ObjectType::File>(
+                                cas.GetHashFunction(), *path)
+                          : std::nullopt;
+        if (not digest) {
+            return std::nullopt;
+        }
+
+        if (cas.BlobPath(digest.value(), kIsExecutable).has_value()) {
+            if (not FileSystemManager::RemoveFile(*path)) {
+                return std::nullopt;
+            }
+            path.reset();
+        }
+    }
+
     auto digest = path ? cas.StoreBlob(*path, kIsExecutable) : std::nullopt;
     auto blob_path =
         digest ? cas.BlobPath(*digest, kIsExecutable) : std::nullopt;
