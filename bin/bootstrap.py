@@ -35,7 +35,7 @@ Json = Dict[str, Any]
 
 DEBUG = os.environ.get("DEBUG")
 
-REPOS: str = "etc/repos.json"
+REPOS: str = "etc/repos.in.json"
 MAIN_MODULE: str = ""
 MAIN_TARGET: str = ""
 MAIN_STAGE: str = "bin/just"
