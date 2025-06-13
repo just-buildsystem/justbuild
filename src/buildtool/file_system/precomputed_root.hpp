@@ -86,11 +86,19 @@ class PrecomputedRoot final {
 
     [[nodiscard]] auto operator==(PrecomputedRoot const& other) const noexcept
         -> bool {
-        return root_ == other.root_;
+        try {
+            return root_ == other.root_;
+        } catch (...) {
+            return false;
+        }
     }
     [[nodiscard]] auto operator<(PrecomputedRoot const& other) const noexcept
         -> bool {
-        return root_ < other.root_;
+        try {
+            return root_ < other.root_;
+        } catch (...) {
+            return false;
+        }
     }
 
     [[nodiscard]] auto ToString() const noexcept -> std::string;
