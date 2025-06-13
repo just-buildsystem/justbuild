@@ -1,0 +1,126 @@
+# Mapping file for include-what-you-use.
+# Check rules at: https://github.com/include-what-you-use/include-what-you-use/blob/master/docs/IWYUMappings.md
+
+# Take into account that the order in which entries are given for the same
+# symbol is important.
+# For instance for grpc::Status <grpcpp/support/status.h> has a higher priority:
+# { "symbol": [ "grpc::Status", "private", "<grpcpp/support/status.h>", "public"] },
+# { "symbol": [ "grpc::Status", "private", "<grpcpp/grpcpp.h>", "public"] },
+[
+    # Map C headers
+    { "include": ["<stdlib.h>", "private", "<cstdlib>", "public"] },
+    { "include": ["<stdio.h>", "private", "<cstdio>", "public"] },
+    { "include": ["<stdint.h>", "private", "<cstdint>", "public"] },
+    { "include": ["<math.h>", "private", "<cmath>", "public"] },
+    { "include": ["<string.h>", "private", "<cstring>", "public"] },
+    { "include": ["<errno.h>", "private", "<cerrno>", "public"] },
+    { "include": ["<time.h>", "private", "<ctime>", "public"] },
+    { "include": ["<ctype.h>", "private", "<cctype>", "public"] },
+
+    # Hide std implementation details headers:
+    { "include": ["<asm/errno-base.h>", "private", "<cerrno>", "public"] },
+    { "include": ["<bits/exception.h>", "private", "<exception>", "public"] },
+    { "include": ["<bits/fs_ops.h>", "private", "<filesystem>", "public"] },
+    { "include": ["<bits/fs_path.h>", "private", "<filesystem>", "public"] },
+    { "include": ["<bits/fs_fwd.h>", "private", "<filesystem>", "public"] },
+    { "include": ["<bits/fs_dir.h>", "private", "<filesystem>", "public"] },
+    { "include": ["<bits/std_function.h>", "private", "<functional>", "public"] },
+    { "include": ["<bits/shared_ptr.h>", "private", "<memory>", "public"] },
+    { "include": ["<bits/utility.h>", "private", "<utility>", "public"] },
+    { "include": ["<bits/chrono.h>", "private", "<chrono>", "public"] },
+    { "include": ["<bits/stdint-uintn.h>", "private", "<cstdint>", "public"] },
+    { "include": ["<bits/stdint-intn.h>", "private", "<cstdint>", "public"] },
+    { "include": ["<bits/refwrap.h>", "private", "<functional>", "public"] },
+    { "include": ["<bits/time.h>", "private", "<ctime>", "public"] },
+    { "include": ["<bits/types/struct_FILE.h>", "private", "<cstdio>", "public"] },
+    { "include": ["<bits/types/time_t.h>", "private", "<ctime>", "public"] },
+
+    # Map symbols:
+    { "symbol": ["timespec", "private", "<ctime>", "public"] },
+    { "symbol": ["tm", "private", "<ctime>", "public"] },
+    { "symbol": ["AT_FDCWD", "private", "<fcntl.h>", "public"] },
+    { "symbol": ["SEEK_END", "private", <cstdio>, "public"] },
+    { "symbol": ["SEEK_SET", "private", <cstdio>, "public"] },
+    { "symbol": ["pid_t", "private", <sys/types.h>, "public"] },
+    { "symbol": ["std::size_t", "private", "<cstddef>", "public"] },
+    { "symbol": ["size_t", "private", "<cstddef>", "public"] },
+    { "symbol": ["std::nullptr_t", "private", "<cstddef>", "public"] },
+    { "symbol": ["std::ptrdiff_t", "private", "<cstddef>", "public"] },
+    { "symbol": ["FILE", "private", "<cstdio>", "public"] },
+    { "symbol": ["NULL", "private", "<cstddef>", "public"] },
+    { "symbol": ["std::thread::id", "private", "<thread>", "public"] },
+    { "symbol": ["uint", "private", "<cstdint>", "public"] },
+    { "symbol": ["std::uint", "private", "<cstdint>", "public"] },
+    { "symbol": ["std::hash", "private", "<functional>", "public"] },
+
+    # Trick to "ignore" std::allocator and similar types we don't want to
+    # include manually. Taken from:
+    # https://github.com/include-what-you-use/include-what-you-use/blob/d2d092919f2774b5463e236e1ee9d56fb46ceb60/gcc.symbols.imp
+    { "symbol": [ "std::allocator", "private", "<memory>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<string>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<vector>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<list>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<map>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<set>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<unordered_map>", "public"] },
+    { "symbol": [ "std::allocator", "private", "<unordered_set>", "public"] },
+
+    { "symbol": [ "std::char_traits", "private", "<string>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<ostream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<istream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<iostream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<ofstream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<ifstream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<fstream>", "public"] },
+    { "symbol": [ "std::char_traits", "private", "<sstream>", "public"] },
+
+    { "include": ["<locale>", "public", "<regex>", "public"] },
+
+    # Model the dependencies between the public standard stream headers,
+    # in order to include only the top-most library.
+    # Taken from:
+    # https://github.com/include-what-you-use/include-what-you-use/blob/377eaef70cdda47368939f4d9beabfabe3f628f0/iwyu_include_picker.cc#L623
+    { "include": [ "<ios>", "public", "<istream>", "public" ] },
+    { "include": [ "<ios>", "public", "<ostream>", "public" ] },
+    { "include": [ "<iosfwd>", "public", "<ios>", "public" ] },
+    { "include": [ "<iosfwd>", "public", "<streambuf>", "public" ] },
+    { "include": [ "<istream>", "public", "<fstream>", "public" ] },
+    { "include": [ "<istream>", "public", "<iostream>", "public" ] },
+    { "include": [ "<istream>", "public", "<sstream>", "public" ] },
+    { "include": [ "<ostream>", "public", "<fstream>", "public" ] },
+    { "include": [ "<ostream>", "public", "<iostream>", "public" ] },
+    { "include": [ "<ostream>", "public", "<istream>", "public" ] },
+    { "include": [ "<ostream>", "public", "<sstream>", "public" ] },
+    { "include": [ "<streambuf>", "public", "<ios>", "public"]  },
+
+    # Use common headers for third-parties:
+    { "include": ["@\"gsl/.*\"", "private", "\"gsl/gsl\"", "public"] },
+    { "include": ["@\"nlohmann/.*\"", "private", "\"nlohmann/json.hpp\"", "public"] },
+
+    # "git2/XXX.h" => <git2.h> where XXX doesn't contain '/'
+    { "include": ["@\"git2/[^/]+\\.h\"", "private", "<git2.h>", "public"] },
+
+    # "fmt/core.h" is for compatibility reasons; otherwise, include the suggested
+    # headers if they don't break the pkg build
+    { "include": ["\"fmt/format.h\"", "private", "\"fmt/core.h\"", "public"] },
+    { "include": ["\"fmt/base.h\"", "private", "\"fmt/core.h\"", "public"] },
+
+    { "include": ["@\"catch2/matchers/.*\"", "private", "\"catch2/matchers/catch_matchers_all.hpp\"", "public"] },
+    { "include": ["@\"catch2/generators/.*\"", "private", "\"catch2/generators/catch_generators_all.hpp\"", "public"] },
+
+    # For compatibility reasons map all openssl headers to sha.h
+    { "include": ["@\"openssl/.*\"", "private", "\"openssl/sha.h\"", "public"] },
+
+    # GRPC:
+    { "include": ["@\"grpcpp/.*\"", "private", "<grpcpp/grpcpp.h>", "public"] },
+    { "include": ["@<grpcpp/.*>", "private", "<grpcpp/grpcpp.h>", "public"] },
+    { "symbol": [ "grpc::Status", "private", "<grpcpp/support/status.h>", "public"] },
+    { "symbol": [ "grpc::Status", "private", "<grpcpp/grpcpp.h>", "public"] },
+
+    # bazel Digest should be included via our bazel_types header:
+    { "include":
+      [ "\"build/bazel/remote/execution/v2/remote_execution.pb.h\"", "private"
+      , "\"src/buildtool/common/bazel_types.hpp\"", "public" ] },
+    # bazel_re namespace alias should also come from the bazel_types header:
+    { "symbol": ["bazel_re", "private", "\"src/buildtool/common/bazel_types.hpp\"", "public"] },
+]
