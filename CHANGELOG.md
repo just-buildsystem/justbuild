@@ -42,6 +42,18 @@ A feature release on top of `1.5.0`, backwards compatible.
   distinguished as requested by the remote-execution protocol.
 - Various improvements of the documentation.
 
+### Note for package maintainers
+
+Any patching that used to patch `etc/repos.json` should now patch
+`etc/repos.in.json`. Background: to allow linting with well-defined
+dependencies, for the newly-added `"lint"` repository additional
+dependencies are pulled in via `just-lock` to bootstrap the correct
+versions of those tools; the local, manually-edited repository
+configuration `etc/repos.in.json` still contains everything needed
+for building and testing. So, to avoid accidentally trying to fetch
+more than is absolutely needed, `bin/bootstrap.py` was changed to
+use the original, manually-maintained `etc/repos.in.json`.
+
 ## Release `1.5.0` (2025-03-06)
 
 A feature release on top of `1.4.0`, backwards compatible.

@@ -102,7 +102,7 @@ to an appropriate location in `PATH`.
 
 The main task is to ensure all the dependencies are available at
 sufficiently compatible versions. The full list of dependencies
-can be found in `etc/repos.json`. This file also specifies, in
+can be found in `etc/repos.in.json`. This file also specifies, in
 the `"local_path"` attribute of `"pkg_bootstrap"`, the location
 relative to `LOCALBASE` (typically `/usr` or `/usr/local`) that is
 taken as root for the logical repository of that dependency. As,
