@@ -128,11 +128,21 @@ class EntityName {
                                  std::move(name),
                                  reference_type}} {}
 
-    friend auto operator==(EntityName const& a, EntityName const& b) -> bool {
-        return a.entity_name_ == b.entity_name_;
+    friend auto operator==(EntityName const& a,
+                           EntityName const& b) noexcept -> bool {
+        try {
+            return a.entity_name_ == b.entity_name_;
+        } catch (...) {
+            return false;
+        }
     }
-    friend auto operator<(EntityName const& a, EntityName const& b) -> bool {
-        return a.entity_name_ < b.entity_name_;
+    friend auto operator<(EntityName const& a,
+                          EntityName const& b) noexcept -> bool {
+        try {
+            return a.entity_name_ < b.entity_name_;
+        } catch (...) {
+            return false;
+        }
     }
     [[nodiscard]] auto IsAnonymousTarget() const -> bool {
         return std::holds_alternative<AnonymousTarget>(entity_name_);

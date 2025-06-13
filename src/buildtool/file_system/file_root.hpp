@@ -183,7 +183,11 @@ class FileRoot {
 
             friend auto operator==(Iterator const& x,
                                    Iterator const& y) noexcept -> bool {
-                return x.it_ == y.it_;
+                try {
+                    return x.it_ == y.it_;
+                } catch (...) {
+                    return false;
+                }
             }
             friend auto operator!=(Iterator const& x,
                                    Iterator const& y) noexcept -> bool {
