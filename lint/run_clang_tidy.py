@@ -19,39 +19,47 @@ import shutil
 import subprocess
 import sys
 
+from typing import List
+
 CXX_LIB_VERSION = "13.3.0"
 
-def dump_meta(src, cmd):
+
+def dump_meta(src: str, cmd: List[str]) -> None:
+    """Dump linter action metadata for further analysis."""
     OUT = os.environ.get("OUT")
-    if OUT:
+    if OUT is not None:
         with open(os.path.join(OUT, "config.json"), "w") as f:
             json.dump({"src": src, "cmd": cmd}, f)
 
 
-def run_lint(src, cmd):
+def run_lint(src: str, cmd: List[str]) -> int:
+    """Run the lint command for the specified source file."""
     dump_meta(src, cmd)
-    config = os.environ.get("CONFIG")
-    shutil.copyfile(os.path.join(config, ".clang-tidy"), ".clang-tidy")
-    extra = [ "-Wno-unused-command-line-argument"]
 
+    CONFIG = os.environ.get("CONFIG")
+    if CONFIG is None:
+        print("Failed to get CONFIG", file=sys.stderr)
+        return 1
+    shutil.copyfile(os.path.join(CONFIG, ".clang-tidy"), ".clang-tidy")
+
+    extra = ["-Wno-unused-command-line-argument"]
     # add include paths from the bundled toolchain
-    baseincludepath = os.path.join(
-        config, "toolchain", "include", "c++", CXX_LIB_VERSION
-    )
+    baseincludepath = os.path.join(CONFIG, "toolchain", "include", "c++",
+                                   CXX_LIB_VERSION)
     # We're using the native toolchain, so arch-specific headers are
     # only available for one arch. Hence we can try all supported candidates
     # and add the ones found
     for arch in ["x86_64", "arm"]:
-        idir = os.path.join(baseincludepath,
-                            "%s-pc-linux-gnu" % (arch,))
+        idir = os.path.join(baseincludepath, "%s-pc-linux-gnu" % (arch, ))
         if os.path.exists(idir):
             extra += ["-isystem", idir]
     extra += [
-        "-isystem", baseincludepath,
+        "-isystem",
+        baseincludepath,
     ]
-
     if src.endswith(".tpp"):
         extra += ["-x", "c++"]
+
     db = [{
         "directory": os.getcwd(),
         "arguments": cmd[:1] + extra + cmd[1:],
@@ -59,8 +67,9 @@ def run_lint(src, cmd):
     }]
     with open("compile_commands.json", "w") as f:
         json.dump(db, f)
+
     new_cmd = [
-        os.path.join(config, "toolchain", "bin", "clang-tidy"),
+        os.path.join(CONFIG, "toolchain", "bin", "clang-tidy"),
         src,
     ]
     print("Running cmd %r with db %r" % (new_cmd, db), file=sys.stderr)

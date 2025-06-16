@@ -17,7 +17,9 @@ import json
 import os
 import sys
 
-FAILED = {}
+from typing import Any, Dict
+
+FAILED: Dict[str, Any] = {}
 
 for lint in sorted(os.listdir()):
     if os.path.isdir(lint):
@@ -34,7 +36,12 @@ for lint in sorted(os.listdir()):
             record["log"] = log
             FAILED[lint] = record
 
-with open(os.path.join(os.environ.get("OUT"), "failures.json"), "w") as f:
+OUT = os.environ.get("OUT")
+if OUT is None:
+    print("Failed to get OUT")
+    sys.exit(1)
+
+with open(os.path.join(OUT, "failures.json"), "w") as f:
     json.dump(FAILED, f)
 
 failures = list(FAILED.keys())

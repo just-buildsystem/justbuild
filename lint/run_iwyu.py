@@ -19,19 +19,29 @@ import shutil
 import subprocess
 import sys
 
+from typing import List
+
 CXX_LIB_VERSION = "13.3.0"
 
-def dump_meta(src, cmd):
+
+def dump_meta(src: str, cmd: List[str]) -> None:
+    """Dump linter action metadata for further analysis."""
     OUT = os.environ.get("OUT")
     if OUT:
         with open(os.path.join(OUT, "config.json"), "w") as f:
             json.dump({"src": src, "cmd": cmd}, f)
 
 
-def run_lint(src, cmd):
+def run_lint(src: str, cmd: List[str]) -> int:
+    """Run the lint command for the specified source file."""
     dump_meta(src, cmd)
-    config = os.environ.get("CONFIG")
-    shutil.copyfile(os.path.join(config, "iwyu-mapping"), "iwyu-mapping.imp")
+
+    CONFIG = os.environ.get("CONFIG")
+    if CONFIG is None:
+        print("Failed to get CONFIG", file=sys.stderr)
+        return 1
+
+    shutil.copyfile(os.path.join(CONFIG, "iwyu-mapping"), "iwyu-mapping.imp")
 
     # Currently, .tpp files cannot be processed to produce meaningful suggestions
     # Their corresponding .hpp files are analyzed separately, so just skip
@@ -67,7 +77,7 @@ def run_lint(src, cmd):
             os.path.realpath(fake_stem) + ".o"
         ] + cmd[e_index + 2:]
 
-    iwyu_flags = [
+    iwyu_flags: List[str] = [
         "--cxx17ns",  # suggest the more concise syntax introduced in C++17
         "--no_fwd_decls",  # do not use forward declarations
         "--no_default_mappings",  # do not add iwyu's default mappings
@@ -77,25 +87,24 @@ def run_lint(src, cmd):
         "--max_line_length=1000"  # don't limit explanation messages
     ]
 
-    iwyu_options = []
+    iwyu_options: List[str] = []
     for option in iwyu_flags:
         iwyu_options.append("-Xiwyu")
         iwyu_options.append(option)
 
     # add include paths from the bundled toolchain
-    baseincludepath = os.path.join(
-        config, "toolchain", "include", "c++", CXX_LIB_VERSION
-    )
+    baseincludepath = os.path.join(CONFIG, "toolchain", "include", "c++",
+                                   CXX_LIB_VERSION)
     # We're using the native toolchain, so arch-specific headers are
     # only available for one arch. Hence we can try all supported candidates
     # and add the ones found
     for arch in ["x86_64", "arm"]:
-        idir = os.path.join(baseincludepath,
-                            "%s-pc-linux-gnu" % (arch,))
+        idir = os.path.join(baseincludepath, "%s-pc-linux-gnu" % (arch, ))
         if os.path.exists(idir):
             iwyu_options += ["-isystem", idir]
     iwyu_options += [
-        "-isystem", baseincludepath,
+        "-isystem",
+        baseincludepath,
     ]
 
     iwyu_options.extend(cmd[1:])
@@ -105,7 +114,7 @@ def run_lint(src, cmd):
     # So we "ask" IWYU here to include all non-system dependencies with quotes
     iwyu_options = ["-I" if x == "-isystem" else x for x in iwyu_options]
 
-    new_cmd = [os.path.join(config, "toolchain", "bin", "include-what-you-use")]
+    new_cmd = [os.path.join(CONFIG, "toolchain", "bin", "include-what-you-use")]
     new_cmd.extend(iwyu_options)
     new_cmd.append(src)
 

@@ -19,19 +19,28 @@ import shutil
 import subprocess
 import sys
 
+from typing import List
 
-def dump_meta(src, cmd):
+
+def dump_meta(src: str, cmd: List[str]) -> None:
+    """Dump linter action metadata for further analysis."""
     OUT = os.environ.get("OUT")
     if OUT:
         with open(os.path.join(OUT, "config.json"), "w") as f:
             json.dump({"src": src, "cmd": cmd}, f)
 
 
-def run_lint(src, cmd):
+def run_lint(src: str, cmd: List[str]) -> int:
+    """Run the lint command for the specified source file."""
     dump_meta(src, cmd)
-    config = os.environ.get("CONFIG")
-    out = os.environ.get("OUT")
-    shutil.copyfile(os.path.join(config, ".clang-format"), ".clang-format")
+
+    CONFIG = os.environ.get("CONFIG")
+    if CONFIG is None:
+        print("Failed to get CONFIG", file=sys.stderr)
+        return 1
+
+    shutil.copyfile(os.path.join(CONFIG, ".clang-format"), ".clang-format")
+
     extra = []
     if src.endswith(".tpp"):
         extra = ["-x", "c++"]
@@ -42,13 +51,20 @@ def run_lint(src, cmd):
     }]
     with open("compile_commands.json", "w") as f:
         json.dump(db, f)
+
     new_cmd = [
-        os.path.join(config, "toolchain", "bin", "clang-format"),
+        os.path.join(CONFIG, "toolchain", "bin", "clang-format"),
         "-style=file",
         src,
     ]
-    formatted = os.path.join(out, "formatted")
+
+    OUT = os.environ.get("OUT")
+    if OUT is None:
+        print("Failed to get OUT", file=sys.stderr)
+        sys.exit(1)
+    formatted = os.path.join(OUT, "formatted")
     with open(formatted, "w") as f:
+        print("Running cmd %r with db %r" % (new_cmd, db), file=sys.stderr)
         res = subprocess.run(new_cmd, stdout=f).returncode
         if res != 0:
             return res
