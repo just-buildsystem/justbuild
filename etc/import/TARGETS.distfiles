@@ -1,6 +1,4 @@
-{ "distdir":
-  { "type": "install"
-  , "tainted": ["test"]
-  , "dirs": [[["TREE", null, "."], "distdir"]]
-  }
+{ "distdir": {"type": "export", "target": "distdir (unexported)"}
+, "distdir (unexported)":
+  {"type": "install", "dirs": [[["TREE", null, "."], "distdir"]]}
 }
