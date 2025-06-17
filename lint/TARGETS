@@ -1,6 +1,12 @@
 { "":
   { "type": "install"
   , "tainted": ["lint", "test"]
+  , "deps": ["LINT"]
+  , "files": {"REPORT": "lint-report", "format.diff": "format.diff"}
+  }
+, "LINT":
+  { "type": "install"
+  , "tainted": ["lint", "test"]
   , "dirs":
     [ ["LINT: clang-tidy", "clang-tidy"]
     , ["LINT: clang-format", "clang-format"]
@@ -91,5 +97,12 @@
     , ["@", "src", "src/other_tools/just_mr", "just-mr"]
     , ["@", "tests", "", "ALL"]
     ]
+  }
+, "lint-report":
+  { "type": "generic"
+  , "tainted": ["lint", "test"]
+  , "cmds": ["./combined-report.py"]
+  , "outs": ["report"]
+  , "deps": ["LINT", "combined-report.py"]
   }
 }
