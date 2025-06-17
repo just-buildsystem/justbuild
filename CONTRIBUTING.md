@@ -15,8 +15,9 @@ pass; the global test suite is `["@", "just tests", "", "ALL"]`.
 Code is formatted with `clang-format` and linted with `clang-tidy`;
 the corresponding configuration files can be found in the top-level
 directory of this repository. The top-level lint target is
-`["@", "lint", "", ""]`; formatting issues can be fixed by building
-and applying the patch `["@", "lint", "", "format.diff"]`.
+`["@", "lint", "", ""]`. Formatting issues can be fixed by building
+and applying the patch `["@", "lint", "", "format.diff"]`; the script
+`bin/format-code.sh` does precisely this.
 
 *NOTE:* In order for everyone to use the same version of the linting
 tools, the `"lint"` repository
@@ -25,7 +26,7 @@ the required tools; the configuration variable `"TOOLCHAIN_CONFIG"`
 is honored. As a consequence, (transitively) depending on the
 `"lint"` repository pulls in quite some sources and linting the
 first time requires a significant amount of time to build the tools
-from first principles.
+from first principles. This is also true when calling `bin/format-code.sh`.
 
 Changes should be organized as a patch series, i.e., as a sequence of
 small changes that are easy to review, but nevertheless self-contained
