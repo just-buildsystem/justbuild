@@ -1,0 +1,16 @@
+{ "ls":
+  { "type": "generic"
+  , "outs": ["json-files"]
+  , "cmds":
+    [ "find . '(' -name 'TARGETS*' -o -name RULES -o -name EXPRESSIONS ')' -type f > json-files"
+    ]
+  , "deps": [["TREE", null, "."]]
+  }
+, "targets":
+  { "type": "generic"
+  , "outs": ["TARGETS"]
+  , "cmds": ["python3 generate-fmt.py"]
+  , "deps": ["ls", ["@", "format", "", "generate-fmt.py"]]
+  }
+, "": {"type": "export", "target": "targets"}
+}

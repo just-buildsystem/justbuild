@@ -28,6 +28,12 @@ is honored. As a consequence, (transitively) depending on the
 first time requires a significant amount of time to build the tools
 from first principles. This is also true when calling `bin/format-code.sh`.
 
+Target, rules, and expression files should be formatted using
+`bin/json-format.py`. The corresponding target is `["@", "format-json", "", ""]`
+which provides a diff to be applied in order to obtain well-formatted
+target, rules, and expression files; the script `bin/format-json.sh`
+computes and applies that diff.
+
 Changes should be organized as a patch series, i.e., as a sequence of
 small changes that are easy to review, but nevertheless self-contained
 in the sense that after each such change, the code builds and the

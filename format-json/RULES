@@ -1,0 +1,126 @@
+{ "fmt":
+  { "target_fields": ["files"]
+  , "implicit": {"formatter": [["@", "bin", "", "json-format.py"]]}
+  , "imports": {"stage": "stage_singleton_field"}
+  , "tainted": ["lint"]
+  , "expression":
+    { "type": "let*"
+    , "bindings":
+      [ ["fieldname", "formatter"]
+      , ["location", "format"]
+      , ["format", {"type": "CALL_EXPRESSION", "name": "stage"}]
+      , [ "diffs"
+        , { "type": "disjoint_map_union"
+          , "$1":
+            { "type": "foreach"
+            , "var": "dep"
+            , "range": {"type": "FIELD", "name": "files"}
+            , "body":
+              { "type": "disjoint_map_union"
+              , "$1":
+                { "type": "foreach_map"
+                , "range":
+                  { "type": "DEP_ARTIFACTS"
+                  , "dep": {"type": "var", "name": "dep"}
+                  }
+                , "body":
+                  { "type": "ACTION"
+                  , "outs":
+                    [ { "type": "join"
+                      , "$1": [{"type": "var", "name": "_"}, ".diff"]
+                      }
+                    ]
+                  , "inputs":
+                    { "type": "disjoint_map_union"
+                    , "$1":
+                      [ {"type": "var", "name": "format"}
+                      , { "type": "singleton_map"
+                        , "key":
+                          { "type": "join"
+                          , "$1": [{"type": "var", "name": "_"}, ".orig"]
+                          }
+                        , "value": {"type": "var", "name": "$_"}
+                        }
+                      ]
+                    }
+                  , "cmd":
+                    [ "sh"
+                    , "-c"
+                    , { "type": "join"
+                      , "separator": " "
+                      , "$1":
+                        [ "./format -s"
+                        , { "type": "join_cmd"
+                          , "$1":
+                            [ { "type": "join"
+                              , "$1": [{"type": "var", "name": "_"}, ".orig"]
+                              }
+                            ]
+                          }
+                        , ">"
+                        , { "type": "join_cmd"
+                          , "$1": [{"type": "var", "name": "_"}]
+                          }
+                        , "&& diff -u"
+                        , { "type": "join_cmd"
+                          , "$1":
+                            [ { "type": "join"
+                              , "$1": [{"type": "var", "name": "_"}, ".orig"]
+                              }
+                            ]
+                          }
+                        , { "type": "join_cmd"
+                          , "$1": [{"type": "var", "name": "_"}]
+                          }
+                        , ">"
+                        , { "type": "join_cmd"
+                          , "$1":
+                            [ { "type": "join"
+                              , "$1": [{"type": "var", "name": "_"}, ".diff"]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  , "may_fail": ["lint"]
+                  , "fail_message":
+                    { "type": "join"
+                    , "$1":
+                      [ "Target file "
+                      , {"type": "var", "name": "_"}
+                      , " not formatted correctly."
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      , [ "diff"
+        , { "type": "ACTION"
+          , "inputs": {"type": "var", "name": "diffs"}
+          , "outs": ["targets.diff"]
+          , "cmd":
+            [ "sh"
+            , "-c"
+            , { "type": "join"
+              , "separator": " "
+              , "$1":
+                [ "cat"
+                , { "type": "join_cmd"
+                  , "$1":
+                    {"type": "keys", "$1": {"type": "var", "name": "diffs"}}
+                  }
+                , "> targets.diff"
+                ]
+              }
+            ]
+          }
+        ]
+      ]
+    , "body": {"type": "RESULT", "artifacts": {"type": "var", "name": "diff"}}
+    }
+  }
+}

@@ -657,6 +657,66 @@
         "lzma": "lzma"
       }
     },
+    "repo": {
+      "repository": {
+        "type": "file",
+        "path": ".",
+        "pragma": {
+          "to_git": true
+        }
+      }
+    },
+    "format-json infra": {
+      "repository": {
+        "type": "file",
+        "path": "format-json",
+        "pragma": {
+          "to_git": true
+        }
+      }
+    },
+    "repo tree": {
+      "repository": {
+        "type": "tree structure",
+        "repo": "repo"
+      },
+      "target_file_name": "TARGETS.tasks",
+      "target_root": "format-json infra",
+      "bindings": {
+        "format": "format-json infra"
+      }
+    },
+    "format-json/tasks": {
+      "repository": {
+        "type": "computed",
+        "repo": "repo tree",
+        "target": [
+          "",
+          ""
+        ]
+      }
+    },
+    "format-json/bin": {
+      "repository": {
+        "type": "file",
+        "path": "bin",
+        "pragma": {
+          "to_git": true
+        }
+      },
+      "target_root": "format-json infra"
+    },
+    "format-json": {
+      "repository": {
+        "type": "file",
+        "path": "."
+      },
+      "target_root": "format-json/tasks",
+      "rule_root": "format-json infra",
+      "bindings": {
+        "bin": "format-json/bin"
+      }
+    },
     "clang-18": {
       "repository": "clang-18/toolchains",
       "target_file_name": "clang.TARGETS",
