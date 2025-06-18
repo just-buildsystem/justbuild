@@ -341,14 +341,16 @@ def prune_config(*, repos_file: str, empty_dir: str) -> None:
     with open(repos_file, "w") as f:
         json.dump(repos, f, indent=2)
 
+
 def ignore_dst(dst: str) -> Callable[[str, List[str]], List[str]]:
     def ignore_(path: str, names: List[str]) -> List[str]:
         if os.path.normpath(path) == dst:
             return names
         for n in names:
             if os.path.normpath(os.path.join(path, n)) == dst:
-                return[n]
+                return [n]
         return []
+
     return ignore_
 
 
