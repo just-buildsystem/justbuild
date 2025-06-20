@@ -759,7 +759,10 @@
         "content": "d8f1f6dac9c58f38092c84be1627547edaaa1af9",
         "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-13.3.0/gcc-13.3.0.tar.gz",
         "sha256": "3a2b10cab86e32358fdac871546d57e2700e9bdb5875ef33fff5b601265b9e32",
-        "subdir": "gcc-13.3.0"
+        "subdir": "gcc-13.3.0",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/gcc/gcc-13.3.0/gcc-13.3.0.tar.gz"
+        ]
       },
       "target_root": "clang-18/compilers",
       "target_file_name": "gcc-13-native.TARGETS",
@@ -793,7 +796,10 @@
         "content": "97ed2ad91801278cb7d89c720ee1dce6fa3e2a5d",
         "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz",
         "sha256": "a7b39bc69cbf9e25826c5a60ab26477001f7c08d85cec04bc0e29cabed6f3cc9",
-        "subdir": "gcc-14.2.0"
+        "subdir": "gcc-14.2.0",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.xz"
+        ]
       },
       "target_root": "clang-18/compilers",
       "target_file_name": "gcc-14-native.TARGETS",
@@ -812,7 +818,10 @@
         "content": "17cfb0cec609e1771ed867b2d005492329759e39",
         "fetch": "https://ftp.gnu.org/gnu/binutils/binutils-2.41.tar.xz",
         "sha256": "ae9a5789e23459e59606e6714723f2d3ffc31c03174191ef0d015bdf06007450",
-        "subdir": "binutils-2.41"
+        "subdir": "binutils-2.41",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/binutils/binutils-2.41.tar.xz"
+        ]
       },
       "target_root": "clang-18/imports",
       "target_file_name": "binutils.TARGETS",
@@ -838,7 +847,7 @@
       "repository": {
         "type": "archive",
         "content": "3a01a6bdf61b589ad70e35e1abf15758f6c2aa39",
-        "fetch": "https://git.savannah.gnu.org/gitweb/?p=config.git;a=snapshot;h=3d5db9ebe8607382d17d60faf8853c944fc5f353;sf=tgz",
+        "fetch": "https://gitweb.git.savannah.gnu.org/gitweb/?p=config.git;a=snapshot;h=3d5db9ebe8607382d17d60faf8853c944fc5f353;sf=tgz",
         "sha256": "b9974284ff6f9e285c8c57f57a9b0726f48576c61edc2e94a71815198fda0827",
         "subdir": "config-3d5db9e"
       },
@@ -887,7 +896,10 @@
         "content": "afd933ab8b5246004dc0767bcd3d51333d5ca720",
         "fetch": "https://ftp.gnu.org/gnu/mpc/mpc-1.3.1.tar.gz",
         "sha256": "ab642492f5cf882b74aa0cb730cd410a81edcdbec895183ce930e706c1c759b8",
-        "subdir": "mpc-1.3.1"
+        "subdir": "mpc-1.3.1",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/mpc/mpc-1.3.1.tar.gz"
+        ]
       },
       "target_root": "clang-18/imports",
       "target_file_name": "files.TARGETS"
@@ -937,7 +949,10 @@
         "content": "c3b7c9fa7ff0f6634dfde7ba8bf4a9afa0b3b509",
         "fetch": "https://ftp.gnu.org/gnu/gmp/gmp-4.2.4.tar.gz",
         "sha256": "09652b51e348ea459f121c01b4b7189821e06bf457fbd85382aa6f0b741b4e78",
-        "subdir": "gmp-4.2.4"
+        "subdir": "gmp-4.2.4",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/gmp/gmp-4.2.4.tar.gz"
+        ]
       },
       "target_root": "clang-18/imports",
       "target_file_name": "files.TARGETS"
@@ -970,7 +985,10 @@
         "content": "ba6992490775f21d0926ab17b51a7b8b6ed5e586",
         "fetch": "https://ftp.gnu.org/gnu/gmp/gmp-5.1.3.tar.gz",
         "sha256": "71f37fe18b7eaffd0700c0d3c5062268c3933c7100c29f944b81d2b6e9f78527",
-        "subdir": "gmp-5.1.3"
+        "subdir": "gmp-5.1.3",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/gmp/gmp-5.1.3.tar.gz"
+        ]
       },
       "target_root": "clang-18/imports",
       "target_file_name": "files.TARGETS"
@@ -1005,7 +1023,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "etc/patches"
       }
     },
@@ -1126,7 +1144,10 @@
         "content": "4819a9afa95dae6ac8d5abec15049a66e3e725a0",
         "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-4.7.4/gcc-4.7.4.tar.gz",
         "sha256": "ddbaa583c5d4e4f0928bf15d9f6b6c283349e16eedc47bde71e1b813f6f37819",
-        "subdir": "gcc-4.7.4"
+        "subdir": "gcc-4.7.4",
+        "mirrors": [
+          "https://ftp.fau.de/gnu//gcc/gcc-4.7.4/gcc-4.7.4.tar.gz"
+        ]
       },
       "target_root": "clang-18/bootstrap",
       "target_file_name": "stage-0-gcc.TARGETS",
@@ -1147,7 +1168,10 @@
         "content": "4adc00a78258ae2eb53d103ef2c1ecf291a86fbf",
         "fetch": "https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz",
         "sha256": "dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3",
-        "subdir": "make-4.4.1"
+        "subdir": "make-4.4.1",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/make/make-4.4.1.tar.gz"
+        ]
       },
       "target_root": "clang-18/bootstrap",
       "target_file_name": "stage-0-make.TARGETS",
@@ -1163,7 +1187,10 @@
         "content": "25e1bc0b9c97916a3e6c3f4c100bf170ddf06eaa",
         "fetch": "https://ftp.gnu.org/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.gz",
         "sha256": "27e879dccc639cd7b0cc08ed575c1669492579529b53c9ff27b0b96265fa867d",
-        "subdir": "gcc-10.2.0"
+        "subdir": "gcc-10.2.0",
+        "mirrors": [
+          "https://ftp.fau.de/gnu/gcc/gcc-10.2.0/gcc-10.2.0.tar.gz"
+        ]
       },
       "target_root": "clang-18/bootstrap",
       "target_file_name": "stage-1-gcc.TARGETS",
@@ -1211,7 +1238,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "src/bootstrap"
       }
     },
@@ -1220,7 +1247,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "src/compilers"
       }
     },
@@ -1229,7 +1256,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "etc/defaults"
       }
     },
@@ -1238,7 +1265,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "etc/imports"
       }
     },
@@ -1247,7 +1274,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "toolchains"
       }
     },
@@ -1256,7 +1283,7 @@
         "type": "git",
         "repository": "https://github.com/just-buildsystem/bootstrappable-toolchain",
         "branch": "master",
-        "commit": "9e4e676260aa3205a79f0e8d280fb957f65eb89d",
+        "commit": "538beb34980293352b774ead73ec483ca6a211c7",
         "subdir": "src/tools"
       }
     }
