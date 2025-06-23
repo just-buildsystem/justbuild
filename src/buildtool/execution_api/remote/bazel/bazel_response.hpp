@@ -96,7 +96,6 @@ class BazelResponse final : public IExecutionResponse {
     std::shared_ptr<BazelNetwork> const network_;
     BazelExecutionClient::ExecutionOutput output_{};
     ArtifactInfos artifacts_;
-    DirSymlinks dir_symlinks_;
     bool has_upwards_symlinks_ = false;  // only tracked in compatible mode
     bool populated_ = false;
 

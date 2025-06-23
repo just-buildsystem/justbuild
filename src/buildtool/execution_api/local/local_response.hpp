@@ -15,12 +15,14 @@
 #ifndef INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_LOCAL_LOCAL_RESPONSE_HPP
 
+#include <algorithm>
 #include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <functional>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "fmt/core.h"
@@ -48,6 +50,8 @@ class LocalResponse final : public IExecutionResponse {
     friend class LocalAction;
 
   public:
+    using DirSymlinks = std::unordered_set<std::string>;
+
     auto Status() const noexcept -> StatusCode final {
         return StatusCode::Success;  // unused
     }
@@ -111,10 +115,24 @@ class LocalResponse final : public IExecutionResponse {
             &artifacts_);  // explicit type needed for expected
     }
 
+    // Note that for newer requests (>=RBEv2.1), the local api does not report
+    // output file and directory symlinks separately. In that case, an error
+    // will be returned.
     auto DirectorySymlinks() noexcept
         -> expected<gsl::not_null<DirSymlinks const*>, std::string> {
         if (auto error_msg = Populate()) {
             return unexpected{*std::move(error_msg)};
+        }
+        bool has_links_apinew = not output_.action.output_symlinks().empty();
+        bool has_links_apiold =
+            not output_.action.output_file_symlinks().empty() or
+            not output_.action.output_directory_symlinks().empty();
+        // If the new symlinks field (RBEv2.1) is populated but none of the old
+        // symlinks fields, then the local api did not populate them.
+        if (has_links_apinew and not has_links_apiold) {
+            return unexpected{std::string{
+                "Local api does not populate the field "
+                "output_directory_symlinks for >=RBEv2.1 requests."}};
         }
         return gsl::not_null<DirSymlinks const*>(
             &dir_symlinks_);  // explicit type needed for expected
@@ -157,9 +175,9 @@ class LocalResponse final : public IExecutionResponse {
         artifacts.reserve(
             static_cast<std::size_t>(action_result.output_files_size()) +
             static_cast<std::size_t>(
-                action_result.output_file_symlinks_size()) +
-            static_cast<std::size_t>(
-                action_result.output_directory_symlinks_size()) +
+                std::max(action_result.output_symlinks_size(),
+                         action_result.output_file_symlinks_size() +
+                             action_result.output_directory_symlinks_size())) +
             static_cast<std::size_t>(action_result.output_directories_size()));
 
         DirSymlinks dir_symlinks{};
@@ -193,7 +211,30 @@ class LocalResponse final : public IExecutionResponse {
         }
 
         // collect all symlinks and store them
+        for (auto const& link : action_result.output_symlinks()) {
+            try {
+                // in compatible mode: track upwards symlinks
+                has_upwards_symlinks_ =
+                    has_upwards_symlinks_ or
+                    (not ProtocolTraits::IsNative(hash_type) and
+                     not PathIsNonUpwards(link.target()));
+                artifacts.emplace(
+                    link.path(),
+                    Artifact::ObjectInfo{
+                        .digest =
+                            ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                                storage_.GetHashFunction(), link.target()),
+                        .type = ObjectType::Symlink});
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "LocalResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    link.path(),
+                    ex.what());
+            }
+        }
         for (auto const& link : action_result.output_file_symlinks()) {
+            // DEPRECATED as of v2.1
             try {
                 // in compatible mode: track upwards symlinks
                 has_upwards_symlinks_ =
@@ -216,6 +257,7 @@ class LocalResponse final : public IExecutionResponse {
             }
         }
         for (auto const& link : action_result.output_directory_symlinks()) {
+            // DEPRECATED as of v2.1
             try {
                 // in compatible mode: track upwards symlinks
                 has_upwards_symlinks_ =

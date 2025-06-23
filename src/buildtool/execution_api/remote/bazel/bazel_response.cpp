@@ -111,10 +111,6 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
             action_result.output_directory_symlinks_size()) +
         static_cast<std::size_t>(action_result.output_directories_size()));
 
-    DirSymlinks dir_symlinks{};
-    dir_symlinks.reserve(static_cast<std::size_t>(
-        action_result.output_directory_symlinks_size()));
-
     auto const hash_type = network_->GetHashFunction().GetType();
     // collect files and store them
     for (auto const& file : action_result.output_files()) {
@@ -142,7 +138,29 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
     }
 
     // collect all symlinks and store them
+    for (auto const& link : action_result.output_symlinks()) {
+        try {
+            // in compatible mode: track upwards symlinks
+            has_upwards_symlinks_ = has_upwards_symlinks_ or
+                                    (not ProtocolTraits::IsNative(hash_type) and
+                                     not PathIsNonUpwards(link.target()));
+            artifacts.emplace(
+                link.path(),
+                Artifact::ObjectInfo{
+                    .digest =
+                        ArtifactDigestFactory::HashDataAs<ObjectType::File>(
+                            network_->GetHashFunction(), link.target()),
+                    .type = ObjectType::Symlink});
+        } catch (std::exception const& ex) {
+            return fmt::format(
+                "BazelResponse: unexpected failure gathering digest for "
+                "{}:\n{}",
+                link.path(),
+                ex.what());
+        }
+    }
     for (auto const& link : action_result.output_file_symlinks()) {
+        // DEPRECATED as of v2.1
         try {
             // in compatible mode: track upwards symlinks
             has_upwards_symlinks_ = has_upwards_symlinks_ or
@@ -164,6 +182,7 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         }
     }
     for (auto const& link : action_result.output_directory_symlinks()) {
+        // DEPRECATED as of v2.1
         try {
             // in compatible mode: track upwards symlinks
             has_upwards_symlinks_ = has_upwards_symlinks_ or
@@ -176,7 +195,6 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
                         ArtifactDigestFactory::HashDataAs<ObjectType::File>(
                             network_->GetHashFunction(), link.target()),
                     .type = ObjectType::Symlink});
-            dir_symlinks.emplace(link.path());  // add it to set
         } catch (std::exception const& ex) {
             return fmt::format(
                 "BazelResponse: unexpected failure gathering digest for "
@@ -211,7 +229,6 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
             }
         }
         artifacts_ = std::move(artifacts);
-        dir_symlinks_ = std::move(dir_symlinks);
         populated_ = true;
         return std::nullopt;
     }
@@ -273,7 +290,6 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         ++pos;
     }
     artifacts_ = std::move(artifacts);
-    dir_symlinks_ = std::move(dir_symlinks);
     populated_ = true;
     return std::nullopt;
 }

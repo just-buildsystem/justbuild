@@ -20,7 +20,6 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact.hpp"
@@ -35,7 +34,6 @@ class IExecutionResponse {
     using Ptr = std::unique_ptr<IExecutionResponse>;
     using ArtifactInfos = std::unordered_map<std::string, Artifact::ObjectInfo>;
     // set of paths found in output_directory_symlinks list of the action result
-    using DirSymlinks = std::unordered_set<std::string>;
 
     enum class StatusCode : std::uint8_t { Failed, Success };
 
