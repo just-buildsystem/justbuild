@@ -134,11 +134,6 @@ class TestResponse : public IExecutionResponse {
         }
         return gsl::not_null<ArtifactInfos const*>(&artifacts_);
     }
-    [[nodiscard]] auto DirectorySymlinks() noexcept
-        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final {
-        static const DirSymlinks kEmptySymlinks{};
-        return gsl::not_null<DirSymlinks const*>(&kEmptySymlinks);
-    }
     [[nodiscard]] auto HasUpwardsSymlinks() noexcept
         -> expected<bool, std::string> final {
         return false;

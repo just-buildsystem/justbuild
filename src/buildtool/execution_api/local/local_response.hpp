@@ -112,7 +112,7 @@ class LocalResponse final : public IExecutionResponse {
     }
 
     auto DirectorySymlinks() noexcept
-        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final {
+        -> expected<gsl::not_null<DirSymlinks const*>, std::string> {
         if (auto error_msg = Populate()) {
             return unexpected{*std::move(error_msg)};
         }

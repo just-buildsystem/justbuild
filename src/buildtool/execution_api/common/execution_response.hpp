@@ -75,8 +75,6 @@ class IExecutionResponse {
 
     [[nodiscard]] virtual auto Artifacts() noexcept
         -> expected<gsl::not_null<ArtifactInfos const*>, std::string> = 0;
-    [[nodiscard]] virtual auto DirectorySymlinks() noexcept
-        -> expected<gsl::not_null<DirSymlinks const*>, std::string> = 0;
     [[nodiscard]] virtual auto HasUpwardsSymlinks() noexcept
         -> expected<bool, std::string> = 0;
 };

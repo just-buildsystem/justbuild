@@ -88,15 +88,6 @@ auto BazelResponse::Artifacts() noexcept
         &artifacts_);  // explicit type needed for expected
 }
 
-auto BazelResponse::DirectorySymlinks() noexcept
-    -> expected<gsl::not_null<DirSymlinks const*>, std::string> {
-    if (auto error_msg = Populate()) {
-        return unexpected{*std::move(error_msg)};
-    }
-    return gsl::not_null<DirSymlinks const*>(
-        &dir_symlinks_);  // explicit type needed for expected
-}
-
 auto BazelResponse::HasUpwardsSymlinks() noexcept
     -> expected<bool, std::string> {
     if (auto error_msg = Populate()) {

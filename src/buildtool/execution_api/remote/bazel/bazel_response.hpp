@@ -89,8 +89,6 @@ class BazelResponse final : public IExecutionResponse {
 
     auto Artifacts() noexcept
         -> expected<gsl::not_null<ArtifactInfos const*>, std::string> final;
-    auto DirectorySymlinks() noexcept
-        -> expected<gsl::not_null<DirSymlinks const*>, std::string> final;
     auto HasUpwardsSymlinks() noexcept -> expected<bool, std::string> final;
 
   private:

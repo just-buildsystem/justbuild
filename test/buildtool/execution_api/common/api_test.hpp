@@ -42,6 +42,7 @@
 #include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
+#include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/execution_engine/dag/dag.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
@@ -763,9 +764,12 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
         CHECK(IsTreeObject(artifacts.value()->at("baz").type));
 
         // check if bar was correctly detected as directory symlink
-        auto dir_symlinks = response->DirectorySymlinks();
-        REQUIRE(dir_symlinks);
-        CHECK((*dir_symlinks)->contains("bar"));
+        auto* local_response = dynamic_cast<LocalResponse*>(response.get());
+        if (local_response != nullptr) {
+            auto dir_symlinks = local_response->DirectorySymlinks();
+            REQUIRE(dir_symlinks);
+            CHECK((*dir_symlinks)->contains("bar"));
+        }
 
         SECTION("consuming dangling symlinks") {
             auto dangling_symlinks_tree = artifacts.value()->at("baz");
@@ -826,9 +830,12 @@ TestRetrieveFileAndSymlinkWithSameContentToPath(ApiFactory const& api_factory,
         CHECK(IsTreeObject(artifacts.value()->at("baz").type));
 
         // check if bar was correctly detected as directory symlink
-        auto dir_symlinks = response->DirectorySymlinks();
-        REQUIRE(dir_symlinks);
-        CHECK((*dir_symlinks)->contains("bar"));
+        auto* local_response = dynamic_cast<LocalResponse*>(response.get());
+        if (local_response != nullptr) {
+            auto dir_symlinks = local_response->DirectorySymlinks();
+            REQUIRE(dir_symlinks);
+            CHECK((*dir_symlinks)->contains("bar"));
+        }
 
         SECTION("consuming upwards symlinks") {
             auto upwards_symlinks_tree = artifacts.value()->at("baz");
