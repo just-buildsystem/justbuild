@@ -42,8 +42,9 @@ with the first entry being specifying the naming scheme; the semantics
 of the remaining entries depends on the scheme (see "Root Naming
 Schemes" below).
 
-Additionally, the key `"main"` (with default `""`) specifies the main
-repository. The target to be built (as specified on the command line) is
+Additionally, the optional key `"main"` specifies the main
+repository (if omitted, the repository with the lexicographically-first name
+is used). The target to be built (as specified on the command line) is
 taken from this repository. Also, the command-line arguments `-w`,
 `--target_root`, etc, apply to this repository. If no option `-w` is
 given and `"workspace_root"` is not specified in the
