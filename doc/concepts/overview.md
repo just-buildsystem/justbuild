@@ -21,7 +21,7 @@ actual library file and its public headers) as well as information on
 how to use the target (linking arguments, transitive header files, etc).
 For a consumer of a target, the definition of this collection of files
 as well as the additionally provided information is what defines the
-target as a dependency, respectively of where the target is coming from
+target as a dependency, irrespectively of where the target is coming from
 (i.e., targets coinciding here are indistinguishable for other targets).
 
 Of course, to actually build a single target from its dependencies, many
@@ -78,8 +78,8 @@ Repository data
 
 A repository uses a (logical) directory for several purposes: to obtain
 source files, to read definitions of targets, to read rules, and to read
-expressions that can be used by rules. While all those directories can
-(and often are) be the same, this does not have to be the case. For each
+expressions that can be used by rules. While all those directories can be
+(and often are) the same, this does not have to be the case. For each
 of those purposes, a different logical directory (also called "root")
 can be used. In this way, one can, e.g., add target definitions to a
 source tree originally written for a different build tool without

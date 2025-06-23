@@ -310,7 +310,7 @@ $ touch src/baz/baz.cpp
 $ echo 'bar' > src/baz/deps
 ```
 
-As this affects the target structure with commit those changes.
+As this affects the target structure, we commit those changes.
 
 ```shell
 $ git add . && git commit -m 'New library baz'
