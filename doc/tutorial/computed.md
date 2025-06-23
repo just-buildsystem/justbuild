@@ -342,3 +342,10 @@ Obviously, the tree structure has changed, so `"src target tasks
 decription"` target gets rebuild. Also, the `"src target build"`
 target gets rebuild, but if we inspect the log, we see that 2 out
 of 3 actions are taken from cache.
+
+A similar construction is also used in the `justbuild` main `git`
+repository for describing the task of formatting all JSON files: the
+target root of the logical repository `"format-json"` is computed,
+based on the underlying tree structure. Again, the workspace root
+for `"format-json"` is the plain file root, so that uncommitted
+changes (to committed files) are taken into account.
