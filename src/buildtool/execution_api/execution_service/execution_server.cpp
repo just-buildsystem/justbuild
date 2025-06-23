@@ -37,8 +37,10 @@
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_response.hpp"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/execution_api/local/local_cas_reader.hpp"
+#include "src/buildtool/execution_api/local/local_response.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -65,8 +67,8 @@ void UpdateTimeStamp(
 }
 
 [[nodiscard]] auto ToBazelActionResult(
-    IExecutionResponse::ArtifactInfos const& artifacts,
-    IExecutionResponse::DirSymlinks const& dir_symlinks,
+    LocalResponse::ArtifactInfos const& artifacts,
+    LocalResponse::DirSymlinks const& dir_symlinks,
     Storage const& storage) noexcept
     -> expected<bazel_re::ActionResult, std::string>;
 
@@ -116,13 +118,13 @@ auto ExecutionServiceImpl::ToIExecutionAction(
 }
 
 auto ExecutionServiceImpl::ToBazelExecuteResponse(
-    IExecutionResponse::Ptr const& i_execution_response) const noexcept
+    gsl::not_null<LocalResponse*> const& local_response) const noexcept
     -> expected<::bazel_re::ExecuteResponse, std::string> {
-    auto artifacts = i_execution_response->Artifacts();
+    auto artifacts = local_response->Artifacts();
     if (not artifacts) {
         return unexpected{std::move(artifacts).error()};
     }
-    auto dir_symlinks = i_execution_response->DirectorySymlinks();
+    auto dir_symlinks = local_response->DirectorySymlinks();
     if (not dir_symlinks) {
         return unexpected{std::move(dir_symlinks).error()};
     }
@@ -135,28 +137,26 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
 
     auto action_result = *std::move(result);
 
-    action_result.set_exit_code(i_execution_response->ExitCode());
-    if (i_execution_response->HasStdErr()) {
+    action_result.set_exit_code(local_response->ExitCode());
+    if (local_response->HasStdErr()) {
         auto const cas_digest =
-            storage_.CAS().StoreBlob(i_execution_response->StdErr(),
+            storage_.CAS().StoreBlob(local_response->StdErr(),
                                      /*is_executable=*/false);
         if (not cas_digest) {
-            return unexpected{
-                fmt::format("Could not store stderr of action {}",
-                            i_execution_response->ActionDigest())};
+            return unexpected{fmt::format("Could not store stderr of action {}",
+                                          local_response->ActionDigest())};
         }
         (*action_result.mutable_stderr_digest()) =
             ArtifactDigestFactory::ToBazel(*cas_digest);
     }
 
-    if (i_execution_response->HasStdOut()) {
+    if (local_response->HasStdOut()) {
         auto const cas_digest =
-            storage_.CAS().StoreBlob(i_execution_response->StdOut(),
+            storage_.CAS().StoreBlob(local_response->StdOut(),
                                      /*is_executable=*/false);
         if (not cas_digest) {
-            return unexpected{
-                fmt::format("Could not store stdout of action {}",
-                            i_execution_response->ActionDigest())};
+            return unexpected{fmt::format("Could not store stdout of action {}",
+                                          local_response->ActionDigest())};
         }
         (*action_result.mutable_stdout_digest()) =
             ArtifactDigestFactory::ToBazel(*cas_digest);
@@ -164,7 +164,7 @@ auto ExecutionServiceImpl::ToBazelExecuteResponse(
 
     ::bazel_re::ExecuteResponse bazel_response{};
     (*bazel_response.mutable_result()) = std::move(action_result);
-    bazel_response.set_cached_result(i_execution_response->IsCached());
+    bazel_response.set_cached_result(local_response->IsCached());
 
     // we run the action locally, so no communication issues should happen
     bazel_response.mutable_status()->set_code(grpc::StatusCode::OK);
@@ -241,14 +241,19 @@ auto ExecutionServiceImpl::Execute(
         action_digest->hash(),
         std::chrono::duration_cast<std::chrono::seconds>(t1 - t0).count());
 
-    if (i_execution_response == nullptr) {
-        auto const str =
-            fmt::format("Failed to execute action {}", action_digest->hash());
-        logger_.Emit(LogLevel::Error, "{}", str);
-        return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
+    auto* local_response =
+        dynamic_cast<LocalResponse*>(i_execution_response.get());
+    if (local_response == nullptr) {
+        auto error_msg =
+            (i_execution_response == nullptr)
+                ? fmt::format("Failed to execute action {}",
+                              action_digest->hash())
+                : std::string{"Local action did not produce a local response"};
+        logger_.Emit(LogLevel::Error, "{}", error_msg);
+        return ::grpc::Status{grpc::StatusCode::INTERNAL, error_msg};
     }
 
-    auto execute_response = ToBazelExecuteResponse(i_execution_response);
+    auto execute_response = ToBazelExecuteResponse(local_response);
     if (not execute_response) {
         logger_.Emit(LogLevel::Error, "{}", execute_response.error());
         return ::grpc::Status{grpc::StatusCode::INTERNAL,
@@ -381,8 +386,8 @@ namespace {
 }
 
 [[nodiscard]] auto ToBazelActionResult(
-    IExecutionResponse::ArtifactInfos const& artifacts,
-    IExecutionResponse::DirSymlinks const& dir_symlinks,
+    LocalResponse::ArtifactInfos const& artifacts,
+    LocalResponse::DirSymlinks const& dir_symlinks,
     Storage const& storage) noexcept
     -> expected<bazel_re::ActionResult, std::string> {
     bazel_re::ActionResult result{};

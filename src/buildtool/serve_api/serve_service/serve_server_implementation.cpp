@@ -184,7 +184,9 @@ auto ServeServerImpl::Run(
     // the user has not given any remote-execution endpoint
     // so we start a "just-execute instance" on the same process
     [[maybe_unused]] ExecutionServiceImpl es{
-        local_context, &*apis.local, op_exponent};
+        local_context,
+        dynamic_cast<LocalApi const*>(&*apis.local),
+        op_exponent};
     [[maybe_unused]] ActionCacheServiceImpl ac{local_context};
     [[maybe_unused]] CASServiceImpl cas{local_context};
     [[maybe_unused]] BytestreamServiceImpl b{local_context};

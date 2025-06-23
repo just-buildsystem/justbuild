@@ -51,6 +51,7 @@
 #include "src/buildtool/common/repository_config.hpp"
 #include "src/buildtool/common/statistics.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/execution_api.hpp"
 #include "src/buildtool/file_system/file_root.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/logging/log_config.hpp"
@@ -86,6 +87,7 @@
 #include "src/buildtool/execution_api/execution_service/server_implementation.hpp"
 #include "src/buildtool/execution_api/local/config.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/execution_api/remote/config.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 #include "src/buildtool/execution_engine/executor/context.hpp"
@@ -827,10 +829,11 @@ auto main(int argc, char* argv[]) -> int {
                                       &remote_context,
                                       /*repo_config=*/nullptr);
 
-                return execution_server->Run(&local_context,
-                                             &remote_context,
-                                             exec_apis,
-                                             arguments.service.op_exponent)
+                return execution_server->Run(
+                           &local_context,
+                           &remote_context,
+                           dynamic_cast<LocalApi const*>(&*exec_apis.local),
+                           arguments.service.op_exponent)
                            ? kExitSuccess
                            : kExitFailure;
             }

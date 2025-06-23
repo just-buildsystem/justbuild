@@ -42,11 +42,13 @@
     , ["src/buildtool/computed_roots", "evaluate"]
     , ["src/buildtool/crypto", "hash_function"]
     , ["src/buildtool/execution_api/common", "api_bundle"]
+    , ["src/buildtool/execution_api/common", "common"]
     , [ "src/buildtool/execution_api/execution_service"
       , "server_implementation"
       ]
     , ["src/buildtool/execution_api/local", "config"]
     , ["src/buildtool/execution_api/local", "context"]
+    , ["src/buildtool/execution_api/local", "local_api"]
     , ["src/buildtool/execution_api/remote", "config"]
     , ["src/buildtool/execution_api/remote", "context"]
     , ["src/buildtool/execution_engine/executor", "context"]

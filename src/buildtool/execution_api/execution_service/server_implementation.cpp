@@ -39,6 +39,7 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 #include "src/buildtool/execution_api/execution_service/execution_server.hpp"
 #include "src/buildtool/execution_api/execution_service/operations_server.hpp"
+#include "src/buildtool/execution_api/local/local_api.hpp"
 #include "src/buildtool/file_system/atomic.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -75,11 +76,11 @@ auto ServerImpl::Create(std::optional<std::string> interface,
 
 auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
                      gsl::not_null<RemoteContext const*> const& remote_context,
-                     ApiBundle const& apis,
+                     gsl::not_null<LocalApi const*> const& local_api,
                      std::optional<std::uint8_t> op_exponent) -> bool {
     auto const hash_type =
         local_context->storage_config->hash_function.GetType();
-    ExecutionServiceImpl es{local_context, &*apis.local, op_exponent};
+    ExecutionServiceImpl es{local_context, local_api, op_exponent};
     ActionCacheServiceImpl ac{local_context};
     CASServiceImpl cas{local_context};
     BytestreamServiceImpl b{local_context};
