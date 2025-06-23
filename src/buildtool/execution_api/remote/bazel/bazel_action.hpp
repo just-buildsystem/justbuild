@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_REMOTE_BAZEL_BAZEL_ACTION_HPP
 
 #include <chrono>
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
@@ -36,6 +37,11 @@
 class BazelAction final : public IExecutionAction {
     friend class BazelApi;
 
+    enum class RequestMode : std::uint8_t {
+        kV2_0,       // RBEv2.0
+        kBestEffort  // RBEv2.0 and >=RBEv2.1, let the server pick
+    };
+
   public:
     auto Execute(Logger const* logger) noexcept
         -> IExecutionResponse::Ptr final;
@@ -51,20 +57,22 @@ class BazelAction final : public IExecutionAction {
     std::string const cwd_;
     std::vector<std::string> output_files_;
     std::vector<std::string> output_dirs_;
+    std::vector<std::string> output_paths_;
     std::vector<bazel_re::Command_EnvironmentVariable> const env_vars_;
     std::vector<bazel_re::Platform_Property> const properties_;
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
     std::chrono::milliseconds timeout_{kDefaultTimeout};
+    RequestMode mode_{};
 
-    explicit BazelAction(
-        std::shared_ptr<BazelNetwork> network,
-        ArtifactDigest root_digest,
-        std::vector<std::string> command,
-        std::string cwd,
-        std::vector<std::string> output_files,
-        std::vector<std::string> output_dirs,
-        std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) noexcept;
+    explicit BazelAction(std::shared_ptr<BazelNetwork> network,
+                         ArtifactDigest root_digest,
+                         std::vector<std::string> command,
+                         std::string cwd,
+                         std::vector<std::string> output_files,
+                         std::vector<std::string> output_dirs,
+                         std::map<std::string, std::string> const& env_vars,
+                         std::map<std::string, std::string> const& properties,
+                         bool best_effort) noexcept;
 
     [[nodiscard]] auto CreateBundlesForAction(
         std::unordered_set<ArtifactBlob>* blobs,

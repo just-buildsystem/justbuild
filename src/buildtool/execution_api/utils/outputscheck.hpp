@@ -62,6 +62,34 @@
     }
 }
 
+// overload for treating file and directory paths alike
+[[nodiscard]] static inline auto ActionResultContainsExpectedOutputs(
+    const bazel_re::ActionResult& result,
+    const std::vector<std::string>& expected_paths) noexcept -> bool {
+    try {
+        std::set<std::string> actual_output_paths{};
+        for (auto const& file : result.output_files()) {
+            actual_output_paths.emplace(file.path());
+        }
+        for (auto const& file : result.output_file_symlinks()) {
+            actual_output_paths.emplace(file.path());
+        }
+        for (auto const& file : result.output_directory_symlinks()) {
+            actual_output_paths.emplace(file.path());
+        }
+        for (auto const& dir : result.output_directories()) {
+            actual_output_paths.emplace(dir.path());
+        }
+        return std::all_of(expected_paths.begin(),
+                           expected_paths.end(),
+                           [&actual_output_paths](auto const& expected) {
+                               return actual_output_paths.contains(expected);
+                           });
+    } catch (...) {
+        return false;
+    }
+}
+
 #endif
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_UTILS_OUTPUTSCHECK_HPP

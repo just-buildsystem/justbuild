@@ -189,12 +189,21 @@ struct DirectoryNodeBundle final {
     std::copy(request.command_line->begin(),
               request.command_line->end(),
               pb::back_inserter(msg.mutable_arguments()));
+
+    // DEPRECATED as of v2.1: use output_paths instead, combining
+    // output_files and output_dirs.
     std::copy(request.output_files->begin(),
               request.output_files->end(),
               pb::back_inserter(msg.mutable_output_files()));
     std::copy(request.output_dirs->begin(),
               request.output_dirs->end(),
               pb::back_inserter(msg.mutable_output_directories()));
+
+    // NEW in v2.2
+    std::copy(request.output_paths->begin(),
+              request.output_paths->end(),
+              pb::back_inserter(msg.mutable_output_paths()));
+
     std::copy(request.env_vars->begin(),
               request.env_vars->end(),
               pb::back_inserter(msg.mutable_environment_variables()));

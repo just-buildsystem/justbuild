@@ -219,6 +219,9 @@ struct BazelMsgFactory::ActionDigestRequest final {
     /// \brief The paths of output directories.
     VectorPtr<std::string> const output_dirs;
 
+    /// \brief Generic output paths (indicates protocol >=v2.1 should be used).
+    VectorPtr<std::string> const output_paths;
+
     /// \brief The environment variables set.
     VectorPtr<bazel_re::Command_EnvironmentVariable> const env_vars;
 

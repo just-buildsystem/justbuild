@@ -27,15 +27,15 @@
 #include "src/buildtool/execution_api/utils/outputscheck.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 
-BazelAction::BazelAction(
-    std::shared_ptr<BazelNetwork> network,
-    ArtifactDigest root_digest,
-    std::vector<std::string> command,
-    std::string cwd,
-    std::vector<std::string> output_files,
-    std::vector<std::string> output_dirs,
-    std::map<std::string, std::string> const& env_vars,
-    std::map<std::string, std::string> const& properties) noexcept
+BazelAction::BazelAction(std::shared_ptr<BazelNetwork> network,
+                         ArtifactDigest root_digest,
+                         std::vector<std::string> command,
+                         std::string cwd,
+                         std::vector<std::string> output_files,
+                         std::vector<std::string> output_dirs,
+                         std::map<std::string, std::string> const& env_vars,
+                         std::map<std::string, std::string> const& properties,
+                         bool best_effort) noexcept
     : network_{std::move(network)},
       root_digest_{std::move(root_digest)},
       cmdline_{std::move(command)},
@@ -45,9 +45,18 @@ BazelAction::BazelAction(
       env_vars_{BazelMsgFactory::CreateMessageVectorFromMap<
           bazel_re::Command_EnvironmentVariable>(env_vars)},
       properties_{BazelMsgFactory::CreateMessageVectorFromMap<
-          bazel_re::Platform_Property>(properties)} {
+          bazel_re::Platform_Property>(properties)},
+      mode_{best_effort ? RequestMode::kBestEffort : RequestMode::kV2_0} {
     std::sort(output_files_.begin(), output_files_.end());
     std::sort(output_dirs_.begin(), output_dirs_.end());
+    if (best_effort) {
+        output_paths_.reserve(output_files_.size() + output_dirs_.size());
+        output_paths_.insert(
+            output_paths_.end(), output_files_.begin(), output_files_.end());
+        output_paths_.insert(
+            output_paths_.end(), output_dirs_.begin(), output_dirs_.end());
+        std::sort(output_paths_.begin(), output_paths_.end());
+    }
 }
 
 auto BazelAction::Execute(Logger const* logger) noexcept
@@ -90,13 +99,15 @@ auto BazelAction::Execute(Logger const* logger) noexcept
     };
 
     if (do_cache) {
-        if (auto result =
-                network_->GetCachedActionResult(*action, output_files_)) {
+        if (auto result = network_->GetCachedActionResult(
+                *action,
+                mode_ == RequestMode::kV2_0 ? output_files_ : output_paths_)) {
             if (result->exit_code() == 0 and
-                ActionResultContainsExpectedOutputs(
-                    *result, output_files_, output_dirs_)
-
-            ) {
+                (mode_ == RequestMode::kV2_0
+                     ? ActionResultContainsExpectedOutputs(
+                           *result, output_files_, output_dirs_)
+                     : ActionResultContainsExpectedOutputs(*result,
+                                                           output_paths_))) {
                 return create_response(
                     logger,
                     action->hash(),
@@ -154,6 +165,7 @@ auto BazelAction::CreateBundlesForAction(
         .cwd = &cwd_,
         .output_files = &output_files_,
         .output_dirs = &output_dirs_,
+        .output_paths = &output_paths_,
         .env_vars = &env_vars_,
         .properties = &properties_,
         .exec_dir = &exec_dir,

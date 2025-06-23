@@ -55,8 +55,8 @@ class MRLocalApi final : public IExecutionApi {
         std::vector<std::string> const& /*output_files*/,
         std::vector<std::string> const& /*output_dirs*/,
         std::map<std::string, std::string> const& /*env_vars*/,
-        std::map<std::string, std::string> const& /*properties*/) const noexcept
-        -> IExecutionAction::Ptr final {
+        std::map<std::string, std::string> const& /*properties*/,
+        bool /*force_legacy*/) const noexcept -> IExecutionAction::Ptr final {
         // Execution not supported
         return nullptr;
     }

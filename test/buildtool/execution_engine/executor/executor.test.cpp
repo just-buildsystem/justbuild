@@ -205,8 +205,8 @@ class TestApi : public IExecutionApi {
         std::vector<std::string> const& /*unused*/,
         std::vector<std::string> const& /*unused*/,
         std::map<std::string, std::string> const& /*unused*/,
-        std::map<std::string, std::string> const& /*unused*/) const noexcept
-        -> IExecutionAction::Ptr final {
+        std::map<std::string, std::string> const& /*unused*/,
+        bool /*unused*/) const noexcept -> IExecutionAction::Ptr final {
         return std::make_unique<TestAction>(config_);
     }
     [[nodiscard]] auto RetrieveToPaths(

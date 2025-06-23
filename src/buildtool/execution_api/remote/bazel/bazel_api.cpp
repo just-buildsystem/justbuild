@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <compare>
 #include <cstdio>
 #include <exception>
 #include <functional>
@@ -37,6 +38,7 @@
 #include "src/buildtool/execution_api/common/stream_dumper.hpp"
 #include "src/buildtool/execution_api/common/tree_reader.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_action.hpp"
+#include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_network_reader.hpp"
 #include "src/buildtool/file_system/file_system_manager.hpp"
@@ -48,6 +50,9 @@
 #include "src/utils/cpp/expected.hpp"
 
 namespace {
+
+auto constexpr kVersion2dot1 =
+    Capabilities::Version{.major = 2, .minor = 1, .patch = 0};
 
 [[nodiscard]] auto RetrieveToCas(
     std::unordered_set<Artifact::ObjectInfo> const& infos,
@@ -146,6 +151,7 @@ BazelApi::BazelApi(BazelApi&& other) noexcept = default;
 // implement destructor in cpp, where all members are complete types
 BazelApi::~BazelApi() = default;
 
+// NOLINTNEXTLINE(google-default-arguments)
 auto BazelApi::CreateAction(
     ArtifactDigest const& root_digest,
     std::vector<std::string> const& command,
@@ -153,8 +159,26 @@ auto BazelApi::CreateAction(
     std::vector<std::string> const& output_files,
     std::vector<std::string> const& output_dirs,
     std::map<std::string, std::string> const& env_vars,
-    std::map<std::string, std::string> const& properties) const noexcept
-    -> IExecutionAction::Ptr {
+    std::map<std::string, std::string> const& properties,
+    bool force_legacy) const noexcept -> IExecutionAction::Ptr {
+    if (ProtocolTraits::IsNative(GetHashType())) {
+        // fall back to legacy for native
+        force_legacy = true;
+    }
+
+    bool best_effort = not force_legacy;
+    if (not force_legacy and
+        network_->GetCapabilities()->high_api_version < kVersion2dot1) {
+        best_effort = false;
+    }
+    if (not best_effort and
+        network_->GetCapabilities()->low_api_version >= kVersion2dot1) {
+        Logger::Log(LogLevel::Warning,
+                    "Server does not support RBEv2.0, falling back to newer "
+                    "API version (best effort).");
+        best_effort = true;
+    }
+
     return std::unique_ptr<BazelAction>{new (std::nothrow)
                                             BazelAction{network_,
                                                         root_digest,
@@ -163,7 +187,8 @@ auto BazelApi::CreateAction(
                                                         output_files,
                                                         output_dirs,
                                                         env_vars,
-                                                        properties}};
+                                                        properties,
+                                                        best_effort}};
 }
 
 // NOLINTNEXTLINE(google-default-arguments)

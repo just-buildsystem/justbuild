@@ -59,6 +59,7 @@ LocalApi::LocalApi(gsl::not_null<LocalContext const*> const& local_context,
     : local_context_{*local_context},
       git_api_{CreateFallbackApi(*local_context->storage, repo_config)} {}
 
+// NOLINTNEXTLINE(google-default-arguments)
 auto LocalApi::CreateAction(
     ArtifactDigest const& root_digest,
     std::vector<std::string> const& command,
@@ -66,14 +67,37 @@ auto LocalApi::CreateAction(
     std::vector<std::string> const& output_files,
     std::vector<std::string> const& output_dirs,
     std::map<std::string, std::string> const& env_vars,
-    std::map<std::string, std::string> const& properties) const noexcept
-    -> IExecutionAction::Ptr {
+    std::map<std::string, std::string> const& properties,
+    bool force_legacy) const noexcept -> IExecutionAction::Ptr {
+    if (ProtocolTraits::IsNative(GetHashType())) {
+        // fall back to legacy for native
+        force_legacy = true;
+    }
+    bool best_effort = not force_legacy;
     return IExecutionAction::Ptr{new (std::nothrow) LocalAction{&local_context_,
                                                                 root_digest,
                                                                 command,
                                                                 cwd,
                                                                 output_files,
                                                                 output_dirs,
+                                                                env_vars,
+                                                                properties,
+                                                                best_effort}};
+}
+
+auto LocalApi::CreateAction(
+    ArtifactDigest const& root_digest,
+    std::vector<std::string> const& command,
+    std::string const& cwd,
+    std::vector<std::string> const& output_paths,
+    std::map<std::string, std::string> const& env_vars,
+    std::map<std::string, std::string> const& properties) const noexcept
+    -> IExecutionAction::Ptr {
+    return IExecutionAction::Ptr{new (std::nothrow) LocalAction{&local_context_,
+                                                                root_digest,
+                                                                command,
+                                                                cwd,
+                                                                output_paths,
                                                                 env_vars,
                                                                 properties}};
 }

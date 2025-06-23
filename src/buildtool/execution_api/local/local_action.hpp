@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <chrono>
 #include <compare>
+#include <cstdint>
 #include <filesystem>
 #include <functional>  // IWYU pragma: keep
 #include <map>
@@ -45,6 +46,12 @@
 class LocalAction final : public IExecutionAction {
     friend class LocalApi;
 
+    enum class RequestMode : std::uint8_t {
+        kV2_0,       // RBEv2.0
+        kV2_1,       // >=RBEv2.1
+        kBestEffort  // construct both, let the server pick
+    };
+
   public:
     struct Output {
         bazel_re::ActionResult action;
@@ -56,6 +63,9 @@ class LocalAction final : public IExecutionAction {
         std::variant<bazel_re::OutputFile, bazel_re::OutputSymlink>;
     using OutputDirOrSymlink =
         std::variant<bazel_re::OutputDirectory, bazel_re::OutputSymlink>;
+    using OutputPath = std::variant<bazel_re::OutputFile,
+                                    bazel_re::OutputDirectory,
+                                    bazel_re::OutputSymlink>;
 
     using FileCopies = std::unordered_map<Artifact::ObjectInfo, TmpDir::Ptr>;
 
@@ -76,20 +86,22 @@ class LocalAction final : public IExecutionAction {
     std::string const cwd_;
     std::vector<std::string> output_files_;
     std::vector<std::string> output_dirs_;
+    std::vector<std::string> output_paths_;
     std::map<std::string, std::string> const env_vars_;
     std::vector<bazel_re::Platform_Property> const properties_;
     std::chrono::milliseconds timeout_{kDefaultTimeout};
     CacheFlag cache_flag_{CacheFlag::CacheOutput};
+    RequestMode mode_{};
 
-    explicit LocalAction(
-        gsl::not_null<LocalContext const*> local_context,
-        ArtifactDigest root_digest,
-        std::vector<std::string> command,
-        std::string cwd,
-        std::vector<std::string> output_files,
-        std::vector<std::string> output_dirs,
-        std::map<std::string, std::string> env_vars,
-        std::map<std::string, std::string> const& properties) noexcept
+    explicit LocalAction(gsl::not_null<LocalContext const*> local_context,
+                         ArtifactDigest root_digest,
+                         std::vector<std::string> command,
+                         std::string cwd,
+                         std::vector<std::string> output_files,
+                         std::vector<std::string> output_dirs,
+                         std::map<std::string, std::string> env_vars,
+                         std::map<std::string, std::string> const& properties,
+                         bool best_effort) noexcept
         : local_context_{*local_context},
           root_digest_{std::move(root_digest)},
           cmdline_{std::move(command)},
@@ -98,9 +110,41 @@ class LocalAction final : public IExecutionAction {
           output_dirs_{std::move(output_dirs)},
           env_vars_{std::move(env_vars)},
           properties_{BazelMsgFactory::CreateMessageVectorFromMap<
-              bazel_re::Platform_Property>(properties)} {
+              bazel_re::Platform_Property>(properties)},
+          mode_{best_effort ? RequestMode::kBestEffort : RequestMode::kV2_0} {
         std::sort(output_files_.begin(), output_files_.end());
         std::sort(output_dirs_.begin(), output_dirs_.end());
+        if (best_effort) {
+            output_paths_.reserve(output_files_.size() + output_dirs_.size());
+            output_paths_.insert(output_paths_.end(),
+                                 output_files_.begin(),
+                                 output_files_.end());
+            output_paths_.insert(
+                output_paths_.end(), output_dirs_.begin(), output_dirs_.end());
+            std::sort(output_paths_.begin(), output_paths_.end());
+        }
+    }
+
+    // Alternative constructor with combined output_paths for files and dirs, as
+    // it is used by RBEv2.1 and above.
+    explicit LocalAction(
+        gsl::not_null<LocalContext const*> local_context,
+        ArtifactDigest root_digest,
+        std::vector<std::string> command,
+        std::string cwd,
+        std::vector<std::string> output_paths,
+        std::map<std::string, std::string> env_vars,
+        std::map<std::string, std::string> const& properties) noexcept
+        : local_context_{*local_context},
+          root_digest_{std::move(root_digest)},
+          cmdline_{std::move(command)},
+          cwd_{std::move(cwd)},
+          output_paths_{std::move(output_paths)},
+          env_vars_{std::move(env_vars)},
+          properties_{BazelMsgFactory::CreateMessageVectorFromMap<
+              bazel_re::Platform_Property>(properties)},
+          mode_{RequestMode::kV2_1} {
+        std::sort(output_paths_.begin(), output_paths_.end());
     }
 
     [[nodiscard]] auto CreateActionDigest(ArtifactDigest const& exec_dir,
@@ -114,6 +158,7 @@ class LocalAction final : public IExecutionAction {
             .cwd = &cwd_,
             .output_files = &output_files_,
             .output_dirs = &output_dirs_,
+            .output_paths = &output_paths_,
             .env_vars = &env_vars,
             .properties = &properties_,
             .exec_dir = &exec_dir,
@@ -152,6 +197,10 @@ class LocalAction final : public IExecutionAction {
         std::filesystem::path const& exec_path,
         std::string const& local_path) const noexcept
         -> std::optional<OutputDirOrSymlink>;
+
+    [[nodiscard]] auto CollectOutputPath(std::filesystem::path const& exec_path,
+                                         std::string const& local_path)
+        const noexcept -> std::optional<OutputPath>;
 
     [[nodiscard]] auto CollectAndStoreOutputs(
         bazel_re::ActionResult* result,

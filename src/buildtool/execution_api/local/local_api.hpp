@@ -40,6 +40,7 @@ class LocalApi final : public IExecutionApi {
     explicit LocalApi(gsl::not_null<LocalContext const*> const& local_context,
                       RepositoryConfig const* repo_config = nullptr) noexcept;
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
@@ -47,8 +48,29 @@ class LocalApi final : public IExecutionApi {
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) const noexcept
+        std::map<std::string, std::string> const& properties,
+        bool force_legacy = false) const noexcept
         -> IExecutionAction::Ptr final;
+
+    /// \brief Create a new action (>=RBEv2.1).
+    /// \param[in] root_digest  Digest of the build root.
+    /// \param[in] command      Command as argv vector
+    /// \param[in] cwd          Working directory, relative to execution root
+    /// \param[in] output_paths List of output file/dir paths, relative to cwd
+    /// \param[in] env_vars     The environment variables to set.
+    /// \param[in] properties   Platform properties to set.
+    /// \returns The new action.
+    /// Note that, due to missing file/dir separation, the execution response
+    /// will not report output file symlinks and directory symlinks separately.
+    /// (see \ref LocalResponse::DirectorySymlinks)
+    [[nodiscard]] auto CreateAction(
+        ArtifactDigest const& root_digest,
+        std::vector<std::string> const& command,
+        std::string const& cwd,
+        std::vector<std::string> const& output_paths,
+        std::map<std::string, std::string> const& env_vars,
+        std::map<std::string, std::string> const& properties) const noexcept
+        -> IExecutionAction::Ptr;
 
     // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(

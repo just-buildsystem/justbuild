@@ -58,6 +58,7 @@ class BazelApi final : public IExecutionApi {
     auto operator=(BazelApi&&) -> BazelApi& = delete;
     ~BazelApi() final;
 
+    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
@@ -65,7 +66,8 @@ class BazelApi final : public IExecutionApi {
         std::vector<std::string> const& output_files,
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
-        std::map<std::string, std::string> const& properties) const noexcept
+        std::map<std::string, std::string> const& properties,
+        bool force_legacy = false) const noexcept
         -> IExecutionAction::Ptr final;
 
     // NOLINTNEXTLINE(google-default-arguments)
