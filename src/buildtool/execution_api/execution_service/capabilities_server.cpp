@@ -44,11 +44,14 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     exec.set_exec_enabled(true);
 
     *(response->mutable_execution_capabilities()) = exec;
-    ::build::bazel::semver::SemVer v{};
-    v.set_major(2);
-    v.set_minor(0);
+    ::build::bazel::semver::SemVer low_v{};
+    low_v.set_major(2);
+    low_v.set_minor(0);
+    ::build::bazel::semver::SemVer high_v{};
+    high_v.set_major(2);
+    high_v.set_minor(1);
 
-    *(response->mutable_low_api_version()) = v;
-    *(response->mutable_high_api_version()) = v;
+    *(response->mutable_low_api_version()) = low_v;
+    *(response->mutable_high_api_version()) = high_v;
     return ::grpc::Status::OK;
 }

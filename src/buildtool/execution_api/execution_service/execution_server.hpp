@@ -143,11 +143,13 @@ class ExecutionServiceImpl final : public bazel_re::Execution::Service {
     Logger logger_{"execution-service"};
 
     [[nodiscard]] auto ToIExecutionAction(::bazel_re::Action const& action,
-                                          ::bazel_re::Command const& command)
-        const noexcept -> std::optional<IExecutionAction::Ptr>;
+                                          ::bazel_re::Command const& command,
+                                          bool legacy_client) const noexcept
+        -> std::optional<IExecutionAction::Ptr>;
 
     [[nodiscard]] auto ToBazelExecuteResponse(
-        gsl::not_null<LocalResponse*> const& local_response) const noexcept
+        gsl::not_null<LocalResponse*> const& local_response,
+        bool legacy_client) const noexcept
         -> expected<::bazel_re::ExecuteResponse, std::string>;
 
     void WriteResponse(

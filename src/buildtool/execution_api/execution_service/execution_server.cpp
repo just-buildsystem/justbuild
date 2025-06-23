@@ -68,8 +68,9 @@ void UpdateTimeStamp(
 
 [[nodiscard]] auto ToBazelActionResult(
     LocalResponse::ArtifactInfos const& artifacts,
-    LocalResponse::DirSymlinks const& dir_symlinks,
-    Storage const& storage) noexcept
+    LocalResponse::DirSymlinks const* dir_symlinks,
+    Storage const& storage,
+    bool legacy_client) noexcept
     -> expected<bazel_re::ActionResult, std::string>;
 
 [[nodiscard]] auto ToBazelAction(ArtifactDigest const& action_digest,
@@ -83,8 +84,8 @@ void UpdateTimeStamp(
 
 auto ExecutionServiceImpl::ToIExecutionAction(
     ::bazel_re::Action const& action,
-    ::bazel_re::Command const& command) const noexcept
-    -> std::optional<IExecutionAction::Ptr> {
+    ::bazel_re::Command const& command,
+    bool legacy_client) const noexcept -> std::optional<IExecutionAction::Ptr> {
     auto const root_digest = ArtifactDigestFactory::FromBazel(
         storage_config_.hash_function.GetType(), action.input_root_digest());
     if (not root_digest) {
@@ -92,21 +93,38 @@ auto ExecutionServiceImpl::ToIExecutionAction(
     }
     std::vector<std::string> const args(command.arguments().begin(),
                                         command.arguments().end());
-    std::vector<std::string> const files(command.output_files().begin(),
-                                         command.output_files().end());
-    std::vector<std::string> const dirs(command.output_directories().begin(),
-                                        command.output_directories().end());
     std::map<std::string, std::string> env_vars;
     for (auto const& x : command.environment_variables()) {
         env_vars.insert_or_assign(x.name(), x.value());
     }
-    auto execution_action = api_.CreateAction(*root_digest,
-                                              args,
-                                              command.working_directory(),
-                                              files,
-                                              dirs,
-                                              env_vars,
-                                              /*properties=*/{});
+    auto execution_action = IExecutionAction::Ptr{};
+    if (legacy_client) {
+        // force legacy mode, DEPRECATED as of RBEv2.1
+        std::vector<std::string> const files(command.output_files().begin(),
+                                             command.output_files().end());
+        std::vector<std::string> const dirs(
+            command.output_directories().begin(),
+            command.output_directories().end());
+        execution_action = api_.CreateAction(*root_digest,
+                                             args,
+                                             command.working_directory(),
+                                             files,
+                                             dirs,
+                                             env_vars,
+                                             /*properties=*/{},
+                                             /*force_legacy=*/true);
+    }
+    else {
+        std::vector<std::string> const paths(command.output_paths().begin(),
+                                             command.output_paths().end());
+        execution_action = api_.CreateAction(*root_digest,
+                                             args,
+                                             command.working_directory(),
+                                             paths,
+                                             env_vars,
+                                             /*properties=*/{});
+    }
+
     if (execution_action == nullptr) {
         return std::nullopt;
     }
@@ -118,19 +136,27 @@ auto ExecutionServiceImpl::ToIExecutionAction(
 }
 
 auto ExecutionServiceImpl::ToBazelExecuteResponse(
-    gsl::not_null<LocalResponse*> const& local_response) const noexcept
+    gsl::not_null<LocalResponse*> const& local_response,
+    bool legacy_client) const noexcept
     -> expected<::bazel_re::ExecuteResponse, std::string> {
     auto artifacts = local_response->Artifacts();
     if (not artifacts) {
         return unexpected{std::move(artifacts).error()};
     }
     auto dir_symlinks = local_response->DirectorySymlinks();
-    if (not dir_symlinks) {
+    LocalResponse::DirSymlinks const* dir_symlinks_ptr{};
+    if (dir_symlinks) {
+        dir_symlinks_ptr = *dir_symlinks;
+    }
+    else if (legacy_client) {
+        // For legacy clients (<v2.1), it is required to populate output file
+        // and directory symlinks separately.
         return unexpected{std::move(dir_symlinks).error()};
     }
     auto result = ToBazelActionResult(*std::move(artifacts).value(),
-                                      *std::move(dir_symlinks).value(),
-                                      storage_);
+                                      dir_symlinks_ptr,
+                                      storage_,
+                                      legacy_client);
     if (not result) {
         return unexpected{std::move(result).error()};
     }
@@ -215,7 +241,10 @@ auto ExecutionServiceImpl::Execute(
         return ::grpc::Status{grpc::StatusCode::INTERNAL,
                               std::move(command).error()};
     }
-    auto i_execution_action = ToIExecutionAction(*action, *command);
+    // If output_paths is empty, the client is using legacy API (<v2.1)
+    bool legacy_client = command->output_paths().empty();
+    auto i_execution_action =
+        ToIExecutionAction(*action, *command, legacy_client);
     if (not i_execution_action) {
         auto const str = fmt::format("Could not create action from {}",
                                      action_digest->hash());
@@ -253,7 +282,8 @@ auto ExecutionServiceImpl::Execute(
         return ::grpc::Status{grpc::StatusCode::INTERNAL, error_msg};
     }
 
-    auto execute_response = ToBazelExecuteResponse(local_response);
+    auto execute_response =
+        ToBazelExecuteResponse(local_response, legacy_client);
     if (not execute_response) {
         logger_.Emit(LogLevel::Error, "{}", execute_response.error());
         return ::grpc::Status{grpc::StatusCode::INTERNAL,
@@ -387,20 +417,32 @@ namespace {
 
 [[nodiscard]] auto ToBazelActionResult(
     LocalResponse::ArtifactInfos const& artifacts,
-    LocalResponse::DirSymlinks const& dir_symlinks,
-    Storage const& storage) noexcept
+    LocalResponse::DirSymlinks const* dir_symlinks,
+    Storage const& storage,
+    bool legacy_client) noexcept
     -> expected<bazel_re::ActionResult, std::string> {
+    if (legacy_client and dir_symlinks == nullptr) {
+        return unexpected{std::string{
+            "Cannot create action result for clients using RBE protocol <v2.1 "
+            "without output_directory_symlinks reported by the local API."}};
+    }
     bazel_re::ActionResult result{};
     auto& result_files = *result.mutable_output_files();
     auto& result_file_links = *result.mutable_output_file_symlinks();
     auto& result_dirs = *result.mutable_output_directories();
     auto& result_dir_links = *result.mutable_output_directory_symlinks();
+    auto& result_links = *result.mutable_output_symlinks();
 
     auto const size = static_cast<int>(artifacts.size());
     result_files.Reserve(size);
-    result_file_links.Reserve(size);
     result_dirs.Reserve(size);
-    result_dir_links.Reserve(size);
+    if (not legacy_client) {
+        result_links.Reserve(size);
+    }
+    if (dir_symlinks != nullptr) {
+        result_file_links.Reserve(size);
+        result_dir_links.Reserve(size);
+    }
 
     for (auto const& [path, info] : artifacts) {
         if (info.type == ObjectType::Tree) {
@@ -415,13 +457,21 @@ namespace {
             if (not out_link) {
                 return unexpected{std::move(out_link).error()};
             }
-            if (dir_symlinks.contains(path)) {
-                // directory symlink
-                result_dir_links.Add(*std::move(out_link));
+            if (not legacy_client) {
+                // only set generic 'output symlinks' if the client was not
+                // using legacy protocol (<v2.1) without 'output_paths'.
+                *result_links.Add() = *out_link;
             }
-            else {
-                // file symlinks
-                result_file_links.Add(*std::move(out_link));
+            if (dir_symlinks != nullptr) {
+                // DEPRECATED as of v2.1, still needed for v2.0
+                if (dir_symlinks->contains(path)) {
+                    // directory symlink
+                    result_dir_links.Add(*std::move(out_link));
+                }
+                else {
+                    // file symlinks
+                    result_file_links.Add(*std::move(out_link));
+                }
             }
         }
         else {
