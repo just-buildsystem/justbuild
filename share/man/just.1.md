@@ -840,7 +840,7 @@ operations will be removed, in a FIFO scheme. If unset, defaults to
 -------------------------
 
 **`--no-rotate`**  
-Do not rotate gargabe-collection generations. Instead, only carry
+Do not rotate garbage-collection generations. Instead, only carry
 out clean up tasks that do not affect what is stored in the cache.
 Incompatible with `--all`.
 

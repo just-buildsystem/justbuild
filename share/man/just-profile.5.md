@@ -20,7 +20,7 @@ The metadata file contains the following information.
 
 - For the key *`"cmdline"`* the argument vector for the process it
   will **`execv`**(3) to. As with all launches by **`just-mr`**(1),
-  the programm is the zeroth entry of the argument vector.
+  the program is the zeroth entry of the argument vector.
 
 - For the key *`"configuration"`* the blob identifier of the
   **`just-repository-config`**(5) that is passed to the launched process,
