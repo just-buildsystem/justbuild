@@ -50,6 +50,8 @@
 
 namespace {
 
+constexpr bool kLegacyApi = false;  // do not force legacy api logic
+
 [[nodiscard]] auto GetTestDir() -> std::filesystem::path {
     auto* tmp_dir = std::getenv("TEST_TMPDIR");
     if (tmp_dir != nullptr) {
@@ -95,8 +97,8 @@ TEST_CASE("LocalExecution: No input, no output", "[execution_api]") {
 
     std::string test_content("test");
     std::vector<std::string> const cmdline = {"echo", "-n", test_content};
-    auto action =
-        api.CreateAction(*api.UploadTree({}), cmdline, "", {}, {}, {}, {});
+    auto action = api.CreateAction(
+        *api.UploadTree({}), cmdline, "", {}, {}, {}, {}, kLegacyApi);
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -155,7 +157,8 @@ TEST_CASE("LocalExecution: No input, no output, env variables used",
                                    {},
                                    {},
                                    {{"MYCONTENT", test_content}},
-                                   {});
+                                   {},
+                                   kLegacyApi);
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -215,8 +218,14 @@ TEST_CASE("LocalExecution: No input, create output", "[execution_api]") {
         "-c",
         "set -e\necho -n " + test_content + " > " + output_path};
 
-    auto action = api.CreateAction(
-        *api.UploadTree({}), cmdline, "", {output_path}, {}, {}, {});
+    auto action = api.CreateAction(*api.UploadTree({}),
+                                   cmdline,
+                                   "",
+                                   {output_path},
+                                   {},
+                                   {},
+                                   {},
+                                   kLegacyApi);
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -296,7 +305,8 @@ TEST_CASE("LocalExecution: One input copied to output", "[execution_api]") {
                          {output_path},
                          {},
                          {},
-                         {});
+                         {},
+                         kLegacyApi);
     REQUIRE(action);
 
     SECTION("Cache execution result in action cache") {
@@ -358,8 +368,8 @@ TEST_CASE("LocalExecution: Cache failed action's result", "[execution_api]") {
     std::vector<std::string> const cmdline = {
         "sh", "-c", fmt::format("[ -f '{}' ]", flag.string())};
 
-    auto action =
-        api.CreateAction(*api.UploadTree({}), cmdline, "", {}, {}, {}, {});
+    auto action = api.CreateAction(
+        *api.UploadTree({}), cmdline, "", {}, {}, {}, {}, kLegacyApi);
     REQUIRE(action);
 
     action->SetCacheFlag(IExecutionAction::CacheFlag::CacheOutput);

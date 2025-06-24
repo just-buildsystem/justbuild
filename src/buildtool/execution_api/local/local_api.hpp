@@ -40,7 +40,6 @@ class LocalApi final : public IExecutionApi {
     explicit LocalApi(gsl::not_null<LocalContext const*> const& local_context,
                       RepositoryConfig const* repo_config = nullptr) noexcept;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
@@ -49,8 +48,7 @@ class LocalApi final : public IExecutionApi {
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
         std::map<std::string, std::string> const& properties,
-        bool force_legacy = false) const noexcept
-        -> IExecutionAction::Ptr final;
+        bool force_legacy) const noexcept -> IExecutionAction::Ptr final;
 
     /// \brief Create a new action (>=RBEv2.1).
     /// \param[in] root_digest  Digest of the build root.
@@ -72,20 +70,16 @@ class LocalApi final : public IExecutionApi {
         std::map<std::string, std::string> const& properties) const noexcept
         -> IExecutionAction::Ptr;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
-        -> bool final;
+        IExecutionApi const* /*alternative*/) const noexcept -> bool final;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
         bool raw_tree,
-        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
-        -> bool final;
+        IExecutionApi const* /*alternative*/) const noexcept -> bool final;
 
     [[nodiscard]] auto RetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,

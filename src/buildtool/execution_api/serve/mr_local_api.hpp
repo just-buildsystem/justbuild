@@ -65,20 +65,16 @@ class MRLocalApi final : public IExecutionApi {
     /// Handles both native and compatible artifacts. Dispatches to appropriate
     /// local api instance based on digest hash type. Alternative api is never
     /// used.
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
-        -> bool final;
+        IExecutionApi const* /*alternative*/) const noexcept -> bool final;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& /*artifacts_info*/,
         std::vector<int> const& /*fds*/,
         bool /*raw_tree*/,
-        IExecutionApi const* /*alternative*/ = nullptr) const noexcept
-        -> bool final {
+        IExecutionApi const* /*alternative*/) const noexcept -> bool final {
         // Retrieval to file descriptors not supported
         return false;
     }
@@ -104,9 +100,8 @@ class MRLocalApi final : public IExecutionApi {
     /// the blobs to the appropriate local api instance based on used protocol.
     /// \note Caller is responsible for passing vectors with artifacts of the
     /// same digest type.
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto Upload(std::unordered_set<ArtifactBlob>&& blobs,
-                              bool skip_find_missing = false) const noexcept
+                              bool skip_find_missing) const noexcept
         -> bool final;
 
     [[nodiscard]] auto UploadTree(

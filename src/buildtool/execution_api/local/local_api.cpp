@@ -59,7 +59,6 @@ LocalApi::LocalApi(gsl::not_null<LocalContext const*> const& local_context,
     : local_context_{*local_context},
       git_api_{CreateFallbackApi(*local_context->storage, repo_config)} {}
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto LocalApi::CreateAction(
     ArtifactDigest const& root_digest,
     std::vector<std::string> const& command,
@@ -102,7 +101,6 @@ auto LocalApi::CreateAction(
                                                                 properties}};
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto LocalApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
@@ -130,7 +128,6 @@ auto LocalApi::RetrieveToPaths(
     return true;
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto LocalApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,

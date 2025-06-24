@@ -151,7 +151,6 @@ BazelApi::BazelApi(BazelApi&& other) noexcept = default;
 // implement destructor in cpp, where all members are complete types
 BazelApi::~BazelApi() = default;
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto BazelApi::CreateAction(
     ArtifactDigest const& root_digest,
     std::vector<std::string> const& command,
@@ -191,7 +190,6 @@ auto BazelApi::CreateAction(
                                                         best_effort}};
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
 [[nodiscard]] auto BazelApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
@@ -221,7 +219,8 @@ auto BazelApi::CreateAction(
                 auto const result = reader.RecursivelyReadTreeLeafs(
                     info.digest, output_paths[i]);
                 if (not result or
-                    not RetrieveToPaths(result->infos, result->paths)) {
+                    not RetrieveToPaths(
+                        result->infos, result->paths, alternative)) {
                     return false;
                 }
             }
@@ -266,7 +265,6 @@ auto BazelApi::CreateAction(
     return true;
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
 [[nodiscard]] auto BazelApi::RetrieveToFds(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<int> const& fds,

@@ -58,7 +58,6 @@ class BazelApi final : public IExecutionApi {
     auto operator=(BazelApi&&) -> BazelApi& = delete;
     ~BazelApi() final;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto CreateAction(
         ArtifactDigest const& root_digest,
         std::vector<std::string> const& command,
@@ -67,23 +66,18 @@ class BazelApi final : public IExecutionApi {
         std::vector<std::string> const& output_dirs,
         std::map<std::string, std::string> const& env_vars,
         std::map<std::string, std::string> const& properties,
-        bool force_legacy = false) const noexcept
-        -> IExecutionAction::Ptr final;
+        bool force_legacy) const noexcept -> IExecutionAction::Ptr final;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToPaths(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<std::filesystem::path> const& output_paths,
-        IExecutionApi const* alternative = nullptr) const noexcept
-        -> bool final;
+        IExecutionApi const* alternative) const noexcept -> bool final;
 
-    // NOLINTNEXTLINE(google-default-arguments)
     [[nodiscard]] auto RetrieveToFds(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,
         std::vector<int> const& fds,
         bool raw_tree,
-        IExecutionApi const* alternative = nullptr) const noexcept
-        -> bool final;
+        IExecutionApi const* alternative) const noexcept -> bool final;
 
     [[nodiscard]] auto ParallelRetrieveToCas(
         std::vector<Artifact::ObjectInfo> const& artifacts_info,

@@ -34,7 +34,6 @@ MRLocalApi::MRLocalApi(
       native_local_api_{native_local_api},
       compat_local_api_{compatible_local_api} {}
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto MRLocalApi::RetrieveToPaths(
     std::vector<Artifact::ObjectInfo> const& artifacts_info,
     std::vector<std::filesystem::path> const& output_paths,
@@ -94,7 +93,6 @@ auto MRLocalApi::RetrieveToCas(
     return compat_local_api_->RetrieveToCas(*compat_artifacts, api);
 }
 
-// NOLINTNEXTLINE(google-default-arguments)
 auto MRLocalApi::Upload(std::unordered_set<ArtifactBlob>&& blobs,
                         bool skip_find_missing) const noexcept -> bool {
     // in native mode, dispatch to native local api
