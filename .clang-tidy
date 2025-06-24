@@ -1,19 +1,19 @@
 # Here is an explanation for why some of the checks are disabled:
 
-# bugprone-easily-swappable-parameters: This check would require significant 
+# bugprone-easily-swappable-parameters: This check would require significant
 # refactoring effort.
 
-# bugprone-unchecked-optional-access: Too many false positives. For example, 
+# bugprone-unchecked-optional-access: Too many false positives. For example,
 # an explicit comparison with std::nullopt isn't considered a check.
 
-# cppcoreguidelines-avoid-const-or-ref-data-members: We believe, ref data 
+# cppcoreguidelines-avoid-const-or-ref-data-members: We believe, ref data
 # members are a good way to express ownership, and const data members improve
 # readability.
 
 # cppcoreguidelines-rvalue-reference-param-not-moved: Too many false positives,
 # especially with partial moves from STL containers.
 
-# misc-const-correctness: Too many false positives, especially with STL 
+# misc-const-correctness: Too many false positives, especially with STL
 # containers.
 
 # misc-include-cleaner: There is no way for symbol mapping. For example, this
@@ -31,6 +31,9 @@
 
 # performance-avoid-endl: There are too many legitimate uses of std::endl for
 # us.
+
+# readability-function-cognitive-complexity: This check would get triggered by
+# most uses of the catch2 test library.
 
 # readability-identifier-length: We would like to enable this check, but it
 # would require significant refactoring effort.
