@@ -54,6 +54,12 @@ for building and testing. So, to avoid accidentally trying to fetch
 more than is absolutely needed, `bin/bootstrap.py` was changed to
 use the original, manually-maintained `etc/repos.in.json`.
 
+## Release `1.6.0~beta1` (2025-06-24)
+
+First beta release for the upcoming `1.6.0` release; see release
+notes there.
+
+
 ## Release `1.5.0` (2025-03-06)
 
 A feature release on top of `1.4.0`, backwards compatible.
