@@ -27,6 +27,9 @@
     , "CC"
     , "CFLAGS"
     , "ADD_CFLAGS"
+    , "CXX"
+    , "CXXFLAGS"
+    , "ADD_CXXFLAGS"
     , "AR"
     , "ENV"
     ]
