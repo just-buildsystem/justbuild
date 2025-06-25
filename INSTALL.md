@@ -151,20 +151,21 @@ ${BUILDDIR}/out/bin/just install \
   -o ${BUILDDIR}/out/ 'installed just-mr'
 ```
 
-# Installing `just-import-git`
+# Installing `just-import-git`, `just-deduplicate-repos`, and `just-lock`
 
 The file `bin/just-import-git.py` is a useful Python script that allows quick
 generation of a multi-repository build configuration file from a simpler
 template for projects with dependencies provided by Git repositories.
-
 It is recommended to make this script available in your `$PATH` as
 `just-import-git`. Running it requires, of course, a Python3 interpreter.
-
-# Installing `just-deduplicate-repos`
 
 The file `bin/just-deduplicate-repos.py` is a useful Python script that
 removes duplicates from a multi-repository configuration by merging
 indistinguishable repositories.
-
 It is recommended to make this script available in your `$PATH` as
 `just-deduplicate-repos`. Running it requires, of course, a Python3 interpreter.
+
+The file `bin/just-lock.py` is a useful Python script to generate and maintain
+a multi-repository configuration.
+It is recommended to make this script available in your `$PATH` as
+`just-lock`. Running it requires, of course, a Python3 interpreter.
