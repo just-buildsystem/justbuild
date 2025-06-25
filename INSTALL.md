@@ -46,12 +46,13 @@ using the `bin/bootstrap.py` script.
 
 ### Bootstrapping compiling the dependencies from scratch
 
-If using bundled dependencies is acceptable, the only thing required
+If using bundled dependencies is acceptable, the only things required
 are a C++20 compiler with the libraries required by the language
 standard (note that, e.g., in Debian `libstdc++-10-dev` is not a
-dependency of `clang`) and a Python3 interpreter. By default the bootstrap
-script uses the clang compiler. If you also want the bootstrap script to
-download the dependencies itself, `wget` is required as well.
+dependency of `clang`), a C compiler, and a Python3 interpreter. By
+default, the bootstrap script uses `c++` as C++ compiler and `cc` as C
+compiler. If you also want the bootstrap script to download the
+dependencies itself, `wget` is required as well.
 
 In this case, the command is simply
 ```sh
