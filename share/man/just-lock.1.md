@@ -15,24 +15,26 @@ DESCRIPTION
 
 Just-Lock is a tool that encompasses several functionalities related to
 generating and maintaining the **`just-mr-repository-config`**(5) of a Just
-project.
+project, centered around multi-repository configuration composition.
 
 The main functionality of the tool is to import declared dependencies from
 other Just projects and generate a repository configuration which can directly
 be used by **`just-mr`**(1). The imported repositories are renamed in a way that
 no conflicts arise and in a way to remind for which repositories they come as a
-dependency. This extends thus the capabilities of existing tools such as
-**`just-import-git`**(1) by implicitly allowing multiple imports to take place
-and import sources other than Git repositories.
+dependency. This mirrors the capabilities of existing tools such as
+**`just-import-git`**(1) and extends them by features such as implicitly
+allowing multiple imports to take place and supporting imports from sources
+other than Git repositories (e.g., distfiles, local clones, repositories under
+arbitrary version control systems).
 
 By default, the final configuration has the repositories deduplicated, by
 merging indistinguishable repositories, other than the `"main"` repository and
-explicitly stated ones, to a single repository. This mirrors the capability
-available standalone in **`just-deduplicate-repos`**(1).
+explicitly stated ones, to a single entry. This mirrors the capability available
+standalone in **`just-deduplicate-repos`**(1).
 
 The tool performs these operations based on a provided **`just-lock-config`**(5)
-input file and outputs the resulting configuration file at either a given
-provided location or at a location expected by **`just-mr`**(5).
+input file and outputs the resulting configuration file at either an explicitly
+given location or at a location expected by **`just-mr`**(5).
 
 OPTIONS
 =======

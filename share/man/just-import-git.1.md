@@ -33,7 +33,7 @@ Only the main parts of repositories are imported (*`"repository"`*,
 *`"bindings"`*, names, and roots). The *`"pragma"`* part, as well as
 unknown fields are dropped.
 
-The repository to import is specified by its URL
+The repository to import is specified by its URL.
 
 The resulting configuration is printed on standard output.
 
