@@ -25,13 +25,13 @@ A feature release on top of `1.5.0`, backwards compatible.
 - `just execute` and `just serve` now create their pid and info
   files atomically; so waiting processes can assume the content
   to be available as soon as the requested file appears on the
-  file sytem.
+  file system.
 - `just serve` now fetches trees from remote execution in parallel
   and through its local CAS; this fixes a performance issue.
 - A bug was fixed that could cause the number of threads being
   the square of what was specified during backing up artifacts of
   export targets after build.
-- `just-mr` now also consideres computed roots (as no-op) when
+- `just-mr` now also considers computed roots (as no-op) when
   reporting progress.
 - The "generic" rule now properly detects staging conflicts, taking
   the full inputs into account (and not only the runfiles).
@@ -140,7 +140,7 @@ notes there.
 
 - New configuration option `"client address"` for `just serve`.
 - `just-lock` now fetches and clones repositories in parallel.
-- Blob content is not any more kept in memory unecessarily at
+- Blob content is not any more kept in memory unnecessarily at
   various places.
 - Various internal clean up of the code base.
 
@@ -186,7 +186,7 @@ local build root on upgrade.
 
 - The built-in rule `"generic"` now properly enforces that the
   obtained outputs form a well-formed artifact stage; a conflicting
-  arrangement of artifacts was possilbe beforehand.
+  arrangement of artifacts was possible beforehand.
 - The built-in expression functions `"join"` and `"join_cmd"`
   now properly enforce that the argument is a list of strings.
   So far, they used to accept a single string, treating it as a
@@ -208,7 +208,7 @@ local build root on upgrade.
   using this binary.
 - Internal code clean up, reducing memory footprint, in particular
   for simultaneous upload of a large number of blobs.
-- Avoidence of duplicate requests and performance improvements when
+- Avoidance of duplicate requests and performance improvements when
   synchronizing artifacts with another CAS.
 - Dependencies have been updated to also build with gcc 14.
 - Portability improvements of the code by not relying on implementation
