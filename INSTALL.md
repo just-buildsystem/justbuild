@@ -31,7 +31,7 @@ variables. The full list can be obtained via `just-mr describe`.
 | ARCH | x86, x86_64, arm, arm64 | x86_64 |
 | HOST_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
 | TARGET_ARCH | x86, x86_64, arm, arm64 | *derived from ARCH* |
-| DEBUG | true, false | false |
+| DEBUG | map, anything logically false | null |
 | TOOLCHAIN_CONFIG["FAMILY"] | gnu, clang, unknown | unknown |
 | TOOLCHAIN_CONFIG["BUILD_STATIC"] | true, false | false |
 
