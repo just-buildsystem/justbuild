@@ -1,4 +1,4 @@
-## Release `1.6.0` (UNRELEASED)
+## Release `1.6.0` (2025-06-27)
 
 A feature release on top of `1.5.0`, backwards compatible.
 
@@ -53,6 +53,13 @@ configuration `etc/repos.in.json` still contains everything needed
 for building and testing. So, to avoid accidentally trying to fetch
 more than is absolutely needed, `bin/bootstrap.py` was changed to
 use the original, manually-maintained `etc/repos.in.json`.
+
+### Changes since `1.6.0~beta1`
+
+- The flexible variables of the bundled `ssl` description have been fixed,
+  fixing a bootstrap issue in bundled (i.e., non-package) build.
+- The setup of one test has been fixed.
+- Various improvements to the documentation.
 
 ## Release `1.6.0~beta1` (2025-06-24)
 
