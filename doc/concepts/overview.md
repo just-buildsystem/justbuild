@@ -26,7 +26,7 @@ target as a dependency, irrespectively of where the target is coming from
 
 Of course, to actually build a single target from its dependencies, many
 invocations of the compiler or other tools are necessary (so called
-"actions"); the build tool translates these high level description
+"actions"); the build tool translates these high-level description
 into the individual actions necessary and only re-executes those where
 inputs have changed.
 
@@ -40,7 +40,7 @@ typically maintained centrally for a project or an organization.
 The code base is usually split into many directories, each containing
 source files belonging together. To allow the definition of targets
 where their code is, the targets are structured in a similar way. For
-each directory, there can be a targets files. Directories for which such
+each directory, there can be a targets file. Directories for which such
 a targets file exists are called "modules". Each file belongs to the
 module that is closest when searching upwards in the directory tree. The
 targets file of a module defines the targets formed from the source
