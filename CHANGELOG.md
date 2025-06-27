@@ -1,3 +1,7 @@
+## Release `1.6.1` (UNRELEASED)
+
+Bug fixes on top of `1.6.0`.
+
 ## Release `1.6.0` (2025-06-27)
 
 A feature release on top of `1.5.0`, backwards compatible.
