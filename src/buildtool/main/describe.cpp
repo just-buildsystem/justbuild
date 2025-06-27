@@ -95,7 +95,7 @@ void PrettyPrintRule(
     auto implicit_targets = rdesc.find("implicit");
     if (implicit_targets != rdesc.end()) {
         for (auto const& [key, value] : implicit_targets->items()) {
-            std::cout << " - implict dependency\n";  //
+            std::cout << " - implicit dependency\n";  //
             auto doc = field_doc.find(key);
             if (doc != field_doc.end()) {
                 PrintDoc(*doc, "   | ");
