@@ -4,10 +4,10 @@ The general approach of writing a build description side-by-side with
 the source code works in most cases. There are, however, cases where
 the build description depends on the contents of source-like files.
 
-Here we consider a somewhat contrieved example that, however, shows
+Here we consider a somewhat contrived example that, however, shows
 all the various types of derived roots. Let's say we have a very
 regular structure of our code base: one top-level directory for
-each library and if there are depenedencies, then there is a plain
+each library and if there are dependencies, then there is a plain
 file `deps` listing, one entry per line, the libraries depended
 upon. From that structure we want a derived build description that
 is not maintained manually.
@@ -30,7 +30,7 @@ The first step is to write a generator for a single `TARGETS` file. To clearly
 separate the infrastructure files from the sources, we add the generator as
 `utils/generate.py`.
 
-```{.py srcname="utils/generate.py"}
+```{.python srcname="utils/generate.py"}
 #!/usr/bin/env python3
 
 import json
@@ -64,7 +64,7 @@ files (and not just other directories). Additionally, there needs to be
 a top-level target staging all those files that is exported. This can
 be implemented by another script, say `utils/call-generator-targets.py`.
 
-```{.py srcname="utils/call-generator-targets.py"}
+```{.python srcname="utils/call-generator-targets.py"}
 #!/usr/bin/env python3
 
 import json
@@ -117,7 +117,7 @@ the target files. We first write a target file `utils/targets.generate`.
 ```
 
 As we intend to make `utils` a separate logical repository, we also
-add a trival top-level targets file.
+add a trivial top-level targets file.
 
 ```shell
 $ echo {} > utils/TARGETS
@@ -339,7 +339,7 @@ INFO: Target tainted ["test"].
 ```
 
 Obviously, the tree structure has changed, so `"src target tasks
-decription"` target gets rebuild. Also, the `"src target build"`
+description"` target gets rebuild. Also, the `"src target build"`
 target gets rebuild, but if we inspect the log, we see that 2 out
 of 3 actions are taken from cache.
 

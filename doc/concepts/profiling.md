@@ -75,7 +75,7 @@ output files are in a machine-readable format.
 
 Collection of build data, if desired, should be done routinely.
 For the build-sharing use case it is not known ahead of time,
-which invocation will be the intersting one. Also, statistics over
+which invocation will be the interesting one. Also, statistics over
 invocations are much more informative, if the data is complete (or
 at least sampled in an unbiased way). Therefore, the build-data
 collection should be configured in a configuration file. The
@@ -109,7 +109,7 @@ more keys possibly added in the future).
    is a value derived not only from the command line but also from
    the context of a file (given via `-c`) possibly local on the
    machine `just` was run.
- - The key `"remote"` describes the remote-exeuction endpoint,
+ - The key `"remote"` describes the remote-execution endpoint,
    including the used properties and dispatch list. This allow
    distinguishing builds in different environments (possibly using
    different hardware); this can be relevant both for performance

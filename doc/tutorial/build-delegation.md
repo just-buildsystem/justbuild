@@ -32,7 +32,7 @@ distributes the tree hash to the entities analysing the data.
 As a user of the serve endpoint, by just knowing the tree hash,
 can construct an absent root from it.
 
-```
+``` jsonc
 { "repository":
       { "type": "git tree"
       , "id": "..."
@@ -72,7 +72,7 @@ only access export targets; but while measurement data might have
 some random component, analysing that data typically is a pure
 function. So a simple target file could look as follows.
 
-```
+``` jsonc
 { "": {"type": "export", "target": "stats"}
 , "stats":
   { "type": "generic"

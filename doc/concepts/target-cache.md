@@ -235,7 +235,7 @@ choice would violate that projection property we rely upon.
 Consider the following target file (on a content-fixed root) as
 example.
 
-```
+``` jsonc
 { "generated":
   {"type": "generic", "outs": ["out.txt"], "cmds": ["echo Hello > out.txt"]}
 , "export": {"type": "export", "target": "generated"}

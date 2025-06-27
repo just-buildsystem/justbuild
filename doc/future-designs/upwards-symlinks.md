@@ -4,8 +4,8 @@
 
 ### Existing symlink support
 
-Our buildsystem already supports non-upwards relative symbolic links
-as first-class objects. The reason for chosing this restriction was
+Our build system already supports non-upwards relative symbolic links
+as first-class objects. The reason for choosing this restriction was
 that those can be placed anywhere inside an action directory without
 that directory becoming dependent on the ambient system, regardless
 if symbolic links are followed or inspected via readlink(2).
@@ -23,7 +23,7 @@ is enforced
 - in the output of actions, including output directories,
 - in explicit tree references on `file` roots.
 
-However, it is not eforced when using an explicit tree reference on
+However, it is not enforced when using an explicit tree reference on
 a `git` root as input. The reason is that we want to benefit from
 the fact that trees are already hashed in git repositories so that
 we can get values (and harvest cache hits) without ever looking at
@@ -71,12 +71,12 @@ additional dict as last entry, which may contain the key `"symlink
 level"`; the value for that key is the declared level and has to
 be a non-negative integer. For example,
 - `["SYMLINK", null, "foo", {"symlink level": 3}]` is an explicit
-  symlink referece to a symlink at `foo` in the current module with
+  symlink reference to a symlink at `foo` in the current module with
   declared symlink level 3, and
 - `["TREE", null, "bar", {"symlink level": 4}]` is an explicit tree
   reference to a tree located at `bar` in the current module with
   declared symlink level 4.
-The reason for chosing a dict rather than a positional argument is
+The reason for choosing a dict rather than a positional argument is
 to be prepared for additional declared properties in the future,
 should they become necessary.
 
@@ -117,7 +117,7 @@ this check while keeping the benefits of explicit tree references
 in `git` roots, we keep a cache (in the form of a simple mapping on
 disk) of tree identifiers to their symlink level. This map will be
 garbage collected together with the repository roots (as described
-in the "Gargabe collection for Repository Roots" design).
+in the "Garbage collection for Repository Roots" design).
 
 We also enforce the correctness of the symlink level of action
 outputs: for `"outs"`, if they are a symlink, the level is checked

@@ -119,18 +119,18 @@ INFO: Setup finished, exec ["just","describe","-C","...","tests","greet"]
  - "name"
    | The name of the test
 ...
- - implict dependency
+ - implicit dependency
    | The C/C++ toolchain to use
    - ["@","rules-cc","CC","defaults"]
- - implict dependency
+ - implicit dependency
    | The test runner which starts the actual test binary after providing
    | the respective environment. The runner also takes care of capturing
    | stdout/stderr and timing information.
    - ["@","rules-cc","CC/test","runner"]
- - implict dependency
+ - implicit dependency
    | The shell toolchain to use PATH from for calling the summary action
    - ["@","rules-cc","shell","defaults"]
- - implict dependency
+ - implicit dependency
    | Tool to aggregate the results of individual test runs (for flakyness
    | detection) to an overall test result. If more fields than the result
    | itself is needed, those can be specified using the "summarizer" rule.
@@ -493,4 +493,4 @@ $
 As the output structure is again one tree per test, test suits can
 be put into other test suites; to avoid conflicts, the `"stage"`
 field of the test suite can be used to put all outputs into a
-suite-specific sudirectory.
+suite-specific subdirectory.

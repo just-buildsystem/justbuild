@@ -245,7 +245,7 @@ passed and for the failed tests we format stdout and stderr in some
 easy-to-read way; additionally, we also provide a machine-readable
 summary of the failures.
 
-``` {.py srcname="summary.py"}
+``` {.python srcname="summary.py"}
 #!/usr/bin/env python3
 
 import json

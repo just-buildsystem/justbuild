@@ -120,7 +120,7 @@ are equal if the defining roots are equal.
 When determining the value of a computed root, as for every export
 target, the provided serve endpoint (if any) is consulted first.
 Only if it is not aware of the root, a local evaluation is carried
-out. This strategy is also applied for tree-stucture roots.
+out. This strategy is also applied for tree-structure roots.
 
 ### `just-mr` support for computed roots
 
@@ -149,7 +149,7 @@ however we do not want to fetch the artifacts of those intermediate
 roots. After all, whole point of the serve service was to use
 dependencies without having them locally.
 
-#### Sytnax for absent computed roots
+#### Syntax for absent computed roots
 
 As for other roots, we let the user specify which roots are to be
 absent. Tools like `just-import-git` will extend their marking of absent

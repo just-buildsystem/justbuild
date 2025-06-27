@@ -393,7 +393,7 @@ those) argument(s) to obtain the final result.
    key. Those paths relative to the subdir are taken in canonical
    form; it is an error if non-trivial conflicts arise that way,
    i.e., if two keys that are kept normalize to the same relative
-   path while the repsective values are different.
+   path while the respective values are different.
 
 ##### Binary functions
 

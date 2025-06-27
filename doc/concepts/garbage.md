@@ -133,7 +133,7 @@ CAS is inspected. If found there, then, in this order,
 
 - if the entry is not already in the youngest generation, the chunks
   are promoted to the youngest generation,
-- the object itself is spliced on disk in a temproary file,
+- the object itself is spliced on disk in a temporary file,
 - if the object is a tree, the parts are promoted to the youngest
   generation (only necessary if the large-object entry was not
   found in the youngest generation anyway),
@@ -204,7 +204,7 @@ The compactification step is skipped if the `--all` option is given to
 
 `--no-rotate` and `--all` are incompatible options.
 
-Gargabe Collection for Repository Roots
+Garbage Collection for Repository Roots
 ---------------------------------------
 
 The multi-repository tool `just-mr` often has to create roots: the

@@ -75,7 +75,7 @@ to request the chunk digests of a blob from the server, to fetch only
 those chunks that are missing in its local CAS, and to store the fetched
 chunks as well as the reconstructed original blob in its local CAS. If
 the client requests to split a blob, but the server does not support
-blob splitting or if an error occured during the request, the client
+blob splitting or if an error occurred during the request, the client
 falls back to fetch the entire blob.
 
 Blob split procedure
@@ -117,7 +117,7 @@ contains an error, the split operation failed and the client needs to
 fall back to fetch the entire blob. Otherwise, blob splitting was
 successful and the remote server returns an ordered list of
 `chunk_digests` and guarantees that the chunks are available in its CAS
-and that the concatention of all chunks in the given order will result
+and that the concatenation of all chunks in the given order will result
 in the requested blob. The client checks which chunks are available
 locally, fetches only the locally missing chunks from the remote side
 via the `BatchReadBlobs` rpc or the `ByteStream` API, and assembles the

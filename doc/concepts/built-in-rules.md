@@ -95,7 +95,7 @@ by those resolution rules has to be free of semantic conflicts.
 
 The fields `"cmds"`, `"cwd"`, `"sh -c"`, `"out_dirs"`, `"outs"`, and `"env"`
 are evaluated fields where `"cmds"`, `"out_dirs"`, and `"outs"`
-have to evaluate to a list of strings, `"sh -c"` has to evalute to
+have to evaluate to a list of strings, `"sh -c"` has to evaluate to
 a list of strings or `null`, `"env"` has to evaluate to a map
 of strings, and `"cwd"` has to evaluate to a single string naming a non-upwards
 relative path. During their evaluation, the functions `"outs"` and

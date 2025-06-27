@@ -193,7 +193,7 @@ following arguments.
 
  - `"cwd"` The directory inside the action root to change to before
    executing the command. The directory has to be given as a string
-   decribing a non-upwards relative path. This field is optional
+   describing a non-upwards relative path. This field is optional
    and defaults to `""`.
 
  - `"env"` The environment in which the command should be executed,

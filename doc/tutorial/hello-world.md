@@ -430,7 +430,7 @@ INFO: Artifacts built, logical paths are:
 $
 ```
 
-The ommitted (i.e., not shown but still built) runfile is the header file. As
+The omitted (i.e., not shown but still built) runfile is the header file. As
 mentioned in the introduction to `just analyse` this is a typical use of that
 second artifact arrangement. We can also have a look at the other information
 that library provides.
