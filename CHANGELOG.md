@@ -9,6 +9,8 @@ Bug fixes on top of `1.6.0`.
 - `just-mr` now correctly maintains also the Git cache lock when
   calling `just` if repository configuration was involved,
   preventing any unwanted intermediary repository garbage collection.
+- The invocation server now correctly reports the total number of
+  uncached actions.
 
 ## Release `1.6.0` (2025-06-27)
 

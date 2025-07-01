@@ -548,6 +548,7 @@ class InvocationServer:
         candidates.sort(reverse=True)
         non_cached = []
         params["more_noncached"] = None
+        params["non_cached_count"] = len(candidates)
         if len(candidates) > 30:
             params["more_non_cached"] = len(candidates) - 30
             candidates = candidates[:30]
@@ -556,7 +557,6 @@ class InvocationServer:
             action["name_prefix"] = "%5.1fs" % (t,)
             non_cached.append(action)
         params["non_cached"] = non_cached
-        params["non_cached_count"] = len(non_cached)
         start_time = profile.get("start time")
         build_start_time = profile.get("build start time")
         build_stop_time = profile.get("build stop time")
