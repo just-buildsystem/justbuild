@@ -679,6 +679,15 @@ auto TargetService::ServeTargetVariables(
     // retrieve content of target file
     std::optional<std::string> target_file_content{std::nullopt};
     bool tree_found{false};
+    // Get repository lock before inspecting the root git cache
+    auto repo_lock =
+        RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
+    if (not repo_lock) {
+        auto msg = std::string("Could not acquire repo gc SharedLock");
+        logger_->Emit(LogLevel::Error, msg);
+        return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
+    }
+
     // try in local build root Git cache
     if (auto res = GetBlobContent(local_context_.storage_config->GitRoot(),
                                   root_tree,
