@@ -2,6 +2,14 @@
 
 Bug fixes on top of `1.6.0`.
 
+### Fixes
+
+- Fixed missing mandatory locking point of the Git cache in a
+  `just serve` service.
+- `just-mr` now correctly maintains also the Git cache lock when
+  calling `just` if repository configuration was involved,
+  preventing any unwanted intermediary repository garbage collection.
+
 ## Release `1.6.0` (2025-06-27)
 
 A feature release on top of `1.5.0`, backwards compatible.
