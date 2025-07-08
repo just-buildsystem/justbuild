@@ -220,7 +220,6 @@
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "protocol_traits"]
     , ["src/buildtool/crypto", "hash_function"]
-    , ["src/buildtool/file_system", "file_system_manager"]
     ]
   }
 }

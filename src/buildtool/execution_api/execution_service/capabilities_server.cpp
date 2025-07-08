@@ -33,8 +33,6 @@ auto CapabilitiesServiceImpl::GetCapabilities(
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
     cache.set_max_batch_total_size_bytes(MessageLimits::kMaxGrpcLength);
 
-    cache.add_supported_chunking_algorithms(
-        ::bazel_re::ChunkingAlgorithm_Value::ChunkingAlgorithm_Value_FASTCDC);
     *(response->mutable_cache_capabilities()) = cache;
 
     exec.set_digest_function(

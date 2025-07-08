@@ -38,11 +38,6 @@ class CASUtils {
                                            bool is_owner = true) noexcept
         -> grpc::Status;
 
-    [[nodiscard]] static auto SplitBlobIdentity(
-        ArtifactDigest const& blob_digest,
-        Storage const& storage) noexcept
-        -> expected<std::vector<ArtifactDigest>, grpc::Status>;
-
     [[nodiscard]] static auto SplitBlobFastCDC(
         ArtifactDigest const& blob_digest,
         Storage const& storage) noexcept

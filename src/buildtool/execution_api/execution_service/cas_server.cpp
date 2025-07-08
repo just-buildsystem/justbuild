@@ -35,25 +35,6 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/expected.hpp"
 
-namespace {
-[[nodiscard]] auto ChunkingAlgorithmToString(
-    ::bazel_re::ChunkingAlgorithm_Value type) -> std::string {
-    switch (type) {
-        case ::bazel_re::ChunkingAlgorithm_Value::
-            ChunkingAlgorithm_Value_IDENTITY:
-            return "IDENTITY";
-        case ::bazel_re::ChunkingAlgorithm_Value::
-            ChunkingAlgorithm_Value_RABINCDC_8KB:
-            return "RABINCDC_8KB";
-        case ::bazel_re::ChunkingAlgorithm_Value::
-            ChunkingAlgorithm_Value_FASTCDC:
-            return "FASTCDC";
-        default:
-            return "[Unknown Chunking Algorithm Type]";
-    }
-}
-}  // namespace
-
 auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
@@ -202,26 +183,6 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
         return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
 
-    auto const chunking_algorithm = request->chunking_algorithm();
-    logger_.Emit(LogLevel::Debug,
-                 "SplitBlob({}, {})",
-                 blob_digest->hash(),
-                 ChunkingAlgorithmToString(chunking_algorithm));
-
-    // Print warning if unsupported chunking algorithm was requested.
-    if (chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
-                                  ChunkingAlgorithm_Value_IDENTITY and
-        chunking_algorithm != ::bazel_re::ChunkingAlgorithm_Value::
-                                  ChunkingAlgorithm_Value_FASTCDC) {
-        logger_.Emit(
-            LogLevel::Warning,
-            "SplitBlob: unsupported chunking algorithm {}, will use default "
-            "implementation {}",
-            ChunkingAlgorithmToString(chunking_algorithm),
-            ChunkingAlgorithmToString(::bazel_re::ChunkingAlgorithm_Value::
-                                          ChunkingAlgorithm_Value_FASTCDC));
-    }
-
     // Acquire garbage collection lock.
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
@@ -233,10 +194,7 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
 
     // Split blob into chunks.
     auto const split_result =
-        chunking_algorithm == ::bazel_re::ChunkingAlgorithm_Value::
-                                  ChunkingAlgorithm_Value_IDENTITY
-            ? CASUtils::SplitBlobIdentity(*blob_digest, storage_)
-            : CASUtils::SplitBlobFastCDC(*blob_digest, storage_);
+        CASUtils::SplitBlobFastCDC(*blob_digest, storage_);
 
     if (not split_result) {
         auto const& status = split_result.error();

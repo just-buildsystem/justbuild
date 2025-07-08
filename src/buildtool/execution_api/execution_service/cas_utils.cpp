@@ -21,7 +21,6 @@
 #include "gsl/gsl"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
-#include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/storage/large_object_cas.hpp"
 
 namespace {
@@ -122,46 +121,6 @@ auto CASUtils::AddFileToCAS(ArtifactDigest const& digest,
                             Storage const& storage,
                             bool is_owner) noexcept -> grpc::Status {
     return CASContentValidator{&storage, is_owner}.Add(digest, file);
-}
-
-auto CASUtils::SplitBlobIdentity(ArtifactDigest const& blob_digest,
-                                 Storage const& storage) noexcept
-    -> expected<std::vector<ArtifactDigest>, grpc::Status> {
-    // Check blob existence.
-    auto path = blob_digest.IsTree()
-                    ? storage.CAS().TreePath(blob_digest)
-                    : storage.CAS().BlobPath(blob_digest, false);
-    if (not path) {
-        return unexpected{
-            grpc::Status{grpc::StatusCode::NOT_FOUND,
-                         fmt::format("blob not found {}", blob_digest.hash())}};
-    }
-
-    // The split protocol states that each chunk that is returned by the
-    // operation is stored in (file) CAS. This means for the native mode, if we
-    // return the identity of a tree, we need to put the tree data in file CAS
-    // and return the resulting digest.
-    auto chunk_digests = std::vector<ArtifactDigest>{};
-    if (blob_digest.IsTree()) {
-        auto tree_data = FileSystemManager::ReadFile(*path);
-        if (not tree_data) {
-            return unexpected{
-                grpc::Status{grpc::StatusCode::INTERNAL,
-                             fmt::format("could not read tree data {}",
-                                         blob_digest.hash())}};
-        }
-        auto digest = storage.CAS().StoreBlob(*tree_data, false);
-        if (not digest) {
-            return unexpected{
-                grpc::Status{grpc::StatusCode::INTERNAL,
-                             fmt::format("could not store tree as blob {}",
-                                         blob_digest.hash())}};
-        }
-        chunk_digests.emplace_back(*digest);
-        return chunk_digests;
-    }
-    chunk_digests.emplace_back(blob_digest);
-    return chunk_digests;
 }
 
 auto CASUtils::SplitBlobFastCDC(ArtifactDigest const& blob_digest,
