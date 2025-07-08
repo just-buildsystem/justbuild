@@ -4,6 +4,9 @@ Bug fixes on top of `1.6.0`.
 
 ### Fixes
 
+- `just` now follows the protocol for blob splitting/splicing that was
+  standardized in https://github.com/bazelbuild/remote-apis/pull/282
+  Before, this used to be `just`-specific extension.
 - Fixed missing mandatory locking point of the Git cache in a
   `just serve` service.
 - `just-mr` now correctly maintains also the Git cache lock when
@@ -11,6 +14,12 @@ Bug fixes on top of `1.6.0`.
   preventing any unwanted intermediary repository garbage collection.
 - The invocation server now correctly reports the total number of
   uncached actions.
+
+### Note for package maintainers
+
+The dependency on the remote-execution API has been changed to
+require a newer version. As this is often provided as a separate
+source archive, this might require additional changes.
 
 ## Release `1.6.0` (2025-06-27)
 
