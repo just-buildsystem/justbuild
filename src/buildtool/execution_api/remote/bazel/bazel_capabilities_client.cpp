@@ -48,13 +48,14 @@ namespace {
     Capabilities const default_capabilities;
 
     // If capabilities don't contain cache capabilities, max_batch_total_size is
-    // unlimited(equals 0) or greater than the internal limit, fall back to the
-    // default max_batch_total_size:
+    // unlimited (equals 0), or greater than the internal limit, fall back to
+    // the default max_batch_total_size.
     std::size_t max_batch = default_capabilities.MaxBatchTransferSize;
     if (response->has_cache_capabilities() and
         response->cache_capabilities().max_batch_total_size_bytes() != 0) {
         max_batch = std::min<std::size_t>(
-            response->cache_capabilities().max_batch_total_size_bytes(),
+            static_cast<std::size_t>(
+                response->cache_capabilities().max_batch_total_size_bytes()),
             default_capabilities.MaxBatchTransferSize);
     }
     return Capabilities{
