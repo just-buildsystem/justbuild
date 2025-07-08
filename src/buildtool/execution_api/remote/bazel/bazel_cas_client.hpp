@@ -34,7 +34,6 @@
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
-#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 #include "src/buildtool/execution_api/remote/bazel/bytestream_client.hpp"
 #include "src/buildtool/logging/logger.hpp"
@@ -105,36 +104,28 @@ class BazelCasClient {
         const noexcept -> std::optional<ArtifactBlob>;
 
     /// @brief Split single blob into chunks
-    /// @param[in] hash_function    Hash function to be used for creation of
-    /// an empty blob.
     /// @param[in] instance_name    Name of the CAS instance
     /// @param[in] blob_digest      Blob digest to be splitted
     /// @return The chunk digests of the splitted blob
-    [[nodiscard]] auto SplitBlob(HashFunction hash_function,
-                                 std::string const& instance_name,
+    [[nodiscard]] auto SplitBlob(std::string const& instance_name,
                                  bazel_re::Digest const& blob_digest)
         const noexcept -> std::optional<std::vector<bazel_re::Digest>>;
 
     /// @brief Splice blob from chunks at the remote side
-    /// @param[in] hash_function    Hash function to be used for creation of
-    /// an empty blob.
     /// @param[in] instance_name    Name of the CAS instance
     /// @param[in] blob_digest      Expected digest of the spliced blob
     /// @param[in] chunk_digests    The chunk digests of the splitted blob
     /// @return Whether the splice call was successful
     [[nodiscard]] auto SpliceBlob(
-        HashFunction hash_function,
         std::string const& instance_name,
         bazel_re::Digest const& blob_digest,
         std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
         -> std::optional<bazel_re::Digest>;
 
     [[nodiscard]] auto BlobSplitSupport(
-        HashFunction hash_function,
         std::string const& instance_name) const noexcept -> bool;
 
     [[nodiscard]] auto BlobSpliceSupport(
-        HashFunction hash_function,
         std::string const& instance_name) const noexcept -> bool;
 
     [[nodiscard]] auto GetMaxBatchTransferSize(

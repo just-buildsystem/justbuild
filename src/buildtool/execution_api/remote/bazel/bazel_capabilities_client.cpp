@@ -51,15 +51,23 @@ namespace {
     // unlimited (equals 0), or greater than the internal limit, fall back to
     // the default max_batch_total_size.
     std::size_t max_batch = default_capabilities.MaxBatchTransferSize;
-    if (response->has_cache_capabilities() and
-        response->cache_capabilities().max_batch_total_size_bytes() != 0) {
-        max_batch = std::min<std::size_t>(
-            static_cast<std::size_t>(
-                response->cache_capabilities().max_batch_total_size_bytes()),
-            default_capabilities.MaxBatchTransferSize);
+    bool split_support = default_capabilities.blob_split_support;
+    bool splice_support = default_capabilities.blob_splice_support;
+    if (response->has_cache_capabilities()) {
+        auto const& cache_capabilities = response->cache_capabilities();
+        if (cache_capabilities.max_batch_total_size_bytes() != 0) {
+            max_batch = std::min<std::size_t>(
+                static_cast<std::size_t>(response->cache_capabilities()
+                                             .max_batch_total_size_bytes()),
+                default_capabilities.MaxBatchTransferSize);
+        }
+        split_support = cache_capabilities.blob_split_support();
+        splice_support = cache_capabilities.blob_splice_support();
     }
     return Capabilities{
         .MaxBatchTransferSize = max_batch,
+        .blob_split_support = split_support,
+        .blob_splice_support = splice_support,
         .low_api_version = response->has_deprecated_api_version()
                                ? ParseSemVer(response->deprecated_api_version())
                                : (response->has_low_api_version()  // NOLINT
@@ -132,6 +140,15 @@ auto BazelCapabilitiesClient::GetCapabilities(
 
     bool const cache_result = response.has_value();
     auto result = std::make_shared<Capabilities>(Parse(std::move(response)));
+
+    logger_.Emit(LogLevel::Debug,
+                 "Obtained server capabilities for \"{}\":\n  - "
+                 "max_batch_total_size_bytes: {}\n  - "
+                 "blob_split_support: {}\n  - blob_split_support: {}\n",
+                 instance_name,
+                 result->MaxBatchTransferSize,
+                 result->blob_split_support,
+                 result->blob_splice_support);
 
     // Cache results only if they contain meaningful non-default capabilities or
     // there's no point in retrying:

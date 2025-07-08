@@ -52,6 +52,8 @@ struct Capabilities final {
         .patch = std::numeric_limits<std::int32_t>::max()};
 
     std::size_t const MaxBatchTransferSize = MessageLimits::kMaxGrpcLength;
+    bool const blob_split_support = false;
+    bool const blob_splice_support = false;
     Version const low_api_version = kMinVersion;
     Version const high_api_version = kMaxVersion;
 };

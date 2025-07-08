@@ -16,10 +16,7 @@
 
 #include <algorithm>
 #include <iterator>
-#include <mutex>
-#include <shared_mutex>
 #include <sstream>
-#include <unordered_map>
 #include <unordered_set>
 #include <utility>
 
@@ -27,11 +24,11 @@
 
 #include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
-#include "src/buildtool/common/bazel_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
+#include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
@@ -80,137 +77,6 @@ template <typename TRequest,
         content_size += GetContentSize(*it);
     }
     return end;
-}
-
-// In order to determine whether blob splitting is supported at the remote, a
-// trial request to the remote CAS service is issued. This is just a workaround
-// until the blob split API extension is accepted as part of the official remote
-// execution protocol. Then, the ordinary way to determine server capabilities
-// can be employed by using the capabilities service.
-[[nodiscard]] auto BlobSplitSupport(
-    HashFunction hash_function,
-    std::string const& instance_name,
-    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
-        stub) noexcept -> bool {
-    // Create empty blob.
-    std::string empty_str{};
-    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, empty_str);
-
-    // Upload empty blob.
-    grpc::ClientContext update_context{};
-    bazel_re::BatchUpdateBlobsRequest update_request{};
-    bazel_re::BatchUpdateBlobsResponse update_response{};
-    update_request.set_instance_name(instance_name);
-    auto* request = update_request.add_requests();
-    request->mutable_digest()->CopyFrom(digest);
-    request->set_data(empty_str);
-    grpc::Status update_status = stub->BatchUpdateBlobs(
-        &update_context, update_request, &update_response);
-    if (not update_status.ok()) {
-        return false;
-    }
-
-    // Request splitting empty blob.
-    grpc::ClientContext split_context{};
-    bazel_re::SplitBlobRequest split_request{};
-    bazel_re::SplitBlobResponse split_response{};
-    split_request.set_instance_name(instance_name);
-    split_request.mutable_blob_digest()->CopyFrom(digest);
-    grpc::Status split_status =
-        stub->SplitBlob(&split_context, split_request, &split_response);
-    return split_status.ok();
-}
-
-// Cached version of blob-split support request.
-[[nodiscard]] auto BlobSplitSupportCached(
-    HashFunction hash_function,
-    std::string const& instance_name,
-    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
-    Logger const* logger) noexcept -> bool {
-    static auto mutex = std::shared_mutex{};
-    static auto blob_split_support_map =
-        std::unordered_map<std::string, bool>{};
-    {
-        auto lock = std::shared_lock(mutex);
-        if (blob_split_support_map.contains(instance_name)) {
-            return blob_split_support_map[instance_name];
-        }
-    }
-    auto supported = ::BlobSplitSupport(hash_function, instance_name, stub);
-    logger->Emit(LogLevel::Debug,
-                 "Blob split support for \"{}\": {}",
-                 instance_name,
-                 supported);
-    auto lock = std::unique_lock(mutex);
-    blob_split_support_map[instance_name] = supported;
-    return supported;
-}
-
-// In order to determine whether blob splicing is supported at the remote, a
-// trial request to the remote CAS service is issued. This is just a workaround
-// until the blob splice API extension is accepted as part of the official
-// remote execution protocol. Then, the ordinary way to determine server
-// capabilities can be employed by using the capabilities service.
-[[nodiscard]] auto BlobSpliceSupport(
-    HashFunction hash_function,
-    std::string const& instance_name,
-    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const&
-        stub) noexcept -> bool {
-    // Create empty blob.
-    std::string empty_str{};
-    auto const digest = BazelDigestFactory::HashDataAs<ObjectType::File>(
-        hash_function, empty_str);
-
-    // Upload empty blob.
-    grpc::ClientContext update_context{};
-    bazel_re::BatchUpdateBlobsRequest update_request{};
-    bazel_re::BatchUpdateBlobsResponse update_response{};
-    update_request.set_instance_name(instance_name);
-    auto* request = update_request.add_requests();
-    request->mutable_digest()->CopyFrom(digest);
-    request->set_data(empty_str);
-    grpc::Status update_status = stub->BatchUpdateBlobs(
-        &update_context, update_request, &update_response);
-    if (not update_status.ok()) {
-        return false;
-    }
-
-    // Request splicing empty blob.
-    grpc::ClientContext splice_context{};
-    bazel_re::SpliceBlobRequest splice_request{};
-    bazel_re::SpliceBlobResponse splice_response{};
-    splice_request.set_instance_name(instance_name);
-    splice_request.mutable_blob_digest()->CopyFrom(digest);
-    splice_request.add_chunk_digests()->CopyFrom(digest);
-    grpc::Status splice_status =
-        stub->SpliceBlob(&splice_context, splice_request, &splice_response);
-    return splice_status.ok();
-}
-
-// Cached version of blob-splice support request.
-[[nodiscard]] auto BlobSpliceSupportCached(
-    HashFunction hash_function,
-    std::string const& instance_name,
-    std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> const& stub,
-    Logger const* logger) noexcept -> bool {
-    static auto mutex = std::shared_mutex{};
-    static auto blob_splice_support_map =
-        std::unordered_map<std::string, bool>{};
-    {
-        auto lock = std::shared_lock(mutex);
-        if (blob_splice_support_map.contains(instance_name)) {
-            return blob_splice_support_map[instance_name];
-        }
-    }
-    auto supported = ::BlobSpliceSupport(hash_function, instance_name, stub);
-    logger->Emit(LogLevel::Debug,
-                 "Blob splice support for \"{}\": {}",
-                 instance_name,
-                 supported);
-    auto lock = std::unique_lock(mutex);
-    blob_splice_support_map[instance_name] = supported;
-    return supported;
 }
 
 }  // namespace
@@ -383,12 +249,10 @@ auto BazelCasClient::ReadSingleBlob(std::string const& instance_name,
     return stream_->Read(instance_name, digest, temp_space_);
 }
 
-auto BazelCasClient::SplitBlob(HashFunction hash_function,
-                               std::string const& instance_name,
+auto BazelCasClient::SplitBlob(std::string const& instance_name,
                                bazel_re::Digest const& blob_digest)
     const noexcept -> std::optional<std::vector<bazel_re::Digest>> {
-    if (not BlobSplitSupportCached(
-            hash_function, instance_name, stub_, &logger_)) {
+    if (not BlobSplitSupport(instance_name)) {
         return std::nullopt;
     }
     bazel_re::SplitBlobRequest request{};
@@ -415,13 +279,11 @@ auto BazelCasClient::SplitBlob(HashFunction hash_function,
 }
 
 auto BazelCasClient::SpliceBlob(
-    HashFunction hash_function,
     std::string const& instance_name,
     bazel_re::Digest const& blob_digest,
     std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
     -> std::optional<bazel_re::Digest> {
-    if (not BlobSpliceSupportCached(
-            hash_function, instance_name, stub_, &logger_)) {
+    if (not BlobSpliceSupport(instance_name)) {
         return std::nullopt;
     }
     bazel_re::SpliceBlobRequest request{};
@@ -449,17 +311,13 @@ auto BazelCasClient::SpliceBlob(
 }
 
 auto BazelCasClient::BlobSplitSupport(
-    HashFunction hash_function,
     std::string const& instance_name) const noexcept -> bool {
-    return ::BlobSplitSupportCached(
-        hash_function, instance_name, stub_, &logger_);
+    return capabilities_.GetCapabilities(instance_name)->blob_split_support;
 }
 
 auto BazelCasClient::BlobSpliceSupport(
-    HashFunction hash_function,
     std::string const& instance_name) const noexcept -> bool {
-    return ::BlobSpliceSupportCached(
-        hash_function, instance_name, stub_, &logger_);
+    return capabilities_.GetCapabilities(instance_name)->blob_splice_support;
 }
 
 auto BazelCasClient::FindMissingBlobs(

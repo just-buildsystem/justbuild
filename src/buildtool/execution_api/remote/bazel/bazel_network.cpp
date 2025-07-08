@@ -63,23 +63,22 @@ auto BazelNetwork::FindMissingBlobs(
 
 auto BazelNetwork::SplitBlob(bazel_re::Digest const& blob_digest) const noexcept
     -> std::optional<std::vector<bazel_re::Digest>> {
-    return cas_->SplitBlob(hash_function_, instance_name_, blob_digest);
+    return cas_->SplitBlob(instance_name_, blob_digest);
 }
 
 auto BazelNetwork::SpliceBlob(
     bazel_re::Digest const& blob_digest,
     std::vector<bazel_re::Digest> const& chunk_digests) const noexcept
     -> std::optional<bazel_re::Digest> {
-    return cas_->SpliceBlob(
-        hash_function_, instance_name_, blob_digest, chunk_digests);
+    return cas_->SpliceBlob(instance_name_, blob_digest, chunk_digests);
 }
 
 auto BazelNetwork::BlobSplitSupport() const noexcept -> bool {
-    return cas_->BlobSplitSupport(hash_function_, instance_name_);
+    return cas_->BlobSplitSupport(instance_name_);
 }
 
 auto BazelNetwork::BlobSpliceSupport() const noexcept -> bool {
-    return cas_->BlobSpliceSupport(hash_function_, instance_name_);
+    return cas_->BlobSpliceSupport(instance_name_);
 }
 
 auto BazelNetwork::DoUploadBlobs(
