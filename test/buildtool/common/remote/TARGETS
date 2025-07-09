@@ -1,0 +1,17 @@
+{ "remote_common":
+  { "type": ["@", "rules", "CC/test", "test"]
+  , "name": ["remote_common"]
+  , "srcs": ["remote_common.test.cpp"]
+  , "private-deps":
+    [ ["@", "catch2", "", "catch2"]
+    , ["@", "src", "src/buildtool/common/remote", "remote_common"]
+    , ["", "catch-main"]
+    ]
+  , "stage": ["test", "buildtool", "common", "remote"]
+  }
+, "TESTS":
+  { "type": ["@", "rules", "test", "suite"]
+  , "stage": ["remote"]
+  , "deps": ["remote_common"]
+  }
+}

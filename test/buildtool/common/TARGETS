@@ -51,6 +51,11 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["common"]
-  , "deps": ["action_description", "artifact_description", "repository_config"]
+  , "deps":
+    [ "action_description"
+    , "artifact_description"
+    , "repository_config"
+    , ["./", "remote", "TESTS"]
+    ]
   }
 }

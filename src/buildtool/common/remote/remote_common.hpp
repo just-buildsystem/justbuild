@@ -64,7 +64,7 @@ using DispatchEndpoint = std::pair<ExecutionProperties, ServerAddress>;
     std::istringstream pss(property);
     std::string key;
     std::string val;
-    if (not std::getline(pss, key, ':') or not std::getline(pss, val, ':')) {
+    if (not std::getline(pss, key, ':') or not std::getline(pss, val)) {
         return std::nullopt;
     }
     return std::make_pair(key, val);
