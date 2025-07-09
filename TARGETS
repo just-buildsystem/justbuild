@@ -155,6 +155,7 @@
     , "FINAL_LDFLAGS"
     , "SOURCE_DATE_EPOCH"
     , "VERSION_EXTRA_SUFFIX"
+    , "PKG_CONFIG_ARGS"
     ]
   }
 , "just-mr":
