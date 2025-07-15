@@ -199,6 +199,10 @@ Default: *`"git"`*.
 **`--norc`**  
 Option to prevent reading any **`just-mrrc`**(5) file.
 
+**`-j`**, **`--jobs`** *`NUM`*  
+Number of jobs to run.  
+Default: Number of cores.  
+
 Authentication options
 ----------------------
 

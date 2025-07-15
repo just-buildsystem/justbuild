@@ -15,6 +15,7 @@ Bug fixes on top of `1.6.0`.
 - The invocation server now correctly reports the total number of
   uncached actions.
 - Allow colons present in remote execution properties.
+- Improvements to the documentation.
 
 ### Note for package maintainers
 
