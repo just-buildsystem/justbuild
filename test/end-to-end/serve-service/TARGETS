@@ -29,6 +29,7 @@
   }
 , "serve-target-remote-build (repo)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds":
     [ "mkdir -p src"
@@ -36,6 +37,8 @@
     , "mkdir src/subdir"
     , "for i in `seq 6 10` ; do echo $i > src/subdir/sub-$i.txt ; done"
     ]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "serve-target-remote-build (target)":
   { "type": ["@", "rules", "data", "staged"]
@@ -80,9 +83,12 @@
   {"type": "install", "dirs": [["serve-target-remote-build (repo)", "repo"]]}
 , "serve-tree (archive)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "outs": ["src.tar"]
   , "cmds": ["tar cf src.tar repo"]
   , "deps": ["serve-tree (data)"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "serve-tree":
   { "type": ["end-to-end", "with serve"]
@@ -178,9 +184,12 @@
   }
 , "load test (data)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "outs": ["ROOT", "TARGETS"]
   , "cmds": ["touch ROOT", "python3 wide-deep-targets.py"]
   , "deps": ["wide-deep-targets.py"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "load test":
   { "type": ["end-to-end", "with serve"]

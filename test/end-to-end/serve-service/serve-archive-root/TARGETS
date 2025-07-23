@@ -1,16 +1,22 @@
 { "serve-tree-syms (repo)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds": ["for i in `seq 1 5` ; do ln -s $i.txt src/link-$i ; done"]
   , "deps": [["end-to-end/serve-service", "serve-target-remote-build (repo)"]]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "serve-tree-syms (data)":
   {"type": "install", "dirs": [["serve-tree-syms (repo)", "repo"]]}
 , "serve-tree-syms (archive)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "outs": ["src.tar"]
   , "cmds": ["tar cf src.tar repo"]
   , "deps": ["serve-tree-syms (data)"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "unresolved-present":
   { "type": ["end-to-end", "with serve"]

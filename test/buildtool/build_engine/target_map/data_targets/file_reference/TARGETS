@@ -4,8 +4,11 @@
   }
 , "hello.txt":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "deps": ["_hello.txt"]
   , "outs": ["hello.txt"]
   , "cmds": ["cat raw_data/hello.txt | tr 'a-z' 'A-Z' > hello.txt"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 }

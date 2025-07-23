@@ -60,15 +60,21 @@
   }
 , "use generic sym":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "deps": ["bar.txt"]
   , "cmds": ["ln -s $(cat bar.txt) sym"]
   , "outs": ["sym"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "use generic":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "deps": ["foo.txt", "link"]
   , "cmds": ["cat foo.txt > out", "readlink link > out", "echo 'DONE' >> out"]
   , "outs": ["out"]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "install":
   { "type": "install"
@@ -109,9 +115,12 @@
   }
 , "generic non-normal outs and out_dirs":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "cmds": ["mkdir -P install", "echo Hello > install/data", "echo OK > log"]
   , "outs": ["./log"]
   , "out_dirs": ["install/."]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "stage conflict: rule":
   { "type": ["simple_rules", "action"]
@@ -121,8 +130,11 @@
   }
 , "stage conflict: generic":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "cmds": ["mkdir -p install && echo Hello > install/data.txt"]
   , "outs": ["./install/data.txt"]
   , "out_dirs": ["install/."]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 }

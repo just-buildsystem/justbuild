@@ -158,15 +158,19 @@
   }
 , "fetch-absent (data)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds":
     [ "mkdir -p src"
     , "for i in `seq 1 10` ; do echo $i > src/$i.txt ; done"
     , "tar cf src/data.tar src/*.txt"
     ]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "fetch-absent-with-symlinks (data)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds":
     [ "mkdir -p src/foo"
@@ -174,6 +178,8 @@
     , "ln -s foo/data.txt src/link"
     , "tar cf src/data.tar src/*"
     ]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "git-tree-env":
   { "type": ["@", "rules", "shell/test", "script"]

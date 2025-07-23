@@ -18,21 +18,27 @@
   }
 , "absent_tree_structure_foo (repo)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds":
     [ "NESTED_DIR='src/nested_dir/nested_dir_2'"
     , "mkdir -p ${NESTED_DIR}"
     , "echo foo > ${NESTED_DIR}/file.txt"
     ]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "absent_tree_structure_bar (repo)":
   { "type": "generic"
+  , "arguments_config": ["TEST_ENV"]
   , "out_dirs": ["src"]
   , "cmds":
     [ "NESTED_DIR='src/nested_dir/nested_dir_2'"
     , "mkdir -p ${NESTED_DIR}"
     , "echo bar > src/nested_dir/nested_dir_2/file.txt"
     ]
+  , "env":
+    {"type": "var", "name": "TEST_ENV", "default": {"type": "empty_map"}}
   }
 , "absent_tree_structure":
   { "type": ["end-to-end", "with serve"]
