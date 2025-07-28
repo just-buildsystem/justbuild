@@ -424,6 +424,11 @@ message ServeTargetRequest {
   // The client has to guarantee that the blob has been uploaded to the
   // remote CAS.
   build.bazel.remote.execution.v2.Digest dispatch_info  = 3;
+
+  // Digests that the serve SHOULD make available before handling the request.
+  // Serve MUST attempt to perform execution even if it fails to receive some
+  // digests.
+  repeated build.bazel.remote.execution.v2.Digest required_digests = 5;
 }
 
 // A response message for
