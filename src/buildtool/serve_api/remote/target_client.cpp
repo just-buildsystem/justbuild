@@ -135,6 +135,9 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
     (*request.mutable_dispatch_info()) =
         ArtifactDigestFactory::ToBazel(*dispatch_digest);
 
+    request.mutable_required_digests()->Add(
+        ArtifactDigestFactory::ToBazel(repo_key));
+
     // call rpc
     grpc::ClientContext context;
     justbuild::just_serve::ServeTargetResponse response;
