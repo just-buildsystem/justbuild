@@ -209,21 +209,9 @@ auto TargetService::CreateRemoteExecutionConfig(
 }
 
 auto TargetService::ServeTarget(
-    ::grpc::ServerContext* /*context*/,
+    ::grpc::ServerContext* context,
     const ::justbuild::just_serve::ServeTargetRequest* request,
     ::justbuild::just_serve::ServeTargetResponse* response) -> ::grpc::Status {
-    // check target cache key hash for validity
-    auto const target_cache_key_digest = ArtifactDigestFactory::FromBazel(
-        local_context_.storage_config->hash_function.GetType(),
-        request->target_cache_key_id());
-    if (not target_cache_key_digest) {
-        logger_->Emit(LogLevel::Error, "{}", target_cache_key_digest.error());
-        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
-                              target_cache_key_digest.error()};
-    }
-    logger_->Emit(
-        LogLevel::Debug, "ServeTarget({})", target_cache_key_digest->hash());
-
     // acquire locks
     auto repo_lock =
         RepositoryGarbageCollector::SharedLock(*local_context_.storage_config);
@@ -238,6 +226,57 @@ auto TargetService::ServeTarget(
         logger_->Emit(LogLevel::Error, msg);
         return ::grpc::Status{::grpc::StatusCode::INTERNAL, msg};
     }
+
+    std::string download_error;
+    std::vector<Artifact::ObjectInfo> required_digests;
+    required_digests.reserve(request->required_digests_size());
+    for (int i = 0; i != request->required_digests_size(); ++i) {
+        auto current = ArtifactDigestFactory::FromBazel(
+            local_context_.storage_config->hash_function.GetType(),
+            request->required_digests(i));
+        if (not current.has_value()) {
+            download_error +=
+                fmt::format("Failed to convert a required digest {}\n",
+                            request->required_digests(i).hash());
+            continue;
+        }
+
+        bool const is_tree = current->IsTree();
+        required_digests.emplace_back() = Artifact::ObjectInfo{
+            .digest = *std::move(current),
+            .type = is_tree ? ObjectType::Tree : ObjectType::File,
+        };
+    }
+    if (not required_digests.empty() and
+        not apis_.remote->RetrieveToCas(required_digests, *apis_.local)) {
+        download_error += "Failed to download all required artifacts\n";
+    }
+
+    auto status = ServeTargetImpl(context, request, response);
+    if (status.error_code() == grpc::StatusCode::OK or download_error.empty()) {
+        return status;
+    }
+    logger_->Emit(LogLevel::Warning, download_error);
+    return ::grpc::Status{
+        status.error_code(),
+        fmt::format("{}{}", download_error, status.error_message())};
+}
+
+auto TargetService::ServeTargetImpl(
+    ::grpc::ServerContext* /*context*/,
+    const ::justbuild::just_serve::ServeTargetRequest* request,
+    ::justbuild::just_serve::ServeTargetResponse* response) -> ::grpc::Status {
+    // check target cache key hash for validity
+    auto const target_cache_key_digest = ArtifactDigestFactory::FromBazel(
+        local_context_.storage_config->hash_function.GetType(),
+        request->target_cache_key_id());
+    if (not target_cache_key_digest) {
+        logger_->Emit(LogLevel::Error, "{}", target_cache_key_digest.error());
+        return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
+                              target_cache_key_digest.error()};
+    }
+    logger_->Emit(
+        LogLevel::Debug, "ServeTarget({})", target_cache_key_digest->hash());
 
     // set up the remote execution config instance for the orchestrated build
     auto remote_config = CreateRemoteExecutionConfig(request);

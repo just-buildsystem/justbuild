@@ -138,6 +138,12 @@ class TargetService final : public justbuild::just_serve::Target::Service {
     ServeApi const* const serve_ = nullptr;
     std::shared_ptr<Logger> logger_{std::make_shared<Logger>("target-service")};
 
+    auto ServeTargetImpl(
+        ::grpc::ServerContext* /*context*/,
+        const ::justbuild::just_serve::ServeTargetRequest* /*request*/,
+        ::justbuild::just_serve::ServeTargetResponse* /*response*/)
+        -> ::grpc::Status;
+
     /// \brief Get from remote and parse the endpoint configuration. The method
     /// also ensures the content has the expected format.
     /// \returns The dispatch list stored as JSON object on success or an
