@@ -156,8 +156,10 @@ auto TargetClient::ServeTarget(const TargetCacheKey& key,
                         fmt::format("Failed to convert log digest: {}",
                                     std::move(log_digest).error())};
                 }
-                return serve_target_result_t{std::in_place_index<0>,
-                                             log_digest->hash()};
+                return serve_target_result_t{
+                    std::in_place_index<0>,
+                    Artifact::ObjectInfo{*log_digest, ObjectType::File, false}
+                        .ToString()};
             }
             // if no log has been set, it must have the target cache value
             auto const target_value_dgst =

@@ -36,7 +36,7 @@
 #include "src/buildtool/storage/target_cache_key.hpp"
 
 /// \brief Result union for the ServeTarget request.
-/// Index 0 will contain the hash of the blob containing the logged
+/// Index 0 will contain the digest of the blob containing the logged
 /// analysis/build failure received from the endpoint, as a string; this should
 /// also trigger a local build fail.
 /// Index 1 will contain the message of any INTERNAL error on the endpoint, as
