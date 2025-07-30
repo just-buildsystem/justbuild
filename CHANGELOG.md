@@ -13,6 +13,10 @@ Bug fixes on top of `1.6.1`.
   `serve` protocol was extended by a new field where the client can
   send a list of full blob digests asking the server to download
   those before handling the request.
+- If `serve` reports an error, the full digest of the error-log
+  blob (including size) is shown to the user and not only the
+  hash. This allows inspection of the error log, even if a strict
+  compatible remote execution is used.
 
 ## Release `1.6.1` (2025-07-16)
 
