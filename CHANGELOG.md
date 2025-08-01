@@ -2,6 +2,18 @@
 
 Bug fixes on top of `1.6.2`.
 
+### Fixes
+
+- In compatible mode, `just` now properly handles symbolic links that
+  occur in output directories or as explicit outputs. The problem was
+  that the default remote-execution protocol (which is used in
+  compatible mode) does not require the remote endpoint to store
+  symbolic links explicitly as blobs in CAS, while `just` internally
+  does exactly that and is assuming symbolic links being available in
+  CAS. This fix now uploads any symbolic link that is received over the
+  network (e.g., as part of a Directory message) in compatible mode as
+  separate blob to the remote CAS.
+
 ## Release `1.6.2` (2025-07-30)
 
 Bug fixes on top of `1.6.1`.

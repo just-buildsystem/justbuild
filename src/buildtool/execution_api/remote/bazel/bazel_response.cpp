@@ -19,6 +19,8 @@
 #include <exception>
 #include <filesystem>
 #include <functional>
+#include <initializer_list>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 
@@ -41,10 +43,20 @@
 
 namespace {
 
-/// \brief Return
+/// \brief Generates an ArtifactBlob from a Directory message and while
+/// there, checks whether it includes any upward symlinks and collects
+/// all symlinks as separate ArtifactBlobs.
+/// \param[in] hash_function  The hash function to be used.
+/// \param[in] dir            The Bazel Directory message.
+/// \returns In case of success: a tuple containing the ArtifactBlob of
+/// the Directory message, the collection of ArtifactBlobs of all
+/// contained symbolic links, and a flag whether the message contains
+/// upward symlinks. In case of failure: an error message.
 auto ProcessDirectoryMessage(HashFunction hash_function,
                              bazel_re::Directory const& dir) noexcept
-    -> expected<std::pair<ArtifactBlob, /*has_upwards_symlinks*/ bool>,
+    -> expected<std::tuple<ArtifactBlob,
+                           std::unordered_set<ArtifactBlob>,
+                           /*has_upwards_symlinks*/ bool>,
                 std::string> {
     // in compatible mode: track upwards symlinks
     bool has_upwards_symlinks = std::any_of(
@@ -56,7 +68,19 @@ auto ProcessDirectoryMessage(HashFunction hash_function,
     if (not blob) {
         return unexpected{std::move(blob).error()};
     }
-    return std::make_pair(std::move(blob).value(), has_upwards_symlinks);
+    // extract and return symlinks embedded in the Bazel Directory
+    // message as separate blobs to upload them later
+    std::unordered_set<ArtifactBlob> link_blobs;
+    for (auto const& link : dir.symlinks()) {
+        auto link_blob = ArtifactBlob::FromMemory(
+            hash_function, ObjectType::File, link.target());
+        if (not link_blob) {
+            return unexpected{std::move(link_blob).error()};
+        }
+        link_blobs.insert(std::move(link_blob).value());
+    }
+    return std::make_tuple(
+        std::move(blob).value(), std::move(link_blobs), has_upwards_symlinks);
 }
 
 }  // namespace
@@ -137,70 +161,53 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         }
     }
 
+    // in compatible mode: collect all symlinks and upload them as separate
+    // blobs
+    std::unordered_set<ArtifactBlob> link_blobs;
+
     // collect all symlinks and store them
-    for (auto const& link : action_result.output_symlinks()) {
-        try {
-            // in compatible mode: track upwards symlinks
-            has_upwards_symlinks_ = has_upwards_symlinks_ or
-                                    (not ProtocolTraits::IsNative(hash_type) and
-                                     not PathIsNonUpwards(link.target()));
-            artifacts.emplace(
-                link.path(),
-                Artifact::ObjectInfo{
-                    .digest =
+    for (auto const* v_ptr : {&action_result.output_symlinks(),
+                              // DEPRECATED as of v2.1
+                              &action_result.output_file_symlinks(),
+                              // DEPRECATED as of v2.1
+                              &action_result.output_directory_symlinks()}) {
+        for (auto const& link : *v_ptr) {
+            try {
+                // in compatible mode: track upwards symlinks
+                has_upwards_symlinks_ =
+                    has_upwards_symlinks_ or
+                    (not ProtocolTraits::IsNative(hash_type) and
+                     not PathIsNonUpwards(link.target()));
+                Artifact::ObjectInfo info;
+                info.type = ObjectType::Symlink;
+                if (ProtocolTraits::IsNative(hash_type)) {
+                    info.digest =
                         ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                            network_->GetHashFunction(), link.target()),
-                    .type = ObjectType::Symlink});
-        } catch (std::exception const& ex) {
-            return fmt::format(
-                "BazelResponse: unexpected failure gathering digest for "
-                "{}:\n{}",
-                link.path(),
-                ex.what());
-        }
-    }
-    for (auto const& link : action_result.output_file_symlinks()) {
-        // DEPRECATED as of v2.1
-        try {
-            // in compatible mode: track upwards symlinks
-            has_upwards_symlinks_ = has_upwards_symlinks_ or
-                                    (not ProtocolTraits::IsNative(hash_type) and
-                                     not PathIsNonUpwards(link.target()));
-            artifacts.emplace(
-                link.path(),
-                Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                            network_->GetHashFunction(), link.target()),
-                    .type = ObjectType::Symlink});
-        } catch (std::exception const& ex) {
-            return fmt::format(
-                "BazelResponse: unexpected failure gathering digest for "
-                "{}:\n{}",
-                link.path(),
-                ex.what());
-        }
-    }
-    for (auto const& link : action_result.output_directory_symlinks()) {
-        // DEPRECATED as of v2.1
-        try {
-            // in compatible mode: track upwards symlinks
-            has_upwards_symlinks_ = has_upwards_symlinks_ or
-                                    (not ProtocolTraits::IsNative(hash_type) and
-                                     not PathIsNonUpwards(link.target()));
-            artifacts.emplace(
-                link.path(),
-                Artifact::ObjectInfo{
-                    .digest =
-                        ArtifactDigestFactory::HashDataAs<ObjectType::File>(
-                            network_->GetHashFunction(), link.target()),
-                    .type = ObjectType::Symlink});
-        } catch (std::exception const& ex) {
-            return fmt::format(
-                "BazelResponse: unexpected failure gathering digest for "
-                "{}:\n{}",
-                link.path(),
-                ex.what());
+                            network_->GetHashFunction(), link.target());
+                }
+                else {
+                    auto link_blob =
+                        ArtifactBlob::FromMemory(network_->GetHashFunction(),
+                                                 ObjectType::File,
+                                                 link.target());
+                    if (not link_blob) {
+                        return fmt::format(
+                            "BazelResponse: failure during blob generation of "
+                            "link {}:\n{}",
+                            link.path(),
+                            std::move(link_blob).error());
+                    }
+                    info.digest = link_blob->GetDigest();
+                    link_blobs.insert(std::move(link_blob).value());
+                }
+                artifacts.emplace(link.path(), std::move(info));
+            } catch (std::exception const& ex) {
+                return fmt::format(
+                    "BazelResponse: unexpected failure gathering digest for "
+                    "{}:\n{}",
+                    link.path(),
+                    ex.what());
+            }
         }
     }
 
@@ -231,6 +238,11 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
         artifacts_ = std::move(artifacts);
         populated_ = true;
         return std::nullopt;
+    }
+
+    // Upload received symlinks.
+    if (not network_->UploadBlobs(std::move(link_blobs))) {
+        return fmt::format("BazelResponse: failure uploading link blobs\n");
     }
 
     // obtain tree digests for output directories
@@ -273,13 +285,14 @@ auto BazelResponse::Populate() noexcept -> std::optional<std::string> {
                 Logger::Log(LogLevel::Trace, error);
                 return error;
             }
+            auto [tree_digest, tree_has_upwards_symlinks] =
+                std::move(upload_result).value();
             has_upwards_symlinks_ =
-                has_upwards_symlinks_ or upload_result.value().second;
+                has_upwards_symlinks_ or tree_has_upwards_symlinks;
             artifacts.emplace(
                 action_result.output_directories(pos).path(),
-                Artifact::ObjectInfo{
-                    .digest = std::move(upload_result).value().first,
-                    .type = ObjectType::Tree});
+                Artifact::ObjectInfo{.digest = std::move(tree_digest),
+                                     .type = ObjectType::Tree});
         } catch (std::exception const& ex) {
             return fmt::format(
                 "BazelResponse: unexpected failure gathering digest for "
@@ -308,10 +321,23 @@ auto BazelResponse::UploadTreeMessageDirectories(bazel_re::Tree const& tree)
     if (not rootdir_result) {
         return unexpected{std::move(rootdir_result).error()};
     }
-    auto rootdir_has_upwards_symlinks = rootdir_result.value().second;
-    auto const root_digest = rootdir_result.value().first.GetDigest();
-    std::unordered_set<ArtifactBlob> dir_blobs{
-        std::move(rootdir_result).value().first};
+    auto [rootdir_blob, rootdir_link_blobs, has_upwards_symlinks] =
+        std::move(rootdir_result).value();
+
+    // Upload symlinks from root Directory message.
+    auto rootdir_digest = rootdir_blob.GetDigest();
+    std::unordered_set<ArtifactBlob> blobs{std::move(rootdir_blob)};
+    for (auto link_blob : rootdir_link_blobs) {
+        auto link_digest = link_blob.GetDigest();
+        if (not UpdateContainerAndUpload(&blobs,
+                                         std::move(link_blob),
+                                         /*exception_is_fatal=*/false,
+                                         upload_callback)) {
+            return unexpected{fmt::format(
+                "failed to upload blobs for the Tree with the root digest {}",
+                rootdir_digest.hash())};
+        }
+    }
 
     for (auto const& subdir : tree.children()) {
         // store or upload blob, taking maximum transfer size into account
@@ -319,24 +345,42 @@ auto BazelResponse::UploadTreeMessageDirectories(bazel_re::Tree const& tree)
         if (not subdir_result) {
             return unexpected{std::move(subdir_result).error()};
         }
-        rootdir_has_upwards_symlinks =
-            rootdir_has_upwards_symlinks or subdir_result.value().second;
-        auto const blob_digest = subdir_result.value().first.GetDigest();
-        if (not UpdateContainerAndUpload(&dir_blobs,
-                                         std::move(subdir_result).value().first,
+        auto [subdir_blob, subdir_link_blobs, subdir_upwards_symlinks] =
+            std::move(subdir_result).value();
+        has_upwards_symlinks = has_upwards_symlinks or subdir_upwards_symlinks;
+
+        // Upload subdir Directory message.
+        auto subdir_digest = subdir_blob.GetDigest();
+        if (not UpdateContainerAndUpload(&blobs,
+                                         std::move(subdir_blob),
                                          /*exception_is_fatal=*/false,
                                          upload_callback)) {
-            return unexpected{
-                fmt::format("failed to upload Tree subdir with digest {}",
-                            blob_digest.hash())};
+            return unexpected{fmt::format(
+                "failed to upload blobs for the Tree with the root digest {}",
+                rootdir_digest.hash())};
+        }
+
+        // Upload symlinks from root Directory message as explicit blobs.
+        for (auto link_blob : subdir_link_blobs) {
+            auto link_digest = link_blob.GetDigest();
+            if (not UpdateContainerAndUpload(&blobs,
+                                             std::move(link_blob),
+                                             /*exception_is_fatal=*/false,
+                                             upload_callback)) {
+                return unexpected{
+                    fmt::format("failed to upload blobs for the Tree with the "
+                                "root digest {}",
+                                subdir_digest.hash())};
+            }
         }
     }
 
     // upload any remaining blob
-    if (not std::invoke(upload_callback, std::move(dir_blobs))) {
-        return unexpected{
-            fmt::format("failed to upload blobs for Tree with root digest {}",
-                        root_digest.hash())};
+    if (not std::invoke(upload_callback, std::move(blobs))) {
+        return unexpected{fmt::format(
+            "failed to upload blobs for the Tree with the root digest {}",
+            rootdir_digest.hash())};
     }
-    return std::make_pair(root_digest, rootdir_has_upwards_symlinks);
+
+    return std::make_pair(rootdir_digest, has_upwards_symlinks);
 }
