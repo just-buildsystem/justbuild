@@ -21,11 +21,14 @@
 #include <unordered_set>
 #include <utility>
 
+#include "google/protobuf/repeated_ptr_field.h"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"
+#include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/back_map.hpp"
+#include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/gsl.hpp"
 #include "src/utils/cpp/path.hpp"
 
@@ -39,15 +42,62 @@ BazelNetworkReader::BazelNetworkReader(
 
 auto BazelNetworkReader::ReadDirectory(ArtifactDigest const& digest)
     const noexcept -> std::optional<bazel_re::Directory> {
-    if (auto blob = ReadSingleBlob(digest)) {
-        if (auto const content = blob->ReadContent()) {
-            return BazelMsgFactory::MessageFromString<bazel_re::Directory>(
-                *content);
+    auto blob = ReadSingleBlob(digest);
+    if (not blob.has_value()) {
+        Logger::Log(
+            LogLevel::Debug,
+            "BazelNetworkReader::ReadDirectory: Directory {} not found in CAS",
+            digest.hash());
+        return std::nullopt;
+    }
+
+    auto const content = blob->ReadContent();
+    if (content == nullptr) {
+        Logger::Log(
+            LogLevel::Debug,
+            "BazelNetworkReader::ReadDirectory: Failed to read directory {}",
+            digest.hash());
+        return std::nullopt;
+    }
+
+    auto dir =
+        BazelMsgFactory::MessageFromString<bazel_re::Directory>(*content);
+    if (not dir.has_value()) {
+        Logger::Log(LogLevel::Debug,
+                    "BazelNetworkReader::ReadDirectory: Failed to parse "
+                    "directory content {}",
+                    digest.hash());
+        return std::nullopt;
+    }
+
+    std::vector<ArtifactBlob> symlinks;
+    symlinks.reserve(dir->symlinks().size());
+    for (const auto& link : dir->symlinks()) {
+        auto blob = ArtifactBlob::FromMemory(
+            hash_function_, ObjectType::File, link.target());
+        if (blob.has_value()) {
+            symlinks.push_back(*std::move(blob));
+        }
+        else {
+            Logger::Log(LogLevel::Debug,
+                        "BazelNetworkReader::ReadDirectory: Failed to create "
+                        "an ArtifactBlob from symlink {} -> {}",
+                        link.name(),
+                        link.target());
         }
     }
-    Logger::Log(
-        LogLevel::Debug, "Directory {} not found in CAS", digest.hash());
-    return std::nullopt;
+
+    auto back_map = BackMap<ArtifactDigest, ArtifactBlob>::Make(
+        &symlinks, [](ArtifactBlob const& blob) { return blob.GetDigest(); });
+    auto missing = cas_.FindMissingBlobs(instance_name_, back_map->GetKeys());
+    if (not missing.empty() and
+        cas_.BatchUpdateBlobs(instance_name_, back_map->GetValues(missing)) !=
+            missing.size()) {
+        Logger::Log(
+            LogLevel::Debug,
+            "BazelNetworkReader::ReadDirectory: Failed to upload all symlinks");
+    }
+    return dir;
 }
 
 auto BazelNetworkReader::ReadGitTree(ArtifactDigest const& digest)
