@@ -1,4 +1,4 @@
-## Release `1.6.3` (UNRELEASED)
+## Release `1.6.3` (2025-08-11)
 
 Bug fixes on top of `1.6.2`.
 
