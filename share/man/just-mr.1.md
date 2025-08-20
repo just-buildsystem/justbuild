@@ -369,7 +369,7 @@ The exit status of **`just-mr`** is one of the following values:
  - 0: the command completed successfully
  - 64: setup succeeded, but exec failed
  - 65: any unspecified error occurred in just-mr
- - 66: unknown subcommand
+ - 66: unknown subcommand (internal implementation error of **`just-mr`**)
  - 67: error parsing the command-line arguments
  - 68: error parsing the configuration
  - 69: error during fetch
