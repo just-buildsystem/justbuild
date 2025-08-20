@@ -260,6 +260,12 @@
   , "deps": [["", "mr-tool-under-test"], ["", "tool-under-test"]]
   , "keep-dirs": ["lbr-analyse", "out"]
   }
+, "error-reporting":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["error-reporting"]
+  , "test": ["error-reporting.sh"]
+  , "deps": [["", "mr-tool-under-test"]]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "arguments_config": ["TEST_BOOTSTRAP_JUST_MR", "TEST_COMPATIBLE_REMOTE"]
@@ -288,6 +294,7 @@
               , "repeated-gc"
               , "gc-drop"
               , "invocation-log"
+              , "error-reporting"
               ]
             , { "type": "if"
               , "cond": {"type": "var", "name": "TEST_COMPATIBLE_REMOTE"}
