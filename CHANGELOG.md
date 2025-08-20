@@ -2,6 +2,11 @@
 
 Bug fixes on top of `1.6.3`.
 
+### Fixes
+
+- `just-mr` no longer crashes if the empty string is specified as
+  path for a `"file"` repository; instead it treats it as `"."`.
+
 ## Release `1.6.3` (2025-08-11)
 
 Bug fixes on top of `1.6.2`.

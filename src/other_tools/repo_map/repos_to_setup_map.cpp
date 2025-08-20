@@ -333,8 +333,11 @@ void FileCheckout(ExpressionPtr const& repo_desc,
         return;
     }
     // get absolute path
-    auto fpath = ToNormalPath(
-        std::filesystem::absolute(repo_desc_path->get()->String()));
+    auto raw_fpath = repo_desc_path->get()->String();
+    if (raw_fpath.empty()) {
+        raw_fpath = ".";
+    }
+    auto fpath = ToNormalPath(std::filesystem::absolute(raw_fpath));
     // check "special" pragma
     auto repo_desc_pragma = repo_desc->At("pragma");
     bool const& pragma_is_map =
