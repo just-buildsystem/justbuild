@@ -169,7 +169,7 @@ auto LargeObjectCAS<kDoGlobalUplink, kType>::Split(ArtifactDigest const& digest)
         }
     } catch (...) {
         return unexpected{LargeObjectError{LargeObjectErrorCode::Internal,
-                                           "an unknown error occured."}};
+                                           "an unknown error occurred."}};
     }
     if (not chunker.Finished()) {
         return unexpected{

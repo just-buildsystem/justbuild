@@ -188,7 +188,7 @@ class FileRoot {
                 } catch (std::exception const& e) {
                     try {
                         Logger::Log(LogLevel::Error,
-                                    "Unexpected excpetion: {}",
+                                    "Unexpected exception: {}",
                                     e.what());
                         std::terminate();
                     } catch (...) {

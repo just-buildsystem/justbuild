@@ -488,7 +488,7 @@ auto GitRepo::CommitDirectory(std::filesystem::path const& dir,
         // Due to limitations of Git in general, and libgit2 in particular, by
         // which updating the index with entries that have Git-specific magic
         // names is cumbersome, if at all possible, we resort to creating
-        // manually the tree to be commited from the given subdirectory by
+        // manually the tree to be committed from the given subdirectory by
         // recursively creating and writing to the object database all the blobs
         // and subtrees.
 

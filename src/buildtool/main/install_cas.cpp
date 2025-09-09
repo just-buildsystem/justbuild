@@ -85,7 +85,7 @@ namespace {
     if (InvalidSizeString(hash_type, size_str, id, has_remote)) {
         Logger::Log(
             LogLevel::Warning,
-            "{} size in object-id is not supported in compatiblity mode.",
+            "{} size in object-id is not supported in compatibility mode.",
             size_str.empty() ? "omitting the" : "zero");
     }
     auto size = static_cast<std::size_t>(

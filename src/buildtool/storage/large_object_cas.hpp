@@ -35,7 +35,7 @@ template <bool>
 class LocalCAS;
 
 enum class LargeObjectErrorCode : std::uint8_t {
-    /// \brief An internal error occured.
+    /// \brief An internal error occurred.
     Internal = 0,
 
     /// \brief The digest is not in the CAS.

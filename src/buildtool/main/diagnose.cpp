@@ -134,7 +134,7 @@ void DumpVars(std::string const& file_path, AnalysisResult const& result) {
     }
     else {
         Logger::Log(LogLevel::Info,
-                    "Dumping varables for target {} to file '{}'.",
+                    "Dumping variables for target {} to file '{}'.",
                     result.id.ToString(),
                     file_path);
         std::ofstream os(file_path);

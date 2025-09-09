@@ -334,7 +334,7 @@ class GitRepo {
     /// \param source_dir       Directory to import
     /// \param commit_message   Message of the commit
     /// \param tagging_lock     Mutex to protect critical git operations
-    /// \return The tree id of the commited directory on success or an
+    /// \return The tree id of the committed directory on success or an
     /// unexpected error as string on failure.
     [[nodiscard]] static auto ImportToGit(
         StorageConfig const& storage_config,

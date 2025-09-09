@@ -94,7 +94,7 @@ class PrecomputedRoot final {
         } catch (std::exception const& e) {
             try {
                 Logger::Log(
-                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                    LogLevel::Error, "Unexpected exception: {}", e.what());
                 std::terminate();
             } catch (...) {
                 std::terminate();
@@ -110,7 +110,7 @@ class PrecomputedRoot final {
         } catch (std::exception const& e) {
             try {
                 Logger::Log(
-                    LogLevel::Error, "Unexpected excpetion: {}", e.what());
+                    LogLevel::Error, "Unexpected exception: {}", e.what());
                 std::terminate();
             } catch (...) {
                 std::terminate();

@@ -232,7 +232,7 @@ class ByteStreamClient {
                 blob.GetContentSize()) {
                 logger_.Emit(
                     LogLevel::Warning,
-                    "Commited size {} is different from the original one {}.",
+                    "Committed size {} is different from the original one {}.",
                     response.committed_size(),
                     blob.GetContentSize());
                 return false;
