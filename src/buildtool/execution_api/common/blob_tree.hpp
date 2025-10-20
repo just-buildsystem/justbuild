@@ -16,6 +16,7 @@
 #define INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BLOB_TREE_HPP
 
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -51,9 +52,30 @@ class BlobTree {
     [[nodiscard]] auto end() const noexcept { return nodes_.end(); }
     [[nodiscard]] auto size() const noexcept { return nodes_.size(); }
 
+    [[nodiscard]] auto hash() const { return std::hash<ArtifactBlob>{}(blob_); }
+
   private:
     ArtifactBlob blob_;
     std::vector<BlobTreePtr> nodes_;
 };
+
+namespace std {
+template <>
+struct hash<BlobTree> {
+    [[nodiscard]] auto operator()(BlobTree const& bt) const {
+        return bt.hash();
+    }
+};
+}  // namespace std
+
+namespace std {
+template <>
+struct hash<BlobTreePtr> {
+    [[nodiscard]] auto operator()(BlobTreePtr const& btp) const {
+        return btp->hash();
+    }
+};
+
+}  // namespace std
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_BLOB_TREE_HPP
