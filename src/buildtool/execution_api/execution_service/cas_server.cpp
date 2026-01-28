@@ -204,6 +204,15 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
     }
 
     auto const& chunk_digests = *split_result;
+
+    if (chunk_digests.size() < 2) {
+        auto const str = fmt::format(
+            "SplitBlob: blob {} cannot be split into multiple chunks",
+            blob_digest->hash());
+        logger_.Emit(LogLevel::Debug, "{}", str);
+        return ::grpc::Status{grpc::StatusCode::FAILED_PRECONDITION, str};
+    }
+
     logger_.Emit(LogLevel::Debug, [&blob_digest, &chunk_digests]() {
         std::stringstream ss{};
         ss << "Split blob " << blob_digest->hash() << ":" << blob_digest->size()
@@ -248,6 +257,14 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
                  "SpliceBlob({}, {} chunks)",
                  blob_digest->hash(),
                  request->chunk_digests().size());
+
+    if (request->chunk_digests().size() < 2) {
+        auto const str = fmt::format(
+            "SpliceBlob: at least 2 chunks required, got {}",
+            request->chunk_digests().size());
+        logger_.Emit(LogLevel::Debug, "{}", str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
 
     auto chunk_digests = std::vector<ArtifactDigest>{};
     chunk_digests.reserve(request->chunk_digests().size());

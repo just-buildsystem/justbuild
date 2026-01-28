@@ -171,7 +171,9 @@ client, because then less data needs to be transferred.
 A trivial implementation of the split operation would be returning a
 _singleton list_ containing the original blob as single chunk. While
 this implementation is correct and fast, it is not very useful, since it
-does not save any traffic.
+does not save any traffic. Justbuild's server returns `FAILED_PRECONDITION`
+when a blob cannot be split into multiple chunks. `SpliceBlob` requests
+with fewer than 2 chunks are rejected with `INVALID_ARGUMENT`.
 
 A better approach is _fixed-block chunking_ where the data is split into
 chunks of fixed and equal size. While this approach typically results in
