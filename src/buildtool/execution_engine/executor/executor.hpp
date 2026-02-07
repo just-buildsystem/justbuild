@@ -105,7 +105,15 @@ class ExecutorImpl {
             }
             return oss.str();
         });
-        auto tree = *inputs[0].node->Content().Info();
+        auto empty_tree = TreeOperationsUtils::WriteTree(
+            api, TreeOperationsUtils::TreeEntries{});
+        if (not empty_tree) {
+            logger.Emit(LogLevel::Error,
+                        "Failed to build the empty tree:\n{}",
+                        empty_tree.error());
+            return nullptr;
+        }
+        auto tree = empty_tree.value();
         for (auto const& overlay : inputs) {
             auto computed_overlay = TreeOperationsUtils::ComputeTreeOverlay(
                 api,
