@@ -38,6 +38,7 @@ cat > TARGETS <<'EOF'
   }
 , "overlay":
   {"type": "tree_overlay", "name": "overlay", "deps": ["early", "late"]}
+, "empty": {"type": "tree_overlay", "name": "overlay"}
 }
 EOF
 
@@ -70,5 +71,10 @@ OVERLAY_ID=$(jq -r '.overlay.data.id' "${OUT}/artifacts.json")
 grep FOO "${OUT}/overlay/overlay/out/foo"
 grep BAR "${OUT}/overlay/overlay/out/bar"
 grep late "${OUT}/overlay/overlay/out/conflict"
+
+# Verify that the building empty overlay succeeds
+"${JUST}" install --local-build-root "${LBR}" -o "${OUT}/empty" \
+          --log-limit 5 \
+          -L '["env", "PATH='"${PATH}"'"]' empty 2>&1
 
 echo OK
