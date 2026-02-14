@@ -4,8 +4,11 @@ Bug fixes on top of `1.6.3`.
 
 ### Fixes
 
+- Overlaying the empty list of trees now returns the empty tree
+  instead of causing a segmentation fault.
 - `just-mr` no longer crashes if the empty string is specified as
   path for a `"file"` repository; instead it treats it as `"."`.
+- Improved documentation.
 
 ## Release `1.6.3` (2025-08-11)
 
