@@ -32,6 +32,7 @@
 #include "google/protobuf/repeated_ptr_field.h"
 #include "google/protobuf/timestamp.pb.h"
 #include "google/rpc/status.pb.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
@@ -252,6 +253,13 @@ auto ExecutionServiceImpl::Execute(
         return ::grpc::Status{grpc::StatusCode::INTERNAL, str};
     }
 
+    logger_.Emit(LogLevel::Debug, [&action_digest, &command]() {
+        std::vector<std::string> const args(command->arguments().begin(),
+                                            command->arguments().end());
+        return fmt::format("Action {} has command line {}",
+                           action_digest->hash(),
+                           nlohmann::json(args).dump());
+    });
     logger_.Emit(LogLevel::Info, "Execute {}", action_digest->hash());
     // send initial response to the client
     auto op = ::google::longrunning::Operation{};
