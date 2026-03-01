@@ -17,6 +17,7 @@
 
 #include <cstddef>
 #include <optional>
+#include <set>
 #include <string>
 
 #include "src/buildtool/common/artifact_digest.hpp"
@@ -26,6 +27,7 @@
 class ByteStreamUtils final {
     static constexpr auto* kBlobs = "blobs";
     static constexpr auto* kUploads = "uploads";
+    static const std::set<std::string> kOtherReservedFragments;
 
   public:
     // Chunk size for uploads (default size used by BuildBarn)
