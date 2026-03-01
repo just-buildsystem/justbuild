@@ -24,6 +24,7 @@
     ]
   , "private-deps":
     [ ["@", "fmt", "", "fmt"]
+    , ["@", "json", "", "json"]
     , ["@", "protoc", "", "libprotobuf"]
     , ["src/buildtool/common", "common"]
     , ["src/buildtool/common", "protocol_traits"]
