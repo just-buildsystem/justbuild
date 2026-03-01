@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
 
 #include <cstdint>
+#include <sstream>
 #include <string_view>
 #include <utility>
 #include <vector>
@@ -60,9 +61,22 @@ namespace {
 }
 }  // namespace
 
+const std::set<std::string> ByteStreamUtils::kOtherReservedFragments =
+    std::set<std::string>{"actions",
+                          "actionResults",
+                          "operations",
+                          "capabilities",
+                          "compressed-blobs"};
+
 auto ByteStreamUtils::ReadRequest::ToString(
     std::string instance_name,
     ArtifactDigest const& digest) noexcept -> std::string {
+    if (instance_name.empty()) {
+        return fmt::format("{}/{}/{}",
+                           ByteStreamUtils::kBlobs,
+                           ArtifactDigestFactory::ToBazel(digest).hash(),
+                           digest.size());
+    }
     return fmt::format("{}/{}/{}/{}",
                        std::move(instance_name),
                        ByteStreamUtils::kBlobs,
@@ -72,23 +86,47 @@ auto ByteStreamUtils::ReadRequest::ToString(
 
 auto ByteStreamUtils::ReadRequest::FromString(
     std::string const& request) noexcept -> std::optional<ReadRequest> {
-    static constexpr std::size_t kInstanceNameIndex = 0U;
-    static constexpr std::size_t kBlobsIndex = 1U;
-    static constexpr std::size_t kHashIndex = 2U;
-    static constexpr std::size_t kSizeIndex = 3U;
-    static constexpr std::size_t kReadRequestPartsCount = 4U;
+    static constexpr std::size_t kHashIndexOffset = 1U;
+    static constexpr std::size_t kSizeIndexOffset = 2U;
+    static constexpr std::size_t kReadRequestPartsCountOffset = 3U;
 
     auto const parts = ::SplitRequest(request);
-    if (parts.size() != kReadRequestPartsCount or
-        parts[kBlobsIndex].compare(ByteStreamUtils::kBlobs) != 0) {
+    int blobs_index = -1;
+    for (int i = 0; i < parts.size(); i++) {
+        if (parts[i].compare(ByteStreamUtils::kBlobs) == 0) {
+            blobs_index = i;
+            break;
+        }
+        if (parts[i].compare(ByteStreamUtils::kUploads) == 0) {
+            // "uploads" not allowed in instance name
+            return std::nullopt;
+        }
+        if (ByteStreamUtils::kOtherReservedFragments.contains(
+                std::string{parts[i]})) {
+            return std::nullopt;
+        }
+    }
+    if (blobs_index < 0) {
         return std::nullopt;
     }
 
+    if (parts.size() != blobs_index + kReadRequestPartsCountOffset) {
+        return std::nullopt;
+    }
+    std::ostringstream instance_name{};
+    for (int i = 0; i < blobs_index; i++) {
+        instance_name << parts[i];
+        if (i + 1 < blobs_index) {
+            instance_name << "/";
+        }
+    }
+
     ReadRequest result;
-    result.instance_name_ = std::string(parts[kInstanceNameIndex]);
-    result.hash_ = std::string(parts[kHashIndex]);
+    result.instance_name_ = instance_name.str();
+    result.hash_ = std::string(parts[blobs_index + kHashIndexOffset]);
     try {
-        result.size_ = std::stoi(std::string(parts[kSizeIndex]));
+        result.size_ =
+            std::stoul(std::string(parts[blobs_index + kSizeIndexOffset]));
     } catch (...) {
         return std::nullopt;
     }
@@ -105,6 +143,14 @@ auto ByteStreamUtils::WriteRequest::ToString(
     std::string instance_name,
     std::string uuid,
     ArtifactDigest const& digest) noexcept -> std::string {
+    if (instance_name.empty()) {
+        return fmt::format("{}/{}/{}/{}/{}",
+                           ByteStreamUtils::kUploads,
+                           std::move(uuid),
+                           ByteStreamUtils::kBlobs,
+                           ArtifactDigestFactory::ToBazel(digest).hash(),
+                           digest.size());
+    }
     return fmt::format("{}/{}/{}/{}/{}/{}",
                        std::move(instance_name),
                        ByteStreamUtils::kUploads,
@@ -116,27 +162,53 @@ auto ByteStreamUtils::WriteRequest::ToString(
 
 auto ByteStreamUtils::WriteRequest::FromString(
     std::string const& request) noexcept -> std::optional<WriteRequest> {
-    static constexpr std::size_t kInstanceNameIndex = 0U;
-    static constexpr std::size_t kUploadsIndex = 1U;
-    static constexpr std::size_t kUUIDIndex = 2U;
-    static constexpr std::size_t kBlobsIndex = 3U;
-    static constexpr std::size_t kHashIndex = 4U;
-    static constexpr std::size_t kSizeIndex = 5U;
-    static constexpr std::size_t kWriteRequestPartsCount = 6U;
+    static constexpr std::size_t kUUIDIndexOffset = 1U;
+    static constexpr std::size_t kBlobsIndexOffset = 2U;
+    static constexpr std::size_t kHashIndexOffset = 3U;
+    static constexpr std::size_t kSizeIndexOffset = 4U;
+    static constexpr std::size_t kWriteRequestPartsCountOffset = 5U;
 
     auto const parts = ::SplitRequest(request);
-    if (parts.size() != kWriteRequestPartsCount or
-        parts[kUploadsIndex].compare(ByteStreamUtils::kUploads) != 0 or
-        parts[kBlobsIndex].compare(ByteStreamUtils::kBlobs) != 0) {
+
+    int uploads_index = -1;
+    for (int i = 0; i < parts.size(); i++) {
+        if (parts[i].compare(ByteStreamUtils::kUploads) == 0) {
+            uploads_index = i;
+            break;
+        }
+        if (parts[i].compare(ByteStreamUtils::kBlobs) == 0) {
+            // "blobs" not allowed in instance name
+            return std::nullopt;
+        }
+        if (ByteStreamUtils::kOtherReservedFragments.contains(
+                std::string{parts[i]})) {
+            return std::nullopt;
+        }
+    }
+    if (uploads_index < 0) {
+        return std::nullopt;
+    }
+
+    if ((parts.size() != uploads_index + kWriteRequestPartsCountOffset) or
+        parts[uploads_index + kBlobsIndexOffset].compare(
+            ByteStreamUtils::kBlobs) != 0) {
         return std::nullopt;
     }
 
     WriteRequest result;
-    result.instance_name_ = std::string(parts[kInstanceNameIndex]);
-    result.uuid_ = std::string(parts[kUUIDIndex]);
-    result.hash_ = std::string(parts[kHashIndex]);
+    std::ostringstream instance_name{};
+    for (int i = 0; i < uploads_index; i++) {
+        instance_name << parts[i];
+        if (i + 1 < uploads_index) {
+            instance_name << "/";
+        }
+    }
+    result.instance_name_ = instance_name.str();
+    result.uuid_ = std::string(parts[uploads_index + kUUIDIndexOffset]);
+    result.hash_ = std::string(parts[uploads_index + kHashIndexOffset]);
     try {
-        result.size_ = std::stoul(std::string(parts[kSizeIndex]));
+        result.size_ =
+            std::stoul(std::string(parts[uploads_index + kSizeIndexOffset]));
     } catch (...) {
         return std::nullopt;
     }
