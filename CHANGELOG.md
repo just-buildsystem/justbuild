@@ -2,6 +2,14 @@
 
 Bug fixes on top of `1.6.4`.
 
+### Fixes
+
+- `just execute` now allows, as demanded by the protocol, instance
+  names having an arbitrary number of segments, possibly none.
+- `just execute` now adds at startup the empty blob to CAS thus
+  fulfilling the assumption by some build tools that the empty blob
+  can always be referenced without ever uploading it.
+
 ## Release `1.6.4` (2026-02-14)
 
 Bug fixes on top of `1.6.3`.
