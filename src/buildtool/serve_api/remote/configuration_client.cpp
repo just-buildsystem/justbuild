@@ -88,6 +88,19 @@ auto ConfigurationClient::CheckServeRemoteExecution() const noexcept -> bool {
                     ex.what());
             }
             if (serve_remote_endpoint == client_remote_address->ToJson()) {
+                if (remote_config_.remote_instance_name !=
+                    response.remote_instance_name()) {
+                    // Warn if different values for remote_instance_name are
+                    // used, but don't error out. Most RBE services ignore the
+                    // instance name anyway, or have only one valid value.
+                    logger_.Emit(
+                        LogLevel::Warning,
+                        "Serve uses remote_instance_name {} while client uses "
+                        "{}",
+                        nlohmann::json(remote_config_.remote_instance_name)
+                            .dump(),
+                        nlohmann::json(response.remote_instance_name()).dump());
+                }
                 return true;
             }
             serve_msg = serve_remote_endpoint.dump();

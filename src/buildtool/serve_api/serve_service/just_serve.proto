@@ -563,6 +563,9 @@ message RemoteExecutionEndpointRequest {}
 message RemoteExecutionEndpointResponse {
   // The remote endpoint address in HOST:PORT format, if one is set.
   string address = 1;
+
+  // The instance_name used for the remote endpoint.
+  string remote_instance_name = 2;
 }
 
 // A request message for

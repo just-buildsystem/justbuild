@@ -82,6 +82,8 @@ The configuration file is given by a JSON object.
    **`serve`**.  
    For subkey *`"address"`* the value is a string specifying the remote
    execution address in a NAME:PORT format.  
+   For subkey *`"instance name`* the value is a string specifying the
+   remote execution instance name to be used.  
    For subkey *`"client address"`* the value is a string specifying
    the remote execution address used by the client in a NAME:PORT
    format. If not provided, it defaults to *`"address"`*.  
