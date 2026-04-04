@@ -203,6 +203,8 @@ auto TargetService::CreateRemoteExecutionConfig(
     // the remote and cache addresses are kept from the stored ApiBundle
     return RemoteExecutionConfig{
         .remote_address = remote_context_.exec_config->remote_address,
+        .remote_instance_name =
+            remote_context_.exec_config->remote_instance_name,
         .dispatch = *std::move(res),
         .cache_address = remote_context_.exec_config->cache_address,
         .platform_properties = std::move(platform_properties)};

@@ -99,6 +99,7 @@ auto RemoteExecutionConfig::Builder::Build() const noexcept
 
     return RemoteExecutionConfig{
         .remote_address = std::move(remote_address),
+        .remote_instance_name = remote_instance_name_,
         .dispatch = std::move(dispatch),
         .cache_address = std::move(cache_address),
         .platform_properties = std::move(platform_properties)};

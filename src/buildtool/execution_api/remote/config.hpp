@@ -30,6 +30,9 @@ struct RemoteExecutionConfig final {
     // Server address of remote execution.
     std::optional<ServerAddress> const remote_address;
 
+    // Instance name of the remote execution
+    std::string const remote_instance_name;
+
     // Server dispatch data
     std::vector<DispatchEndpoint> const dispatch;
 
@@ -47,6 +50,12 @@ class RemoteExecutionConfig::Builder final {
     auto SetRemoteAddress(std::optional<std::string> address) noexcept
         -> Builder& {
         remote_address_raw_ = std::move(address);
+        return *this;
+    }
+
+    // Set remote execution instance name.
+    auto SetRemoteInstanceName(std::string name) noexcept -> Builder& {
+        remote_instance_name_ = std::move(name);
         return *this;
     }
 
@@ -80,6 +89,9 @@ class RemoteExecutionConfig::Builder final {
   private:
     // Server address of remote execution; needs parsing.
     std::optional<std::string> remote_address_raw_;
+
+    // Instance name of the remote execution
+    std::string remote_instance_name_;
 
     // Server dispatch data file; needs parsing.
     std::optional<std::filesystem::path> dispatch_file_;

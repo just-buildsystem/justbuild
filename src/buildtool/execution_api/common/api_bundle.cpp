@@ -37,7 +37,7 @@ auto ApiBundle::Create(
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
         remote_api = std::make_shared<BazelApi>(
-            "remote-execution",
+            remote_context->exec_config->remote_instance_name,
             address->host,
             address->port,
             remote_context->auth,
