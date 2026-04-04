@@ -9,6 +9,11 @@ Bug fixes on top of `1.6.4`.
 - `just execute` now adds at startup the empty blob to CAS thus
   fulfilling the assumption by some build tools that the empty blob
   can always be referenced without ever uploading it.
+- The value of the `instance_name` for the remote-execution endpoint
+  can be set now using the option `--remote-instance-name`, instead
+  of using the hard-coded value `"remote-execution"`. Also, the
+  default value has been set to `""` which is the more common
+  default; use said option to restore previous behaviour.
 
 ## Release `1.6.4` (2026-02-14)
 
