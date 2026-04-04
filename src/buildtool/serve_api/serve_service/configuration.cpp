@@ -37,6 +37,7 @@ auto ConfigurationService::RemoteExecutionEndpoint(
         address = remote_config_.remote_address;
     }
     response->set_address(address ? address->ToJson().dump() : std::string());
+    response->set_remote_instance_name(remote_config_.remote_instance_name);
     return ::grpc::Status::OK;
 }
 

@@ -415,6 +415,21 @@ void ReadJustServeConfig(gsl::not_null<CommandLineArguments*> const& clargs) {
             }
             clargs->endpoint.remote_execution_address = address->String();
         }
+        // read the instance name
+        auto instance_name =
+            exec_endpoint->Get("instance name", Expression::none_t{});
+        if (instance_name.IsNotNull()) {
+            if (not instance_name->IsString()) {
+                Logger::Log(LogLevel::Error,
+                            "In serve service config file {}:\n"
+                            "Value for execution endpoint key \"instance "
+                            "name\" has to be a string, but found {}",
+                            clargs->serve.config.string(),
+                            instance_name->ToString());
+                std::exit(kExitFailure);
+            }
+            clargs->endpoint.remote_instance_name = instance_name->String();
+        }
         // read the address used by the client
         auto client_address =
             exec_endpoint->Get("client address", Expression::none_t{});
