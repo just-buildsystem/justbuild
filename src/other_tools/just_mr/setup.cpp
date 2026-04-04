@@ -213,7 +213,10 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
 
     // setup remote execution config
     auto const remote_exec_config = JustMR::Utils::CreateRemoteExecutionConfig(
-        common_args.remote_execution_address, common_args.remote_serve_address);
+        common_args.remote_execution_address,
+        common_args.remote_serve_address,
+        common_args.remote_instance_name ? *common_args.remote_instance_name
+                                         : std::string{});
     if (not remote_exec_config) {
         return std::nullopt;
     }
@@ -228,14 +231,15 @@ auto MultiRepoSetup(std::shared_ptr<Configuration> const& config,
 
         ExecutionConfiguration config;
         config.skip_cache_lookup = false;
-        remote_api = std::make_shared<BazelApi>("remote-execution",
-                                                address->host,
-                                                address->port,
-                                                &*auth_config,
-                                                &*retry_config,
-                                                config,
-                                                hash_fct,
-                                                mr_local_api->GetTempSpace());
+        remote_api =
+            std::make_shared<BazelApi>(remote_exec_config->remote_instance_name,
+                                       address->host,
+                                       address->port,
+                                       &*auth_config,
+                                       &*retry_config,
+                                       config,
+                                       hash_fct,
+                                       mr_local_api->GetTempSpace());
     }
     bool const has_remote_api = remote_api != nullptr;
 

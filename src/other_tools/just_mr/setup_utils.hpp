@@ -93,7 +93,8 @@ void DefaultReachableRepositories(
 
 [[nodiscard]] auto CreateRemoteExecutionConfig(
     std::optional<std::string> const& remote_exec_addr,
-    std::optional<std::string> const& remote_serve_addr) noexcept
+    std::optional<std::string> const& remote_serve_addr,
+    std::string const& remote_instance_name) noexcept
     -> std::optional<RemoteExecutionConfig>;
 
 /// \brief Setup of a 'just serve' remote API based on just-mr arguments.

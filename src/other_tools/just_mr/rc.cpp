@@ -495,6 +495,19 @@ namespace {
                 clargs->common.remote_execution_address = addr->String();
             }
         }
+        if (not clargs->common.remote_instance_name) {
+            auto name = remote->Get("instance name", Expression::none_t{});
+            if (name.IsNotNull()) {
+                if (not name->IsString()) {
+                    Logger::Log(LogLevel::Error,
+                                "Configuration-provided remote instance name "
+                                "has to be a string, but found {}",
+                                name->ToString());
+                    std::exit(kExitConfigError);
+                }
+                clargs->common.remote_instance_name = name->String();
+            }
+        }
         if (not clargs->common.compatible) {
             auto compat = remote->Get("compatible", Expression::none_t{});
             if (compat.IsNotNull()) {

@@ -365,14 +365,17 @@ auto CreateLocalExecutionConfig(MultiRepoCommonArguments const& cargs) noexcept
 
 auto CreateRemoteExecutionConfig(
     std::optional<std::string> const& remote_exec_addr,
-    std::optional<std::string> const& remote_serve_addr) noexcept
+    std::optional<std::string> const& remote_serve_addr,
+    std::string const& remote_instance_name) noexcept
     -> std::optional<RemoteExecutionConfig> {
     // if only a serve endpoint address is given, we assume it is one that acts
     // also as remote-execution
     auto remote_addr = remote_exec_addr ? remote_exec_addr : remote_serve_addr;
 
     RemoteExecutionConfig::Builder builder;
-    auto config = builder.SetRemoteAddress(remote_addr).Build();
+    auto config = builder.SetRemoteAddress(remote_addr)
+                      .SetRemoteInstanceName(remote_instance_name)
+                      .Build();
 
     if (config) {
         return *std::move(config);
