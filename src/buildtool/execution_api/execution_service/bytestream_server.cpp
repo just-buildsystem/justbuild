@@ -23,6 +23,7 @@
 
 #include "fmt/core.h"
 #include "google/protobuf/stubs/port.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/bytestream_utils.hpp"
@@ -38,7 +39,8 @@ auto BytestreamServiceImpl::Read(
     const ::google::bytestream::ReadRequest* request,
     ::grpc::ServerWriter<::google::bytestream::ReadResponse>* writer)
     -> ::grpc::Status {
-    logger_.Emit(LogLevel::Trace, "Read {}", request->resource_name());
+    logger_.Emit(
+        LogLevel::Debug, "Read(resource_name={})", request->resource_name());
     auto const read_request =
         ByteStreamUtils::ReadRequest::FromString(request->resource_name());
     if (not read_request) {
@@ -54,7 +56,12 @@ auto BytestreamServiceImpl::Read(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
                               read_digest.error()};
     }
-
+    logger_.Emit(LogLevel::Debug, [&read_request, &read_digest]() {
+        return fmt::format(
+            "Read(instance_name={}, digest={})",
+            nlohmann::json(read_request->GetInstanceName()).dump(),
+            read_digest->hash());
+    });
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
         static constexpr auto kStr = "Could not acquire SharedLock";
@@ -107,7 +114,8 @@ auto BytestreamServiceImpl::Write(
     ::google::bytestream::WriteResponse* response) -> ::grpc::Status {
     ::google::bytestream::WriteRequest request;
     reader->Read(&request);
-    logger_.Emit(LogLevel::Debug, "write {}", request.resource_name());
+    logger_.Emit(
+        LogLevel::Debug, "Write(resource_name={})", request.resource_name());
     auto const write_request =
         ByteStreamUtils::WriteRequest::FromString(request.resource_name());
     if (not write_request) {
@@ -124,6 +132,12 @@ auto BytestreamServiceImpl::Write(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
                               write_digest.error()};
     }
+    logger_.Emit(LogLevel::Debug, [&write_request, &write_digest]() {
+        return fmt::format(
+            "Write(instance_name={}, digest={})",
+            nlohmann::json(write_request->GetInstanceName()).dump(),
+            write_digest->hash());
+    });
     logger_.Emit(LogLevel::Trace,
                  "Write: {}, offset {}, finish write {}",
                  write_digest->hash(),

@@ -27,6 +27,7 @@
 #include "fmt/core.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "google/rpc/status.pb.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -35,11 +36,34 @@
 #include "src/buildtool/storage/garbage_collector.hpp"
 #include "src/utils/cpp/expected.hpp"
 
+constexpr int kLogBlobLimit = 5;
+
 auto CASServiceImpl::FindMissingBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::FindMissingBlobsRequest* request,
     ::bazel_re::FindMissingBlobsResponse* response) -> ::grpc::Status {
     auto const lock = GarbageCollector::SharedLock(storage_config_);
+    logger_.Emit(LogLevel::Debug, [request]() {
+        std::ostringstream msg{};
+        msg << "FindMissingBlobs(";
+        msg << "instance_name="
+            << nlohmann::json(request->instance_name()).dump();
+        msg << ", blob_digests: ";
+        int count = 0;
+        for (auto const& x : request->blob_digests()) {
+            if (count > 0) {
+                msg << ", ";
+            }
+            if (count > kLogBlobLimit) {
+                msg << "... (" << request->blob_digests_size() << " total)";
+                break;
+            }
+            msg << x.hash();
+            count++;
+        }
+        msg << ")";
+        return msg.str();
+    });
     if (not lock) {
         static constexpr auto kStr =
             "FindMissingBlobs: could not acquire SharedLock";
@@ -77,6 +101,27 @@ auto CASServiceImpl::BatchUpdateBlobs(
     const ::bazel_re::BatchUpdateBlobsRequest* request,
     ::bazel_re::BatchUpdateBlobsResponse* response) -> ::grpc::Status {
     auto const lock = GarbageCollector::SharedLock(storage_config_);
+    logger_.Emit(LogLevel::Debug, [request]() {
+        std::ostringstream msg{};
+        msg << "BatchUpdateBlobs(";
+        msg << "instance_name="
+            << nlohmann::json(request->instance_name()).dump();
+        msg << ", requests: ";
+        int count = 0;
+        for (auto const& x : request->requests()) {
+            if (count > 0) {
+                msg << ", ";
+            }
+            if (count > kLogBlobLimit) {
+                msg << "... (" << request->requests_size() << " total)";
+                break;
+            }
+            msg << x.digest().hash();
+            count++;
+        }
+        msg << ")";
+        return msg.str();
+    });
     if (not lock) {
         static constexpr auto kStr =
             "BatchUpdateBlobs: could not acquire SharedLock";
@@ -114,7 +159,29 @@ auto CASServiceImpl::BatchReadBlobs(
     ::grpc::ServerContext* /*context*/,
     const ::bazel_re::BatchReadBlobsRequest* request,
     ::bazel_re::BatchReadBlobsResponse* response) -> ::grpc::Status {
+    static constexpr int kLogBlobLimit = 5;
     auto const lock = GarbageCollector::SharedLock(storage_config_);
+    logger_.Emit(LogLevel::Debug, [request]() {
+        std::ostringstream msg{};
+        msg << "BatchReadBlobs(";
+        msg << "instance_name="
+            << nlohmann::json(request->instance_name()).dump();
+        msg << ", digests: ";
+        int count = 0;
+        for (auto const& x : request->digests()) {
+            if (count > 0) {
+                msg << ", ";
+            }
+            if (count > kLogBlobLimit) {
+                msg << "... (" << request->digests_size() << " total)";
+                break;
+            }
+            msg << x.hash();
+            count++;
+        }
+        msg << ")";
+        return msg.str();
+    });
     if (not lock) {
         static constexpr auto kStr =
             "BatchReadBlobs: Could not acquire SharedLock";
@@ -168,6 +235,11 @@ auto CASServiceImpl::SplitBlob(::grpc::ServerContext* /*context*/,
                                const ::bazel_re::SplitBlobRequest* request,
                                ::bazel_re::SplitBlobResponse* response)
     -> ::grpc::Status {
+    logger_.Emit(LogLevel::Debug, [request]() {
+        return fmt::format("SplitBlob(instance_name={}, blob_digest={})",
+                           nlohmann::json(request->instance_name()).dump(),
+                           request->blob_digest().hash());
+    });
     if (not request->has_blob_digest()) {
         static constexpr auto kStr = "SplitBlob: no blob digest provided";
         logger_.Emit(LogLevel::Error, "{}", kStr);
@@ -228,6 +300,11 @@ auto CASServiceImpl::SpliceBlob(::grpc::ServerContext* /*context*/,
                                 const ::bazel_re::SpliceBlobRequest* request,
                                 ::bazel_re::SpliceBlobResponse* response)
     -> ::grpc::Status {
+    logger_.Emit(LogLevel::Debug, [request]() {
+        return fmt::format("SplitBlob(instance_name={}, blob_digest={})",
+                           nlohmann::json(request->instance_name()).dump(),
+                           request->blob_digest().hash());
+    });
     if (not request->has_blob_digest()) {
         static constexpr auto kStr = "SpliceBlob: no blob digest provided";
         logger_.Emit(LogLevel::Error, "{}", kStr);

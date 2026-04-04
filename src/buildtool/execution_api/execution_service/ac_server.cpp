@@ -19,6 +19,7 @@
 #include <utility>
 
 #include "fmt/core.h"
+#include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
@@ -37,7 +38,12 @@ auto ActionCacheServiceImpl::GetActionResult(
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT,
                               std::move(action_digest).error()};
     }
-    logger_.Emit(LogLevel::Trace, "GetActionResult: {}", action_digest->hash());
+    logger_.Emit(LogLevel::Debug, [&action_digest, request]() {
+        return fmt::format(
+            "GetActionResult(instance_name={}, action_digest={})",
+            nlohmann::json(request->instance_name()).dump(),
+            action_digest->hash());
+    });
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
         static constexpr auto kStr = "Could not acquire SharedLock";
