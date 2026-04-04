@@ -106,6 +106,7 @@ struct DiagnosticArguments {
 struct EndpointArguments {
     std::optional<std::filesystem::path> local_root;
     std::optional<std::string> remote_execution_address;
+    std::string remote_instance_name{};
     std::vector<std::string> platform_properties;
     std::optional<std::filesystem::path> remote_execution_dispatch_file;
 };
@@ -472,6 +473,11 @@ static inline auto SetupExecutionEndpointArguments(
                     clargs->remote_execution_address,
                     "Address of the remote-execution service.")
         ->type_name("NAME:PORT");
+    app->add_option(
+           "--remote-instance-name",
+           clargs->remote_instance_name,
+           "Instance name of the remote-execution service (default: \"\")")
+        ->type_name("STRING");
 }
 
 static inline auto SetupExecutionPropertiesArguments(

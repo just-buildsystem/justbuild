@@ -177,6 +177,7 @@ void SetupLogging(LogArguments const& clargs) {
     -> std::optional<RemoteExecutionConfig> {
     RemoteExecutionConfig::Builder builder;
     builder.SetRemoteAddress(eargs.remote_execution_address)
+        .SetRemoteInstanceName(eargs.remote_instance_name)
         .SetRemoteExecutionDispatch(eargs.remote_execution_dispatch_file)
         .SetPlatformProperties(eargs.platform_properties)
         .SetCacheAddress(rargs.cache_endpoint);

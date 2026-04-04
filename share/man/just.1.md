@@ -599,6 +599,10 @@ Supported by: analyse|build|install|rebuild|traverse.
 Address of the remote execution service.  
 Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse.
 
+**`--remote-instance-name`** *`NAME`*
+Value to pass as `instance_name` in the remote execution API.  
+Supported by: add-to-cas|analyse|build|describe|install-cas|install|rebuild|traverse.
+
 **`--endpoint-configuration`** FILE  
 File containing a description on how to dispatch to different
 remote-execution endpoints based on the execution properties.
