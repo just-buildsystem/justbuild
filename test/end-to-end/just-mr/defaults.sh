@@ -40,6 +40,8 @@ cat > "${SAMPLE_RC}" <<EOF
   { "config": [{"root": "workspace", "path": "sample-config.json"}]
   , "endpoint-configuration": [{"root": "workspace", "path": "endpoint.json"}]
   }
+, "remote execution":
+  { "address": "127.0.0.1:1234", "instance name": "set/by/rc" }
 }
 EOF
 cat "${SAMPLE_RC}"
@@ -62,6 +64,10 @@ parser = ArgumentParser()
 parser.add_argument("-C", dest="repository_config")
 parser.add_argument("-c", "--config", dest="build_config")
 parser.add_argument("--endpoint-configuration", dest="endpoint")
+parser.add_argument("-r", "--remote-execution-address",
+                    dest="remote_execution_address", default=None)
+parser.add_argument("--remote-instance-name",
+                    dest="remote_instance_name", default=None)
 parser.add_argument("--local-build-root", dest="local_build_root")
 parser.add_argument("-L","--local-launcher", dest="local_launcher")
 parser.add_argument("-f", "--log-file", dest="log_file",
@@ -97,6 +103,10 @@ with open(os.path.join(target_dir, "launcher"), "w") as f:
     f.write(options.local_launcher)
   else:
     f.write("null")
+with open(os.path.join(target_dir, "remote_execution_address"), "w") as f:
+  f.write(json.dumps(options.remote_execution_address))
+with open(os.path.join(target_dir, "remote_instance_name"), "w") as f:
+  f.write(json.dumps(options.remote_instance_name))
 EOF
 chmod 755 "${PARSE}"
 
@@ -241,5 +251,38 @@ EOF
 "${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
              --rc tmprc.json build "${PARSE_DIR}" 2>&1
 [ -f "${PARSE_DIR}/endpoint" ] && exit 1 || :
+
+## remote execution properties
+
+# rc-values are honored
+
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+test $(jq '. == "127.0.0.1:1234"' "${PARSE_DIR}/remote_execution_address") = "true"
+test $(jq '. == "set/by/rc"' "${PARSE_DIR}/remote_instance_name") = "true"
+
+# CLI Override
+
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -r 127.0.0.1:9999 --remote-instance-name "set/on/cli" \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+test $(jq '. == "127.0.0.1:9999"' "${PARSE_DIR}/remote_execution_address") = "true"
+test $(jq '. == "set/on/cli"' "${PARSE_DIR}/remote_instance_name") = "true"
+
+# CLI Override, not setting instance name
+
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -r 127.0.0.1:9999 \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+test $(jq '. == "127.0.0.1:9999"' "${PARSE_DIR}/remote_execution_address") = "true"
+test $(jq '. == "set/by/rc"' "${PARSE_DIR}/remote_instance_name") = "true"
+
+# CLI Override with empty instance name
+
+"${JUST_MR}" --local-build-root "${LBR}" --just "${PARSE}" \
+             -r 127.0.0.1:9900 --remote-instance-name '' \
+             --rc "${SAMPLE_RC}" build "${PARSE_DIR}" 2>&1
+test $(jq '. == "127.0.0.1:9900"' "${PARSE_DIR}/remote_execution_address") = "true"
+test $(jq '. == ""' "${PARSE_DIR}/remote_instance_name") = "true"
 
 echo OK

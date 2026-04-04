@@ -58,6 +58,7 @@ struct MultiRepoCommonArguments {
     std::size_t jobs{std::max(1U, std::thread::hardware_concurrency())};
     std::vector<std::string> defines;
     std::optional<std::string> remote_execution_address;
+    std::optional<std::string> remote_instance_name;
     bool compatible{false};
     std::optional<std::string> remote_serve_address;
     bool fetch_absent{false};
@@ -260,6 +261,11 @@ static inline void SetupMultiRepoCommonArguments(
                     clargs->remote_execution_address,
                     "Address of a remote-execution service.")
         ->type_name("NAME:PORT");
+    app->add_option(
+           "--remote-instance-name",
+           clargs->remote_instance_name,
+           "Instance name of the remote-execution service (default: \"\")")
+        ->type_name("STRING");
     app->add_flag(
         "--compatible",
         clargs->compatible,

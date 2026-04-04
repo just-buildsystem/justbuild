@@ -218,6 +218,10 @@ auto CallJust(std::optional<std::filesystem::path> const& config_file,
         if (common_args.remote_execution_address) {
             cmd.emplace_back("-r");
             cmd.emplace_back(*common_args.remote_execution_address);
+            if (common_args.remote_instance_name) {
+                cmd.emplace_back("--remote-instance-name");
+                cmd.emplace_back(*common_args.remote_instance_name);
+            }
         }
         if (auth_args.tls_ca_cert) {
             cmd.emplace_back("--tls-ca-cert");

@@ -98,6 +98,8 @@ The just-mrrc is given by a JSON object.
    remote execution options for **`just-mr`**.  
    For subkey *`"address"`* the value is a string specifying the remote
    execution address in a NAME:PORT format.  
+   For subkey *`"instance name`* the value is a string specifying the
+   remote execution instance name to be used.  
    For subkey *`"compatible"`* the value is a flag which specifies whether the
    remote endpoint uses the original remote execution protocol.  
    Each subkey value can be overwritten by its corresponding command-line
