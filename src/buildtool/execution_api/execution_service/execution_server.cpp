@@ -222,6 +222,11 @@ auto ExecutionServiceImpl::Execute(
         logger_.Emit(LogLevel::Error, "{}", action_digest.error());
         return grpc::Status{grpc::StatusCode::INTERNAL, action_digest.error()};
     }
+    logger_.Emit(LogLevel::Debug, [request, &action_digest]() {
+        return fmt::format("Execute(instance_name={}, action_digest={})",
+                           nlohmann::json(request->instance_name()).dump(),
+                           action_digest->hash());
+    });
 
     auto const lock = GarbageCollector::SharedLock(storage_config_);
     if (not lock) {
@@ -335,7 +340,7 @@ auto ExecutionServiceImpl::WaitExecution(
         logger_.Emit(LogLevel::Error, "{}", str);
         return ::grpc::Status{::grpc::StatusCode::INVALID_ARGUMENT, str};
     }
-    logger_.Emit(LogLevel::Trace, "WaitExecution: {}", hash);
+    logger_.Emit(LogLevel::Debug, "WaitExecution: {}", hash);
     auto op = op_cache_.Query(hash);
     while (op and not op->done()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
