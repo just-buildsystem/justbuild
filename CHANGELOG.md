@@ -2,6 +2,13 @@
 
 Bug fixes on top of `1.6.5`.
 
+### Fixes
+
+- Explicit `TREE` targets now correctly provide the empty
+  map (before they used to have `none` which was not a map
+  as required, preventing use in contexts where provided values
+  are accessed).
+
 ## Release `1.6.5` (2026-04-08)
 
 Bug fixes on top of `1.6.4`.
