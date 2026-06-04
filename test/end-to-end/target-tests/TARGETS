@@ -40,6 +40,13 @@
   , "test": ["tree-inputs.sh"]
   , "deps": [["", "tool-under-test"]]
   }
+, "tree target":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["tree-target"]
+  , "test": ["tree-target.sh"]
+  , "deps": [["", "tool-under-test"]]
+  , "keep": ["provides.json"]
+  }
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["target-tests"]
@@ -50,6 +57,7 @@
     , "repository naming"
     , "resolution of built-in rules"
     , "tree inputs"
+    , "tree target"
     , "upwards reference"
     ]
   }
