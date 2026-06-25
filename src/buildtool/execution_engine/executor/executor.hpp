@@ -811,7 +811,11 @@ class ExecutorImpl {
             }
             message += nlohmann::json(action->Command()).dump() +
                        " in environment " +
-                       nlohmann::json(action->Env()).dump() + "\n";
+                       nlohmann::json(action->Env()).dump();
+            if (response->IsCached()) {
+                message += " (cached)";
+            }
+            message += "\n";
             if (response->HasStdOut()) {
                 if (has_both) {
                     message += "Stdout:\n";
