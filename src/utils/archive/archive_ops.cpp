@@ -388,6 +388,15 @@ auto ArchiveOps::ExtractArchive(ArchiveType type,
             auto new_entry_path =
                 destDir / std::filesystem::path(archive_entry_pathname(entry));
             archive_entry_set_pathname(entry, new_entry_path.c_str());
+
+            // hardlinks must point to real files, make sure its relative file
+            // path is properly "rebased" on the destDir.
+            auto const* hardlink = archive_entry_hardlink(entry);
+            if (hardlink != nullptr) {
+                auto new_hardlink = destDir / hardlink;
+                archive_entry_set_hardlink(entry, new_hardlink.c_str());
+            }
+
             if (archive_write_header(disk.get(), entry) != ARCHIVE_OK) {
                 return std::string("ArchiveOps: ") +
                        std::string(archive_error_string(disk.get()));
