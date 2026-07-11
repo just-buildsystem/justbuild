@@ -8,6 +8,11 @@ Bug fixes on top of `1.6.5`.
   map (before they used to have `none` which was not a map
   as required, preventing use in contexts where provided values
   are accessed).
+- Archive extraction now correctly rebases hardlink target paths onto
+  the destination directory. Before, only the entry's own path was
+  rebased, so hardlink entries still pointed at the original path from
+  the archive, causing extraction to fail whenever the destination
+  differed from the archive's own root.
 
 ## Release `1.6.5` (2026-04-08)
 
