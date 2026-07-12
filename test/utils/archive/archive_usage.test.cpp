@@ -43,6 +43,8 @@ namespace {
 
 using file_t = std::pair</*content*/ std::string, mode_t>;
 using filetree_t = std::unordered_map<std::string, file_t>;
+// hardlinks mapping link_name to target_name
+using hardlinks_t = std::unordered_map<std::string, std::string>;
 
 constexpr std::size_t kBlockSize = 10240;
 constexpr int kFilePerm = 0644;
@@ -61,7 +63,7 @@ struct ArchiveTestInfo {
     std::string cmd;
 };
 
-std::vector<ArchiveTestInfo> const kTestScenarios = {
+std::vector<ArchiveTestInfo> const kTestScenariosTar = {
     {.test_name = "tar",
      .type = ArchiveType::Tar,
      .test_dir = "test_tar",
@@ -97,7 +99,9 @@ std::vector<ArchiveTestInfo> const kTestScenarios = {
      .test_dir = "test_tar_lzma",
      .filename = "test.tar.lzma",
      .tools = {"tar", "lzma"},
-     .cmd = "/usr/bin/tar --lzma -x -f"},
+     .cmd = "/usr/bin/tar --lzma -x -f"}};
+
+std::vector<ArchiveTestInfo> const kTestScenariosZip = {
     {.test_name = "zip",
      .type = ArchiveType::Zip,
      .test_dir = "test_zip",
@@ -110,6 +114,13 @@ std::vector<ArchiveTestInfo> const kTestScenarios = {
      .filename = "test.7z",
      .tools = {"7z"},  // 7z comes with its own lzma-type compression
      .cmd = "/usr/bin/7z x"}};
+
+auto const kTestScenarios = [] {
+    std::vector<ArchiveTestInfo> v;
+    v.insert(v.end(), kTestScenariosTar.begin(), kTestScenariosTar.end());
+    v.insert(v.end(), kTestScenariosZip.begin(), kTestScenariosZip.end());
+    return v;
+}();
 
 [[nodiscard]] auto read_archive(archive* a,
                                 std::string const& path) -> filetree_t {
@@ -134,7 +145,8 @@ std::vector<ArchiveTestInfo> const kTestScenarios = {
 
 void write_archive(archive* a,
                    std::string const& path,
-                   filetree_t const& files) {
+                   filetree_t const& files,
+                   hardlinks_t const& hardlinks = {}) {
     REQUIRE(archive_write_open_filename(a, path.c_str()) == ARCHIVE_OK);
 
     archive_entry* entry = archive_entry_new();
@@ -155,6 +167,15 @@ void write_archive(archive* a,
             archive_entry_set_size(entry, 0);
             REQUIRE(archive_write_header(a, entry) == ARCHIVE_OK);
         }
+        entry = archive_entry_clear(entry);
+    }
+    for (auto const& [link_name, target_name] : hardlinks) {
+        archive_entry_set_pathname(entry, link_name.c_str());
+        archive_entry_set_filetype(entry, AE_IFREG);
+        archive_entry_set_perm(entry, kFilePerm);
+        archive_entry_set_size(entry, 0);
+        archive_entry_set_hardlink(entry, target_name.c_str());
+        REQUIRE(archive_write_header(a, entry) == ARCHIVE_OK);
         entry = archive_entry_clear(entry);
     }
     archive_entry_free(entry);
@@ -435,5 +456,60 @@ TEST_CASE("ArchiveOps", "[archive_ops]") {
                 compare_extracted(scenario.test_dir);
             }
         }
+    }
+}
+
+TEST_CASE("ArchiveOps hardlink extraction", "[archive_ops]") {
+    // get the scenario (tar-family formats only, see kTestScenariosTar)
+    auto test_index = GENERATE(
+        Catch::Generators::range<std::size_t>(0, kTestScenariosTar.size()));
+    auto const& scenario = kTestScenariosTar[test_index];
+
+    auto const test_dir = scenario.test_dir + "_hardlink";
+    auto const extract_dir = test_dir + "_extracted";
+    REQUIRE(FileSystemManager::RemoveDirectory(test_dir));
+    REQUIRE(FileSystemManager::CreateDirectory(test_dir));
+    REQUIRE(FileSystemManager::RemoveDirectory(extract_dir));
+
+    SECTION(std::string("Extract ") + scenario.test_name +
+            " with hardlink to a different destDir") {
+        {
+            auto anchor = FileSystemManager::ChangeDirectory(test_dir);
+            auto* out = archive_write_new();
+            REQUIRE(out != nullptr);
+            enable_write_format_and_filter(out, scenario.type);
+            write_archive(out,
+                          scenario.filename,
+                          {{"hardlink_target", {"hardlink_target", AE_IFREG}}},
+                          {{"hardlink_link", "hardlink_target"}});
+            REQUIRE(archive_write_free(out) == ARCHIVE_OK);
+        }
+
+        auto res = ArchiveOps::ExtractArchive(
+            scenario.type,
+            std::filesystem::path(test_dir) / scenario.filename,
+            extract_dir);
+        if (res != std::nullopt) {
+            FAIL(*res);
+        }
+
+        REQUIRE(FileSystemManager::IsFile(std::filesystem::path(extract_dir) /
+                                          "hardlink_target"));
+        REQUIRE(FileSystemManager::IsFile(std::filesystem::path(extract_dir) /
+                                          "hardlink_link"));
+        auto target_data = FileSystemManager::ReadFile(
+            std::filesystem::path(extract_dir) / "hardlink_target");
+        auto link_data = FileSystemManager::ReadFile(
+            std::filesystem::path(extract_dir) / "hardlink_link");
+        REQUIRE(target_data);
+        REQUIRE(link_data);
+        CHECK(*target_data == "hardlink_target");
+        CHECK(*link_data == "hardlink_target");
+        // confirm it's a *real* hard link (same inode).
+        CHECK(std::filesystem::equivalent(
+            std::filesystem::path(extract_dir) / "hardlink_target",
+            std::filesystem::path(extract_dir) / "hardlink_link"));
+        CHECK(std::filesystem::hard_link_count(
+                  std::filesystem::path(extract_dir) / "hardlink_target") == 2);
     }
 }
