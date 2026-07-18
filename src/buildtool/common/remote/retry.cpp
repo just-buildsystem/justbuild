@@ -19,7 +19,7 @@
 #include <chrono>
 #include <thread>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 
 auto WithRetry(CallableReturningRetryResponse const& f,

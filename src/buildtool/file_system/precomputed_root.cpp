@@ -17,7 +17,7 @@
 #include <compare>
 #include <exception>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "src/utils/cpp/hash_combine.hpp"
 

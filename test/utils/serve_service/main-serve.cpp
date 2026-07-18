@@ -22,7 +22,7 @@
 #include <vector>
 
 #include "catch2/catch_session.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/file_system/git_context.hpp"
 #include "src/buildtool/logging/log_level.hpp"

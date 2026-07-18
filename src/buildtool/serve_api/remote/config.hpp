@@ -26,7 +26,7 @@
 #include <utility>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/remote/remote_common.hpp"
 #include "src/buildtool/main/build_utils.hpp"
 #include "src/utils/cpp/expected.hpp"

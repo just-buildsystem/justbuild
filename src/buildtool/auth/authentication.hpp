@@ -26,7 +26,7 @@
 #include <utility>
 #include <variant>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/expected.hpp"

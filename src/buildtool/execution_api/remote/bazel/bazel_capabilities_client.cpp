@@ -22,7 +22,7 @@
 #include <grpcpp/grpcpp.h>
 
 #include "build/bazel/semver/semver.pb.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/common/remote/client_common.hpp"
 #include "src/buildtool/common/remote/retry.hpp"

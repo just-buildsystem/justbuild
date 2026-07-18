@@ -21,7 +21,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/utils/cpp/expected.hpp"
 
 /// \brief Store local execution configuration.

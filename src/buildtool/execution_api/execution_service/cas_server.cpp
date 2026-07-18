@@ -24,7 +24,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "google/rpc/status.pb.h"
 #include "nlohmann/json.hpp"

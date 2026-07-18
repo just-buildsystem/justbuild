@@ -27,7 +27,7 @@
 #include <string>
 #include <utility>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/file_system/object_type.hpp"
 #include "src/buildtool/logging/log_level.hpp"

@@ -18,7 +18,7 @@
 #include <string>
 #include <utility>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"

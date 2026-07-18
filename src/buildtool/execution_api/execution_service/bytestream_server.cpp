@@ -21,7 +21,7 @@
 #include <string>
 #include <string_view>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/stubs/port.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"

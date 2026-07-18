@@ -22,7 +22,7 @@
 #include <utility>  // std::move
 #include <variant>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/bazel_msg/bazel_msg_factory.hpp"

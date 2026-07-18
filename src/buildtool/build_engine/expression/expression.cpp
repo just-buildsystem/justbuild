@@ -19,7 +19,7 @@
 #include <optional>
 #include <string>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/utils/cpp/gsl.hpp"

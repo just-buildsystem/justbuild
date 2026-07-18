@@ -79,7 +79,7 @@
 #include "src/utils/cpp/expected.hpp"
 #include "src/utils/cpp/json.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/remote/retry_config.hpp"
 #include "src/buildtool/computed_roots/evaluate.hpp"

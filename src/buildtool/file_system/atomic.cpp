@@ -25,7 +25,7 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 
 auto FileSystemAtomic::WriteFile(std::string const& filename,
                                  std::string const& content) noexcept -> bool {

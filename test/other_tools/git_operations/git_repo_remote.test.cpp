@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/file_system/file_system_manager.hpp"
 #include "src/buildtool/file_system/git_cas.hpp"
 #include "src/buildtool/logging/log_level.hpp"

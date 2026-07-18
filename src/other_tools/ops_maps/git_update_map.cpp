@@ -17,7 +17,7 @@
 #include <memory>
 #include <optional>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/progress_reporting/task_tracker.hpp"
 #include "src/other_tools/git_operations/git_repo_remote.hpp"
 

@@ -18,7 +18,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/text_format.h"
 #include "google/protobuf/timestamp.pb.h"

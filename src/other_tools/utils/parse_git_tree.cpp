@@ -19,7 +19,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"

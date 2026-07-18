@@ -21,7 +21,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/user_structs.hpp"
 #include "src/buildtool/crypto/hasher.hpp"
 #include "src/buildtool/logging/log_level.hpp"

@@ -100,11 +100,6 @@
     # "git2/XXX.h" => <git2.h> where XXX doesn't contain '/'
     { "include": ["@\"git2/[^/]+\\.h\"", "private", "<git2.h>", "public"] },
 
-    # "fmt/core.h" is for compatibility reasons; otherwise, include the suggested
-    # headers if they don't break the pkg build
-    { "include": ["\"fmt/format.h\"", "private", "\"fmt/core.h\"", "public"] },
-    { "include": ["\"fmt/base.h\"", "private", "\"fmt/core.h\"", "public"] },
-
     { "include": ["@\"catch2/matchers/.*\"", "private", "\"catch2/matchers/catch_matchers_all.hpp\"", "public"] },
     { "include": ["@\"catch2/generators/.*\"", "private", "\"catch2/generators/catch_generators_all.hpp\"", "public"] },
 

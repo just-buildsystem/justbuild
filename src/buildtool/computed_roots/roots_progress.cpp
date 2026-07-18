@@ -17,7 +17,7 @@
 #include <functional>
 #include <string>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/logging/log_level.hpp"
 
 auto RootsProgress::Reporter(gsl::not_null<Statistics*> const& stats,

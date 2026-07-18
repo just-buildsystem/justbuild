@@ -26,7 +26,7 @@
 #include <grpcpp/support/status.h>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/artifact_blob.hpp"

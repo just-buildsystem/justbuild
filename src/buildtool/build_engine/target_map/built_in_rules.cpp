@@ -32,7 +32,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"
 #include "src/buildtool/build_engine/analysed_target/target_graph_information.hpp"
 #include "src/buildtool/build_engine/base_maps/entity_name.hpp"

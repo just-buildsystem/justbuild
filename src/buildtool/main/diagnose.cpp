@@ -28,7 +28,7 @@
 #include <utility>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/analysed_target/analysed_target.hpp"

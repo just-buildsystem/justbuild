@@ -23,7 +23,7 @@
 #include <utility>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"

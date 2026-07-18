@@ -36,7 +36,7 @@
 #include "catch2/catch_test_macros.hpp"
 #include "catch2/catch_tostring.hpp"
 #include "catch2/generators/catch_generators_all.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_digest.hpp"

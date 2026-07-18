@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <fstream>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"

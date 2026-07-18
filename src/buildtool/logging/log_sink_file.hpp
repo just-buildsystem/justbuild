@@ -29,8 +29,9 @@
 #include <thread>
 #include <unordered_map>
 
+#include "fmt/base.h"
 #include "fmt/chrono.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/log_sink.hpp"

@@ -25,7 +25,7 @@
 #include <vector>
 
 #include "catch2/catch_test_macros.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_description.hpp"

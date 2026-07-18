@@ -18,7 +18,7 @@
 #include <memory>
 #include <utility>  // std::move
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/crypto/hasher.hpp"

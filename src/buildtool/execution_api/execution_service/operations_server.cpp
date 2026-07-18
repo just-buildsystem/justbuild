@@ -18,7 +18,7 @@
 #include <string>
 #include <utility>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/execution_api/execution_service/operation_cache.hpp"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/utils/cpp/hex_string.hpp"

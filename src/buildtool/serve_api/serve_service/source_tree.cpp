@@ -20,7 +20,7 @@
 #include <functional>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact.hpp"

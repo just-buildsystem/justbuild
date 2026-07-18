@@ -49,7 +49,7 @@
 #include <utility>
 #include <variant>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

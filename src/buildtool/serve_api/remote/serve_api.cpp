@@ -16,7 +16,7 @@
 
 #include "src/buildtool/serve_api/remote/serve_api.hpp"
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/artifact.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"
 #include "src/buildtool/common/repository_config.hpp"
