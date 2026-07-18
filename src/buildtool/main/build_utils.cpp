@@ -19,7 +19,7 @@
 #include <memory>
 #include <unordered_set>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/build_engine/expression/expression.hpp"
 #include "src/buildtool/build_engine/expression/expression_ptr.hpp"
 #ifndef BOOTSTRAP_BUILD_TOOL

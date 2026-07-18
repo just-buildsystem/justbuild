@@ -26,7 +26,7 @@
 #include <utility>  // std::move
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/multithreading/atomic_value.hpp"
 #include "src/utils/cpp/hash_combine.hpp"
 

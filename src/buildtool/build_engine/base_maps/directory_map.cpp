@@ -17,7 +17,7 @@
 #include <functional>
 #include <string>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/multithreading/async_map_consumer.hpp"
 
 auto BuildMaps::Base::CreateDirectoryEntriesMap(

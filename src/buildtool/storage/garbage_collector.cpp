@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/crypto/hash_function.hpp"
 #include "src/buildtool/execution_api/common/ids.hpp"
 #include "src/buildtool/execution_api/common/message_limits.hpp"

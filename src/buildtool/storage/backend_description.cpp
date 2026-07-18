@@ -17,7 +17,7 @@
 #include <exception>
 #include <map>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/file_system/object_type.hpp"

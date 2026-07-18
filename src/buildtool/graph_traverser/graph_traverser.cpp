@@ -35,7 +35,7 @@
 #include <thread>
 #include <unordered_set>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/artifact_blob.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/statistics.hpp"

@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/build_engine/base_maps/field_reader.hpp"
 
 namespace BuildMaps::Base {

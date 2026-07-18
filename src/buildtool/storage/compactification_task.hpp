@@ -19,7 +19,8 @@
 #include <functional>
 #include <string>
 
-#include "fmt/core.h"
+#include "fmt/base.h"
+#include "fmt/format.h"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/local_cas.hpp"

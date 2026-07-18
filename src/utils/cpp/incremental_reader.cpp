@@ -18,7 +18,7 @@
 #include <exception>
 #include <string_view>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/utils/cpp/in_place_visitor.hpp"
 
 namespace {

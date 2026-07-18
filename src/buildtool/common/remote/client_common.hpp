@@ -25,7 +25,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/rpc/status.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/auth/authentication.hpp"

@@ -19,7 +19,7 @@
 #include <map>
 #include <utility>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "src/other_tools/utils/curl_url_handle.hpp"
 

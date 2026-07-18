@@ -22,7 +22,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "google/protobuf/repeated_ptr_field.h"
 #include "justbuild/just_serve/just_serve.pb.h"
 #include "nlohmann/json.hpp"

@@ -30,7 +30,7 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/auth/authentication.hpp"
 #include "src/buildtool/common/protocol_traits.hpp"

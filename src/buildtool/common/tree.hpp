@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/action.hpp"
 #include "src/buildtool/common/action_description.hpp"

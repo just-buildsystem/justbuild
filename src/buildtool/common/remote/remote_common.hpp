@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/remote/port.hpp"
 #include "src/utils/cpp/expected.hpp"

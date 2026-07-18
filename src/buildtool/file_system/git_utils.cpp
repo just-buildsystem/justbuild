@@ -14,7 +14,7 @@
 
 #include "src/buildtool/file_system/git_utils.hpp"
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/logging/log_level.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/utils/cpp/hex_string.hpp"

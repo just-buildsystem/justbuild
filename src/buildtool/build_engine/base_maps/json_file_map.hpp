@@ -21,7 +21,7 @@
 #include <string>
 #include <utility>  // std::move
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "gsl/gsl"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/build_engine/base_maps/module_name.hpp"

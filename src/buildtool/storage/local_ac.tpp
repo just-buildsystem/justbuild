@@ -20,7 +20,7 @@
 #include <tuple>    //std::ignore
 #include <utility>  // std::move
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
 #include "src/buildtool/common/bazel_types.hpp"

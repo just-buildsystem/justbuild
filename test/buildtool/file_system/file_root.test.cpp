@@ -22,7 +22,7 @@
 #include <string_view>
 
 #include "catch2/catch_test_macros.hpp"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "src/buildtool/common/artifact_description.hpp"
 #include "src/buildtool/common/artifact_digest.hpp"
 #include "src/buildtool/common/artifact_digest_factory.hpp"
