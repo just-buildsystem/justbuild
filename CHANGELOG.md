@@ -1,4 +1,8 @@
-## Release `1.6.6` (UNRELEASED)
+## Release `1.6.7` (UNRELEASED)
+
+Bug fixes on top of `1.6.6`.
+
+## Release `1.6.6` (2026-07-25)
 
 Bug fixes on top of `1.6.5`.
 
