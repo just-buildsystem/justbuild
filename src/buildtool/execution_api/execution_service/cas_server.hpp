@@ -15,11 +15,14 @@
 #ifndef CAS_SERVER_HPP
 #define CAS_SERVER_HPP
 
+#include <cstddef>
+
 #include <grpcpp/grpcpp.h>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "gsl/gsl"
 #include "src/buildtool/common/bazel_types.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/logging/logger.hpp"
 #include "src/buildtool/storage/config.hpp"
@@ -28,10 +31,14 @@
 class CASServiceImpl final
     : public bazel_re::ContentAddressableStorage::Service {
   public:
+    /// \param local_context  The LocalContext to be used.
+    /// \param max_batch_size Maximum batch request size accepted.
     explicit CASServiceImpl(
-        gsl::not_null<LocalContext const*> const& local_context) noexcept
+        gsl::not_null<LocalContext const*> const& local_context,
+        std::size_t max_batch_size = MessageLimits::kMaxGrpcLength) noexcept
         : storage_config_{*local_context->storage_config},
-          storage_{*local_context->storage} {}
+          storage_{*local_context->storage},
+          max_batch_size_{max_batch_size} {}
 
     // Determine if blobs are present in the CAS.
     //
@@ -219,6 +226,7 @@ class CASServiceImpl final
   private:
     StorageConfig const& storage_config_;
     Storage const& storage_;
+    std::size_t const max_batch_size_;
     Logger logger_{"execution-service"};
 };
 #endif  // CAS_SERVER_HPP

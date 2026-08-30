@@ -15,9 +15,11 @@
 #include "src/buildtool/execution_api/execution_service/cas_server.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <numeric>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -128,6 +130,23 @@ auto CASServiceImpl::BatchUpdateBlobs(
         logger_.Emit(LogLevel::Error, "{}", kStr);
         return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
     }
+
+    if (auto const total_size =
+            std::accumulate(request->requests().begin(),
+                            request->requests().end(),
+                            std::size_t{},
+                            [](std::size_t sum, auto const& r) {
+                                return sum + r.data().size();
+                            });
+        total_size > max_batch_size_) {
+        auto const str = fmt::format(
+            "BatchUpdateBlobs: Attempted to write a total of {} bytes, while a "
+            "maximum of {} bytes is permitted",
+            total_size,
+            max_batch_size_);
+        logger_.Emit(LogLevel::Debug, "{}", str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
+    }
     auto const hash_type = storage_config_.hash_function.GetType();
     for (auto const& x : request->requests()) {
         auto const& hash = x.digest().hash();
@@ -187,6 +206,23 @@ auto CASServiceImpl::BatchReadBlobs(
             "BatchReadBlobs: Could not acquire SharedLock";
         logger_.Emit(LogLevel::Error, "{}", kStr);
         return grpc::Status{grpc::StatusCode::INTERNAL, kStr};
+    }
+
+    if (auto const total_size = std::accumulate(
+            request->digests().begin(),
+            request->digests().end(),
+            std::size_t{},
+            [](std::size_t sum, auto const& digest) {
+                return sum + static_cast<std::size_t>(digest.size_bytes());
+            });
+        total_size > max_batch_size_) {
+        auto const str = fmt::format(
+            "BatchReadBlobs: Attempted to read a total of {} bytes, while a "
+            "maximum of {} bytes is permitted",
+            total_size,
+            max_batch_size_);
+        logger_.Emit(LogLevel::Debug, "{}", str);
+        return ::grpc::Status{grpc::StatusCode::INVALID_ARGUMENT, str};
     }
     for (auto const& x : request->digests()) {
         auto* r = response->add_responses();

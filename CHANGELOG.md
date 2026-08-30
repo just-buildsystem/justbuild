@@ -12,6 +12,10 @@ Bug fixes on top of `1.6.6`.
   limit for that remote-execution instance and are retried with smaller
   batches, falling back to the streaming API for blobs that do not fit a batch
   request.
+- The single-node execution service (`just execute`) now rejects batch requests
+  whose total blob size exceeds the supported limit with `INVALID_ARGUMENT`, as
+  foreseen by the remote build execution protocol, instead of answering them
+  with a response of arbitrary size.
 
 ## Release `1.6.6` (2026-07-25)
 

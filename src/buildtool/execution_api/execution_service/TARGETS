@@ -78,6 +78,7 @@
     [ ["@", "grpc", "", "grpc++"]
     , ["@", "gsl", "", "gsl"]
     , ["src/buildtool/common", "bazel_types"]
+    , ["src/buildtool/execution_api/common", "message_limits"]
     , ["src/buildtool/execution_api/local", "context"]
     , ["src/buildtool/logging", "logging"]
     , ["src/buildtool/storage", "config"]
