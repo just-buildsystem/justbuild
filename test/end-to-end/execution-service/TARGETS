@@ -1,4 +1,10 @@
-{ "simple_build":
+{ "batch_size_limit":
+  { "type": ["@", "rules", "shell/test", "script"]
+  , "name": ["batch_size_limit"]
+  , "test": ["batch_size_limit.sh"]
+  , "deps": [["", "tool-under-test"]]
+  }
+, "simple_build":
   { "type": ["@", "rules", "shell/test", "script"]
   , "name": ["simple_build"]
   , "test": ["simple_build.sh"]
@@ -13,6 +19,6 @@
 , "TESTS":
   { "type": ["@", "rules", "test", "suite"]
   , "stage": ["execution-service"]
-  , "deps": ["simple_build", "tree_inputs"]
+  , "deps": ["batch_size_limit", "simple_build", "tree_inputs"]
   }
 }
