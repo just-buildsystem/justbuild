@@ -20,6 +20,10 @@
 struct MessageLimits final {
     // Maximum length of a gprc message.
     static constexpr std::size_t kMaxGrpcLength = 3UL * 1024 * 1024;
+
+    // Lower bound for the batch transfer size that has been reduced at runtime
+    // because the server rejected a batch request as being too large.
+    static constexpr std::size_t kMinBatchTransferSize = 64UL * 1024;
 };
 
 #endif  // INCLUDED_SRC_BUILDTOOL_EXECUTION_API_COMMON_MESSAGE_LIMITS_HPP

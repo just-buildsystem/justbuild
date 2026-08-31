@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <numeric>
 #include <sstream>
 #include <unordered_set>
 #include <utility>
@@ -45,6 +46,26 @@ namespace {
 [[nodiscard]] auto GetContentSize(ArtifactBlob const& blob) noexcept
     -> std::size_t {
     return blob.GetContentSize();
+}
+
+/// \brief Check whether a failed batch request might succeed if split up.
+/// The remote execution protocol specifies INVALID_ARGUMENT for batch requests
+/// exceeding the limit supported by the server. Some servers report
+/// RESOURCE_EXHAUSTED instead, which is also what grpc itself reports for
+/// messages exceeding the maximum message length.
+[[nodiscard]] auto IsBatchTooLarge(grpc::StatusCode code) noexcept -> bool {
+    return code == grpc::StatusCode::INVALID_ARGUMENT or
+           code == grpc::StatusCode::RESOURCE_EXHAUSTED;
+}
+
+/// \brief Accumulate the content size of the values in range [begin, end).
+template <typename TIterator>
+[[nodiscard]] auto GetTotalContentSize(TIterator begin,
+                                       TIterator end) noexcept -> std::size_t {
+    return std::accumulate(
+        begin, end, std::size_t{}, [](std::size_t sum, auto const& value) {
+            return sum + GetContentSize(value);
+        });
 }
 
 template <typename TRequest,
@@ -105,7 +126,7 @@ auto BazelCasClient::BatchReadBlobs(
         return result;
     }
 
-    auto const max_content_size = GetMaxBatchTransferSize(instance_name);
+    auto max_content_size = GetMaxBatchTransferSize(instance_name);
 
     auto const back_map = BackMap<bazel_re::Digest, ArtifactDigest>::Make(
         &blobs, ArtifactDigestFactory::ToBazel);
@@ -135,7 +156,7 @@ auto BazelCasClient::BatchReadBlobs(
                              max_content_size);
             // If no progress happens, fallback to streaming API:
             if (it == it_processed) {
-                logger_.Emit(LogLevel::Warning,
+                logger_.Emit(LogLevel::Debug,
                              "BatchReadBlobs: Failed to prepare request for "
                              "{}\nFalling back to streaming API.",
                              it->hash());
@@ -155,8 +176,10 @@ auto BazelCasClient::BatchReadBlobs(
                          "BatchReadBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
 
+            std::optional<grpc::StatusCode> failure_code;
             bool const retry_result = WithRetry(
-                [this, &request, &result, &back_map]() -> RetryResponse {
+                [this, &request, &result, &back_map, &failure_code]()
+                    -> RetryResponse {
                     bazel_re::BatchReadBlobsResponse response;
                     grpc::ClientContext context;
                     auto status =
@@ -197,6 +220,7 @@ auto BazelCasClient::BatchReadBlobs(
                             .exit_retry_loop = batch_response.exit_retry_loop,
                             .error_msg = batch_response.error_msg};
                     }
+                    failure_code = status.error_code();
                     auto exit_retry_loop =
                         status.error_code() != grpc::StatusCode::UNAVAILABLE;
                     return {
@@ -205,8 +229,45 @@ auto BazelCasClient::BatchReadBlobs(
                         .error_msg = StatusString(status, "BatchReadBlobs")};
                 },
                 retry_config_,
-                logger_);
-            has_failure = has_failure or not retry_result;
+                logger_,
+                LogLevel::Performance);
+            if (retry_result) {
+                continue;
+            }
+
+            // The server may enforce a stricter limit than the one it reported
+            // via the capabilities service (or may not have reported one at
+            // all). In that case, lower the limit and retry with smaller
+            // batches. Blobs that don't fit any batch anymore are read via the
+            // streaming API by the no progress branch above.
+            if (failure_code.has_value() and IsBatchTooLarge(*failure_code)) {
+                if (auto new_limit = ReduceMaxBatchTransferSize(
+                        instance_name,
+                        GetTotalContentSize(it_processed, it),
+                        max_content_size)) {
+                    max_content_size = *new_limit;
+                    it = it_processed;
+                    continue;
+                }
+            }
+
+            // Fall back to reading the blobs of the failed batch one by one:
+            logger_.Emit(LogLevel::Debug,
+                         "BatchReadBlobs: Request failed.\n"
+                         "Falling back to streaming API for {} blob(s).",
+                         std::distance(it_processed, it));
+            for (auto failed = it_processed; failed != it; ++failed) {
+                std::optional<ArtifactBlob> blob;
+                if (auto value = back_map->GetReference(*failed)) {
+                    blob = ReadSingleBlob(instance_name, *value.value());
+                }
+                if (blob.has_value()) {
+                    result.emplace(*std::move(blob));
+                }
+                else {
+                    has_failure = true;
+                }
+            }
         }
         if (has_failure) {
             logger_.Emit(LogLevel::Error, "Failed to BatchReadBlobs.");
@@ -423,7 +484,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
         return 0;
     }
 
-    auto const max_content_size = GetMaxBatchTransferSize(instance_name);
+    auto max_content_size = GetMaxBatchTransferSize(instance_name);
 
     auto request_creator = [&instance_name](ArtifactBlob const& blob)
         -> std::optional<bazel_re::BatchUpdateBlobsRequest> {
@@ -470,8 +531,9 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                          "BatchUpdateBlobs - Request size: {} bytes\n",
                          request.ByteSizeLong());
 
+            std::optional<grpc::StatusCode> failure_code;
             bool const retry_result = WithRetry(
-                [this, &request, &updated]() -> RetryResponse {
+                [this, &request, &updated, &failure_code]() -> RetryResponse {
                     bazel_re::BatchUpdateBlobsResponse response;
                     grpc::ClientContext context;
                     auto status =
@@ -497,6 +559,7 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                             .exit_retry_loop = batch_response.exit_retry_loop,
                             .error_msg = batch_response.error_msg};
                     }
+                    failure_code = status.error_code();
                     return {
                         .ok = false,
                         .exit_retry_loop = status.error_code() !=
@@ -506,7 +569,25 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
                 retry_config_,
                 logger_,
                 LogLevel::Performance);
-            has_failure = has_failure or not retry_result;
+            if (not retry_result) {
+                // The server may enforce a stricter limit than the one it
+                // reported via the capabilities service (or may not have
+                // reported one at all). In that case, lower the limit and retry
+                // with smaller batches. Blobs that don't fit any batch anymore
+                // are uploaded via the streaming API by the fallback below.
+                if (failure_code.has_value() and
+                    IsBatchTooLarge(*failure_code)) {
+                    if (auto new_limit = ReduceMaxBatchTransferSize(
+                            instance_name,
+                            GetTotalContentSize(it_processed, it),
+                            max_content_size)) {
+                        max_content_size = *new_limit;
+                        it = it_processed;
+                        continue;
+                    }
+                }
+                has_failure = true;
+            }
         }
         if (has_failure) {
             logger_.Emit(LogLevel::Performance, "Failed to BatchUpdateBlobs.");
@@ -564,6 +645,30 @@ auto BazelCasClient::BatchUpdateBlobs(std::string const& instance_name,
 auto BazelCasClient::GetMaxBatchTransferSize(
     std::string const& instance_name) const noexcept -> std::size_t {
     return capabilities_.GetCapabilities(instance_name)->MaxBatchTransferSize;
+}
+
+auto BazelCasClient::ReduceMaxBatchTransferSize(
+    std::string const& instance_name,
+    std::size_t content_size,
+    std::size_t const max_content_size) const noexcept
+    -> std::optional<size_t> {
+    // A request that was small to begin with has most likely not been rejected
+    // because of its size. Don't reduce the limit in that case.
+    if (content_size <= MessageLimits::kMinBatchTransferSize) {
+        return std::nullopt;
+    }
+
+    if (auto const reduced = capabilities_.LimitMaxBatchTransferSize(
+            instance_name, std::min(max_content_size, content_size) / 2)) {
+        return reduced;
+    }
+
+    // Another thread may have reduced the limit in the meantime:
+    auto const current = GetMaxBatchTransferSize(instance_name);
+    if (current < max_content_size) {
+        return current;
+    }
+    return std::nullopt;
 }
 
 auto BazelCasClient::CreateGetTreeRequest(

@@ -143,6 +143,18 @@ class BazelCasClient {
     std::unique_ptr<bazel_re::ContentAddressableStorage::Stub> stub_;
     Logger logger_{"RemoteCasClient"};
 
+    /// \brief Reduce the maximum batch transfer size after the server has
+    /// rejected a batch request of the given content size as being too large.
+    /// \param     instance_name    Name of the CAS instance
+    /// \param     content_size     Content size of the rejected request
+    /// \param     max_content_size Current limit to be reduced
+    /// \returns The new reduced limit or nullopt if reduction failed.
+    [[nodiscard]] auto ReduceMaxBatchTransferSize(
+        std::string const& instance_name,
+        std::size_t content_size,
+        std::size_t max_content_size) const noexcept
+        -> std::optional<std::size_t>;
+
     [[nodiscard]] static auto CreateGetTreeRequest(
         std::string const& instance_name,
         bazel_re::Digest const& root_digest,

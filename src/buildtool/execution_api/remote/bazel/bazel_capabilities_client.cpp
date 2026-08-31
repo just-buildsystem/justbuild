@@ -15,6 +15,7 @@
 #include "src/buildtool/execution_api/remote/bazel/bazel_capabilities_client.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <mutex>
 #include <optional>
 #include <utility>
@@ -157,4 +158,41 @@ auto BazelCapabilitiesClient::GetCapabilities(
         capabilities_.insert_or_assign(instance_name, result);
     }
     return result;
+}
+
+auto BazelCapabilitiesClient::LimitMaxBatchTransferSize(
+    std::string const& instance_name,
+    std::size_t new_limit) const noexcept -> std::optional<std::size_t> {
+    // Make sure capabilities for this instance are known and cached:
+    static_cast<void>(GetCapabilities(instance_name));
+
+    std::size_t const limit =
+        std::max(new_limit, MessageLimits::kMinBatchTransferSize);
+    std::size_t old_limit = 0;
+    {
+        std::unique_lock lock{lock_};
+        auto const it = capabilities_.find(instance_name);
+        Capabilities const current =
+            it != capabilities_.end() ? *it->second : Capabilities{};
+        old_limit = current.MaxBatchTransferSize;
+        if (limit >= old_limit) {
+            return std::nullopt;
+        }
+        capabilities_.insert_or_assign(
+            instance_name,
+            std::make_shared<Capabilities>(
+                Capabilities{.MaxBatchTransferSize = limit,
+                             .blob_split_support = current.blob_split_support,
+                             .blob_splice_support = current.blob_splice_support,
+                             .low_api_version = current.low_api_version,
+                             .high_api_version = current.high_api_version}));
+    }
+
+    logger_.Emit(
+        LogLevel::Debug,
+        "Reduced max batch transfer size for \"{}\" from {} to {} bytes",
+        instance_name,
+        old_limit,
+        limit);
+    return limit;
 }

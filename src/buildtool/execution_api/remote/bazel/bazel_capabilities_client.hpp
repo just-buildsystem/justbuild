@@ -20,6 +20,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -73,6 +74,18 @@ class BazelCapabilitiesClient final {
     /// skipped to try again next time.
     [[nodiscard]] auto GetCapabilities(
         std::string const& instance_name) const noexcept -> Capabilities::Ptr;
+
+    /// \brief Lower the cached max batch transfer size for instance_name.
+    /// To be used if the server rejected a batch request as being too large:
+    /// the limit reported via GetCapabilities may be unset (or too optimistic),
+    /// while the server still enforces a message size limit of its own.
+    /// \param instance_name    Name of the instance the limit applies to.
+    /// \param new_limit        New limit; clamped to kMinBatchTransferSize.
+    /// \return The new, strictly smaller limit, or std::nullopt if the limit
+    /// could not be lowered any further.
+    [[nodiscard]] auto LimitMaxBatchTransferSize(
+        std::string const& instance_name,
+        std::size_t new_limit) const noexcept -> std::optional<std::size_t>;
 
   private:
     RetryConfig const& retry_config_;
