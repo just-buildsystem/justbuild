@@ -828,6 +828,22 @@ Interface to use. If unset, the loopback device is used.
 Write pid to this file in plain txt. If the file exists, it will be
 overwritten.
 
+**`--max-batch-size`** *`UINT`*  
+Set the maximum total size, in bytes, of the blobs accepted in a single batch
+request; larger requests are rejected with `INVALID_ARGUMENT`, as foreseen
+by the remote build execution protocol. Clients are expected to split up
+rejected requests, or to transfer the respective blobs via the streaming
+API. Values larger than the maximum gRPC message length are capped to it.
+If unset, defaults to the maximum gRPC message length, 3 MiB.
+
+**`--max-batch-size-reported`** *`UINT`*  
+Set the maximum total size, in bytes, of the blobs in a single batch request as
+reported by the capabilities service. Values larger than the maximum gRPC
+message length are capped to it. A value of 0 reports that no limit is set,
+which the remote build execution protocol explicitly allows; clients then
+have to assume a limit of their own. If unset, the value of
+**`--max-batch-size`** is reported.
+
 **`--tls-server-cert`** *`TEXT`*  
 Path to the TLS server certificate.
 

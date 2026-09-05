@@ -182,6 +182,8 @@ struct ServiceArguments {
     std::optional<std::string> interface{std::nullopt};
     std::optional<std::string> pid_file{std::nullopt};
     std::optional<std::uint8_t> op_exponent;
+    std::optional<std::size_t> max_batch_size{std::nullopt};
+    std::optional<std::size_t> max_batch_size_reported{std::nullopt};
 };
 
 struct ServeArguments {
@@ -816,6 +818,21 @@ static inline auto SetupServiceArguments(
         service_args->pid_file,
         "Write pid to this file in plain txt. If the file exists, it "
         "will be overwritten.");
+
+    app->add_option(
+        "--max-batch-size",
+        service_args->max_batch_size,
+        "Set the maximum total size, in bytes, of the blobs accepted in a "
+        "single batch request; capped at, and defaulting to, the maximum gRPC "
+        "message length.");
+
+    app->add_option(
+        "--max-batch-size-reported",
+        service_args->max_batch_size_reported,
+        "Set the maximum total size, in bytes, of the blobs in a single batch "
+        "request reported by the capabilities service; capped at the maximum "
+        "gRPC message length, and defaultint to the value of "
+        "--max-batch-size.");
 
     app->add_option_function<std::uint8_t>(
         "--log-operations-threshold",

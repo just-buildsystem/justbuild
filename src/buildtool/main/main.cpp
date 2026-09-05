@@ -798,7 +798,9 @@ auto main(int argc, char* argv[]) -> int {
                 ServerImpl::Create(arguments.service.interface,
                                    arguments.service.port,
                                    arguments.service.info_file,
-                                   arguments.service.pid_file);
+                                   arguments.service.pid_file,
+                                   arguments.service.max_batch_size,
+                                   arguments.service.max_batch_size_reported);
 
             if (execution_server) {
                 RetryConfig

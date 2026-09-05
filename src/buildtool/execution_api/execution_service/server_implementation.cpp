@@ -20,6 +20,7 @@
 #error "Non-unix is not supported yet"
 #endif
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <variant>
@@ -46,10 +47,13 @@
 #include "src/buildtool/storage/config.hpp"
 #include "src/utils/cpp/type_safe_arithmetic.hpp"
 
-auto ServerImpl::Create(std::optional<std::string> interface,
-                        std::optional<int> port,
-                        std::optional<std::string> info_file,
-                        std::optional<std::string> pid_file) noexcept
+auto ServerImpl::Create(
+    std::optional<std::string> interface,
+    std::optional<int> port,
+    std::optional<std::string> info_file,
+    std::optional<std::string> pid_file,
+    std::optional<std::size_t> max_batch_size,
+    std::optional<std::size_t> max_batch_size_reported) noexcept
     -> std::optional<ServerImpl> {
     ServerImpl server;
     if (interface) {
@@ -71,6 +75,16 @@ auto ServerImpl::Create(std::optional<std::string> interface,
     if (pid_file) {
         server.pid_file_ = std::move(*pid_file);
     }
+    if (max_batch_size) {
+        server.max_batch_size_ =
+            std::min(*max_batch_size, MessageLimits::kMaxGrpcLength);
+    }
+    // If unset, report exactly the batch size that is actually supported.
+    server.max_batch_size_reported_ = server.max_batch_size_;
+    if (max_batch_size_reported) {
+        server.max_batch_size_reported_ =
+            std::min(*max_batch_size_reported, MessageLimits::kMaxGrpcLength);
+    }
     return server;
 }
 
@@ -82,9 +96,9 @@ auto ServerImpl::Run(gsl::not_null<LocalContext const*> const& local_context,
         local_context->storage_config->hash_function.GetType();
     ExecutionServiceImpl es{local_context, local_api, op_exponent};
     ActionCacheServiceImpl ac{local_context};
-    CASServiceImpl cas{local_context};
+    CASServiceImpl cas{local_context, max_batch_size_};
     BytestreamServiceImpl b{local_context};
-    CapabilitiesServiceImpl cap{hash_type};
+    CapabilitiesServiceImpl cap{hash_type, max_batch_size_reported_};
     OperationsServiceImpl op{&es.GetOpCache()};
 
     grpc::ServerBuilder builder;

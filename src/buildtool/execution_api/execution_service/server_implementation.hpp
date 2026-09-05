@@ -15,11 +15,13 @@
 #ifndef SERVER_IMPLEMENATION_HPP
 #define SERVER_IMPLEMENATION_HPP
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
 
 #include "gsl/gsl"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 #include "src/buildtool/execution_api/local/context.hpp"
 #include "src/buildtool/execution_api/remote/context.hpp"
 
@@ -27,12 +29,18 @@ class LocalApi;
 
 class ServerImpl final {
   public:
+    /// \brief Create the execution service.
+    /// Note that all batch sizes are capted at the maximum gRPC message size.
+    /// \param max_batch_size           Maximum batch request size accepted.
+    /// \param max_batch_size_reported  Maximum batch request size reported.
     [[nodiscard]] static auto Create(
         std::optional<std::string> interface,
         std::optional<int> port,
         std::optional<std::string> info_file,
-        std::optional<std::string> pid_file) noexcept
-        -> std::optional<ServerImpl>;
+        std::optional<std::string> pid_file,
+        std::optional<std::size_t> max_batch_size = std::nullopt,
+        std::optional<std::size_t> max_batch_size_reported =
+            std::nullopt) noexcept -> std::optional<ServerImpl>;
 
     ~ServerImpl() noexcept = default;
 
@@ -59,6 +67,8 @@ class ServerImpl final {
     int port_{0};
     std::string info_file_;
     std::string pid_file_;
+    std::size_t max_batch_size_{MessageLimits::kMaxGrpcLength};
+    std::size_t max_batch_size_reported_{max_batch_size_};
 };
 
 #endif  // SERVER_IMPLEMENATION_HPP

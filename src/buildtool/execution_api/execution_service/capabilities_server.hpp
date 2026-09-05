@@ -15,16 +15,23 @@
 #ifndef CAPABILITIES_SERVER_HPP
 #define CAPABILITIES_SERVER_HPP
 
+#include <cstddef>
+
 #include <grpcpp/grpcpp.h>
 
 #include "build/bazel/remote/execution/v2/remote_execution.grpc.pb.h"
 #include "src/buildtool/common/bazel_types.hpp"
 #include "src/buildtool/crypto/hash_function.hpp"
+#include "src/buildtool/execution_api/common/message_limits.hpp"
 
 class CapabilitiesServiceImpl final : public bazel_re::Capabilities::Service {
   public:
-    explicit CapabilitiesServiceImpl(HashFunction::Type hash_type) noexcept
-        : hash_type_{hash_type} {}
+    /// \param hash_type      The hash type to report.
+    /// \param max_batch_size Maximum batch size to report (0 for no limit).
+    explicit CapabilitiesServiceImpl(
+        HashFunction::Type hash_type,
+        std::size_t max_batch_size = MessageLimits::kMaxGrpcLength) noexcept
+        : hash_type_{hash_type}, max_batch_size_{max_batch_size} {}
 
     // GetCapabilities returns the server capabilities configuration of the
     // remote endpoint.
@@ -41,5 +48,6 @@ class CapabilitiesServiceImpl final : public bazel_re::Capabilities::Service {
 
   private:
     HashFunction::Type const hash_type_;
+    std::size_t const max_batch_size_;
 };
 #endif  // CAPABILITIES_SERVER_HPP

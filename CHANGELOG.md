@@ -15,7 +15,12 @@ Bug fixes on top of `1.6.6`.
 - The single-node execution service (`just execute`) now rejects batch requests
   whose total blob size exceeds the supported limit with `INVALID_ARGUMENT`, as
   foreseen by the remote build execution protocol, instead of answering them
-  with a response of arbitrary size.
+  with a response of arbitrary size. That limit can be set with the new option
+  `--max-batch-size`; it defaults to the maximum gRPC message length of 3 MiB,
+  which is also the cap for larger values. The limit reported via the
+  capabilities service, by default the supported one, can be set independently
+  with the new option `--max-batch-size-reported`; a value of 0 reports that no
+  limit is set.
 
 ## Release `1.6.6` (2026-07-25)
 

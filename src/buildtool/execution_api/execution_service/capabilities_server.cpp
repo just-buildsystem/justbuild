@@ -14,9 +14,10 @@
 
 #include "src/buildtool/execution_api/execution_service/capabilities_server.hpp"
 
+#include <cstdint>
+
 #include "build/bazel/semver/semver.pb.h"
 #include "src/buildtool/common/protocol_traits.hpp"
-#include "src/buildtool/execution_api/common/message_limits.hpp"
 
 auto CapabilitiesServiceImpl::GetCapabilities(
     ::grpc::ServerContext* /*context*/,
@@ -31,7 +32,8 @@ auto CapabilitiesServiceImpl::GetCapabilities(
             ? ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA1
             : ::bazel_re::DigestFunction_Value::DigestFunction_Value_SHA256);
     cache.mutable_action_cache_update_capabilities()->set_update_enabled(false);
-    cache.set_max_batch_total_size_bytes(MessageLimits::kMaxGrpcLength);
+    cache.set_max_batch_total_size_bytes(
+        static_cast<std::int64_t>(max_batch_size_));
 
     *(response->mutable_cache_capabilities()) = cache;
 
